@@ -10,6 +10,7 @@ const saas_table_check_js_1 = require("../../services/saas-table-check.js");
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
 class ApiPublic {
     static async createScheme(appName) {
+        console.log(`createScheme=>`, appName);
         if (ApiPublic.checkApp.find((dd) => {
             return dd.app_name === appName;
         })) {

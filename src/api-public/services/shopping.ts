@@ -1,22 +1,22 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import { User } from './user.js';
+import {User} from './user.js';
 import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
+import {Invoice} from './invoice.js';
 import e from 'express';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
-import { Workers } from './workers.js';
+import {ManagerNotify} from './notify.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {Recommend} from './recommend.js';
+import {Workers} from './workers.js';
 import axios from 'axios';
-import { Delivery, DeliveryData } from './delivery.js';
+import {Delivery, DeliveryData} from './delivery.js';
 
 type BindItem = {
     id: string;
@@ -120,11 +120,13 @@ type Cart = {
     use_rebate: number;
     orderID: string;
     shipment_support: string[];
+    shipment_selector: { name: string, value: string }[]
     shipment_info: any;
     use_wallet: number;
     user_email: string;
     method: string;
     useRebateInfo?: { point: number; limit?: number; condition?: number };
+    user_rebate_sum: number,
     voucherList?: VoucherData[];
     custom_form_format?: any;
     custom_form_data?: any;
@@ -151,7 +153,7 @@ export class Shopping {
             // 以 t_voucher_history 更新資料舉例
             const jsonData = await db.query(
                 `SELECT *
-                                             FROM \`${this.app}\`.t_voucher_history`,
+                 FROM \`${this.app}\`.t_voucher_history`,
                 []
             );
             const t0 = performance.now();
@@ -161,8 +163,8 @@ export class Shopping {
                 for (const record of jsonData) {
                     await db.query(
                         `UPDATE \`${this.app}\`.\`t_voucher_history\`
-                                    SET ?
-                                    WHERE id = ?`,
+                         SET ?
+                         WHERE id = ?`,
                         [record, record.id]
                     );
                 }
@@ -296,14 +298,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -349,7 +351,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
                         if (index === -1) {
-                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                            itemRecord.push({id: parseInt(`${item1.id}`, 10), count: item1.count});
                         } else {
                             itemRecord[index].count += item1.count;
                         }
@@ -364,10 +366,10 @@ export class Shopping {
                      FROM \`${this.app}\`.t_stock_recover,
                           \`${this.app}\`.t_checkout
                      WHERE product_id in (${productList
-                         .map((dd) => {
-                             return dd.id;
-                         })
-                         .join(',')})
+                        .map((dd) => {
+                            return dd.id;
+                        })
+                        .join(',')})
                        and order_id = cart_token
                        and dead_line < ?;`,
                     [new Date()]
@@ -389,7 +391,7 @@ export class Shopping {
                                  SET ?
                                  WHERE 1 = 1
                                    and id = ${stock.product_id}`,
-                                [{ content: JSON.stringify(product.content) }]
+                                [{content: JSON.stringify(product.content)}]
                             );
                         }
                         // 移除紀錄
@@ -445,7 +447,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: (
@@ -500,7 +502,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -691,7 +693,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -761,6 +763,14 @@ export class Shopping {
                 }
             });
 
+            //載入自訂配送表單
+            shipment_setting.custom_delivery=shipment_setting.custom_delivery ?? []
+            for (const form of shipment_setting.custom_delivery){
+                form.form=(await new User(this.app).getConfigV2({
+                    user_id:'manager',
+                    key:`form_delivery_${form.id}`
+                })).list || []
+            }
             // 購物車資料
             const carData: Cart = {
                 customer_info: data.customer_info || {},
@@ -774,15 +784,44 @@ export class Shopping {
                 orderID: (data as any).orderID || this.generateOrderID(),
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
+                shipment_selector: [{
+                    name: '一般宅配', value: 'normal'
+                },
+                    {
+                        name: '全家店到店', value: 'FAMIC2C'
+                    },
+                    {
+                        name: '萊爾富店到店', value: 'HILIFEC2C'
+                    },
+                    {
+                        name: 'OK超商店到店', value: 'OKMARTC2C'
+                    },
+                    {
+                        name: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+                    },
+                    {
+                        name: '實體門市取貨', value: 'shop'
+                    }].concat((shipment_setting.custom_delivery ?? []).map((dd: any) => {
+                    return {
+                        form:dd.form,
+                        name: dd.name,
+                        value: dd.id
+                    }
+                })).filter((d1) => {
+                    return shipment_setting.support.find((d2: any) => {
+                        return d2 === d1.value
+                    })
+                }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away as any,
+                user_rebate_sum: 0
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -867,7 +906,7 @@ export class Shopping {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`,
-                                    [{ content: JSON.stringify(pd) }]
+                                    [{content: JSON.stringify(pd)}]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
@@ -894,7 +933,8 @@ export class Shopping {
                             add_on_items.push(b);
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -916,8 +956,17 @@ export class Shopping {
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
+            if (userData && userData.account) {
+                const data = await rebateClass.getOneRebate({ user_id: userData.userID});
+                carData.user_rebate_sum = data?.point||0
+            }
 
-            function checkDuring(jsonData: { startDate: string; startTime: string; endDate: string | undefined; endTime: string | undefined }) {
+            function checkDuring(jsonData: {
+                startDate: string;
+                startTime: string;
+                endDate: string | undefined;
+                endTime: string | undefined
+            }) {
                 // 獲取當前時間
                 const now = new Date();
                 const currentDateTime = now.getTime();
@@ -973,7 +1022,8 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
@@ -1077,7 +1127,7 @@ export class Shopping {
                 });
             });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return { data: carData };
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
@@ -1169,7 +1219,7 @@ export class Shopping {
                 }
                 await trans.commit();
                 await trans.release();
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
+                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1208,10 +1258,10 @@ export class Shopping {
                     appName: this.app,
                     key: 'glitter_delivery',
                 })
-            )[0];
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config) {
+            )[0]
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.toggle === 'true') {
                 const keyData = del_config.value;
-                console.info(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
 
                 const delivery = await new Delivery(this.app).postStoreOrder({
                     LogisticsSubType: carData.user_info.LogisticsSubType,
@@ -1223,15 +1273,15 @@ export class Shopping {
                         keyData.Action === 'main'
                             ? carData.user_info.CVSStoreID // 正式門市
                             : (() => {
-                                  // 測試門市（萊爾富不開放測試）
-                                  if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                      return '1328'; // OK超商
-                                  }
-                                  if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                      return '006598'; // 全家
-                                  }
-                                  return '131386'; // 7-11
-                              })(),
+                                // 測試門市（萊爾富不開放測試）
+                                if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                    return '1328'; // OK超商
+                                }
+                                if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                    return '006598'; // 全家
+                                }
+                                return '131386'; // 7-11
+                            })(),
                 });
                 if (delivery.result) {
                     carData.deliveryData = delivery.data;
@@ -1465,7 +1515,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
+                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
                 );
                 return {
                     result: 'success',
@@ -1490,7 +1540,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1570,10 +1620,10 @@ export class Shopping {
         }
 
         // 確認用戶資訊
-        const userData = (await userClass.getUserData(cart.email, 'account')) ?? { userID: -1 };
+        const userData = (await userClass.getUserData(cart.email, 'account')) ?? {userID: -1};
 
         // 取得顧客會員等級
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const userLevels = await userClass.getUserLevel([{email: cart.email}]);
 
         // 所有優惠券
         const allVoucher: VoucherData[] = (
@@ -1955,7 +2005,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
             await db.query(
@@ -2249,7 +2299,7 @@ export class Shopping {
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -2406,129 +2456,130 @@ export class Shopping {
         }
     }
 
-    async getDataAnalyze(tags: string[]) {
-        try {
-            if (tags.length > 0) {
-                const result = {} as any;
-                for (const tag of tags) {
-                    switch (tag) {
-                        case 'recent_active_user':
-                            result[tag] = await this.getRecentActiveUser();
-                            break;
-                        case 'recent_sales':
-                            result[tag] = await this.getSalesInRecentMonth();
-                            break;
-                        case 'recent_orders':
-                            result[tag] = await this.getOrdersInRecentMonth();
-                            break;
-                        case 'hot_products':
-                            result[tag] = await this.getHotProducts('month');
-                            break;
-                        case 'hot_products_today':
-                            result[tag] = await this.getHotProducts('day');
-                            break;
-                        case 'order_avg_sale_price':
-                            result[tag] = await this.getOrderAvgSalePrice();
-                            break;
-                        case 'orders_per_month_1_year':
-                            result[tag] = await this.getOrdersPerMonth1Year();
-                            break;
-                        case 'sales_per_month_1_year':
-                            result[tag] = await this.getSalesPerMonth1Year();
-                            break;
-                        case 'order_today':
-                            result[tag] = await this.getOrderToDay();
-                            break;
-                    }
-                }
-                return result;
-            }
-            return { result: false };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
-        }
-    }
 
-    async getOrderToDay() {
-        try {
-            const order = await db.query(
-                `SELECT *
+    async getDataAnalyze(tags: string[]) {
+                try {
+                    if (tags.length > 0) {
+                        const result = {} as any;
+                        for (const tag of tags) {
+                            switch (tag) {
+                                case 'recent_active_user':
+                                    result[tag] = await this.getRecentActiveUser();
+                                    break;
+                                case 'recent_sales':
+                                    result[tag] = await this.getSalesInRecentMonth();
+                                    break;
+                                case 'recent_orders':
+                                    result[tag] = await this.getOrdersInRecentMonth();
+                                    break;
+                                case 'hot_products':
+                                    result[tag] = await this.getHotProducts('month');
+                                    break;
+                                case 'hot_products_today':
+                                    result[tag] = await this.getHotProducts('day');
+                                    break;
+                                case 'order_avg_sale_price':
+                                    result[tag] = await this.getOrderAvgSalePrice();
+                                    break;
+                                case 'orders_per_month_1_year':
+                                    result[tag] = await this.getOrdersPerMonth1Year();
+                                    break;
+                                case 'sales_per_month_1_year':
+                                    result[tag] = await this.getSalesPerMonth1Year();
+                                    break;
+                                case 'order_today':
+                                    result[tag] = await this.getOrderToDay();
+                                    break;
+                            }
+                        }
+                        return result;
+                    }
+                    return {result: false};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
+                }
+            }
+
+            async getOrderToDay() {
+                try {
+                    const order = await db.query(
+                        `SELECT *
                  FROM \`${this.app}\`.t_checkout
                  WHERE DATE (created_time) = CURDATE()`,
-                []
-            );
-            return {
-                //訂單總數
-                total_count: order.filter((dd: any) => {
-                    return dd.status === 1;
-                }).length,
-                //未出貨訂單
-                un_shipment: (
-                    await db.query(
-                        `SELECT count(1)
+                        []
+                    );
+                    return {
+                        //訂單總數
+                        total_count: order.filter((dd: any) => {
+                            return dd.status === 1;
+                        }).length,
+                        //未出貨訂單
+                        un_shipment: (
+                            await db.query(
+                                `SELECT count(1)
                          from \`${this.app}\`.t_checkout
                          WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
                            and status = 1`,
-                        []
-                    )
-                )[0]['count(1)'],
-                //未付款訂單
-                un_pay: order.filter((dd: any) => {
-                    return dd.status === 0;
-                }).length,
-                //今日成交金額
-                total_amount: (() => {
-                    let amount = 0;
-                    order
-                        .filter((dd: any) => {
-                            return dd.status === 1;
-                        })
-                        .map((dd: any) => {
-                            amount += dd.orderData.total;
-                        });
-                    return amount;
-                })(),
-            };
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
-        }
-    }
+                                []
+                            )
+                        )[0]['count(1)'],
+                        //未付款訂單
+                        un_pay: order.filter((dd: any) => {
+                            return dd.status === 0;
+                        }).length,
+                        //今日成交金額
+                        total_amount: (() => {
+                            let amount = 0;
+                            order
+                                .filter((dd: any) => {
+                                    return dd.status === 1;
+                                })
+                                .map((dd: any) => {
+                                    amount += dd.orderData.total;
+                                });
+                            return amount;
+                        })(),
+                    };
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
+                }
+            }
 
-    async getRecentActiveUser() {
-        try {
-            const recentSQL = `
+            async getRecentActiveUser() {
+                try {
+                    const recentSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_user
                 WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
             `;
-            const recent_users = await db.query(recentSQL, []);
-            const monthSQL = `
+                    const recent_users = await db.query(recentSQL, []);
+                    const monthSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_user
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
-            const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
+                    const month_users = await db.query(monthSQL, []);
+                    return {recent: recent_users.length, months: month_users.length};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+                }
+            }
 
-    async getSalesInRecentMonth() {
-        try {
-            const recentMonthSQL = `
+            async getSalesInRecentMonth() {
+                try {
+                    const recentMonthSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
                 WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
             `;
-            const recentMonthCheckouts = await db.query(recentMonthSQL, []);
-            let recent_month_total = 0;
-            recentMonthCheckouts.map((checkout: any) => {
-                recent_month_total += parseInt(checkout.orderData.total, 10);
-            });
+                    const recentMonthCheckouts = await db.query(recentMonthSQL, []);
+                    let recent_month_total = 0;
+                    recentMonthCheckouts.map((checkout: any) => {
+                        recent_month_total += parseInt(checkout.orderData.total, 10);
+                    });
 
-            const previousMonthSQL = `
+                    const previousMonthSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
                 WHERE
@@ -2538,77 +2589,77 @@ export class Shopping {
                     , INTERVAL 1 MONTH))
                   AND status = 1;
             `;
-            const previousMonthCheckouts = await db.query(previousMonthSQL, []);
-            let previous_month_total = 0;
-            previousMonthCheckouts.map((checkout: any) => {
-                previous_month_total += parseInt(checkout.orderData.total, 10);
-            });
+                    const previousMonthCheckouts = await db.query(previousMonthSQL, []);
+                    let previous_month_total = 0;
+                    previousMonthCheckouts.map((checkout: any) => {
+                        previous_month_total += parseInt(checkout.orderData.total, 10);
+                    });
 
-            let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
-                gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
+                    let gap = 0;
+                    if (recent_month_total !== 0 && previous_month_total !== 0) {
+                        gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
+                    }
+
+                    return {recent_month_total, previous_month_total, gap};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+                }
             }
 
-            return { recent_month_total, previous_month_total, gap };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getHotProducts(duration: 'month' | 'day') {
-        try {
-            const checkoutSQL = `
+            async getHotProducts(duration: 'month' | 'day') {
+                try {
+                    const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
                   AND ${
-                      duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`
-                  };
+                        duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`
+                    };
             `;
-            const checkouts = await db.query(checkoutSQL, []);
-            const series = [];
-            const categories = [];
-            const product_list: { title: string; count: number }[] = [];
+                    const checkouts = await db.query(checkoutSQL, []);
+                    const series = [];
+                    const categories = [];
+                    const product_list: { title: string; count: number }[] = [];
 
-            for (const checkout of checkouts) {
-                if (Array.isArray(checkout.lineItems)) {
-                    for (const item1 of checkout.lineItems) {
-                        const index = product_list.findIndex((item2) => item1.title === item2.title);
-                        if (index === -1) {
-                            product_list.push({ title: item1.title, count: item1.count });
-                        } else {
-                            product_list[index].count += item1.count;
+                    for (const checkout of checkouts) {
+                        if (Array.isArray(checkout.lineItems)) {
+                            for (const item1 of checkout.lineItems) {
+                                const index = product_list.findIndex((item2) => item1.title === item2.title);
+                                if (index === -1) {
+                                    product_list.push({title: item1.title, count: item1.count});
+                                } else {
+                                    product_list[index].count += item1.count;
+                                }
+                            }
                         }
                     }
+
+                    const final_product_list = product_list.sort((a, b) => (a.count < b.count ? 1 : -1));
+                    for (let index = 0; index < 10; index++) {
+                        if (final_product_list[index]) {
+                            const element = final_product_list[index];
+                            series.push(element.count);
+                            categories.push(element.title);
+                        }
+                    }
+
+                    return {series, categories};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
                 }
             }
 
-            const final_product_list = product_list.sort((a, b) => (a.count < b.count ? 1 : -1));
-            for (let index = 0; index < 10; index++) {
-                if (final_product_list[index]) {
-                    const element = final_product_list[index];
-                    series.push(element.count);
-                    categories.push(element.title);
-                }
-            }
-
-            return { series, categories };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersInRecentMonth() {
-        try {
-            const recentMonthSQL = `
+            async getOrdersInRecentMonth() {
+                try {
+                    const recentMonthSQL = `
                 SELECT id
                 FROM \`${this.app}\`.t_checkout
                 WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
             `;
-            const recentMonthCheckouts = await db.query(recentMonthSQL, []);
-            let recent_month_total = recentMonthCheckouts.length;
+                    const recentMonthCheckouts = await db.query(recentMonthSQL, []);
+                    let recent_month_total = recentMonthCheckouts.length;
 
-            const previousMonthSQL = `
+                    const previousMonthSQL = `
                 SELECT id
                 FROM \`${this.app}\`.t_checkout
                 WHERE
@@ -2618,26 +2669,26 @@ export class Shopping {
                     , INTERVAL 1 MONTH))
                   AND status = 1;
             `;
-            const previousMonthCheckouts = await db.query(previousMonthSQL, []);
-            let previous_month_total = previousMonthCheckouts.length;
+                    const previousMonthCheckouts = await db.query(previousMonthSQL, []);
+                    let previous_month_total = previousMonthCheckouts.length;
 
-            let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
-                gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
+                    let gap = 0;
+                    if (recent_month_total !== 0 && previous_month_total !== 0) {
+                        gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
+                    }
+
+                    return {recent_month_total, previous_month_total, gap};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+                }
             }
 
-            return { recent_month_total, previous_month_total, gap };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
+            async getOrdersPerMonth1Year() {
+                try {
+                    const countArray = [];
 
-    async getOrdersPerMonth1Year() {
-        try {
-            const countArray = [];
-
-            for (let index = 0; index < 12; index++) {
-                const orderCountSQL = `
+                    for (let index = 0; index < 12; index++) {
+                        const orderCountSQL = `
                     SELECT count(id) as c
                     FROM \`${this.app}\`.t_checkout
                     WHERE
@@ -2647,22 +2698,22 @@ export class Shopping {
                         , INTERVAL ${index} MONTH))
                       AND status = 1;
                 `;
-                const orders = await db.query(orderCountSQL, []);
-                countArray.unshift(orders[0].c);
+                        const orders = await db.query(orderCountSQL, []);
+                        countArray.unshift(orders[0].c);
+                    }
+
+                    return {countArray};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+                }
             }
 
-            return { countArray };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
+            async getSalesPerMonth1Year() {
+                try {
+                    const countArray = [];
 
-    async getSalesPerMonth1Year() {
-        try {
-            const countArray = [];
-
-            for (let index = 0; index < 12; index++) {
-                const monthCheckoutSQL = `
+                    for (let index = 0; index < 12; index++) {
+                        const monthCheckoutSQL = `
                     SELECT orderData
                     FROM \`${this.app}\`.t_checkout
                     WHERE
@@ -2672,26 +2723,26 @@ export class Shopping {
                         , INTERVAL ${index} MONTH))
                       AND status = 1;
                 `;
-                const monthCheckout = await db.query(monthCheckoutSQL, []);
-                let total = 0;
-                monthCheckout.map((checkout: any) => {
-                    total += parseInt(checkout.orderData.total, 10);
-                });
-                countArray.unshift(total);
+                        const monthCheckout = await db.query(monthCheckoutSQL, []);
+                        let total = 0;
+                        monthCheckout.map((checkout: any) => {
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArray.unshift(total);
+                    }
+
+                    return {countArray};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+                }
             }
 
-            return { countArray };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
+            async getOrderAvgSalePrice() {
+                try {
+                    const countArray = [];
 
-    async getOrderAvgSalePrice() {
-        try {
-            const countArray = [];
-
-            for (let index = 0; index < 14; index++) {
-                const monthCheckoutSQL = `
+                    for (let index = 0; index < 14; index++) {
+                        const monthCheckoutSQL = `
                     SELECT orderData
                     FROM \`${this.app}\`.t_checkout
                     WHERE
@@ -2703,721 +2754,725 @@ export class Shopping {
                         , INTERVAL ${index} DAY))
                       AND status = 1;
                 `;
-                const monthCheckout = await db.query(monthCheckoutSQL, []);
-                let total = 0;
-                monthCheckout.map((checkout: any) => {
-                    total += parseInt(checkout.orderData.total, 10);
-                });
-                if (monthCheckout.length == 0) {
-                    countArray.unshift(0);
-                } else {
-                    countArray.unshift(Math.floor((total / monthCheckout.length) * 100) / 100);
-                }
-            }
-
-            return { countArray };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getCollectionProducts(tag: string) {
-        try {
-            const products_sql = `SELECT *
-                                  FROM \`${this.app}\`.t_manager_post
-                                  WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
-            const products = await db.query(products_sql, []);
-            return products.filter((product: any) => product.content.collection.includes(tag));
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
-        }
-    }
-
-    async putCollection(replace: Collection, original: Collection) {
-        try {
-            const config =
-                (
-                    await db.query(
-                        `SELECT *
-                         FROM \`${this.app}\`.public_config
-                         WHERE \`key\` = 'collection';`,
-                        []
-                    )
-                )[0] ?? {};
-            config.value = config.value || [];
-
-            if (replace.parentTitles[0] === '(無)') {
-                replace.parentTitles = [];
-            }
-
-            // 標題禁止空白格與指定符號
-            replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
-
-            if (replace.parentTitles.length > 0) {
-                // 子類別驗證
-                const oTitle = original.parentTitles[0] ?? '';
-                const rTitle = replace.parentTitles[0];
-                if (!(replace.title === original.title && rTitle === oTitle)) {
-                    const parent = config.value.find((col: { title: string }) => col.title === rTitle);
-                    const children = parent.array.find((chi: { title: string }) => chi.title === replace.title);
-                    if (children) {
-                        return {
-                            result: false,
-                            message: `上層分類「${parent.title}」已存在「${children.title}」類別名稱`,
-                        };
-                    }
-                }
-            } else {
-                // 父類別驗證
-                if (replace.title !== original.title) {
-                    const parent = config.value.find((col: { title: string }) => col.title === replace.title);
-                    if (parent) {
-                        return {
-                            result: false,
-                            message: `上層分類已存在「${parent.title}」類別名稱`,
-                        };
-                    }
-                }
-            }
-
-            // 判斷是否有重複使用的代號
-            function findCodePath(items: Collection[], inputCode: string, path: Collection[] = []): Collection[] {
-                for (const item of items) {
-                    const currentPath = [...path, item]; // 儲存目前的路徑
-
-                    if (item.code === inputCode) {
-                        return currentPath; // 找到匹配的 code，返回整個路徑
-                    }
-
-                    // 遞迴檢查子層的 array
-                    if (item.array.length > 0) {
-                        const result = findCodePath(item.array, inputCode, currentPath);
-                        if (result.length > 0) {
-                            return result; // 如果找到結果，返回該路徑
+                        const monthCheckout = await db.query(monthCheckoutSQL, []);
+                        let total = 0;
+                        monthCheckout.map((checkout: any) => {
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        if (monthCheckout.length == 0) {
+                            countArray.unshift(0);
+                        } else {
+                            countArray.unshift(Math.floor((total / monthCheckout.length) * 100) / 100);
                         }
                     }
-                }
-                return []; // 如果沒有匹配的 code，返回空陣列
-            }
 
-            let isUsedCode = false;
-            const codeResult = findCodePath(config.value, replace.code);
-            if (codeResult.length === 1) {
-                isUsedCode = codeResult[0].title !== original.title;
-            }
-            if (codeResult.length === 2) {
-                isUsedCode = codeResult[0].title !== original.parentTitles[0] || codeResult[1].title !== original.title;
-            }
-            if (isUsedCode) {
-                return {
-                    result: false,
-                    message: `類別代號「${replace.code}」已被使用`,
-                };
-            }
-
-            const formatData = {
-                array: [],
-                code: replace.code,
-                title: replace.title,
-                seo_title: replace.seo_title,
-                seo_content: replace.seo_content,
-                seo_image: replace.seo_image,
-            };
-
-            if (original.title.length === 0) {
-                const parentIndex = config.value.findIndex((col: { title: string }) => {
-                    return col.title === replace.parentTitles[0];
-                });
-                if (parentIndex === -1) {
-                    // 新增父層類別
-                    config.value.push(formatData);
-                } else {
-                    // 新增子層類別
-                    config.value[parentIndex].array.push(formatData);
-                }
-            } else if (replace.parentTitles.length === 0) {
-                // 編輯父層類別
-                const parentIndex = config.value.findIndex((col: { title: string }) => {
-                    return col.title === original.title;
-                });
-                config.value[parentIndex] = {
-                    ...formatData,
-                    array: replace.subCollections.map((col) => {
-                        const sub = config.value[parentIndex].array.find((item: { title: string }) => {
-                            return item.title === col;
-                        });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
-                    }),
-                };
-            } else {
-                const oTitle = original.parentTitles[0] ?? '';
-                const rTitle = replace.parentTitles[0];
-                const originParentIndex = config.value.findIndex((col: { title: string }) => col.title === oTitle);
-                const replaceParentIndex = config.value.findIndex((col: { title: string }) => col.title === rTitle);
-                const childrenIndex = config.value[originParentIndex].array.findIndex((chi: { title: string }) => {
-                    return chi.title === original.title;
-                });
-                if (originParentIndex === replaceParentIndex) {
-                    // 編輯子層類別，沒有調整父層
-                    config.value[originParentIndex].array[childrenIndex] = formatData;
-                } else {
-                    // 編輯子層類別，有調整父層
-                    config.value[originParentIndex].array.splice(childrenIndex, 1);
-                    config.value[replaceParentIndex].array.push(formatData);
+                    return {countArray};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
                 }
             }
 
-            // 更新父層的子類別
-            if (original.parentTitles[0]) {
-                const filter_childrens = original.subCollections.filter((child) => {
-                    return replace.subCollections.findIndex((child2) => child2 === child) === -1;
-                });
-                await this.deleteCollectionProduct(original.title, filter_childrens);
-            }
-
-            // 類別刪除產品
-            if (original.title.length > 0) {
-                const delete_id_list = (original.product_id ?? []).filter((oid) => {
-                    return (replace.product_id ?? []).findIndex((rid) => rid === oid) === -1;
-                });
-                if (delete_id_list.length > 0) {
+            async getCollectionProducts(tag: string) {
+                try {
                     const products_sql = `SELECT *
+                                  FROM \`${this.app}\`.t_manager_post
+                                  WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
+                    const products = await db.query(products_sql, []);
+                    return products.filter((product: any) => product.content.collection.includes(tag));
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+                }
+            }
+
+            async putCollection(replace: Collection, original: Collection) {
+                try {
+                    const config =
+                        (
+                            await db.query(
+                                `SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`,
+                                []
+                            )
+                        )[0] ?? {};
+                    config.value = config.value || [];
+
+                    if (replace.parentTitles[0] === '(無)') {
+                        replace.parentTitles = [];
+                    }
+
+                    // 標題禁止空白格與指定符號
+                    replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
+
+                    if (replace.parentTitles.length > 0) {
+                        // 子類別驗證
+                        const oTitle = original.parentTitles[0] ?? '';
+                        const rTitle = replace.parentTitles[0];
+                        if (!(replace.title === original.title && rTitle === oTitle)) {
+                            const parent = config.value.find((col: { title: string }) => col.title === rTitle);
+                            const children = parent.array.find((chi: { title: string }) => chi.title === replace.title);
+                            if (children) {
+                                return {
+                                    result: false,
+                                    message: `上層分類「${parent.title}」已存在「${children.title}」類別名稱`,
+                                };
+                            }
+                        }
+                    } else {
+                        // 父類別驗證
+                        if (replace.title !== original.title) {
+                            const parent = config.value.find((col: { title: string }) => col.title === replace.title);
+                            if (parent) {
+                                return {
+                                    result: false,
+                                    message: `上層分類已存在「${parent.title}」類別名稱`,
+                                };
+                            }
+                        }
+                    }
+
+                    // 判斷是否有重複使用的代號
+                    function findCodePath(items: Collection[], inputCode: string, path: Collection[] = []): Collection[] {
+                        for (const item of items) {
+                            const currentPath = [...path, item]; // 儲存目前的路徑
+
+                            if (item.code === inputCode) {
+                                return currentPath; // 找到匹配的 code，返回整個路徑
+                            }
+
+                            // 遞迴檢查子層的 array
+                            if (item.array.length > 0) {
+                                const result = findCodePath(item.array, inputCode, currentPath);
+                                if (result.length > 0) {
+                                    return result; // 如果找到結果，返回該路徑
+                                }
+                            }
+                        }
+                        return []; // 如果沒有匹配的 code，返回空陣列
+                    }
+
+                    let isUsedCode = false;
+                    const codeResult = findCodePath(config.value, replace.code);
+                    if (codeResult.length === 1) {
+                        isUsedCode = codeResult[0].title !== original.title;
+                    }
+                    if (codeResult.length === 2) {
+                        isUsedCode = codeResult[0].title !== original.parentTitles[0] || codeResult[1].title !== original.title;
+                    }
+                    if (isUsedCode) {
+                        return {
+                            result: false,
+                            message: `類別代號「${replace.code}」已被使用`,
+                        };
+                    }
+
+                    const formatData = {
+                        array: [],
+                        code: replace.code,
+                        title: replace.title,
+                        seo_title: replace.seo_title,
+                        seo_content: replace.seo_content,
+                        seo_image: replace.seo_image,
+                    };
+
+                    if (original.title.length === 0) {
+                        const parentIndex = config.value.findIndex((col: { title: string }) => {
+                            return col.title === replace.parentTitles[0];
+                        });
+                        if (parentIndex === -1) {
+                            // 新增父層類別
+                            config.value.push(formatData);
+                        } else {
+                            // 新增子層類別
+                            config.value[parentIndex].array.push(formatData);
+                        }
+                    } else if (replace.parentTitles.length === 0) {
+                        // 編輯父層類別
+                        const parentIndex = config.value.findIndex((col: { title: string }) => {
+                            return col.title === original.title;
+                        });
+                        config.value[parentIndex] = {
+                            ...formatData,
+                            array: replace.subCollections.map((col) => {
+                                const sub = config.value[parentIndex].array.find((item: { title: string }) => {
+                                    return item.title === col;
+                                });
+                                return {array: [], title: col, code: sub ? sub.code : ''};
+                            }),
+                        };
+                    } else {
+                        const oTitle = original.parentTitles[0] ?? '';
+                        const rTitle = replace.parentTitles[0];
+                        const originParentIndex = config.value.findIndex((col: { title: string }) => col.title === oTitle);
+                        const replaceParentIndex = config.value.findIndex((col: { title: string }) => col.title === rTitle);
+                        const childrenIndex = config.value[originParentIndex].array.findIndex((chi: { title: string }) => {
+                            return chi.title === original.title;
+                        });
+                        if (originParentIndex === replaceParentIndex) {
+                            // 編輯子層類別，沒有調整父層
+                            config.value[originParentIndex].array[childrenIndex] = formatData;
+                        } else {
+                            // 編輯子層類別，有調整父層
+                            config.value[originParentIndex].array.splice(childrenIndex, 1);
+                            config.value[replaceParentIndex].array.push(formatData);
+                        }
+                    }
+
+                    // 更新父層的子類別
+                    if (original.parentTitles[0]) {
+                        const filter_childrens = original.subCollections.filter((child) => {
+                            return replace.subCollections.findIndex((child2) => child2 === child) === -1;
+                        });
+                        await this.deleteCollectionProduct(original.title, filter_childrens);
+                    }
+
+                    // 類別刪除產品
+                    if (original.title.length > 0) {
+                        const delete_id_list = (original.product_id ?? []).filter((oid) => {
+                            return (replace.product_id ?? []).findIndex((rid) => rid === oid) === -1;
+                        });
+                        if (delete_id_list.length > 0) {
+                            const products_sql = `SELECT *
                                           FROM \`${this.app}\`.t_manager_post
                                           WHERE id in (${delete_id_list.join(',')});`;
-                    const delete_product_list = await db.query(products_sql, []);
-                    for (const product of delete_product_list) {
-                        product.content.collection = product.content.collection.filter((str: string) => {
-                            if (original.parentTitles[0]) {
-                                return str !== `${original.parentTitles[0]} / ${original.title}`;
-                            } else {
-                                return !(str.includes(`${original.title} /`) || str === `${original.title}`);
+                            const delete_product_list = await db.query(products_sql, []);
+                            for (const product of delete_product_list) {
+                                product.content.collection = product.content.collection.filter((str: string) => {
+                                    if (original.parentTitles[0]) {
+                                        return str !== `${original.parentTitles[0]} / ${original.title}`;
+                                    } else {
+                                        return !(str.includes(`${original.title} /`) || str === `${original.title}`);
+                                    }
+                                });
+                                await this.updateProductCollection(product.content, product.id);
                             }
-                        });
-                        await this.updateProductCollection(product.content, product.id);
+                        }
                     }
-                }
-            }
 
-            // 更新類別下商品
-            const get_product_sql = `SELECT *
+                    // 更新類別下商品
+                    const get_product_sql = `SELECT *
                                      FROM \`${this.app}\`.t_manager_post
                                      WHERE id = ?`;
-            for (const id of replace.product_id ?? []) {
-                const get_product = await db.query(get_product_sql, [id]);
-                if (get_product[0]) {
-                    const product = get_product[0];
-                    const originalParentTitles = original.parentTitles[0] ?? '';
-                    const replaceParentTitles = replace.parentTitles[0] ?? '';
+                    for (const id of replace.product_id ?? []) {
+                        const get_product = await db.query(get_product_sql, [id]);
+                        if (get_product[0]) {
+                            const product = get_product[0];
+                            const originalParentTitles = original.parentTitles[0] ?? '';
+                            const replaceParentTitles = replace.parentTitles[0] ?? '';
 
-                    if (original.title.length > 0) {
-                        product.content.collection = product.content.collection
-                            .filter((str: string) => {
-                                if (originalParentTitles === replaceParentTitles) {
-                                    return true;
-                                }
-                                if (replaceParentTitles) {
-                                    if (str === originalParentTitles || str.includes(`${originalParentTitles} / ${original.title}`)) {
-                                        return false;
-                                    }
-                                } else {
-                                    if (str === original.title || str.includes(`${original.title} /`)) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            })
-                            .map((str: string) => {
-                                if (replaceParentTitles) {
-                                    if (str.includes(`${originalParentTitles} / ${original.title}`)) {
-                                        return str.replace(original.title, replace.title);
-                                    }
-                                } else {
-                                    if (str === original.title || str.includes(`${original.title} /`)) {
-                                        return str.replace(original.title, replace.title);
-                                    }
-                                }
-                                return str;
-                            });
+                            if (original.title.length > 0) {
+                                product.content.collection = product.content.collection
+                                    .filter((str: string) => {
+                                        if (originalParentTitles === replaceParentTitles) {
+                                            return true;
+                                        }
+                                        if (replaceParentTitles) {
+                                            if (str === originalParentTitles || str.includes(`${originalParentTitles} / ${original.title}`)) {
+                                                return false;
+                                            }
+                                        } else {
+                                            if (str === original.title || str.includes(`${original.title} /`)) {
+                                                return false;
+                                            }
+                                        }
+                                        return true;
+                                    })
+                                    .map((str: string) => {
+                                        if (replaceParentTitles) {
+                                            if (str.includes(`${originalParentTitles} / ${original.title}`)) {
+                                                return str.replace(original.title, replace.title);
+                                            }
+                                        } else {
+                                            if (str === original.title || str.includes(`${original.title} /`)) {
+                                                return str.replace(original.title, replace.title);
+                                            }
+                                        }
+                                        return str;
+                                    });
+                            }
+
+                            if (replaceParentTitles === '') {
+                                product.content.collection.push(replace.title);
+                            } else {
+                                product.content.collection.push(replaceParentTitles);
+                                product.content.collection.push(`${replaceParentTitles} / ${replace.title}`);
+                            }
+
+                            product.content.collection = [...new Set(product.content.collection)];
+
+                            await this.updateProductCollection(product.content, product.id);
+                        }
                     }
 
-                    if (replaceParentTitles === '') {
-                        product.content.collection.push(replace.title);
-                    } else {
-                        product.content.collection.push(replaceParentTitles);
-                        product.content.collection.push(`${replaceParentTitles} / ${replace.title}`);
-                    }
+                    // 更新商品類別 config
+                    const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
+                    await db.execute(update_col_sql, [config.value]);
 
-                    product.content.collection = [...new Set(product.content.collection)];
-
-                    await this.updateProductCollection(product.content, product.id);
+                    return {result: true};
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
                 }
             }
 
-            // 更新商品類別 config
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                                    SET value = ?
-                                    WHERE \`key\` = 'collection';`;
-            await db.execute(update_col_sql, [config.value]);
+            async sortCollection(data: Collection[]) {
+                try {
+                    if (data && data[0]) {
+                        const parentTitle = data[0].parentTitles[0] ?? '';
+                        const config =
+                            (
+                                await db.query(
+                                    `SELECT *
+                             FROM \`${this.app}\`.public_config
+                             WHERE \`key\` = 'collection';`,
+                                    []
+                                )
+                            )[0] ?? {};
+                        config.value = config.value || [];
 
-            return { result: true };
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
-        }
-    }
+                        if (parentTitle === '') {
+                            config.value = data.map((item) => {
+                                return config.value.find((conf: { title: string }) => conf.title === item.title);
+                            });
+                        } else {
+                            const index = config.value.findIndex((conf: { title: string }) => conf.title === parentTitle);
 
-    async sortCollection(data: Collection[]) {
-        try {
-            if (data && data[0]) {
-                const parentTitle = data[0].parentTitles[0] ?? '';
-                const config =
+                            const sortList = data.map((item) => {
+                                if (index > -1) {
+                                    return config.value[index].array.find((conf: {
+                                        title: string
+                                    }) => conf.title === item.title);
+                                }
+                                return {title: '', array: [], code: ''};
+                            });
+
+                            config.value[index].array = sortList;
+                        }
+
+                        await db.execute(
+                            `UPDATE \`${this.app}\`.public_config
+                     SET value = ?
+                     WHERE \`key\` = 'collection';
+                    `,
+                            [config.value]
+                        );
+                        return true;
+                    }
+                    return false;
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
+                }
+            }
+
+            checkVariantDataType(variants: any[]) {
+                variants.map((dd) => {
+                    dd.stock && (dd.stock = parseInt(dd.stock, 10));
+                    dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
+                    dd.sale_price && (dd.sale_price = parseInt(dd.sale_price, 10));
+                    dd.compare_price && (dd.compare_price = parseInt(dd.compare_price, 10));
+                    dd.shipment_weight && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
+                });
+            }
+
+            async postProduct(content: any) {
+                try {
+                    content.type = 'product';
+                    this.checkVariantDataType(content.variants);
+                    const data = await db.query(
+                        `INSERT INTO \`${this.app}\`.\`t_manager_post\`
+                 SET ?
+                `,
+                        [
+                            {
+                                userID: this.token?.userID,
+                                content: JSON.stringify(content),
+                            },
+                        ]
+                    );
+                    content.id = data.insertId;
+                    await db.query(
+                        `update \`${this.app}\`.\`t_manager_post\`
+                 SET ?
+                 where id = ?
+                `,
+                        [
+                            {
+                                content: JSON.stringify(content),
+                            },
+                            content.id,
+                        ]
+                    );
+                    await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+                    return data.insertId;
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+                }
+            }
+
+            async updateCollectionFromUpdateProduct(collection: string[]) {
+                //有新類別要處理
+                let config =
                     (
                         await db.query(
                             `SELECT *
-                             FROM \`${this.app}\`.public_config
-                             WHERE \`key\` = 'collection';`,
+                     FROM \`${this.app}\`.public_config
+                     WHERE \`key\` = 'collection';`,
                             []
                         )
                     )[0] ?? {};
                 config.value = config.value || [];
 
-                if (parentTitle === '') {
-                    config.value = data.map((item) => {
-                        return config.value.find((conf: { title: string }) => conf.title === item.title);
-                    });
-                } else {
-                    const index = config.value.findIndex((conf: { title: string }) => conf.title === parentTitle);
-
-                    const sortList = data.map((item) => {
-                        if (index > -1) {
-                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
-                        }
-                        return { title: '', array: [], code: '' };
-                    });
-
-                    config.value[index].array = sortList;
+                function findRepeatCollection(data: any, fatherTitle: string = '') {
+                    let returnArray = [`${fatherTitle ? `${fatherTitle}/` : ``}${data.title}`];
+                    let t = [1, 2, 3];
+                    if (data.array && data.array.length > 0) {
+                        data.array.forEach((item: any) => {
+                            returnArray.push(...findRepeatCollection(item, data.title));
+                        });
+                    }
+                    return returnArray;
                 }
 
-                await db.execute(
-                    `UPDATE \`${this.app}\`.public_config
-                     SET value = ?
-                     WHERE \`key\` = 'collection';
-                    `,
-                    [config.value]
-                );
-                return true;
-            }
-            return false;
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
-        }
-    }
-
-    checkVariantDataType(variants: any[]) {
-        variants.map((dd) => {
-            dd.stock && (dd.stock = parseInt(dd.stock, 10));
-            dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
-            dd.sale_price && (dd.sale_price = parseInt(dd.sale_price, 10));
-            dd.compare_price && (dd.compare_price = parseInt(dd.compare_price, 10));
-            dd.shipment_weight && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
-        });
-    }
-
-    async postProduct(content: any) {
-        try {
-            content.type = 'product';
-            this.checkVariantDataType(content.variants);
-            const data = await db.query(
-                `INSERT INTO \`${this.app}\`.\`t_manager_post\`
-                 SET ?
-                `,
-                [
-                    {
-                        userID: this.token?.userID,
-                        content: JSON.stringify(content),
-                    },
-                ]
-            );
-            content.id = data.insertId;
-            await db.query(
-                `update \`${this.app}\`.\`t_manager_post\`
-                 SET ?
-                 where id = ?
-                `,
-                [
-                    {
-                        content: JSON.stringify(content),
-                    },
-                    content.id,
-                ]
-            );
-            await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
-            return data.insertId;
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
-        }
-    }
-
-    async updateCollectionFromUpdateProduct(collection: string[]) {
-        //有新類別要處理
-        let config =
-            (
-                await db.query(
-                    `SELECT *
-                     FROM \`${this.app}\`.public_config
-                     WHERE \`key\` = 'collection';`,
-                    []
-                )
-            )[0] ?? {};
-        config.value = config.value || [];
-
-        function findRepeatCollection(data: any, fatherTitle: string = '') {
-            let returnArray = [`${fatherTitle ? `${fatherTitle}/` : ``}${data.title}`];
-            let t = [1, 2, 3];
-            if (data.array && data.array.length > 0) {
-                data.array.forEach((item: any) => {
-                    returnArray.push(...findRepeatCollection(item, data.title));
+                let stillCollection: any[] = [];
+                config.value.forEach((collection: any) => {
+                    stillCollection.push(...findRepeatCollection(collection));
                 });
-            }
-            return returnArray;
-        }
+                const nonCommonElements = collection.filter((item: string) => !stillCollection.includes(item));
+                type CategoryNode = {
+                    title: string;
+                    array: CategoryNode[];
+                };
 
-        let stillCollection: any[] = [];
-        config.value.forEach((collection: any) => {
-            stillCollection.push(...findRepeatCollection(collection));
-        });
-        const nonCommonElements = collection.filter((item: string) => !stillCollection.includes(item));
-        type CategoryNode = {
-            title: string;
-            array: CategoryNode[];
-        };
+                function addCategory(nodes: CategoryNode[], levels: string[]): void {
+                    if (levels.length === 0) return;
+                    const title = levels[0];
+                    let node = nodes.find((n) => n.title === title);
+                    if (!node) {
+                        node = {title, array: []};
+                        nodes.push(node);
+                    }
+                    if (levels.length > 1) {
+                        addCategory(node.array, levels.slice(1));
+                    }
+                }
 
-        function addCategory(nodes: CategoryNode[], levels: string[]): void {
-            if (levels.length === 0) return;
-            const title = levels[0];
-            let node = nodes.find((n) => n.title === title);
-            if (!node) {
-                node = { title, array: [] };
-                nodes.push(node);
-            }
-            if (levels.length > 1) {
-                addCategory(node.array, levels.slice(1));
-            }
-        }
+                function buildCategoryTree(categories: string[]): CategoryNode[] {
+                    const root: CategoryNode[] = [];
+                    categories.forEach((category) => {
+                        const levels = category.split('/');
+                        addCategory(root, levels);
+                    });
+                    return root;
+                }
 
-        function buildCategoryTree(categories: string[]): CategoryNode[] {
-            const root: CategoryNode[] = [];
-            categories.forEach((category) => {
-                const levels = category.split('/');
-                addCategory(root, levels);
-            });
-            return root;
-        }
+                const categoryTree = buildCategoryTree(nonCommonElements);
 
-        const categoryTree = buildCategoryTree(nonCommonElements);
-
-        config.value.push(...categoryTree);
-        // 更新商品類別 config
-        const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                config.value.push(...categoryTree);
+                // 更新商品類別 config
+                const update_col_sql = `UPDATE \`${this.app}\`.public_config
                                 SET value = ?
                                 WHERE \`key\` = 'collection';`;
-        await db.execute(update_col_sql, [config.value]);
-    }
-
-    async postMulProduct(content: any) {
-        try {
-            if (content.collection.length > 0) {
-                //有新類別要處理
-                await this.updateCollectionFromUpdateProduct(content.collection);
+                await db.execute(update_col_sql, [config.value]);
             }
-            let productArray = content.data;
-            let passArray = [];
-            productArray.forEach((product: any, index: number) => {
-                product.type = 'product';
-            });
-            const data = await db.query(
-                `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID, content)
-                 VALUES ?`,
-                [
-                    productArray.map((product: any) => {
+
+            async postMulProduct(content: any) {
+                try {
+                    if (content.collection.length > 0) {
+                        //有新類別要處理
+                        await this.updateCollectionFromUpdateProduct(content.collection);
+                    }
+                    let productArray = content.data;
+                    let passArray = [];
+                    productArray.forEach((product: any, index: number) => {
                         product.type = 'product';
+                    });
+                    const data = await db.query(
+                        `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID, content)
+                 VALUES ?`,
+                        [
+                            productArray.map((product: any) => {
+                                product.type = 'product';
 
-                        this.checkVariantDataType(product.variants);
-                        return [this.token?.userID, JSON.stringify(product)];
-                    }),
-                ]
-            );
+                                this.checkVariantDataType(product.variants);
+                                return [this.token?.userID, JSON.stringify(product)];
+                            }),
+                        ]
+                    );
 
-            let insertIDStart = data.insertId;
+                    let insertIDStart = data.insertId;
 
-            await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
-            return insertIDStart;
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);
-        }
-    }
+                    await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
+                    return insertIDStart;
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);
+                }
+            }
 
-    async processProducts(productArray: any, insertIDStart: any) {
-        const promises = productArray.map((product: any) => {
-            product.id = insertIDStart++;
-            return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
-        });
-        await Promise.all(promises);
-    }
+            async processProducts(productArray: any, insertIDStart: any) {
+                const promises = productArray.map((product: any) => {
+                    product.id = insertIDStart++;
+                    return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
+                });
+                await Promise.all(promises);
+            }
 
-    async putProduct(content: any) {
-        try {
-            content.type = 'product';
-            this.checkVariantDataType(content.variants);
-            const data = await db.query(
-                `update \`${this.app}\`.\`t_manager_post\`
+            async putProduct(content: any) {
+                try {
+                    content.type = 'product';
+                    this.checkVariantDataType(content.variants);
+                    const data = await db.query(
+                        `update \`${this.app}\`.\`t_manager_post\`
                  SET ?
                  where id = ?`,
-                [
-                    {
-                        content: JSON.stringify(content),
-                    },
-                    content.id,
-                ]
-            );
-            await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
-            return content.insertId;
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'putProduct Error:' + e, null);
-        }
-    }
+                        [
+                            {
+                                content: JSON.stringify(content),
+                            },
+                            content.id,
+                        ]
+                    );
+                    await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+                    return content.insertId;
+                } catch (e) {
+                    console.error(e);
+                    throw exception.BadRequestError('BAD_REQUEST', 'putProduct Error:' + e, null);
+                }
+            }
 
-    async deleteCollection(dataArray: Collection[]) {
-        try {
-            const config = (
-                await db.query(
-                    `SELECT *
+            async deleteCollection(dataArray: Collection[]) {
+                try {
+                    const config = (
+                        await db.query(
+                            `SELECT *
                      FROM \`${this.app}\`.public_config
                      WHERE \`key\` = 'collection';`,
-                    []
-                )
-            )[0];
-            const deleteList: { parent: number; child: number[] }[] = [];
+                            []
+                        )
+                    )[0];
+                    const deleteList: { parent: number; child: number[] }[] = [];
 
-            // format 刪除類別 index
-            dataArray.map((data) => {
-                const parentTitles = data.parentTitles[0] ?? '';
-                if (parentTitles.length > 0) {
-                    // data 為子層
-                    const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
-                    const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
-                    if (n === -1) {
-                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
-                    } else {
-                        deleteList[n].child.push(childrenIndex);
+                    // format 刪除類別 index
+                    dataArray.map((data) => {
+                        const parentTitles = data.parentTitles[0] ?? '';
+                        if (parentTitles.length > 0) {
+                            // data 為子層
+                            const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
+                            const childrenIndex = config.value[parentIndex].array.findIndex((col: {
+                                title: string
+                            }) => col.title === data.title);
+                            const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
+                            if (n === -1) {
+                                deleteList.push({parent: parentIndex, child: [childrenIndex]});
+                            } else {
+                                deleteList[n].child.push(childrenIndex);
+                            }
+                        } else {
+                            // data 為父層
+                            const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
+                            deleteList.push({parent: parentIndex, child: [-1]});
+                        }
+                    });
+
+                    // 刪除類別之產品
+                    for (const d of deleteList) {
+                        const collection = config.value[d.parent];
+                        for (const index of d.child) {
+                            if (index !== -1) {
+                                await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
+                            }
+                        }
+                        if (d.child[0] === -1) {
+                            await this.deleteCollectionProduct(collection.title);
+                        }
                     }
-                } else {
-                    // data 為父層
-                    const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({ parent: parentIndex, child: [-1] });
-                }
-            });
 
-            // 刪除類別之產品
-            for (const d of deleteList) {
-                const collection = config.value[d.parent];
-                for (const index of d.child) {
-                    if (index !== -1) {
-                        await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
-                    }
-                }
-                if (d.child[0] === -1) {
-                    await this.deleteCollectionProduct(collection.title);
-                }
-            }
+                    // 取得新的類別 config 陣列
+                    deleteList.map((obj) => {
+                        config.value[obj.parent].array = config.value[obj.parent].array.filter((col: any, index: number) => {
+                            return !obj.child.includes(index);
+                        });
+                    });
+                    config.value = config.value.filter((col: any, index: number) => {
+                        const find_collection = deleteList.find((obj) => obj.parent === index);
+                        return !(find_collection && find_collection.child[0] === -1);
+                    });
 
-            // 取得新的類別 config 陣列
-            deleteList.map((obj) => {
-                config.value[obj.parent].array = config.value[obj.parent].array.filter((col: any, index: number) => {
-                    return !obj.child.includes(index);
-                });
-            });
-            config.value = config.value.filter((col: any, index: number) => {
-                const find_collection = deleteList.find((obj) => obj.parent === index);
-                return !(find_collection && find_collection.child[0] === -1);
-            });
-
-            // 更新商品類別
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                    // 更新商品類別
+                    const update_col_sql = `UPDATE \`${this.app}\`.public_config
                                     SET value = ?
                                     WHERE \`key\` = 'collection';`;
-            await db.execute(update_col_sql, [config.value]);
+                    await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
-        }
-    }
-
-    async deleteCollectionProduct(parent_name: string, children_list?: string[]) {
-        try {
-            if (children_list) {
-                for (const children of children_list) {
-                    const tag_name = `${parent_name} / ${children}`;
-                    for (const product of await db.query(this.containsTagSQL(tag_name), [])) {
-                        product.content.collection = product.content.collection.filter((str: string) => str != tag_name);
-                        await this.updateProductCollection(product.content, product.id);
-                    }
-                }
-            } else {
-                for (const product of await db.query(this.containsTagSQL(parent_name), [])) {
-                    product.content.collection = product.content.collection.filter((str: string) => !(str === parent_name));
-                    await this.updateProductCollection(product.content, product.id);
-                }
-                for (const product of await db.query(this.containsTagSQL(`${parent_name} /`), [])) {
-                    product.content.collection = product.content.collection.filter((str: string) => str.includes(`${parent_name} / `));
-                    await this.updateProductCollection(product.content, product.id);
+                    return {result: true};
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
                 }
             }
-            return { result: true };
-        } catch (error) {
-            throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
-        }
-    }
 
-    containsTagSQL(name: string) {
-        return `SELECT *
+            async deleteCollectionProduct(parent_name: string, children_list?: string[]) {
+                try {
+                    if (children_list) {
+                        for (const children of children_list) {
+                            const tag_name = `${parent_name} / ${children}`;
+                            for (const product of await db.query(this.containsTagSQL(tag_name), [])) {
+                                product.content.collection = product.content.collection.filter((str: string) => str != tag_name);
+                                await this.updateProductCollection(product.content, product.id);
+                            }
+                        }
+                    } else {
+                        for (const product of await db.query(this.containsTagSQL(parent_name), [])) {
+                            product.content.collection = product.content.collection.filter((str: string) => !(str === parent_name));
+                            await this.updateProductCollection(product.content, product.id);
+                        }
+                        for (const product of await db.query(this.containsTagSQL(`${parent_name} /`), [])) {
+                            product.content.collection = product.content.collection.filter((str: string) => str.includes(`${parent_name} / `));
+                            await this.updateProductCollection(product.content, product.id);
+                        }
+                    }
+                    return {result: true};
+                } catch (error) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
+                }
+            }
+
+            containsTagSQL(name: string) {
+                return `SELECT *
                 FROM \`${this.app}\`.t_manager_post
                 WHERE JSON_CONTAINS(content ->> '$.collection', '"${name}"');`;
-    }
+            }
 
-    async updateProductCollection(content: string[], id: number) {
-        try {
-            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
+            async updateProductCollection(content: string[], id: number) {
+                try {
+                    const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
                                    SET content = ?
                                    WHERE \`id\` = ?;`;
-            await db.execute(updateProdSQL, [content, id]);
-        } catch (error) {
-            throw exception.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + e, null);
-        }
-    }
-
-    async getVariants(query: {
-        page: number;
-        limit: number;
-        search?: string;
-        searchType?: string;
-        id?: string;
-        collection?: string;
-        accurate_search_collection?: boolean;
-        status?: string;
-        id_list?: string;
-        order_by?: string;
-        min_price?: string;
-        max_price?: string;
-        stockCount?: string;
-    }) {
-        try {
-            let querySql = ['1=1'];
-            if (query.search) {
-                switch (query.searchType) {
-                    case 'title':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
-                        break;
-                    case 'sku':
-                        querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
-                        break;
+                    await db.execute(updateProdSQL, [content, id]);
+                } catch (error) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + e, null);
                 }
             }
 
-            query.id && querySql.push(`(v.id = ${query.id})`);
-            query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
-            query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
-            query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
-            query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
-            query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
+            async getVariants(query: {
+                page: number;
+                limit: number;
+                search?: string;
+                searchType?: string;
+                id?: string;
+                collection?: string;
+                accurate_search_collection?: boolean;
+                status?: string;
+                id_list?: string;
+                order_by?: string;
+                min_price?: string;
+                max_price?: string;
+                stockCount?: string;
+            }) {
+                try {
+                    let querySql = ['1=1'];
+                    if (query.search) {
+                        switch (query.searchType) {
+                            case 'title':
+                                querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                                break;
+                            case 'sku':
+                                querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
+                                break;
+                        }
+                    }
 
-            if (query.stockCount) {
-                const stockCount = query.stockCount?.split(',');
-                switch (stockCount[0]) {
-                    case 'lessThan':
-                        querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) < ${stockCount[1]})`);
-                        break;
-                    case 'moreThan':
-                        querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) > ${stockCount[1]})`);
-                        break;
-                    case 'lessSafe':
-                        querySql.push(`(
+                    query.id && querySql.push(`(v.id = ${query.id})`);
+                    query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+                    query.collection &&
+                    querySql.push(
+                        `(${query.collection
+                            .split(',')
+                            .map((dd) => {
+                                return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                            })
+                            .join(' or ')})`
+                    );
+                    query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
+                    query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
+                    query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
+
+                    if (query.stockCount) {
+                        const stockCount = query.stockCount?.split(',');
+                        switch (stockCount[0]) {
+                            case 'lessThan':
+                                querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) < ${stockCount[1]})`);
+                                break;
+                            case 'moreThan':
+                                querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) > ${stockCount[1]})`);
+                                break;
+                            case 'lessSafe':
+                                querySql.push(`(
                             JSON_EXTRACT(v.content, '$.save_stock') is not null AND
                             (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
                         )`);
-                        break;
+                                break;
+                        }
+                    }
+
+                    query.order_by = (() => {
+                        switch (query.order_by) {
+                            case 'title':
+                                return `order by JSON_EXTRACT(p.content, '$.title')`;
+                            case 'max_price':
+                                return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.max_price')) AS SIGNED)) desc`;
+                            case 'min_price':
+                                return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.min_price')) AS SIGNED)) asc`;
+                            case 'created_time_desc':
+                                return `order by p.created_time desc`;
+                            case 'created_time_asc':
+                                return `order by p.created_time`;
+                            case 'updated_time_desc':
+                                return `order by p.updated_time desc`;
+                            case 'updated_time_asc':
+                                return `order by p.updated_time`;
+                            case 'stock_desc':
+                                return `order by stock desc`;
+                            case 'stock_asc':
+                                return `order by stock`;
+                            case 'default':
+                            default:
+                                return `order by id desc`;
+                        }
+                    })();
+
+                    const data = await this.querySqlByVariants(querySql, query);
+                    return data;
+                } catch (e) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
                 }
             }
 
-            query.order_by = (() => {
-                switch (query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(p.content, '$.title')`;
-                    case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.max_price')) AS SIGNED)) desc`;
-                    case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by p.created_time desc`;
-                    case 'created_time_asc':
-                        return `order by p.created_time`;
-                    case 'updated_time_desc':
-                        return `order by p.updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by p.updated_time`;
-                    case 'stock_desc':
-                        return `order by stock desc`;
-                    case 'stock_asc':
-                        return `order by stock`;
-                    case 'default':
-                    default:
-                        return `order by id desc`;
+            async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
+                try {
+                    for (const data of query) {
+                        await db.query(
+                            `UPDATE \`${this.app}\`.t_variants
+                     SET ?
+                     WHERE id = ?`,
+                            [{content: JSON.stringify(data.variant_content)}, data.id]
+                        );
+                        await db.query(
+                            `UPDATE \`${this.app}\`.t_manager_post
+                     SET ?
+                     WHERE id = ?`,
+                            [{content: JSON.stringify(data.product_content)}, data.product_id]
+                        );
+                    }
+                    return {
+                        result: 'success',
+                        orderData: query,
+                    };
+                } catch (error) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'putVariants Error:' + e, null);
                 }
-            })();
-
-            const data = await this.querySqlByVariants(querySql, query);
-            return data;
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
-        }
-    }
-
-    async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
-        try {
-            for (const data of query) {
-                await db.query(
-                    `UPDATE \`${this.app}\`.t_variants
-                     SET ?
-                     WHERE id = ?`,
-                    [{ content: JSON.stringify(data.variant_content) }, data.id]
-                );
-                await db.query(
-                    `UPDATE \`${this.app}\`.t_manager_post
-                     SET ?
-                     WHERE id = ?`,
-                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
-                );
             }
-            return {
-                result: 'success',
-                orderData: query,
-            };
-        } catch (error) {
-            throw exception.BadRequestError('BAD_REQUEST', 'putVariants Error:' + e, null);
         }
-    }
-}

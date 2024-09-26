@@ -3182,7 +3182,7 @@ ${EditorElem.editeInput({
                                                             } else {
                                                                 return [
                                                                     EditorElem.select({
-                                                                        title: '金流站點',
+                                                                        title: '串接路徑',
                                                                         gvc: gvc,
                                                                         def: keyData.ActionURL,
                                                                         array: (() => {

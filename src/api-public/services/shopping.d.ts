@@ -94,6 +94,10 @@ type Cart = {
     use_rebate: number;
     orderID: string;
     shipment_support: string[];
+    shipment_selector: {
+        name: string;
+        value: string;
+    }[];
     shipment_info: any;
     use_wallet: number;
     user_email: string;
@@ -103,6 +107,7 @@ type Cart = {
         limit?: number;
         condition?: number;
     };
+    user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
     custom_form_data?: any;

@@ -59,7 +59,7 @@ ${gvc.bindView(() => {
                                                         >
                                                             <div
                                                                     class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                                                    style="padding-bottom: 58%;"
+                                                                    style="padding-bottom: 133%;"
                                                                     onclick="${gvc.event(() => {
                                                                         vm.select = dd.appName;
                                                                         gvc.notifyDataChange([vm.left_id, vm.right_id]);

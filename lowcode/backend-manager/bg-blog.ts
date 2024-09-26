@@ -429,7 +429,60 @@ export class BgBlog {
                                             page_type: page_tab,
                                             app_name:'t_1726217714800'
                                         }).then((dd) => {
-                                            data= dd.response.data;
+                                            data= {
+                                                response:{
+                                                    result:{
+                                                        data:[
+                                                            {
+                                                                id: 20739,
+                                                                userID: '234285319',
+                                                                tag: 'empty',
+                                                                name: '空白內容',
+                                                                page_type: 'page',
+                                                                preview_image: null,
+                                                                appName: 'shop_template_black_style',
+                                                                template_type: 2,
+                                                                template_config: {
+                                                                    tag: ['頁面範例'],
+                                                                    desc: '',
+                                                                    name: '空白內容',
+                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                                    status: 'wait',
+                                                                    post_to: 'all',
+                                                                    version: '1.0',
+                                                                    created_by: 'liondesign.io',
+                                                                    preview_img: '',
+                                                                },
+                                                            },
+                                                        ].concat(dd.response.data.map((dd:any)=>{
+                                                            return   {
+                                                                id: 20739,
+                                                                userID: '234285319',
+                                                                tag: dd.content.tag,
+                                                                name: dd.content.name,
+                                                                page_type: 'page',
+                                                                preview_image: null,
+                                                                _config:dd.content.config,
+                                                                appName: 't_1726217714800',
+                                                                template_type: 2,
+                                                                template_config: {
+                                                                    tag: [],
+                                                                    desc: '',
+                                                                    name: dd.content.name,
+                                                                    image: [dd.content.seo.image],
+                                                                    status: 'wait',
+                                                                    post_to: 'all',
+                                                                    version: '1.0',
+                                                                    created_by: 'liondesign.io',
+                                                                    preview_img: '',
+                                                                },
+                                                            }
+                                                        }))
+                                                    }
+                                                }
+                                            };
+                                            
+                                            gvc.notifyDataChange(id);
                                         })
                                     }
                                    
@@ -469,7 +522,7 @@ export class BgBlog {
                                                                         .map((dd: any, index: number) => {
                                                                             return html`<div class="col-6 col-sm-3 mb-3 rounded-3">
                                                                                 <div class="d-flex flex-column justify-content-center w-100 " style="gap:5px;cursor:pointer;">
-                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: ${800/600*100}%;">
                                                                                         <div
                                                                                             class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
                                                                                             style="overflow: hidden;"
@@ -494,15 +547,21 @@ export class BgBlog {
                                                                                                         (a as any).name = '空白頁面';
                                                                                                         callback(a);
                                                                                                     } else {
-                                                                                                        BaseApi.create({
-                                                                                                            url: `${(window as any).glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${
-                                                                                                                dd.tag
-                                                                                                            }`,
-                                                                                                            type: 'get',
-                                                                                                        }).then((res) => {
-                                                                                                            res.response.result[0].config.name = dd.template_config.name;
-                                                                                                            callback(res.response.result[0].config);
-                                                                                                        });
+                                                                                                        if(dd._config){
+                                                                                                            dd._config.name=dd.template_config.name;
+                                                                                                            callback(dd._config);
+                                                                                                        }else{
+                                                                                                            BaseApi.create({
+                                                                                                                url: `${(window as any).glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${
+                                                                                                                        dd.tag
+                                                                                                                }`,
+                                                                                                                type: 'get',
+                                                                                                            }).then((res) => {
+                                                                                                                res.response.result[0].config.name = dd.template_config.name;
+                                                                                                                callback(res.response.result[0].config);
+                                                                                                            }); 
+                                                                                                        }
+                                                                                                       
                                                                                                     }
                                                                                                 })}"
                                                                                             >
@@ -660,6 +719,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                 ${BgWidget.grayButton(
                     '前往設計',
                     gvc.event(() => {
+                        localStorage.setItem('preview_data',JSON.stringify(vm.data.content));
                         (window.parent as any).glitter.innerDialog(
                             (gvc: GVC) => {
                                 return gvc.bindView(() => {
@@ -1215,7 +1275,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                         });
                     } else {
                         const href = (() => {
-                            return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${
+                            return `${gvc.glitter.root_path}${
                                 cf.is_page
                                     ? (() => {
                                           switch (page_tab) {
@@ -1229,8 +1289,9 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                           return ``;
                                       })()
                                     : `blogs`
-                            }/${vm.data.content.tag}`;
+                            }/${vm.data.content.tag}?preview=true&appName=${(window.parent as any).appName}`;
                         })();
+                        localStorage.setItem('preview_data',JSON.stringify(vm.data.content));
                         (window.parent as any).glitter.openNewTab(href);
                     }
                 }),

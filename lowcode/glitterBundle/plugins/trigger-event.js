@@ -44,7 +44,6 @@ export class TriggerEvent {
                                         const response = data.fun(gvc, widget, obj, subData, element).event();
                                         if (response instanceof Promise) {
                                             response.then((data2) => {
-                                                console.log(`setEventRouter-end-then-${new Date().getTime()}`, data2);
                                                 resolve(data2);
                                             });
                                         }

@@ -64,7 +64,6 @@ export async function initial(serverPort: number) {
         await Ai.initial();
         await SaasScheme.createScheme();
         await ApiPublic.createScheme(saasConfig.SAAS_NAME as string);
-        await DomainCheck.initial()
         await redis.connect();
         await createAppRoute();
         await listBuckets();
@@ -127,6 +126,7 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    await ApiPublic.createScheme(appName);
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
 
                     let data = await Seo.getPageInfo(appName, req.query.page as string);

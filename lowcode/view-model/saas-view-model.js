@@ -480,7 +480,7 @@ export class SaasViewModel {
                                                     ? `overflow:hidden;background: #FFB400;border: 1px solid #FF6C02;padding:10px;border-radius: 5px;`
                                                     : ``}"
                                                                         >
-                                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 133%;">
                                                                                 <div
                                                                                     class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
                                                                                     style="overflow: hidden;"

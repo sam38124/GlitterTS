@@ -71,11 +71,20 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     count: number;
                                 }[];
                                 total: number;
+                                user_info:{
+                                    shipment:string
+                                }
                             } = {
                                 line_items: [],
                                 total: 0,
+                                user_info:{
+                                    shipment:localStorage.getItem('checkout-logistics') as string
+                                }
                             };
                             if(res.line_items){
+                                res.user_info={
+                                    shipment:localStorage.getItem('checkout-logistics') as string
+                                }
                                 const cart=res as CartItem
                                 ApiShop.getCheckout(cart).then((res) => {
                                     if (res.result) {
@@ -108,6 +117,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     code: voucher as string,
                                     use_rebate: (GlobalUser.token && rebate) ? rebate:undefined,
                                     distribution_code: distributionCode,
+                                    user_info:{
+                                        shipment:localStorage.getItem('checkout-logistics')
+                                    }
                                 }).then((res) => {
                                     if (res.result) {
                                         resolve(res.response.data);

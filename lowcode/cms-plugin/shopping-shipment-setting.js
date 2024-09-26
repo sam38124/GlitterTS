@@ -57,33 +57,52 @@ export class ShoppingShipmentSetting {
             return {
                 bind: id,
                 view: () => {
-                    return BgWidget.tab([
-                        {
-                            title: '預設運費', key: 'def'
-                        },
-                        {
-                            title: '一般宅配', key: 'normal'
-                        },
-                        {
-                            title: '全家店到店', key: 'FAMIC2C'
-                        },
-                        {
-                            title: '萊爾富店到店', key: 'HILIFEC2C'
-                        },
-                        {
-                            title: 'OK超商店到店', key: 'OKMARTC2C'
-                        },
-                        {
-                            title: '7-ELEVEN超商交貨便', key: 'UNIMARTC2C'
-                        },
-                        {
-                            title: '門市取貨', key: 'shop'
-                        }
-                    ], gvc, page, (text) => {
-                        page = text;
-                        data.response = undefined;
-                        gvc.notifyDataChange([page_id, id]);
-                    });
+                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        const logistics_setting = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting')).response.result[0]) !== null && _a !== void 0 ? _a : { value: {} }).value;
+                        resolve(BgWidget.tab([
+                            {
+                                title: '預設運費', key: 'def'
+                            },
+                            ...(() => {
+                                var _a;
+                                return [{
+                                        title: '一般宅配', key: 'normal'
+                                    },
+                                    {
+                                        title: '全家店到店', key: 'FAMIC2C'
+                                    },
+                                    {
+                                        title: '萊爾富店到店', key: 'HILIFEC2C'
+                                    },
+                                    {
+                                        title: 'OK超商店到店', key: 'OKMARTC2C'
+                                    },
+                                    {
+                                        title: '7-ELEVEN超商交貨便', key: 'UNIMARTC2C'
+                                    },
+                                    {
+                                        title: '門市取貨', key: 'shop'
+                                    }].concat(((_a = logistics_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                    return {
+                                        title: dd.name,
+                                        key: dd.id
+                                    };
+                                })).filter((d1) => {
+                                    return logistics_setting.support.find((d2) => {
+                                        return d2 === d1.key;
+                                    });
+                                });
+                            })(),
+                            ...(() => {
+                                return [];
+                            })()
+                        ], gvc, page, (text) => {
+                            page = text;
+                            data.response = undefined;
+                            gvc.notifyDataChange([page_id, id]);
+                        }));
+                    }));
                 },
                 divCreate: {
                     class: `d-flex w-100 mb-n4`, style: 'gap:10px;overflow-x: auto;'
@@ -267,7 +286,8 @@ export class ShoppingShipmentSetting {
                                                                                                 ${(() => {
                                                     if (shipmentArray.selectCalc == 'volume') {
                                                         return html `
-                                                                                                            <svg class="volumeSelect" xmlns="http://www.w3.org/2000/svg"
+                                                                                                            <svg class="volumeSelect"
+                                                                                                                 xmlns="http://www.w3.org/2000/svg"
                                                                                                                  width="16"
                                                                                                                  height="16"
                                                                                                                  viewBox="0 0 16 16"

@@ -664,7 +664,7 @@ color:white;"
                                         : html`
 
                                             <button
-                                                    class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `d-none d-sm-flex`}"
+                                                    class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} d-none d-sm-flex"
                                                     style="height: 42px;
 display: inline-flex;
 padding: 10px 22px 10px 23px;
@@ -675,10 +675,33 @@ border: 1px solid ${EditorConfig.editor_layout.main_color};
 color:${EditorConfig.editor_layout.main_color};
 "
                                                     onclick="${gvc.event(() => {
-                                                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                                                        url.searchParams.delete('type');
-                                                        url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                                        glitter.openNewTab(url.href);
+                                                        if(glitter.getUrlParameter('tab')==='page_manager'){
+                                                            const content=JSON.parse(localStorage.getItem('preview_data') as string);
+                                                            const href = (() => {
+                                                                return `${gvc.glitter.root_path}${
+                                                                        (() => {
+                                                                            switch (content.page_type) {
+                                                                                case 'shopping':
+                                                                                    return 'shop';
+                                                                                case 'hidden':
+                                                                                    return 'hidden';
+                                                                                case 'page':
+                                                                                    return 'pages';
+                                                                            }
+                                                                            return ``;
+                                                                        })()
+                                                                }/${content.tag}?preview=true&appName=${(window.parent as any).appName}`;
+                                                            })();
+                                                            content.config=glitter.share.editorViewModel.data.config;
+                                                            localStorage.setItem('preview_data',JSON.stringify(content));
+                                                            (window.parent as any).glitter.openNewTab(href);
+                                                        }else{
+                                                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                                                            url.searchParams.delete('type');
+                                                            url.searchParams.set('page', glitter.getUrlParameter('page'));
+                                                            glitter.openNewTab(url.href);
+                                                        }
+                                                      
                                                     })}"
                                             >
                                                 <div style="background: ${EditorConfig.editor_layout.btn_background};

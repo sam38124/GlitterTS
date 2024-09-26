@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -62,7 +64,6 @@ const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
-const domain_check_js_1 = require("./domain-check.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -87,7 +88,6 @@ async function initial(serverPort) {
         await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();
         await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
-        await domain_check_js_1.DomainCheck.initial();
         await redis_1.default.connect();
         await createAppRoute();
         await (0, AWSLib_1.listBuckets)();
@@ -108,7 +108,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -145,6 +144,7 @@ async function createAPP(dd) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    await public_table_check_js_1.ApiPublic.createScheme(appName);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
                     let customCode = await new user_js_1.User(appName).getConfigV2({
@@ -502,7 +502,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,
