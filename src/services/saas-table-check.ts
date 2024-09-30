@@ -9,6 +9,26 @@ export const SaasScheme = {
         await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray: { scheme?: string; table: string; sql: string }[] = [
             {
+                scheme:saasConfig.SAAS_NAME as string,
+                table:'t_monitor',
+                sql:`(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`ip\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`app_name\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`user_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`mac_address\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`base_url\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`req_type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`ip\`),
+  KEY \`index3\` (\`app_name\`),
+  KEY \`index4\` (\`mac_address\`),
+  KEY \`index5\` (\`created_time\`),
+  KEY \`index6\` (\`req_type\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+            },
+            {
                 scheme: saasConfig.SAAS_NAME as string,
                 table: 'page_config',
                 sql: `(
@@ -178,6 +198,7 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
             return await compare_sql_table(scheme, table, sql);
         }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
+            console.log(`update-table`)
             older = older.filter((dd: any) => {
                 return newest.find((d2: any) => {
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;

@@ -137,25 +137,25 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         searchJson = {
                                             page: 0,
                                             limit: count || 200,
-                                            collection: id.value.join(','),
+                                            collection: id.value.join(',') || '-99',
                                             accurate_search_collection: true
                                         }
                                         break
                                     case "product":
-                                        searchJson = {page: 0, limit: count || 200, id_list: id.value.join(',')}
+                                        searchJson = {page: 0, limit: count || 200, id_list: id.value.concat('-99').join(',')}
                                         break
                                     case "all":
                                         searchJson = {page: 0, limit: count || 200}
                                         break
                                     default:
                                         if (object.comefromTp === 'multiple') {
-                                            searchJson = {page: 0, limit: count || 200, id_list: id}
+
+                                            searchJson = {page: 0, limit: count || 200, id_list: `${id}`.split(',').concat([`-99`]).join(',')}
                                         } else {
-                                            searchJson = {page: 0, limit: count || 200, id: id}
+                                            searchJson = {page: 0, limit: count || 200, id: `${id}`.split(',').concat([`-99`]).join(',')}
                                         }
                                 }
                                 productType && (searchJson.productType=productType);
-
                                 ApiShop.getProduct(searchJson).then((data) => {
                                     if (data.result && data.response.data) {
                                         if(!Array.isArray(data.response.data)){

@@ -67,7 +67,7 @@ export class CustomerMessageUser {
                                       bottom: 90px;
                                       left: 20px;
                                       z-index: 99999;
-                                      overflow: hidden;
+                                      overflow-y: hidden;
                                       background: white;
                                     `,
                                 },
@@ -89,9 +89,9 @@ export class CustomerMessageUser {
                                 user_id: cf.userID,
                                 containerHeight: gvc.glitter.ut.frSize(
                                     {
-                                        sm: (cf.type !== 'preview') ? `826px` : `${($('body').height() as any)}px`,
+                                        sm: (cf.type !== 'preview') ? `826px` : `${($('body').height() as any + 25)}px`,
                                     },
-                                    `${window.innerHeight + 60}px`
+                                    `${window.innerHeight + 20}px`
                                 ),
                                 document: document,
                                 goBack: () => {
@@ -125,7 +125,7 @@ export class CustomerMessageUser {
                                       bottom: 90px;
                                       left: 20px;
                                       z-index: 99999;
-                                      overflow: hidden;
+                                      overflow-y: auto;
                                       background: white;
                                     `,
                                 },
@@ -659,7 +659,7 @@ export class CustomerMessageUser {
                                             </div>
                                             <button
                                                     type="button"
-                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
+                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 text-white"
                                                     style="height: 36px;background: ${CustomerMessageUser.config.color};"
                                                     onclick="${gvc.event(() => {
                                                         if (vm.message) {
@@ -715,10 +715,10 @@ export class CustomerMessageUser {
                                     ${CustomerMessageUser.config.title ?? ''}
                                 </div>
                                 <p class=" text-white mt-2 mb-4"
-                                   style=" font-size: 16px;line-height: 22px;font-weight: 300;">
+                                   style=" font-size: 16px;line-height: 22px;font-weight: 400;">
                                     ${(CustomerMessageUser.config.content ?? '').replace(/\n/g, `<br>`)}</p>
                                 <button
-                                        class="btn w-100  rounded"
+                                        class="btn w-100  rounded text-white"
                                         style=" background-color: rgba(0, 0, 0, 0.2);"
                                         onclick="${gvc.event(() => {
                                             goToChat('');

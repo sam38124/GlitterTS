@@ -64,9 +64,9 @@ const gvc=cf.gvc;
                                         const gvc_ref=(gvc.glitter.getUrlParameter('cms')!=='true') ? gvc:(window.parent as any).glitter.pageConfig[0].gvc
                                         const pageEditor = (gvc.glitter.getUrlParameter('cms')==='true') ? (window.parent as any).glitter.share.NormalPageEditor:NormalPageEditor;
                                         pageEditor.closeEvent=()=>{
-                                            ((widget.bundle.refresh && widget.bundle.refresh) || (() => {
-                                                widget.refreshComponent()
-                                            }))()
+                                            // ((widget.bundle.refresh && widget.bundle.refresh) || (() => {
+                                            //     widget.refreshComponent()
+                                            // }))()
                                         }
                                         pageEditor.toggle({
                                             visible:true,

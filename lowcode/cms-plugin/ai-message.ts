@@ -156,7 +156,6 @@ export class AiMessage {
                                                 return ``;
                                             }
                                             return new Promise(async (resolve, reject) => {
-                                                console.log(`AiMessage.vm.select_bt=>`, AiMessage.vm.select_bt);
                                                 await Chat.post({
                                                     type: 'user',
                                                     participant: [cf.user_id, AiMessage.vm.select_bt],

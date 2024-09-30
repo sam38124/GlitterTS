@@ -64,14 +64,24 @@ const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const express_session_1 = __importDefault(require("express-session"));
+const monitor_js_1 = require("./api-public/services/monitor.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address');
     res.status(200).send();
 });
+exports.app.use((0, express_session_1.default)({
+    secret: config_1.config.SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 }
+}));
+exports.app.use((0, cookie_parser_1.default)());
 exports.app.use((0, cors_1.default)());
 exports.app.use((0, compression_1.default)());
 exports.app.use(express_1.default.raw({ limit: '100MB' }));
@@ -144,6 +154,11 @@ async function createAPP(dd) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    req.headers['g-app'] = appName;
+                    await monitor_js_1.Monitor.insertHistory({
+                        req_type: 'file',
+                        req: req
+                    });
                     await public_table_check_js_1.ApiPublic.createScheme(appName);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);

@@ -17,6 +17,7 @@ import { BackendService } from './backend-service.js';
 import { Template } from './template.js';
 import Tool from './tool';
 import path from 'path';
+import {AppInitial} from "./app-initial.js";
 
 export class App {
     public token?: IToken;
@@ -162,13 +163,15 @@ export class App {
                     []
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    await trans.execute(
-                        `
+                    if(!['editorGuide','guideable','guide'].includes(dd.key)){
+                        await trans.execute(
+                            `
                             insert into \`${cf.appName}\`.public_config
                             SET ?;
                         `,
-                        [dd]
-                    );
+                            [dd]
+                        );
+                    }
                 }
                 for (const dd of await db.query(
                     `SELECT *
@@ -176,13 +179,15 @@ export class App {
                     []
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    await trans.execute(
-                        `
-                            insert into \`${cf.appName}\`.t_user_public_config
-                            SET ?;
-                        `,
-                        [dd]
-                    );
+                    if((dd.userID!=='manager') && (!['robot_auto_reply','image-manager','message_setting'].includes(dd.key))){
+                        await trans.execute(
+                            `
+                                insert into \`${cf.appName}\`.t_user_public_config
+                                SET ?;
+                            `,
+                            [dd]
+                        );
+                    }
                 }
             }
             if (privateConfig) {
@@ -229,10 +234,18 @@ export class App {
             )[0];
             if (store_information) {
                 await db.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`, ['store-information']);
-                store_information.value.shop_name = cf.name;
-                store_information.value = JSON.stringify(store_information.value);
-                await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [store_information]);
             }
+            for (const b of AppInitial.main(cf.appName)){
+                await db.query(b.sql, [b.obj]);
+            }
+            await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [{
+                key:'store-information',
+                user_id:'manager',
+                updated_at:new Date(),
+                value:JSON.stringify({
+                    shop_name:cf.name
+                })
+            }]);
             await createAPP(cf);
             return true;
         } catch (e: any) {

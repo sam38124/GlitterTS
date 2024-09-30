@@ -7,17 +7,13 @@ exports.Ai = void 0;
 const fs_1 = __importDefault(require("fs"));
 const openai_1 = __importDefault(require("openai"));
 const tool_js_1 = __importDefault(require("../modules/tool.js"));
-const run_js_1 = require("../run.js");
+const process_1 = __importDefault(require("process"));
 class Ai {
     static async initial() {
         const jsonStringQA = JSON.stringify(this.defaultQA);
-        if ((0, run_js_1.isDanielEnv)()) {
-            fs_1.default.writeFileSync('defaultQA.json', jsonStringQA);
-            return;
-        }
         const file1 = tool_js_1.default.randomString(10) + '.json';
         const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process_1.default.env.OPENAI_API_KEY,
         });
         fs_1.default.writeFileSync(file1, jsonStringQA);
         const file = await openai.files.create({
@@ -333,5 +329,16 @@ Ai.defaultQA = [
         request: ['怎麼設定免運費'],
         response: '請前往優惠促銷的「免運費活動」，可以新增一個免運費優惠券活動，並設定消費條件、觸發方式、使用期限等',
     },
+];
+Ai.defaultProduct = [{
+        "商品名稱": "黑色休閒西裝外套",
+        "描述": "這是一件輕便的黑色休閒西裝外套，帶有簡約的設計和自然垂墜的版型。"
+    }, {
+        "商品名稱": "金色百褶裙",
+        "描述": "這是一件閃亮的金色百褶裙。"
+    }, {
+        "商品名稱": "寬鬆版型西裝外套",
+        "描述": "這是一件寬鬆版型的千鳥格紋西裝外套，具有修身剪裁。"
+    }, { "商品名稱": "黑色瓦奇儂腰帶", "描述": "這是一件寬大的黑色皮革腰帶，搭配大號扣環，強調腰部線條。" }
 ];
 //# sourceMappingURL=ai.js.map

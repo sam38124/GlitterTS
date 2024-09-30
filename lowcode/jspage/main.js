@@ -31,9 +31,11 @@ import { BgGuide } from "../backend-manager/bg-guide.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { SearchIdea } from "../editor/search-idea.js";
+import { AiMessage } from "../cms-plugin/ai-message.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    glitter.share.ai_message = AiMessage;
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter));
     const css = String.raw;
     gvc.addStyle(css `
@@ -80,7 +82,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     `);
     gvc.addStyle(css `
         .scroll-right-in {
-          
+
             right: -120%; /* 將元素移到畫面外 */
             animation: slideInRight 0.5s ease-out forwards;
         }
@@ -161,6 +163,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
                             viewModel.app_config_original = res.response.result[0];
+                            if (gvc.glitter.getUrlParameter('function') === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
+                                glitter.setUrlParameter('appName', viewModel.app_config_original.refer_app);
+                                location.reload();
+                                return;
+                            }
                             viewModel.domain = res.response.result[0].domain;
                             viewModel.originalDomain = viewModel.domain;
                             resolve(true);
@@ -281,7 +288,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         else {
                             resolve(false);
-                            console.log(`falseIn`, waitGetData.findIndex((dd) => { return dd === a; }));
+                            console.log(`falseIn`, waitGetData.findIndex((dd) => {
+                                return dd === a;
+                            }));
                         }
                         if (count === waitGetData.length) {
                             resolve(true);

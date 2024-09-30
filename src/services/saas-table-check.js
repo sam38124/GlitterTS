@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compare_sql_table = exports.SaasScheme = void 0;
+exports.SaasScheme = void 0;
+exports.compare_sql_table = compare_sql_table;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -13,6 +14,26 @@ exports.SaasScheme = {
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray = [
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 't_monitor',
+                sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`ip\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`app_name\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`user_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`mac_address\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`base_url\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`req_type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`ip\`),
+  KEY \`index3\` (\`app_name\`),
+  KEY \`index4\` (\`mac_address\`),
+  KEY \`index5\` (\`created_time\`),
+  KEY \`index6\` (\`req_type\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+            },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
                 table: 'page_config',
@@ -183,6 +204,7 @@ async function compare_sql_table(scheme, table, sql) {
             return await compare_sql_table(scheme, table, sql);
         }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
+            console.log(`update-table`);
             older = older.filter((dd) => {
                 return newest.find((d2) => {
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;
@@ -233,5 +255,4 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
-exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

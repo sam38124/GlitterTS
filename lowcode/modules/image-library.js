@@ -22,7 +22,7 @@ export class imageLibrary {
             selected: false,
             loading: true,
             query: "",
-            orderString: "",
+            orderString: "created_time_desc",
             type: "file",
         };
         if (cf.key == "folderEdit") {
@@ -51,6 +51,10 @@ export class imageLibrary {
                         });
                     }
                     loop(vm.link);
+                    vm.loading = false;
+                    callback();
+                }
+                else {
                     vm.loading = false;
                     callback();
                 }
@@ -90,10 +94,12 @@ export class imageLibrary {
                             bind: id,
                             view: () => {
                                 let editArray = [];
-                                let sortArray = array;
+                                let sortArray = array.map((dd) => {
+                                    return dd;
+                                });
                                 switch (vm.orderString) {
                                     case "created_time_desc": {
-                                        sortArray = array.reverse();
+                                        sortArray.reverse();
                                         break;
                                     }
                                     case "created_time_asc": {
@@ -111,8 +117,10 @@ export class imageLibrary {
                                         });
                                         break;
                                     }
+                                    default:
+                                        break;
                                 }
-                                return array.map((dd, index) => {
+                                return sortArray.map((dd, index) => {
                                     if (editArray.length < index + 1) {
                                         editArray.push(false);
                                     }
@@ -241,14 +249,18 @@ export class imageLibrary {
                                                     </div>
                                                 `;
                                         },
-                                        divCreate: { style: `width:15%;cursor:pointer;` }
+                                        divCreate: { style: `${gvc.glitter.ut.frSize({
+                                                sm: `width:15%;`
+                                            }, `width:33%;`)}cursor:pointer;` }
                                     });
                                 }).join('');
                             },
                             divCreate: {
                                 elem: 'ul',
                                 class: `w-100 my-2 flex-wrap `,
-                                style: `display:flex;gap:17px;`,
+                                style: `display:flex;gap:${gvc.glitter.ut.frSize({
+                                    sm: `17`
+                                }, `0`)}px;`,
                             },
                             onCreate: () => {
                                 gvc.glitter.addMtScript([

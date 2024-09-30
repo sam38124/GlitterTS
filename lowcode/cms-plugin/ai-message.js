@@ -135,7 +135,6 @@ export class AiMessage {
                                             return ``;
                                         }
                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                            console.log(`AiMessage.vm.select_bt=>`, AiMessage.vm.select_bt);
                                             yield Chat.post({
                                                 type: 'user',
                                                 participant: [cf.user_id, AiMessage.vm.select_bt],

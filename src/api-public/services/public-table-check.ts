@@ -22,7 +22,7 @@ export class ApiPublic {
         try {
             await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
             await db.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
-            const groupSize = 5;
+            const groupSize = 15;
             const sqlArray: { scheme?: string; table: string; sql: string }[] = [
                 {
                     scheme: appName,

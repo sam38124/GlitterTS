@@ -26,6 +26,7 @@ import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { Setting_editor } from './function-page/setting_editor.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
 import { AiMessage } from "../cms-plugin/ai-message.js";
+import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
 const html = String.raw;
 export var ViewType;
 (function (ViewType) {
@@ -205,7 +206,7 @@ color: transparent;"
                     view: () => {
                         return [
                             html `
-                                                    <div class="indexGuideBTN" style="padding: 10px;cursor: pointer;"  data-bs-toggle="tooltip" data-bs-html="true" title = "新手教學" onclick="${gvc.event(() => {
+                                                    <div class="indexGuideBTN d-none d-sm-block" style="padding: 10px;cursor: pointer;"  data-bs-toggle="tooltip" data-bs-html="true" title = "新手教學" onclick="${gvc.event(() => {
                                 let bgGuide = new BgGuide(gvc, 0, "user-editor");
                                 bgGuide.drawGuide();
                             })}">
@@ -707,6 +708,15 @@ color:white;
                     })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-2" style="width:24px;height: 24px;">AI助手
+                                                </div>
+                                                <div
+                                                        class=" me-2 bt_orange_lin"
+                                                        style="width:42px;"
+                                                        onclick="${gvc.event(() => {
+                        BgCustomerMessage.toggle(true, gvc);
+                    })}"
+                                                >
+                                                    <i class="fa-regular fa-messages"></i>
                                                 </div>
                                                 ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();

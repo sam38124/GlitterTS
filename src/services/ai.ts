@@ -1,7 +1,9 @@
 import fs from 'fs';
 import OpenAI from 'openai';
 import tool from '../modules/tool.js';
-import { isDanielEnv } from '../run.js';
+import path from "path";
+import process from "process";
+
 
 export class Ai {
     public static files = {
@@ -9,12 +11,11 @@ export class Ai {
     };
 
     public static async initial() {
+
         const jsonStringQA = JSON.stringify(this.defaultQA);
-        if (isDanielEnv()) {
-            fs.writeFileSync('defaultQA.json', jsonStringQA);
-            return;
-        }
         const file1 = tool.randomString(10) + '.json';
+        // fs.writeFileSync(file1, JSON.stringify(Ai.defaultProduct));
+        // return
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
         });
@@ -331,4 +332,16 @@ export class Ai {
             response: '請前往優惠促銷的「免運費活動」，可以新增一個免運費優惠券活動，並設定消費條件、觸發方式、使用期限等',
         },
     ];
+
+    public static defaultProduct = [{
+        "商品名稱": "黑色休閒西裝外套",
+        "描述": "這是一件輕便的黑色休閒西裝外套，帶有簡約的設計和自然垂墜的版型。"
+    }, {
+        "商品名稱": "金色百褶裙",
+        "描述": "這是一件閃亮的金色百褶裙。"
+    }, {
+        "商品名稱": "寬鬆版型西裝外套",
+        "描述": "這是一件寬鬆版型的千鳥格紋西裝外套，具有修身剪裁。"
+    },  {"商品名稱": "黑色瓦奇儂腰帶", "描述": "這是一件寬大的黑色皮革腰帶，搭配大號扣環，強調腰部線條。"}
+    ]
 }

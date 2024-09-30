@@ -22,6 +22,7 @@ const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
 const delivery_js_1 = require("./delivery.js");
+const config_js_1 = require("../../config.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -96,7 +97,15 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
-            if (!query.is_manger && `${query.show_hidden}` !== 'true') {
+            if (query.filter_visible) {
+                if (query.filter_visible === 'true') {
+                    querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+                }
+                else {
+                    querySql.push(`(content->>'$.visible' = 'false')`);
+                }
+            }
+            else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.productType) {
@@ -150,6 +159,9 @@ class Shopping {
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${database_js_1.default.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
+            }
+            if (query.id_list) {
+                query.order_by = ` order by id in (${query.id_list})`;
             }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
@@ -275,8 +287,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -354,7 +366,7 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -471,11 +483,12 @@ class Shopping {
                     key: `form_delivery_${form.id}`
                 })).list || [];
             }
+            shipment_setting.support = (_b = shipment_setting.support) !== null && _b !== void 0 ? _b : [];
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
+                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -500,7 +513,7 @@ class Shopping {
                     },
                     {
                         name: '實體門市取貨', value: 'shop'
-                    }].concat(((_c = shipment_setting.custom_delivery) !== null && _c !== void 0 ? _c : []).map((dd) => {
+                    }].concat(((_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
@@ -513,7 +526,7 @@ class Shopping {
                 }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -691,18 +704,18 @@ class Shopping {
                     return dd.reBackType === 'giveaway';
                 })) {
                     let index = -1;
-                    for (const b of (_e = dd.add_on_products) !== null && _e !== void 0 ? _e : []) {
+                    for (const b of (_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []) {
                         index++;
-                        const pdDqlData = ((_f = (await this.getProduct({
+                        const pdDqlData = ((_g = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'active',
-                        })).data) !== null && _f !== void 0 ? _f : { content: {} }).content;
+                        })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
-                    const addGift = (_g = data.give_away) === null || _g === void 0 ? void 0 : _g.find((d1) => {
+                    const addGift = (_h = data.give_away) === null || _h === void 0 ? void 0 : _h.find((d1) => {
                         var _a;
                         return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
                             return (`${d1.id}` === `${d2.id}` &&
@@ -719,19 +732,19 @@ class Shopping {
                             count: 1,
                             voucher_id: dd.id,
                         };
-                        const pd = ((_h = dd.add_on_products) !== null && _h !== void 0 ? _h : []).find((d2) => {
+                        const pd = ((_j = dd.add_on_products) !== null && _j !== void 0 ? _j : []).find((d2) => {
                             return `${gift.id}` === `${d2.id}` && `${gift.voucher_id}` === `${dd.id}`;
                         });
                         pd.selected = true;
                         gift_product.push(gift);
                         dd.select_gif = gift;
-                        for (const b of (_j = dd.add_on_products) !== null && _j !== void 0 ? _j : []) {
+                        for (const b of (_k = dd.add_on_products) !== null && _k !== void 0 ? _k : []) {
                             b.have_select = true;
                         }
                         if (type !== 'preview') {
-                            const variant = (_k = pd.variants.find((d1) => {
+                            const variant = (_l = pd.variants.find((d1) => {
                                 return d1.spec.join('-') === gift.spec.join('-');
-                            })) !== null && _k !== void 0 ? _k : {};
+                            })) !== null && _l !== void 0 ? _l : {};
                             carData.lineItems.push({
                                 spec: gift.spec,
                                 id: gift.id,
@@ -809,7 +822,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_l = data.total) !== null && _l !== void 0 ? _l : 0;
+                carData.total = (_m = data.total) !== null && _m !== void 0 ? _m : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1803,7 +1816,10 @@ class Shopping {
             content.min_price = undefined;
             content.max_price = undefined;
             if (content.id) {
-                await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE (product_id = ${content.id}) AND id > 0
+                await database_js_1.default.query(`DELETE
+                     FROM \`${this.app}\`.t_variants
+                     WHERE (product_id = ${content.id})
+                       AND id > 0
                     `, []);
             }
             const formatJsonData = content.variants.map((a) => {
@@ -1819,7 +1835,8 @@ class Shopping {
                 a.type = 'variants';
                 a.product_id = content.id;
                 return {
-                    sql: `INSERT INTO \`${this.app}\`.t_variants SET ?`,
+                    sql: `INSERT INTO \`${this.app}\`.t_variants
+                          SET ?`,
                     data: [
                         {
                             content: JSON.stringify(a),
@@ -1832,7 +1849,9 @@ class Shopping {
                 queryList: formatJsonData,
                 divisor: 8,
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                 SET ?
+                 WHERE id = ?
                 `, [
                 {
                     content: JSON.stringify(content),
@@ -1868,14 +1887,32 @@ class Shopping {
                         case 'order_avg_sale_price':
                             result[tag] = await this.getOrderAvgSalePrice();
                             break;
+                        case 'order_avg_sale_price_year':
+                            result[tag] = await this.getOrderAvgSalePriceYear();
+                            break;
                         case 'orders_per_month_1_year':
                             result[tag] = await this.getOrdersPerMonth1Year();
+                            break;
+                        case 'orders_per_month_2_weak':
+                            result[tag] = await this.getOrdersPerMonth2Weak();
+                            break;
+                        case 'sales_per_month_2_weak':
+                            result[tag] = await this.getSalesPerMonth2Weak();
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
                             break;
                         case 'order_today':
                             result[tag] = await this.getOrderToDay();
+                            break;
+                        case 'recent_register':
+                            result[tag] = await this.getRegisterRecent();
+                            break;
+                        case 'active_recent_year':
+                            result[tag] = await this.getActiveRecentYear();
+                            break;
+                        case 'active_recent_2weak':
+                            result[tag] = await this.getActiveRecent2Weak();
                             break;
                     }
                 }
@@ -1885,6 +1922,109 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
+        }
+    }
+    async getActiveRecentYear() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const monthRegisterSQL = `
+                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name=${database_js_1.default.escape(this.app)} and  req_type='file' and (
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                        );
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            }
+            return {
+                count_array: countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
+        }
+    }
+    async getActiveRecent2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthRegisterSQL = `
+                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name=${database_js_1.default.escape(this.app)} and
+                        req_type='file' and 
+                        (DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY)));
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            }
+            return {
+                count_array: countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecent2Weak Error:' + e, null);
+        }
+    }
+    async getRegister2weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthCheckoutSQL = `
+                    SELECT count(1)
+                    FROM \`${this.app}\`.t_user
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                countArray.unshift((await database_js_1.default.query(monthCheckoutSQL, []))[0]['count(1)']);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getRegisterRecent() {
+        try {
+            const order = await database_js_1.default.query(`SELECT count(1)
+                 FROM \`${this.app}\`.t_user
+                 WHERE DATE (created_time) = CURDATE()`, []);
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const monthRegisterSQL = `
+                    SELECT count(1)
+                    FROM \`${this.app}\`.t_user
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH));
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, []))[0]['count(1)']);
+            }
+            return {
+                today: order[0]['count(1)'],
+                count_register: countArray,
+                count_2_weak_register: (await this.getRegister2weak()).countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
         }
     }
     async getOrderToDay() {
@@ -2048,12 +2188,38 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+    async getOrdersPerMonth2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const orderCountSQL = `
+                    SELECT count(1) as c
+                    FROM \`${this.app}\`.t_checkout
+                        
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                const orders = await database_js_1.default.query(orderCountSQL, []);
+                countArray.unshift(orders[0].c);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
     async getOrdersPerMonth1Year() {
         try {
             const countArray = [];
             for (let index = 0; index < 12; index++) {
                 const orderCountSQL = `
-                    SELECT count(id) as c
+                    SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout
                     WHERE
                         MONTH (created_time) = MONTH (DATE_SUB(NOW()
@@ -2091,6 +2257,67 @@ class Shopping {
                     total += parseInt(checkout.orderData.total, 10);
                 });
                 countArray.unshift(total);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getSalesPerMonth2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthCheckoutSQL = `
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                const monthCheckout = await database_js_1.default.query(monthCheckoutSQL, []);
+                let total = 0;
+                monthCheckout.map((checkout) => {
+                    total += parseInt(checkout.orderData.total, 10);
+                });
+                countArray.unshift(total);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getOrderAvgSalePriceYear() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const orderCountSQL = `
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND status = 1;
+                `;
+                const monthCheckout = await database_js_1.default.query(orderCountSQL, []);
+                let total = 0;
+                monthCheckout.map((checkout) => {
+                    total += parseInt(checkout.orderData.total, 10);
+                });
+                if (monthCheckout.length == 0) {
+                    countArray.unshift(0);
+                }
+                else {
+                    countArray.unshift(Math.floor((total / monthCheckout.length) * 100) / 100);
+                }
             }
             return { countArray };
         }

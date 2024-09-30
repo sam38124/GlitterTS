@@ -1689,6 +1689,20 @@ ${obj.gvc.bindView({
                                                                 value: gvc.event((e, event) => {
                                                                     $(e).children('.editorChild').children('.copy-btn').show();
                                                                     $(e).children('.editorChild').children('.plus_bt').show();
+                                                                    function loop(item) {
+                                                                        if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                            if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                                item[0].children[0].style.background = '#F2F2F2';
+                                                                            }
+                                                                        }
+                                                                        if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                            loop(item.parent());
+                                                                        }
+                                                                    }
+                                                                    if (window.parent.document.querySelector(`.it-${widget.id}`)) {
+                                                                        loop(window.parent.glitter.$(`.it-${widget.id}`).parent());
+                                                                        window.parent.document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
+                                                                    }
                                                                     $(e).children('.editorChild').get(0).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
                                                                 }),
                                                             },
@@ -1697,6 +1711,20 @@ ${obj.gvc.bindView({
                                                                 value: gvc.event((e, event) => {
                                                                     $(e).children('.editorChild').children('.copy-btn').hide();
                                                                     $(e).children('.editorChild').children('.plus_bt').hide();
+                                                                    function loop(item) {
+                                                                        if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                            if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                                item[0].children[0].style.background = 'none';
+                                                                            }
+                                                                        }
+                                                                        if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                            loop(item.parent());
+                                                                        }
+                                                                    }
+                                                                    if (window.parent.document.querySelector(`.it-${widget.id}`)) {
+                                                                        loop(window.parent.glitter.$(`.it-${widget.id}`).parent());
+                                                                        window.parent.document.querySelector(`.it-${widget.id}`).style.removeProperty('background');
+                                                                    }
                                                                     $(e).children('.editorChild').get(0).style.background = 'none';
                                                                 }),
                                                             },
@@ -1977,7 +2005,8 @@ background: white;
                                     },
                                 ].map((dd) => {
                                     return html `
-                                                        <div class="${dd.class || ''}" style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                                        <div class="${dd.class || ''}"
+                                                             style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
                                                              onmousedown="${cf.gvc.event((e, event) => {
                                         dd.event(e, event);
                                     })}">${dd.text}

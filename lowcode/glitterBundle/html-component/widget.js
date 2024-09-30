@@ -76,8 +76,8 @@ export const widgetComponent = {
                                                 if (dd.valueFrom === 'code') {
                                                     return {
                                                         key: dd.attr, value: eval(`(() => {
-                                                        ${dd.value}
-                                                    })()`)
+                                                            ${dd.value}
+                                                        })()`)
                                                     };
                                                 }
                                                 else {
@@ -119,6 +119,8 @@ export const widgetComponent = {
                                                 })
                                             };
                                         }
+                                    }).filter((dd) => {
+                                        return !(window.parent.editerData !== undefined && dd.key === 'onclick');
                                     });
                                     if (widget.data.elem === 'a' && (window.parent.editerData !== undefined)) {
                                         option = option.filter((dd) => {
@@ -194,7 +196,9 @@ export const widgetComponent = {
                                                     });
                                                 };
                                                 setTimeout(() => {
-                                                    if (container_style_list.includes(widget.data._layout) && ((gvc.glitter.window.parent.editerData !== undefined) || (gvc.glitter.window.editerData !== undefined)) && htmlGenerate.root) {
+                                                    if (container_style_list.includes(widget.data._layout) &&
+                                                        ((gvc.glitter.window.parent.editerData !== undefined) ||
+                                                            (gvc.glitter.window.editerData !== undefined)) && htmlGenerate.root) {
                                                         const html = String.raw;
                                                         const tempID = gvc.glitter.getUUID();
                                                         function rerenderReplaceElem() {
@@ -234,9 +238,9 @@ export const widgetComponent = {
                                                             }
                                                             for (let b = widget.data.setting.length; b < widget.data.setting.need_count; b++) {
                                                                 gvc.glitter.$(`.editor_it_${id}`).append(html `
-                                                                    <div
-                                                                            class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
-                                                                            style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: ${(() => {
+                                                                        <div
+                                                                                class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
+                                                                                style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: ${(() => {
                                                                     var _a, _b;
                                                                     if (widget.data._layout === 'proportion') {
                                                                         const wid = ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',');
@@ -253,7 +257,7 @@ export const widgetComponent = {
                                                                         return `100%`;
                                                                     }
                                                                 })()};height: 100%;"
-                                                                            onmousedown="${gvc.event(() => {
+                                                                                onmousedown="${gvc.event(() => {
                                                                     glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
                                                                         glitter.share.editorViewModel.selectContainer = widget.data.setting;
                                                                         AddComponent.toggle(true);
@@ -301,11 +305,11 @@ export const widgetComponent = {
                                                                         };
                                                                     });
                                                                 })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus text-black"
-                                                                           style="font-size: 60px;"></i>
-                                                                        <span class="fw-500 fs-5 mt-3">添加元件</span>
-                                                                    </div>`);
+                                                                        >
+                                                                            <i class="fa-regular fa-circle-plus text-black"
+                                                                               style="font-size: 60px;"></i>
+                                                                            <span class="fw-500 fs-5 mt-3">添加元件</span>
+                                                                        </div>`);
                                                             }
                                                         }
                                                         widget.data.setting.rerenderReplaceElem = rerenderReplaceElem;
@@ -380,8 +384,8 @@ export const widgetComponent = {
                                 }
                                 else if (widget.data.dataFrom === "code_text") {
                                     const inner = (eval(`(() => {
-                                    ${widget.data.inner}
-                                })()`));
+                                        ${widget.data.inner}
+                                    })()`));
                                     if (inner && inner.then) {
                                         inner.then((data) => {
                                             innerText = data || '';
@@ -633,13 +637,14 @@ export const widgetComponent = {
                                                                 const array_string = [html `
                                                                 <div class="hoverF2 d-flex align-items-center p-3"
                                                                      onclick="${gvc.event(() => {
+                                                                        const toggle = !vm_c.toggle;
                                                                         setting_option.map((dd) => {
                                                                             if (dd.vm_c.toggle) {
                                                                                 dd.vm_c.toggle = false;
                                                                                 gvc.notifyDataChange(dd.vm_c.id);
                                                                             }
                                                                         });
-                                                                        vm_c.toggle = !vm_c.toggle;
+                                                                        vm_c.toggle = toggle;
                                                                         gvc.notifyDataChange(vm_c.id);
                                                                     })}">
 <span class="fw-500"

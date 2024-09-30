@@ -93,7 +93,7 @@ export class PosHomePage {
                         return {
                             bind: id,
                             view: () => {
-                                return ` <div class="card">
+                                return `<div class="card">
                                     <div class="card-body">
                                         <h4 class="header-title mb-4">當日熱銷商品</h4>
                                         <div dir="ltr">

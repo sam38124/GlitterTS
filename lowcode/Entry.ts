@@ -1,11 +1,11 @@
 'use strict';
-import { Glitter } from './glitterBundle/Glitter.js';
-import { ApiUser } from './api/user.js';
-import { config } from './config.js';
-import { ApiPageConfig } from './api/pageConfig.js';
-import { BaseApi } from './glitterBundle/api/base.js';
-import { GlobalUser } from './glitter-base/global/global-user.js';
-import { EditorConfig } from './editor-config.js';
+import {Glitter} from './glitterBundle/Glitter.js';
+import {ApiUser} from './api/user.js';
+import {config} from './config.js';
+import {ApiPageConfig} from './api/pageConfig.js';
+import {BaseApi} from './glitterBundle/api/base.js';
+import {GlobalUser} from './glitter-base/global/global-user.js';
+import {EditorConfig} from './editor-config.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -53,7 +53,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_12.0.4";
+        glitter.share.editerVersion = "V_12.4.0";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -153,9 +153,9 @@ export class Entry {
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 // 頁面編輯器
-                Entry.toBackendEditor(glitter, () => {});
+                Entry.toBackendEditor(glitter, () => {
+                });
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
-
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter);
@@ -214,11 +214,15 @@ export class Entry {
         glitter.share.EditorMode = true;
         glitter.share.evalPlace = (evals: string) => eval(evals);
 
+
         async function running() {
-            glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css']);
+            glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css', 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
+                'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
+                'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css']);
             await new Promise((resolve, reject) => {
                 glitter.addMtScript(
                     [
+                        'jslib/pickr.min.js',
                         'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
@@ -313,8 +317,10 @@ export class Entry {
                     src: 'https://kit.fontawesome.com/cccedec0f8.js',
                 },
             ],
-            () => {},
-            () => {}
+            () => {
+            },
+            () => {
+            }
         );
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -355,9 +361,11 @@ export class Entry {
                     type: 'module',
                 };
             }),
-            () => {},
-            () => {},
-            [{ key: 'async', value: 'true' }]
+            () => {
+            },
+            () => {
+            },
+            [{key: 'async', value: 'true'}]
         );
 
         // Preload page script
@@ -377,23 +385,23 @@ export class Entry {
         glitter.share.evalPlace = (evals: string) => {
             return eval(evals);
         };
-        setTimeout(()=>{
-            (window.parent as any).glitter.share.loading_dialog.dataLoading({text:'',visible:false})
-        },2000)
-        setTimeout(()=>{
+        setTimeout(() => {
+            (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false})
+        }, 2000)
+        setTimeout(() => {
             glitter.htmlGenerate.setHome({
                 app_config: vm.appConfig,
                 page_config: (window.parent as any).page_config ?? {},
-                get config(){
+                get config() {
                     return (window.parent as any).editerData.setting
                 },
-                get editMode(){
+                get editMode() {
                     return (window.parent as any).editerData
                 },
                 data: {},
                 tag: (window.parent as any).glitter.getUrlParameter('page'),
             });
-        },100)
+        }, 100)
 
 
         callback();
@@ -436,7 +444,8 @@ export class Entry {
                     .map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            callback: () => {},
+                            callback: () => {
+                            },
                         };
                     })
             );
@@ -487,8 +496,8 @@ export class Entry {
             glitter.share.globalStyle = {};
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = config.color_theme ?? [];
-            config.container_theme= config.container_theme??[]
-            config.font_theme=config.font_theme??[]
+            config.container_theme = config.container_theme ?? []
+            config.font_theme = config.font_theme ?? []
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
@@ -496,15 +505,15 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
-            glitter.share.font_theme=config.font_theme
-            glitter.share.global_container_theme=config.container_theme
-            glitter.share.initial_fonts=[]
-            if(glitter.share.font_theme[0]){
+            glitter.share.font_theme = config.font_theme
+            glitter.share.global_container_theme = config.container_theme
+            glitter.share.initial_fonts = []
+            if (glitter.share.font_theme[0]) {
                 glitter.addStyle(`
 @charset "UTF-8";
-${glitter.share.font_theme.map((dd:any)=>{
+${glitter.share.font_theme.map((dd: any) => {
                     glitter.share.initial_fonts.push(dd.value);
-    return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`
+                    return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`
                 }).join('\n')}
 body {
     font-family: "${glitter.share.font_theme[0].value}" !important;
@@ -513,6 +522,7 @@ body {
     color: #393939;
 }`)
             }
+
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {
@@ -536,6 +546,7 @@ body {
                     console.error(e);
                 }
             }
+
             if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalValue, 'globalValue');

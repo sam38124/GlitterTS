@@ -30,6 +30,7 @@ const rebate = require("./rebate");
 const recommend = require("./recommend");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
+const monitor_js_1 = require("../services/monitor.js");
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
@@ -111,8 +112,12 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PATCH' },
     { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' }
 ];
-async function doAuthAction(req, resp, next) {
+async function doAuthAction(req, resp, next_step) {
     var _a, _b, _c, _d;
+    async function next() {
+        await monitor_js_1.Monitor.insertHistory({ req: req, token: req.body.token, req_type: 'api' });
+        next_step();
+    }
     if (live_source_js_1.Live_source.liveAPP.indexOf(`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}`) === -1) {
         return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
     }
@@ -147,7 +152,7 @@ async function doAuthAction(req, resp, next) {
         catch (e) {
             console.error('matchTokenError', e);
         }
-        next();
+        await next();
         return;
     }
     try {
@@ -165,7 +170,7 @@ async function doAuthAction(req, resp, next) {
                 return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));
             }
         }
-        next();
+        await next();
     }
     catch (err) {
         logger.error(TAG, `Unexpected exception occurred because ${err}.`);

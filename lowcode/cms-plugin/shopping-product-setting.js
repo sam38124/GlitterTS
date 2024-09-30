@@ -438,7 +438,7 @@ export class ShoppingProductSetting {
                     `);
                     switch (vm.type) {
                         case 'add':
-                            return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
+                            return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add', product_type: type });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             vm.tableId = gvc.glitter.getUUID();
@@ -476,6 +476,8 @@ export class ShoppingProductSetting {
                                                     return '贈品';
                                                 case 'product':
                                                     return '商品列表';
+                                                case "hidden":
+                                                    return "隱形賣場商品";
                                             }
                                         })())}
                                                     <div class="flex-fill"></div>
@@ -1021,9 +1023,10 @@ export class ShoppingProductSetting {
                                                                 }
                                                                 return undefined;
                                                             })(),
+                                                            filter_visible: `${(type !== 'hidden')}`,
                                                             collection: vm.filter.collection,
                                                             accurate_search_collection: true,
-                                                            productType: type,
+                                                            productType: (type === 'hidden') ? 'product' : type,
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / 50);
                                                             vm.dataList = data.response.data;
@@ -1815,6 +1818,32 @@ export class ShoppingProductSetting {
                 template: '',
                 content_array: [],
             };
+            switch (obj.product_type) {
+                case "product":
+                    postMD.visible = "true";
+                    postMD.productType = { product: true,
+                        addProduct: false,
+                        giveaway: false, };
+                    break;
+                case "addProduct":
+                    postMD.visible = "true";
+                    postMD.productType = { product: false,
+                        addProduct: true,
+                        giveaway: false, };
+                    break;
+                case "giveaway":
+                    postMD.visible = "true";
+                    postMD.productType = { product: false,
+                        addProduct: false,
+                        giveaway: true, };
+                    break;
+                case "hidden":
+                    postMD.visible = "false";
+                    postMD.productType = { product: true,
+                        addProduct: false,
+                        giveaway: false, };
+                    break;
+            }
             postMD.content_array = (_a = postMD.content_array) !== null && _a !== void 0 ? _a : [];
             if (obj.type === 'replace') {
                 postMD = obj.defData;
@@ -3517,6 +3546,9 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                 .join(BgWidget.mbContainer(24)), undefined, `width: 73.5%; ${document.body.clientWidth > 768 ? 'padding-top: 0 !important; ' : ''}`)}
                                     ${BgWidget.container(html ` <div class="summary-card p-0">
                                             ${[
+                                BgWidget.mainCard(html `<div style="font-weight: 700;" class="mb-2">商品類型</div>
+                                                        <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
+                                                        `),
                                 BgWidget.mainCard(html ` <div style="font-weight: 700;" class="mb-2">商品狀態</div>` +
                                     EditorElem.select({
                                         gvc: obj.gvc,
@@ -3530,57 +3562,6 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                             postMD.status = text;
                                         },
                                     })),
-                                BgWidget.mainCard(html ` <div style="font-weight: 700;" class="mb-2">商品顯示</div>` +
-                                    BgWidget.grayNote('當商品設定為隱藏時，僅能顯示於隱形賣場與一頁商店當中') +
-                                    html ` <div class="my-2"></div>` +
-                                    EditorElem.select({
-                                        gvc: obj.gvc,
-                                        title: '',
-                                        def: postMD.visible || 'true',
-                                        array: [
-                                            { title: '顯示', value: 'true' },
-                                            { title: '隱藏', value: 'false' },
-                                        ],
-                                        callback: (text) => {
-                                            postMD.visible = text;
-                                        },
-                                    })),
-                                BgWidget.mainCard(html ` <div style="font-weight: 700;" class="mb-2">商品類型</div>` +
-                                    gvc.bindView({
-                                        bind: 'productType',
-                                        view: () => {
-                                            var _a;
-                                            postMD.productType = (_a = postMD.productType) !== null && _a !== void 0 ? _a : {
-                                                product: true,
-                                                addProduct: false,
-                                                giveaway: false,
-                                            };
-                                            return ['product', 'addProduct', 'giveaway']
-                                                .map((dd, index) => {
-                                                return html ` <div
-                                                                            class="d-flex align-items-center"
-                                                                            style="gap:6px;cursor: pointer;"
-                                                                            onclick="${gvc.event(() => {
-                                                    postMD.productType[dd] = !postMD.productType[dd];
-                                                    gvc.notifyDataChange('productType');
-                                                })}"
-                                                                        >
-                                                                            ${postMD.productType[dd]
-                                                    ? html ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                                                      <rect width="16" height="16" rx="3" fill="#393939" />
-                                                                                      <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                                  </svg>`
-                                                    : html ` <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div> `}
-                                                                            ${['商品', '加購品', '贈品'][index]}
-                                                                        </div>`;
-                                            })
-                                                .join('');
-                                        },
-                                        divCreate: {
-                                            class: `d-flex flex-column `,
-                                            style: 'gap:12px;',
-                                        },
-                                    }), ''),
                                 BgWidget.mainCard(obj.gvc.bindView(() => {
                                     const id = obj.gvc.glitter.getUUID();
                                     return {
@@ -3829,6 +3810,29 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                 dialog.errorMessage({ text: `上傳失敗` });
             }
         });
+    }
+    static getProductTypeString(product) {
+        var _a;
+        product.productType = (_a = product.productType) !== null && _a !== void 0 ? _a : {
+            product: true,
+            addProduct: false,
+            giveaway: false,
+        };
+        if (product.productType["product"]) {
+            if ((product.visible || 'true') === 'false') {
+                return "隱形賣場";
+            }
+            else {
+                return "前台商品";
+            }
+        }
+        else if (product.productType["addProduct"]) {
+            return "加購品";
+        }
+        else if (product.productType["giveaway"]) {
+            return "贈品";
+        }
+        return "未知";
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingProductSetting);

@@ -19,6 +19,7 @@ export class BaseApi {
             if (requestOptions.method === 'GET') {
                 requestOptions.body = undefined;
             }
+            requestOptions.headers['mac_address'] = window.glitter.macAddress;
             fetch(config.url, requestOptions)
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
                 try {
