@@ -340,7 +340,7 @@ export class ApiPageConfig {
                     }
                     return file_name;
                 }
-                if (file.type.startsWith('image/')) {
+                if (file.name.endsWith('png') || file.name.endsWith('jpg') || file.name.endsWith('jpeg')) {
                     function loopSize(size) {
                         return __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve, reject) => {
@@ -413,6 +413,18 @@ export class ApiPageConfig {
                             result: false
                         };
                     }
+                }
+                else {
+                    const s3res = (yield ApiPageConfig.uploadFile(file.name)).response;
+                    const res = yield BaseApi.create({
+                        url: s3res.url,
+                        type: 'put',
+                        data: file,
+                        headers: {
+                            'Content-Type': s3res.type,
+                        }
+                    });
+                    links.push(s3res.fullUrl);
                 }
             }
             return {

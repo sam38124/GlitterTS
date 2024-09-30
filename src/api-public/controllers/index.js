@@ -22,6 +22,7 @@ const shop_apiRouter = require("./shop");
 const manager_apiRouter = require("./manager");
 const app_release = require("./app-release");
 const smtp = require("./smtp");
+const sns = require("./sns");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
 const article = require("./article");
@@ -41,6 +42,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ec, 'public'), 
 router.use(config_1.config.getRoute(config_1.config.public_route.manager, 'public'), manager_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'), app_release);
 router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
+router.use(config_1.config.getRoute(config_1.config.public_route.sns, 'public'), sns);
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);

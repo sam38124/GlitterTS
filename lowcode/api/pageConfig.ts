@@ -411,7 +411,7 @@ export class ApiPageConfig {
                 return file_name
             }
             //壓縮圖片後再上傳
-            if(file.type.startsWith('image/')){
+            if(file.name.endsWith('png')||file.name.endsWith('jpg')||file.name.endsWith('jpeg')){
                 async function loopSize(size:number):Promise<boolean>{
                     return new Promise( (resolve,reject)=>{
                        const reader = new FileReader();
@@ -484,6 +484,17 @@ export class ApiPageConfig {
                         result:false
                     }
                 }
+            }else{
+                const s3res= (await ApiPageConfig.uploadFile(file.name)).response;
+                const res= await BaseApi.create({
+                    url: s3res.url,
+                    type: 'put',
+                    data: file,
+                    headers: {
+                        'Content-Type': s3res.type,
+                    }
+                })
+                links.push(s3res.fullUrl)
             }
         }
 

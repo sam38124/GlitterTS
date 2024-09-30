@@ -21,7 +21,7 @@ interface EmailObject {
 }
 
 export type PostData = {
-    type: 'notify-email-config';
+    type: 'notify-sns-config';
     tag: string;
     tagList: { tag: string; filter: any; valueString: string }[];
     userList: EmailObject[];
@@ -32,6 +32,7 @@ export type PostData = {
     sendTime: { date: string; time: string } | undefined;
     sendGroup: string[];
     email?: string[];
+    phone?:string[];
     typeName?: string;
 };
 
@@ -493,7 +494,7 @@ export class BgNotify {
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('歷史寄件紀錄')}
+                                    ${BgWidget.title('寄件紀錄')}
                                     <div class="flex-fill"></div>
                                 </div>
                                 ${BgWidget.container(
@@ -925,7 +926,7 @@ export class BgNotify {
             dataList: [] as { key: string; value: string }[],
         };
         const postData: PostData = {
-            type: 'notify-email-config',
+            type: 'notify-sns-config',
             tag: '',
             tagList: [],
             userList: [],

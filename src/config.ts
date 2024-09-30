@@ -1,6 +1,7 @@
 'use strict';
 import path from 'path';
 import dotenv from 'dotenv';
+import process from "process";
 
 export class ConfigSetting {
     public static is_local = false;
@@ -38,6 +39,15 @@ export const config = {
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     DB_SHOW_INFO: false,
+    get SNSAccount(){
+        return process.env.SNSAccount
+    },
+    get SNSPWD(){
+        return process.env.SNSPWD
+    },
+    get SNS_URL(){
+        return process.env.SNS_URL
+    },
     get DB_URL() {
         return process.env.DB_URL;
     },
@@ -115,6 +125,7 @@ export const config = {
         recommend: '/recommend',
         graph_api: '/graph_api',
         ai_chat: '/ai',
+        sns: '/sns',
     },
     route: {
         user: '/user',

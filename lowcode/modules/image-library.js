@@ -22,7 +22,7 @@ export class imageLibrary {
             selected: false,
             loading: true,
             query: "",
-            orderString: "",
+            orderString: "created_time_desc",
             type: "file",
         };
         if (cf.key == "folderEdit") {

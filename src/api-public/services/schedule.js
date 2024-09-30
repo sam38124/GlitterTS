@@ -210,6 +210,27 @@ class Schedule {
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
+    async autoSetSNS(sec) {
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendSNS' AND 
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                    for (const email of emails) {
+                        if (email.status === 0) {
+                            new mail_js_1.Mail(app).chunkSendMail(email.content, email.id);
+                        }
+                    }
+                }
+            }
+            catch (e) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendSNS Error: ' + e, null);
+            }
+        }
+        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+    }
     main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },

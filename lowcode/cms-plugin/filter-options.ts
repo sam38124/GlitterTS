@@ -326,6 +326,12 @@ export class FilterOptions {
         { key: 'title', value: '標題' },
     ];
 
+    static snsSelect = [
+        { key: 'phone', value: '顧客電話' },
+        { key: 'name', value: '收訊人名稱' },
+        { key: 'title', value: '內容' },
+    ];
+
     static emailOptions = [
         { key: 'def', value: '請選擇根據的條件' },
         { key: 'all', value: '所有會員' },
@@ -360,6 +366,31 @@ export class FilterOptions {
                 // { key: 'auto-email-order-cancel-false', name: '取消訂單失敗' },
                 { key: 'auto-email-birthday', name: '生日祝福' },
                 { key: 'get-customer-message', name: '客服訊息' },
+            ],
+        },
+    ];
+
+    static snsFunnel = [
+        {
+            key: 'status',
+            type: 'multi_checkbox',
+            name: '寄送狀態',
+            data: [
+                { key: '0', name: '尚未寄送' },
+                { key: '1', name: '已寄送' },
+            ],
+        },
+        {
+            key: 'mailType',
+            type: 'multi_checkbox',
+            name: '寄件類型',
+            data: [
+                { key: 'auto-sns-payment-successful', name: '訂單付款成功' },
+                { key: 'auto-sns-order-create', name: '訂單成立' },
+                { key: 'sns-proof-purchase', name: '訂單待核款' },
+                // { key: 'auto-email-order-cancel-success', name: '取消訂單成功' },
+                // { key: 'auto-email-order-cancel-false', name: '取消訂單失敗' },
+                { key: 'auto-sns-birthday', name: '生日祝福' },
             ],
         },
     ];

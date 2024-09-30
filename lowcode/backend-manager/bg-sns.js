@@ -17,13 +17,15 @@ import { FormWidget } from '../official_view_component/official/form.js';
 import { Chat } from '../glitter-base/route/chat.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting.js';
-import { ApiSmtp } from '../glitter-base/route/smtp.js';
 import { BgListComponent } from './bg-list-component.js';
 import { Tool } from '../modules/tool.js';
+import { ApiWallet } from "../glitter-base/route/wallet.js";
+import { ApiSns } from "../glitter-base/route/sns.js";
 const html = String.raw;
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
-export class BgNotify {
-    static email(gvc, type = 'list', callback = () => { }) {
+export class BgSNS {
+    static email(gvc, type = 'list', callback = () => {
+    }) {
         const vm = {
             type: 'list',
             data: {
@@ -234,7 +236,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                                 <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('信件樣式')}
+                                    ${BgWidget.title('簡訊定型文')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.data = undefined;
@@ -248,10 +250,11 @@ export class BgNotify {
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-email-config',
+                                    type: 'notify-sns-config',
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
+                                    console.log("data -- ", data);
                                     function getDatalist() {
                                         return data.response.data.map((dd) => {
                                             return [
@@ -284,7 +287,8 @@ export class BgNotify {
                                                 },
                                                 {
                                                     key: '標題',
-                                                    value: html `<span class="fs-7">${dd.content.title}</span>`,
+                                                    value: html `<span
+                                                                                    class="fs-7">${dd.content.title}</span>`,
                                                 },
                                                 {
                                                     key: '最後更新時間',
@@ -307,7 +311,7 @@ export class BgNotify {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有信件內容')}
-                                            ${gvc.bindView(() => {
+                                                    ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -391,7 +395,7 @@ export class BgNotify {
             };
         });
     }
-    static emailHistory(gvc) {
+    static snsHistory(gvc) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -431,7 +435,7 @@ export class BgNotify {
                                                     gvc.notifyDataChange(id);
                                                 },
                                                 default: vm.queryType || 'email',
-                                                options: FilterOptions.emailSelect,
+                                                options: FilterOptions.snsSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event((e) => {
                                                 vm.query = e.value;
@@ -441,24 +445,30 @@ export class BgNotify {
                                             BgWidget.funnelFilter({
                                                 gvc,
                                                 callback: () => {
-                                                    return ListComp.showRightMenu(FilterOptions.emailFunnel);
+                                                    return ListComp.showRightMenu(FilterOptions.snsFunnel);
                                                 },
                                             }),
                                         ];
-                                        const filterTags = ListComp.getFilterTags(FilterOptions.emailFunnel);
+                                        const filterTags = ListComp.getFilterTags(FilterOptions.snsFunnel);
                                         if (document.body.clientWidth < 768) {
-                                            return html `<div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                    <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">
-                                                                        <div class="me-2">${filterList[2]}</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                                <div>${filterTags}</div>`;
+                                            return html `
+                                                                        <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                            <div>${filterList[0]}</div>
+                                                                            <div style="display: flex;">
+                                                                                <div class="me-2">${filterList[2]}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div style="display: flex; margin-top: 8px;">
+                                                                            ${filterList[1]}
+                                                                        </div>
+                                                                        <div>${filterTags}</div>`;
                                         }
                                         else {
-                                            return html `<div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                                <div>${filterTags}</div>`;
+                                            return html `
+                                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                                            ${filterList.join('')}
+                                                                        </div>
+                                                                        <div>${filterTags}</div>`;
                                         }
                                     },
                                 });
@@ -471,7 +481,7 @@ export class BgNotify {
                                         getData: (vmi) => {
                                             var _a, _b;
                                             const limit = 20;
-                                            ApiSmtp.history({
+                                            ApiSns.history({
                                                 page: vmi.page - 1,
                                                 limit: limit,
                                                 search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
@@ -483,21 +493,25 @@ export class BgNotify {
                                                 if (data.result) {
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vm.dataList = data.response.data;
+                                                    console.log("data.response.data -- ", data.response.data);
                                                     function getDatalist() {
                                                         return data.response.data.map((dd) => {
                                                             return [
                                                                 {
                                                                     key: '寄件類型',
-                                                                    value: html `<span class="fs-7">${dd.content.typeName}</span>`,
+                                                                    value: html `<span
+                                                                                                    class="fs-7">${dd.content.typeName}</span>`,
                                                                 },
                                                                 {
                                                                     key: '標題',
-                                                                    value: html `<span class="fs-7">${Tool.truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
+                                                                    value: html `<span
+                                                                                                    class="fs-7">${Tool.truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
                                                                 },
                                                                 {
                                                                     key: '收件群組',
-                                                                    value: html `<span class="fs-7"
-                                                                                        >${(() => {
+                                                                    value: html `<span
+                                                                                                    class="fs-7"
+                                                                                            >${(() => {
                                                                         if (!dd.content.sendGroup) {
                                                                             return '沒有群組';
                                                                         }
@@ -513,11 +527,13 @@ export class BgNotify {
                                                                                 tagList.push(group);
                                                                             }
                                                                         }
-                                                                        return tagList.join(html `<span class="badge fs-7 mx-1 px-1" style="color: #393939; background: #FFD5D0;"
-                                                                                                    >${dd.content.boolean === 'and' ? '且' : '或'}</span
-                                                                                                >`);
+                                                                        return tagList.join(html `<span
+                                                                                                                class="badge fs-7 mx-1 px-1"
+                                                                                                                style="color: #393939; background: #FFD5D0;"
+                                                                                                        >${dd.content.boolean === 'and' ? '且' : '或'}</span
+                                                                                                        >`);
                                                                     })()}</span
-                                                                                    >`,
+                                                                                            >`,
                                                                 },
                                                                 {
                                                                     key: '寄送時間',
@@ -528,9 +544,23 @@ export class BgNotify {
                                                                     value: (() => {
                                                                         switch (dd.status) {
                                                                             case 0:
-                                                                                return html `<div class="badge fs-7" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
+                                                                                return html `
+                                                                                                            <div class="badge fs-7"
+                                                                                                                 style="color: #393939; background: #ffd6a4;">
+                                                                                                                尚未寄送
+                                                                                                            </div>`;
                                                                             case 1:
-                                                                                return html `<div class="badge fs-7" style="color: #393939; background: #0000000f;">已寄出</div>`;
+                                                                                return html `
+                                                                                                            <div class="badge fs-7"
+                                                                                                                 style="color: #393939; background: #0000000f;">
+                                                                                                                已寄出
+                                                                                                            </div>`;
+                                                                            case 2:
+                                                                                return html `
+                                                                                                            <div class="badge fs-7"
+                                                                                                                 style="color: #393939; background: #0000000f;">
+                                                                                                                取消預約
+                                                                                                            </div>`;
                                                                         }
                                                                     })(),
                                                                 },
@@ -572,25 +602,35 @@ export class BgNotify {
         const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             content: '',
             title: '',
-            type: 'notify-email-config',
+            type: 'notify-sns-config',
             name: '',
         };
+        let pointCount = 1;
         return BgWidget.container(html `
                 <div class="d-flex w-100 align-items-center">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-                    ${BgWidget.title(obj.readonly ? '信件詳細內容' : '編輯信件樣式')}
+                    ${BgWidget.title(obj.readonly ? '簡訊詳細內容' : '編輯簡訊定型文')}
                     <div class="flex-fill"></div>
                     ${obj.readonly
             ? [
-                html `<div class="badge fs-7 me-2" style="color: #393939; background: #0000000f;">${vm.data.typeName}</div>`,
+                html `
+                                    <div class="badge fs-7 me-2" style="color: #393939; background: #0000000f;">
+                                        ${vm.data.typeName}
+                                    </div>`,
                 (() => {
                     switch (vm.data.status) {
                         case 0:
-                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
+                            return html `
+                                                <div class="badge fs-7 me-1"
+                                                     style="color: #393939; background: #ffd6a4;">尚未寄送
+                                                </div>`;
                         case 1:
-                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
+                            return html `
+                                                <div class="badge fs-7 me-1"
+                                                     style="color: #393939; background: #0000000f;">已寄出
+                                                </div>`;
                     }
                 })(),
             ].join('')
@@ -605,25 +645,30 @@ export class BgNotify {
                     var _a;
                     let htmlList = [];
                     if (obj.readonly) {
-                        const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html `<div class="c_filter_tag">${str}</div>`);
-                        const emailHTML = vm.data.email.map((str) => html `<div class="c_filter_tag">${str}</div>`);
+                        const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html `
+                                            <div class="c_filter_tag">${str}</div>`);
+                        const phoneHTML = vm.data.phone.map((str) => html `
+                                            <div class="c_filter_tag">${str}</div>`);
                         htmlList = htmlList.concat([
                             BgWidget.mainCard(html `
-                                                <div class="tx_normal fw-normal">篩選條件</div>
-                                                <div class="c_filter_container">
-                                                    ${sendGroupHTML.length === 0
+                                                        <div class="tx_normal fw-normal">篩選條件</div>
+                                                        <div class="c_filter_container">
+                                                            ${sendGroupHTML.length === 0
                                 ? '沒有群組'
-                                : sendGroupHTML.join(html `<span class="badge fs-7 px-1" style="color: #393939; background: #FFD5D0;"
-                                                              >${vm.data.boolean === 'and' ? '且' : '或'}</span
-                                                          >`)}
-                                                </div>
+                                : sendGroupHTML.join(html `<span
+                                                                            class="badge fs-7 px-1"
+                                                                            style="color: #393939; background: #FFD5D0;"
+                                                                    >${vm.data.boolean === 'and' ? '且' : '或'}</span
+                                                                    >`)}
+                                                        </div>
+                                                    `),
+                            BgWidget.mainCard(html `
+                                                <div class="tx_normal fw-normal">電話號碼</div>
+                                                <div class="c_filter_container">${phoneHTML.join('')}</div>
                                             `),
                             BgWidget.mainCard(html `
-                                            <div class="tx_normal fw-normal">電子信箱</div>
-                                            <div class="c_filter_container">${emailHTML.join('')}</div>
-                                        `),
-                            BgWidget.mainCard(html `<div class="tx_700 mb-3">發送時間</div>
-                                            ${EditorElem.radio({
+                                                <div class="tx_700 mb-3">發送時間</div>
+                                                ${EditorElem.radio({
                                 gvc: gvc,
                                 title: '',
                                 def: vm.data.sendTime === undefined ? 'now' : 'set',
@@ -635,80 +680,82 @@ export class BgNotify {
                                     {
                                         title: '排定發送時間',
                                         value: 'set',
-                                        innerHtml: html `<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                            ${EditorElem.editeInput({
+                                        innerHtml: html `
+                                                                <div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                                                     style="gap: 12px">
+                                                                    ${EditorElem.editeInput({
                                             gvc: gvc,
                                             title: '',
                                             type: 'date',
                                             style: inputStyle,
                                             default: vm.data.sendTime ? vm.data.sendTime.date : '',
                                             placeHolder: '',
-                                            callback: () => { },
+                                            callback: () => {
+                                            },
                                             readonly: true,
                                         })}
-                                                            ${EditorElem.editeInput({
+                                                                    ${EditorElem.editeInput({
                                             gvc: gvc,
                                             title: '',
                                             type: 'time',
                                             style: inputStyle,
                                             default: vm.data.sendTime ? vm.data.sendTime.time : '',
                                             placeHolder: '',
-                                            callback: () => { },
+                                            callback: () => {
+                                            },
                                             readonly: true,
                                         })}
-                                                        </div>`,
+                                                                </div>`,
                                     },
                                 ],
-                                callback: () => { },
+                                callback: () => {
+                                },
                                 readonly: true,
                             })}`),
                         ]);
                     }
                     htmlList = htmlList.concat([
-                        BgWidget.mainCard(BgWidget.editeInput({
+                        BgWidget.mainCard(html `
+                                                    ${BgWidget.editeInput({
                             gvc: gvc,
-                            title: '寄件者名稱',
-                            default: postData.name,
-                            placeHolder: '請輸入寄件者名稱',
-                            callback: (text) => {
-                                postData.name = text;
-                            },
-                            readonly: obj.readonly,
-                        })),
-                        BgWidget.mainCard(BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '信件主旨',
+                            title: '簡訊主題',
                             default: postData.title,
-                            placeHolder: '請輸入信件主旨',
+                            readonly: true,
+                            placeHolder: '請輸入簡訊主題',
                             callback: (text) => {
-                                if (text === 'default') {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.infoMessage({ text: 'default 為系統預設值，請更改其他信件主旨' });
-                                    postData.title = '';
-                                    obj.gvc.notifyDataChange(bi);
-                                    return;
-                                }
                                 postData.title = text;
                             },
-                            readonly: obj.readonly,
-                        })),
-                        BgWidget.mainCard(html `<div class="d-flex align-items-center mb-3">
-                                                <div class="tx_normal fw-normal me-2">信件內文</div>
-                                                ${obj.readonly
-                            ? ''
-                            : BgWidget.selEventButton('範例', obj.gvc.event(() => {
-                                postData.content = defaultEmailText();
-                                obj.gvc.notifyDataChange(bi);
-                            }))}
-                                            </div>
-                                            ${EditorElem.richText({
-                            gvc: obj.gvc,
-                            def: postData.content,
+                        })}
+                                                    <div class="d-flex align-items-center my-3">
+                                                        <div class="tx_normal fw-normal me-2">簡訊內文</div>
+                                                        <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount * this.ticket}點</div>
+                                                    </div>
+                                                    ${EditorElem.editeText({
+                            gvc: gvc,
+                            title: "",
+                            readonly: true,
+                            default: postData.content || "",
+                            placeHolder: "",
                             callback: (text) => {
                                 postData.content = text;
-                            },
-                            style: `overflow-y: auto;`,
-                            readonly: obj.readonly,
+                                let totalSize = 0;
+                                for (let i = 0; i < text.length; i++) {
+                                    const char = text[i];
+                                    if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
+                                        totalSize += 2;
+                                    }
+                                    else {
+                                        totalSize += 1;
+                                    }
+                                }
+                                if (totalSize < this.maxSize) {
+                                    pointCount = 1;
+                                }
+                                else {
+                                    pointCount = Math.ceil(totalSize /= this.longSMS);
+                                }
+                                gvc.notifyDataChange(bi);
+                            }
                         })}`),
                     ]);
                     return htmlList.filter((str) => str.length > 0).join(BgWidget.mbContainer(16));
@@ -743,6 +790,23 @@ export class BgNotify {
                 });
             }))
             : ''}
+                    ${BgWidget.danger(gvc.event(() => {
+            const dialog = new ShareDialog(gvc.glitter);
+            dialog.dataLoading({ text: '取消預約中', visible: true });
+            ApiSns.delete({
+                id: vm.data.name
+            }).then(r => {
+                console.log("res -- ", r);
+                dialog.dataLoading({ visible: false });
+                if (r.result) {
+                    vm.status = 'list';
+                    dialog.successMessage({ text: '上傳成功' });
+                }
+                else {
+                    dialog.errorMessage({ text: '上傳失敗' });
+                }
+            });
+        }), obj.readonly ? '取消預約' : undefined)}
                     ${BgWidget.cancel(gvc.event(() => {
             vm.type = 'list';
         }), obj.readonly ? '關閉' : undefined)}
@@ -751,7 +815,7 @@ export class BgNotify {
             : BgWidget.save(gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 if (obj.type === 'replace') {
-                    dialog.dataLoading({ text: '變更信件', visible: true });
+                    dialog.dataLoading({ text: '變更簡訊中', visible: true });
                     ApiPost.put({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -768,7 +832,7 @@ export class BgNotify {
                     });
                 }
                 else {
-                    dialog.dataLoading({ text: '新增信件', visible: true });
+                    dialog.dataLoading({ text: '新增簡訊', visible: true });
                     ApiPost.post({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -788,11 +852,13 @@ export class BgNotify {
                 </div>
             `, BgWidget.getContainerWidth());
     }
-    static emailSender(gvc) {
+    static snsSender(gvc) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
         const startDate = ShoppingDiscountSetting.getDateTime(1).date;
         const startTime = ShoppingDiscountSetting.getDateTime(1).time;
+        let wallet = 0;
+        let pointCount = 1;
         const vm = {
             id: glitter.getUUID(),
             containerId: glitter.getUUID(),
@@ -930,10 +996,11 @@ export class BgNotify {
                             limit: 99999,
                         }).then((dd) => {
                             dd.response.data.map((user) => {
-                                if (user.userData.email && user.userData.email.length > 0) {
+                                if (user.userData.email && user.userData.email.length > 0 && user.userData.phone) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
+                                        phone: user.userData.phone,
                                     });
                                 }
                             });
@@ -947,10 +1014,11 @@ export class BgNotify {
                             id: tagData.filter.join(','),
                         }).then((dd) => {
                             dd.response.data.map((user) => {
-                                if (user.userData.email && user.userData.email.length > 0) {
+                                if (user.userData.email && user.userData.email.length > 0 && user.userData.phone) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
+                                        phone: user.userData.phone,
                                     });
                                 }
                             });
@@ -968,10 +1036,11 @@ export class BgNotify {
                                     group: { type: 'level', tag: id },
                                 }).then((data) => {
                                     data.response.data.map((user) => {
-                                        if (user.userData.email) {
+                                        if (user.userData.email && user.userData.phone) {
                                             list.push({
                                                 id: user.userID,
                                                 email: user.userData.email,
+                                                phone: user.userData.phone,
                                             });
                                         }
                                     });
@@ -1004,10 +1073,11 @@ export class BgNotify {
                                         dataArray = dataArray.concat(data.response.extra.noRegisterUsers);
                                     }
                                     dataArray.map((user) => {
-                                        if (user && user.userData.email) {
+                                        if (user && user.userData.email && user.userData.phone) {
                                             list.push({
                                                 id: user.userID,
                                                 email: user.userData.email,
+                                                phone: user.userData.phone,
                                             });
                                         }
                                     });
@@ -1032,10 +1102,11 @@ export class BgNotify {
                             filter: { birth: tagData.filter },
                         }).then((data) => {
                             data.response.data.map((user) => {
-                                if (user.userData.email) {
+                                if (user.userData.email && user.userData.phone) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
+                                        phone: user.userData.phone,
                                     });
                                 }
                             });
@@ -1051,10 +1122,11 @@ export class BgNotify {
                             filter: { rebate: { key: 'moreThan', value: tagData.filter } },
                         }).then((data) => {
                             data.response.data.map((user) => {
-                                if (user.userData.email) {
+                                if (user.userData.email && user.userData.phone) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
+                                        phone: user.userData.phone,
                                     });
                                 }
                             });
@@ -1074,18 +1146,19 @@ export class BgNotify {
             const formatName = value && value.length > 0 ? `${name}：${value}` : name;
             return {
                 name: formatName,
-                html: html `<div class="c_filter_tag">
-                    ${formatName}
-                    <i
-                        class="fa-solid fa-xmark ms-1"
-                        style="cursor: pointer"
-                        onclick="${gvc.event(() => {
+                html: html `
+                    <div class="c_filter_tag">
+                        ${formatName}
+                        <i
+                                class="fa-solid fa-xmark ms-1"
+                                style="cursor: pointer"
+                                onclick="${gvc.event(() => {
                     postData.tagList = postData.tagList.filter((data) => data.tag !== key);
                     setUserList();
                     gvc.notifyDataChange(vm.tagsId);
                 })}"
-                    ></i>
-                </div>`,
+                        ></i>
+                    </div>`,
             };
         }
         function getTagsHTML() {
@@ -1105,15 +1178,20 @@ export class BgNotify {
             });
             postData.sendGroup = badgeList.map((item) => item.name);
             return [
-                html `<div class="tx_normal fw-normal">標籤判斷</div>
+                html `
+                    <div class="tx_normal fw-normal">標籤判斷</div>
                     <div style="margin: 8px 0;">
-                        ${BgWidget.switchTextButton(gvc, postData.boolean === 'and', { left: '或', right: '且' }, (bool) => {
+                        ${BgWidget.switchTextButton(gvc, postData.boolean === 'and', {
+                    left: '或',
+                    right: '且'
+                }, (bool) => {
                     postData.boolean = bool ? 'and' : 'or';
                     setUserList();
                     gvc.notifyDataChange(vm.tagsId);
                 })}
                     </div>`,
-                html `<div class="tx_normal fw-normal">預計寄件顧客人數</div>
+                html `
+                    <div class="tx_normal fw-normal">預計寄件顧客人數</div>
                     <div style="display:flex; align-items: center; gap: 18px; margin: 8px 0;">
                         <div class="tx_normal">${postData.userList.length}人</div>
                         ${BgWidget.grayButton('查看名單', gvc.event(() => {
@@ -1129,7 +1207,8 @@ export class BgNotify {
                         gvc: gvc,
                         title: '預計寄件顧客',
                         tag: 'send_users_list',
-                        callback: () => { },
+                        callback: () => {
+                        },
                         default: [],
                         api: () => {
                             return new Promise((resolve) => {
@@ -1184,6 +1263,9 @@ export class BgNotify {
                 `,
             ].join(BgWidget.mbContainer(18));
         }
+        ApiWallet.getWallet().then(r => {
+            wallet = r.response.sum;
+        });
         return BgWidget.container(html `
                 <div class="d-flex w-100 align-items-center">
                     ${BgWidget.title('手動寄件')}
@@ -1196,11 +1278,14 @@ export class BgNotify {
                 view: () => {
                     return [
                         BgWidget.mainCard([
-                            html ` <div class="tx_700">選擇收件對象</div>`,
-                            html ` <div class="tx_normal fw-normal mt-3">根據</div>`,
-                            html `<div style="display: flex; ${document.body.clientWidth > 768 ? 'gap: 18px;' : 'flex-direction: column;'}">
-                                                <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
-                                                    ${BgWidget.select({
+                            html `
+                                                        <div class="tx_700">選擇收件對象</div>`,
+                            html `
+                                                        <div class="tx_normal fw-normal mt-3">根據</div>`,
+                            html `
+                                                        <div style="display: flex; ${document.body.clientWidth > 768 ? 'gap: 18px;' : 'flex-direction: column;'}">
+                                                            <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
+                                                                ${BgWidget.select({
                                 gvc: gvc,
                                 default: postData.tag,
                                 callback: (key) => {
@@ -1211,9 +1296,9 @@ export class BgNotify {
                                 options: FilterOptions.emailOptions,
                                 style: 'margin: 8px 0;',
                             })}
-                                                </div>
-                                                <div style="width: 100%; display: flex; align-items: center;">
-                                                    ${gvc.bindView({
+                                                            </div>
+                                                            <div style="width: 100%; display: flex; align-items: center;">
+                                                                ${gvc.bindView({
                                 bind: vm.id,
                                 view: () => {
                                     const getDefault = (def) => {
@@ -1234,7 +1319,10 @@ export class BgNotify {
                                     };
                                     switch (postData.tag) {
                                         case 'all':
-                                            dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
+                                            dialog.dataLoading({
+                                                visible: true,
+                                                text: '取得所有會員資料中...'
+                                            });
                                             new Promise((resolve) => {
                                                 ApiUser.getUserListOrders({
                                                     page: 0,
@@ -1355,8 +1443,8 @@ export class BgNotify {
                                     }
                                 },
                             })}
-                                                </div>
-                                            </div>`,
+                                                            </div>
+                                                        </div>`,
                             gvc.bindView({
                                 bind: vm.tagsId,
                                 view: () => getTagsHTML(),
@@ -1364,8 +1452,10 @@ export class BgNotify {
                             }),
                         ].join('')),
                         BgWidget.mainCard([
-                            html ` <div class="tx_700">信件內容</div>`,
-                            html ` <div class="tx_normal fw-normal mt-3">信件樣式</div>`,
+                            html `
+                                                        <div class="tx_700">信件內容</div>`,
+                            html `
+                                                        <div class="tx_normal fw-normal mt-3">信件樣式</div>`,
                             (() => {
                                 const selectVM = {
                                     id: glitter.getUUID(),
@@ -1395,7 +1485,7 @@ export class BgNotify {
                                             ApiPost.getManagerPost({
                                                 page: 0,
                                                 limit: 9999,
-                                                type: 'notify-email-config',
+                                                type: 'notify-sns-config',
                                             }).then((res) => {
                                                 if (res.result) {
                                                     selectVM.dataList = res.response.data.map((data) => {
@@ -1421,49 +1511,66 @@ export class BgNotify {
                                     },
                                 });
                             })(),
+                            BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '簡訊主旨',
+                                default: postData.title,
+                                placeHolder: '請輸入簡訊主旨',
+                                callback: (text) => {
+                                    postData.title = text;
+                                },
+                            }),
                             gvc.bindView({
                                 bind: vm.emailId,
                                 view: () => {
                                     return [
-                                        BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '寄件者名稱',
-                                            default: postData.name,
-                                            placeHolder: '請輸入寄件者名稱',
-                                            callback: (text) => {
-                                                postData.name = text;
-                                            },
-                                        }),
-                                        BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '信件主旨',
-                                            default: postData.title,
-                                            placeHolder: '請輸入信件主旨',
-                                            callback: (text) => {
-                                                postData.title = text;
-                                            },
-                                        }),
-                                        html `<div class="d-flex align-items-center mb-3">
-                                                                <div class="tx_normal fw-normal me-2">信件內文</div>
-                                                                ${BgWidget.selEventButton('範例', gvc.event(() => {
+                                        html `
+                                                                    <div class="d-flex align-items-center mb-3">
+                                                                        <div class="tx_normal fw-normal me-2 d-flex">簡訊內容
+                                                                        </div>
+                                                                        ${BgWidget.selEventButton('範例', gvc.event(() => {
                                             postData.content = defaultEmailText();
                                             gvc.notifyDataChange(vm.containerId);
                                         }))}
-                                                            </div>
-                                                            ${EditorElem.richText({
+                                                                        <div class="d-flex align-items-end ms-3"
+                                                                             style="font-size: 12px;color: #8D8D8D">
+                                                                                預計每則簡訊花費${pointCount * this.ticket}點
+                                                                        </div>
+                                                                    </div>
+                                                                    ${EditorElem.editeText({
                                             gvc: gvc,
-                                            def: postData.content,
+                                            title: "",
+                                            default: postData.content || "",
+                                            placeHolder: "",
                                             callback: (text) => {
                                                 postData.content = text;
-                                            },
-                                            style: `overflow-y: auto;`,
-                                        })}`,
+                                                let totalSize = 0;
+                                                for (let i = 0; i < text.length; i++) {
+                                                    const char = text[i];
+                                                    if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
+                                                        totalSize += 2;
+                                                    }
+                                                    else {
+                                                        totalSize += 1;
+                                                    }
+                                                }
+                                                if (totalSize < this.maxSize) {
+                                                    pointCount = 1;
+                                                }
+                                                else {
+                                                    pointCount = Math.ceil(totalSize /= this.longSMS);
+                                                }
+                                                gvc.notifyDataChange(vm.containerId);
+                                            }
+                                        })}
+                                                                `,
                                     ].join('');
                                 },
                             }),
                         ].join('')),
-                        BgWidget.mainCard(html `<div class="tx_700 mb-3">發送時間</div>
-                                            ${EditorElem.radio({
+                        BgWidget.mainCard(html `
+                                                    <div class="tx_700 mb-3">發送時間</div>
+                                                    ${EditorElem.radio({
                             gvc: gvc,
                             title: '',
                             def: postData.sendTime === undefined ? 'now' : 'set',
@@ -1475,8 +1582,10 @@ export class BgNotify {
                                 {
                                     title: '排定發送時間',
                                     value: 'set',
-                                    innerHtml: html `<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                            ${EditorElem.editeInput({
+                                    innerHtml: html `
+                                                                    <div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                                                         style="gap: 12px">
+                                                                        ${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '',
                                         type: 'date',
@@ -1491,7 +1600,7 @@ export class BgNotify {
                                             };
                                         },
                                     })}
-                                                            ${EditorElem.editeInput({
+                                                                        ${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '',
                                         type: 'time',
@@ -1506,7 +1615,7 @@ export class BgNotify {
                                             };
                                         },
                                     })}
-                                                        </div>`,
+                                                                    </div>`,
                                 },
                             ],
                             callback: (text) => {
@@ -1545,7 +1654,7 @@ export class BgNotify {
                 text: postData.sendTime ? '信件排定中...' : '信件發送中...',
                 visible: true,
             });
-            ApiSmtp.send(Object.assign(Object.assign({}, postData), { email: postData.userList.map((user) => user.email) })).then((data) => {
+            ApiSns.send(Object.assign(Object.assign({}, postData), { phone: postData.userList.map((user) => user.phone) })).then((data) => {
                 dialog.dataLoading({ visible: false });
                 if (data.result) {
                     dialog.successMessage({
@@ -1580,7 +1689,8 @@ export class BgNotify {
                     ${BgWidget.title(`編輯推播通知`)}
                     <div class="flex-fill"></div>
                 </div>
-                ${BgWidget.container(html `<div class="d-flex px-0" style="gap: 10px;">
+                ${BgWidget.container(html `
+                    <div class="d-flex px-0" style="gap: 10px;">
                         <div style="width: 100%">
                             ${BgWidget.mainCard(obj.gvc.bindView(() => {
             const bi = obj.gvc.glitter.getUUID();
@@ -1624,9 +1734,9 @@ export class BgNotify {
                     </div>
                     ${obj.type === 'replace'
             ? html `
-                              <div class="d-flex w-100 mt-2">
-                                  <div class="flex-fill"></div>
-                                  ${BgWidget.redButton('刪除樣本', obj.gvc.event(() => {
+                                <div class="d-flex w-100 mt-2">
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.redButton('刪除樣本', obj.gvc.event(() => {
                 const dialog = new ShareDialog(obj.gvc.glitter);
                 dialog.checkYesOrNot({
                     text: '是否確認刪除樣本?',
@@ -1648,8 +1758,8 @@ export class BgNotify {
                     },
                 });
             }))}
-                              </div>
-                          `
+                                </div>
+                            `
             : ``}
                     <div class="update-bar-container">
                         ${BgWidget.cancel(gvc.event(() => {
@@ -1695,7 +1805,8 @@ export class BgNotify {
                     </div>`)}
             `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
-    static fcmDevice(gvc, type = 'list', callback = () => { }) {
+    static fcmDevice(gvc, type = 'list', callback = () => {
+    }) {
         const vm = {
             type: 'list',
             data: {
@@ -1825,11 +1936,11 @@ export class BgNotify {
                             }));
                         },
                         filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或者標籤')}
-                                            ${gvc.bindView(() => {
+                                                    ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
                                 view: () => {
@@ -1892,7 +2003,7 @@ export class BgNotify {
                                 },
                             };
                         })}
-                                        `,
+                                                `,
                     })))}
                         `, BgWidget.getContainerWidth());
                 },
@@ -1978,27 +2089,28 @@ export class BgNotify {
                                                 },
                                                 {
                                                     key: '發送推播',
-                                                    value: html `<button
-                                                                        class="btn btn-primary-c px-4"
-                                                                        style="width:20px !important;height: 30px;"
-                                                                        onclick="${gvc.event((e, event) => {
+                                                    value: html `
+                                                                                <button
+                                                                                        class="btn btn-primary-c px-4"
+                                                                                        style="width:20px !important;height: 30px;"
+                                                                                        onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         gvc.glitter.innerDialog((gvc) => {
                                                             let dataList = [];
                                                             return html `
-                                                                                    <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
-                                                                                        ${BgWidget.container(BgWidget.card([
+                                                                                                    <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
+                                                                                                        ${BgWidget.container(BgWidget.card([
                                                                 html `
-                                                                                                        <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                            ${BgWidget.goBack(gvc.event(() => {
+                                                                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                                                    ${BgWidget.goBack(gvc.event(() => {
                                                                     gvc.closeDialog();
                                                                 }))}
-                                                                                                            ${BgWidget.title(`選擇群發對象`)}
-                                                                                                            <div class="flex-fill"></div>
-                                                                                                            <button
-                                                                                                                class="btn bt_c39 me-2"
-                                                                                                                style="height:38px;font-size: 14px;"
-                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                                    ${BgWidget.title(`選擇群發對象`)}
+                                                                                                                                    <div class="flex-fill"></div>
+                                                                                                                                    <button
+                                                                                                                                            class="btn bt_c39 me-2"
+                                                                                                                                            style="height:38px;font-size: 14px;"
+                                                                                                                                            onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     dialog.dataLoading({
                                                                         text: '發送中...',
@@ -2014,13 +2126,13 @@ export class BgNotify {
                                                                         dialog.successMessage({ text: `發送成功` });
                                                                     });
                                                                 })}"
-                                                                                                            >
-                                                                                                                發送給所有用戶
-                                                                                                            </button>
-                                                                                                            <button
-                                                                                                                class="btn bt_c39"
-                                                                                                                style="height:38px;font-size: 14px;"
-                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                                    >
+                                                                                                                                        發送給所有用戶
+                                                                                                                                    </button>
+                                                                                                                                    <button
+                                                                                                                                            class="btn bt_c39"
+                                                                                                                                            style="height:38px;font-size: 14px;"
+                                                                                                                                            onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     if (dataList.length > 0) {
                                                                         dialog.dataLoading({
@@ -2043,23 +2155,23 @@ export class BgNotify {
                                                                         dialog.errorMessage({ text: '請選擇發送對象' });
                                                                     }
                                                                 })}"
-                                                                                                            >
-                                                                                                                確認並發送
-                                                                                                            </button>
-                                                                                                        </div>
-                                                                                                    ` +
-                                                                    BgNotify.fcmDevice(gvc, 'select', (data) => {
+                                                                                                                                    >
+                                                                                                                                        確認並發送
+                                                                                                                                    </button>
+                                                                                                                                </div>
+                                                                                                                            ` +
+                                                                    BgSNS.fcmDevice(gvc, 'select', (data) => {
                                                                         dataList = data;
                                                                     }),
                                                             ].join('')), 900)}
-                                                                                        <div></div>
-                                                                                    </div>
-                                                                                `;
+                                                                                                        <div></div>
+                                                                                                    </div>
+                                                                                                `;
                                                         }, 'email');
                                                     })}"
-                                                                    >
-                                                                        <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-                                                                    </button>`,
+                                                                                >
+                                                                                    <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                                </button>`,
                                                 },
                                             ];
                                         });
@@ -2077,7 +2189,7 @@ export class BgNotify {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有信件內容')}
-                                            ${gvc.bindView(() => {
+                                                    ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -2160,7 +2272,8 @@ export class BgNotify {
             };
         });
     }
-    static rebackMessage(gvc, type = 'list', callback = () => { }) {
+    static rebackMessage(gvc, type = 'list', callback = () => {
+    }) {
         const vm = {
             type: 'list',
             data: {
@@ -2368,7 +2481,8 @@ export class BgNotify {
                                     },
                                 },
                             ],
-                            refresh: () => { },
+                            refresh: () => {
+                            },
                             formData: vm.data.content,
                         })}`)}
                             `, 800);
@@ -2483,7 +2597,8 @@ export class BgNotify {
             };
         });
     }
-    static customerMessage(gvc, type = 'list', callback = () => { }) {
+    static customerMessage(gvc, type = 'list', callback = () => {
+    }) {
         const vm = {
             type: 'list',
             data: {
@@ -2687,7 +2802,8 @@ export class BgNotify {
                                     },
                                 },
                             ],
-                            refresh: () => { },
+                            refresh: () => {
+                            },
                             formData: vm.data.content,
                         })}`)}
                             `, 800);
@@ -2697,9 +2813,9 @@ export class BgNotify {
                             ${BgWidget.title('客服訊息')}
                             <div class="flex-fill"></div>
                             <button
-                                class="btn hoverBtn me-2 px-3"
-                                style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                onclick="${gvc.event(() => {
+                                    class="btn hoverBtn me-2 px-3"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
                         EditorElem.openEditorDialog(gvc, (gvc) => {
                             const saasConfig = window.saasConfig;
                             const id = gvc.glitter.getUUID();
@@ -2730,7 +2846,10 @@ export class BgNotify {
                                                                     class: 'form-label fs-base ',
                                                                     style: '',
                                                                 },
-                                                                input: { class: '', style: '' },
+                                                                input: {
+                                                                    class: '',
+                                                                    style: ''
+                                                                },
                                                                 container: {
                                                                     class: '',
                                                                     style: '',
@@ -2796,12 +2915,13 @@ export class BgNotify {
                                         },
                                     };
                                 }),
-                                html `<div class="d-flex">
-                                                    <div class="flex-fill"></div>
-                                                    <div
-                                                        class=" btn-primary-c btn my-2 me-2"
-                                                        style="margin-left: 10px;height:35px;"
-                                                        onclick="${gvc.event(() => {
+                                html `
+                                                            <div class="d-flex">
+                                                                <div class="flex-fill"></div>
+                                                                <div
+                                                                        class=" btn-primary-c btn my-2 me-2"
+                                                                        style="margin-left: 10px;height:35px;"
+                                                                        onclick="${gvc.event(() => {
                                     dialog.dataLoading({ visible: true });
                                     ApiUser.setPublicConfig({
                                         key: `robot_auto_reply`,
@@ -2812,12 +2932,13 @@ export class BgNotify {
                                         dialog.successMessage({ text: '設定成功' });
                                     });
                                 })}"
-                                                    >
-                                                        儲存設定
-                                                    </div>
-                                                </div>`,
+                                                                >
+                                                                    儲存設定
+                                                                </div>
+                                                            </div>`,
                             ].join('');
-                        }, () => { }, 500, '自訂表單');
+                        }, () => {
+                        }, 500, '自訂表單');
                     })}"
                             >
                                 <i class="fa-regular fa-gear me-2 "></i>
@@ -2867,14 +2988,14 @@ export class BgNotify {
                         filter: html `
                                 <div style="height:50px;" class="w-100 border-bottom ">
                                     <input
-                                        class="form-control h-100 "
-                                        style="border: none;"
-                                        placeholder="搜尋用戶名稱"
-                                        onchange="${gvc.event((e, event) => {
+                                            class="form-control h-100 "
+                                            style="border: none;"
+                                            placeholder="搜尋用戶名稱"
+                                            onchange="${gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         })}"
-                                        value="${vm.query || ''}"
+                                            value="${vm.query || ''}"
                                     />
                                 </div>
                                 ${gvc.bindView(() => {
@@ -2951,33 +3072,10 @@ export class BgNotify {
         });
     }
 }
+BgSNS.maxSize = 160;
+BgSNS.longSMS = 153;
+BgSNS.ticket = 1.5;
 function defaultEmailText() {
-    return `親愛的 [使用者名稱],
-
-    歡迎來到 [你的公司或社群名稱]！我們很高興你選擇了我們，並成為我們社群的一員。
-    
-    在這裡，我們致力於提供 [描述你的服務或社群的價值]。我們的團隊一直在努力讓你有一個令人愉快和有價值的體驗。
-    
-    以下是一些建議的下一步：
-    
-    1. **完善個人資料：** 請登入您的帳戶，完善您的個人資料，這有助於我們更好地瞭解您的需求。
-    
-    2. **參與社群：** 加入我們的社交媒體，訂閱我們的通訊，參與我們的討論，您將有機會與其他社群成員建立聯繫。
-    
-    3. **探索我們的服務：** 探索我們的網站/應用程式，瞭解我們提供的所有功能和服務。
-    
-    如果您在使用過程中遇到任何問題，或者有任何反饋，請隨時與我們聯繫。我們的支援團隊隨時準備協助您。
-    
-    再次感謝您加入 [你的公司或社群名稱]，我們期待與您建立長期的合作關係！
-    
-    祝您有美好的一天！
-    
-    最誠摯的問候，
-    
-    [你的名稱]
-    [你的職務]
-    [你的公司或社群名稱]
-    [聯絡電子郵件]
-    [聯絡電話]`.replace(/\n/g, `<br>`);
+    return `【商店名稱】親愛的顧客，限時優惠！全館商品即日起至9月30日享85折優惠，結帳時輸入優惠代碼：SALE2024，立即享受折扣！詳情請見：https://shopnex.cc/index。`;
 }
-window.glitter.setModule(import.meta.url, BgNotify);
+window.glitter.setModule(import.meta.url, BgSNS);

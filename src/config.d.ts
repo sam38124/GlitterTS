@@ -19,6 +19,9 @@ export declare const config: {
     DB_CONN_LIMIT: number;
     DB_QUEUE_LIMIT: number;
     DB_SHOW_INFO: boolean;
+    readonly SNSAccount: string | undefined;
+    readonly SNSPWD: string | undefined;
+    readonly SNS_URL: string | undefined;
     readonly DB_URL: string | undefined;
     DB_PORT: number;
     readonly DB_USER: string | undefined;
@@ -56,6 +59,7 @@ export declare const config: {
         recommend: string;
         graph_api: string;
         ai_chat: string;
+        sns: string;
     };
     route: {
         user: string;

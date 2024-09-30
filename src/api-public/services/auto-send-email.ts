@@ -13,8 +13,24 @@ export class AutoSendEmail {
                 toggle: true,
             },
             {
+                tag: 'auto-sns-shipment',
+                tag_name: '簡訊通知商品出貨',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
+                toggle: true,
+            },
+            {
                 tag: 'auto-email-shipment-arrival',
                 tag_name: '商品到貨',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
+                toggle: true,
+            },
+            {
+                tag: 'auto-sns-shipment-arrival',
+                tag_name: '簡訊通知商品到貨',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
                 content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
@@ -29,6 +45,14 @@ export class AutoSendEmail {
                 toggle: true,
             },
             {
+                tag: 'auto-sns-payment-successful',
+                tag_name: '簡訊通知訂單付款成功',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
+                toggle: true,
+            },
+            {
                 tag: 'auto-email-order-create',
                 tag_name: '訂單成立',
                 name: '@{{app_name}}',
@@ -37,8 +61,24 @@ export class AutoSendEmail {
                 toggle: true,
             },
             {
+                tag: 'auto-sns-order-create',
+                tag_name: '簡訊通知訂單成立',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+                toggle: true,
+            },
+            {
                 tag: 'proof-purchase',
                 tag_name: '訂單待核款',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已進入待核款',
+                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已進入待核款',
+                toggle: true,
+            },
+            {
+                tag: 'sns-proof-purchase',
+                tag_name: '簡訊通知訂單待核款',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已進入待核款',
                 content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已進入待核款',
@@ -63,6 +103,14 @@ export class AutoSendEmail {
             {
                 tag: 'auto-email-birthday',
                 tag_name: '生日祝福',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] [@{{user_name}}] 今天是您一年一度的大日子！祝您生日快樂！',
+                content: '[@{{app_name}}] [@{{user_name}}] 今天是您一年一度的大日子！祝您生日快樂！',
+                toggle: true,
+            },
+            {
+                tag: 'auto-sns-birthday',
+                tag_name: '簡訊通知生日祝福',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] [@{{user_name}}] 今天是您一年一度的大日子！祝您生日快樂！',
                 content: '[@{{app_name}}] [@{{user_name}}] 今天是您一年一度的大日子！祝您生日快樂！',
@@ -113,6 +161,7 @@ export class AutoSendEmail {
             return dd.tag === tag;
         })!;
         if (b) {
+
             if (keyData) {
                 b.title = keyData.title || b.title;
                 b.toggle = keyData.toggle ?? true;

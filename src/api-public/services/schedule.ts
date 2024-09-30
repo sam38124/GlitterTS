@@ -242,6 +242,30 @@ export class Schedule {
 
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
+    async autoSetSNS(sec: number) {
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const emails = await db.query(
+                        `SELECT * FROM \`${app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendSNS' AND 
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
+                        []
+                    );
+                    for (const email of emails) {
+                        if (email.status === 0) {
+                            new Mail(app).chunkSendMail(email.content, email.id);
+                        }
+                    }
+                }
+            } catch (e) {
+                throw exception.BadRequestError('BAD_REQUEST', 'autoSendSNS Error: ' + e, null);
+            }
+        }
+
+        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+    }
 
     main() {
         const scheduleList: ScheduleItem[] = [
@@ -252,7 +276,6 @@ export class Schedule {
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
         ];
-
         try {
             scheduleList.forEach((schedule) => {
                 if (schedule.status && typeof this[schedule.func] === 'function') {

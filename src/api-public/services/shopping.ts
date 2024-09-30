@@ -17,6 +17,7 @@ import { Recommend } from './recommend.js';
 import { Workers } from './workers.js';
 import axios from 'axios';
 import { Delivery, DeliveryData } from './delivery.js';
+import {Sns} from "./sns.js";
 
 type BindItem = {
     id: string;
@@ -1279,6 +1280,12 @@ export class Shopping {
                         orderData: carData,
                         status: 0,
                     });
+
+                    if (carData.customer_info.phone){
+                        let sns = new Sns(this.app);
+                        await sns.sendCustomerSns('auto-email-shipment-arrival', carData.orderID, carData.customer_info.phone);
+                        console.log("訂單簡訊寄送成功")
+                    }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
                     await db.execute(
@@ -1889,14 +1896,26 @@ export class Shopping {
 
             if (update.orderData && JSON.parse(update.orderData)) {
                 // 商品出貨信件通知（消費者）
+                let sns = new Sns(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                    if (data.orderData.customer_info.phone){
+                        await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
+                        console.log("出貨簡訊寄送成功")
+                    }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
 
                 // 商品到貨信件通知（消費者）
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
+
+                    if (data.orderData.customer_info.phone){
+                        await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
+                        console.log("到貨簡訊寄送成功")
+                    }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+                    // await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+
                 }
                 if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
@@ -1952,6 +1971,11 @@ export class Shopping {
             new ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
+            if (orderData.customer_info.phone){
+                let sns = new Sns(this.app);
+                await sns.sendCustomerSns('auto-email-shipment-arrival', order_id, orderData.customer_info.phone);
+                console.log("訂單待核款簡訊寄送成功")
+            }
             await db.query(
                 `update \`${this.app}\`.t_checkout
                  set orderData=?
@@ -2197,6 +2221,7 @@ export class Shopping {
                     orderData: cartData.orderData,
                     status: status,
                 });
+
                 await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
 
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
