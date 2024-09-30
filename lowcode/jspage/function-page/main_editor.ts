@@ -412,6 +412,24 @@ export class Main_editor {
                                                                     }
 
                                                                     let startIndex = 0;
+                                                                    let interVal:any=0;
+                                                                    function swapElements(element:any,target:number) {
+                                                                        // const secondElement = children[start];
+                                                                        // const sixthElement = children[end];
+                                                                        const container=element.parentNode;
+                                                                        // 插入第六个元素到第一个元素之前，这样它就会替换到第二个位置
+                                                                        container.insertBefore(element, container.children[target]);
+                                                                        // 更新子节点列表，因为之前的操作已经影响了子节点顺序。
+                                                                        // 重新获取第一个和第六个元素(现在原第六个元素已经是第二个)
+                                                                        // container.insertBefore(secondElement, children[end]);
+                                                                        // let parent1, next1,parent2, next2;
+                                                                        // parent1 = elm1.parentNode;
+                                                                        // next1 = elm1.nextSibling;
+                                                                        // parent2 = elm2.parentNode;
+                                                                        // next2 = elm2.nextSibling;
+                                                                        // parent1.insertBefore(elm2, next1);
+                                                                        // parent2.insertBefore(elm1, next2);
+                                                                    }
                                                                     //@ts-ignore
                                                                     Sortable.create(document.getElementById(id), {
                                                                         group: gvc.glitter.getUUID(),
@@ -419,33 +437,29 @@ export class Main_editor {
                                                                         handle: '.dragItem',
                                                                         // Called when dragging element changes position
                                                                         onChange: function (evt: any) {
-                                                                            function swapElements(elm1: any, elm2: any) {
-                                                                                var parent1, next1,
-                                                                                    parent2, next2;
-
-                                                                                parent1 = elm1.parentNode;
-                                                                                next1 = elm1.nextSibling;
-                                                                                parent2 = elm2.parentNode;
-                                                                                next2 = elm2.nextSibling;
-
-                                                                                parent1.insertBefore(elm2, next1);
-                                                                                parent2.insertBefore(elm1, next2);
-                                                                            }
-
-                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, og_array[evt.newIndex].editor_bridge.element().parentNode)
-                                                                            swapArr(og_array, startIndex, evt.newIndex);
-                                                                            const newIndex = evt.newIndex
-                                                                            setTimeout(() => {
+                                                                       
+                                                                            clearInterval(interval)
+                                                                            interVal=setTimeout(()=>{
+                                                                                og_array.map((dd:any,index:number)=>{
+                                                                                    swapElements(dd, index);
+                                                                                });
+                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex+((evt.newIndex>startIndex) ? 1:-1));
+                                                                                swapArr(og_array, startIndex, evt.newIndex);
+                                                                                const newIndex = evt.newIndex
                                                                                 const dd = og_array[newIndex]
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
-                                                                            })
-
-                                                                            // console.log(`evt.newIndex->`,og_array[startIndex].editor_bridge.element().parentNode)
-                                                                            startIndex = evt.newIndex;
+                                                                                startIndex = evt.newIndex;
+                                                                            },100)
+                                                                          
                                                                         },
                                                                         onEnd: (evt: any) => {
-                                                                            setPageConfig();
+                                                                            console.log(`start->${startIndex}-end->${evt.newIndex}`)
+                                                                            og_array.map((dd:any,index:number)=>{
+                                                                                swapElements(dd, index);
+                                                                            })
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex+((evt.newIndex>startIndex) ? 1:-1));
                                                                             swapArr(og_array, startIndex, evt.newIndex);
+                                                                            setPageConfig();
                                                                             const dd = og_array[evt.newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover()
                                                                             // gvc.notifyDataChange('showView');

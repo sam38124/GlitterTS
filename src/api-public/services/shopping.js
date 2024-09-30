@@ -96,7 +96,14 @@ class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`id = ${query.id}`);
+            if (`${query.id || ''}`) {
+                if (`${query.id}`.includes(',')) {
+                    querySql.push(`id in (${query.id})`);
+                }
+                else {
+                    querySql.push(`id = ${query.id}`);
+                }
+            }
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
                     querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);

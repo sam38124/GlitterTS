@@ -248,7 +248,14 @@ export class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`id = ${query.id}`);
+            if(`${query.id || ''}`){
+                if(`${query.id}`.includes(',')){
+                    querySql.push(`id in (${query.id})`);
+                }else{
+                  querySql.push(`id = ${query.id}`);
+                }
+            }
+
             //當非管理員時，檢查是否顯示隱形商品
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {

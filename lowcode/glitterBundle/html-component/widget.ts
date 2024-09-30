@@ -117,7 +117,7 @@ export const widgetComponent = {
                                             }
                                         }
                                     }).filter((dd: any) => {
-                                        return !((window.parent as any).editerData !== undefined && dd.key === 'onclick');
+                                        return !(((gvc.glitter.getUrlParameter('type') === 'htmlEditor') && dd.key === 'onclick'));
                                     })
                                     if (widget.data.elem === 'a' && ((window.parent as any).editerData !== undefined)) {
                                         option = option.filter((dd: any) => {
@@ -726,24 +726,7 @@ export const widgetComponent = {
                                             view: () => {
                                                 if (vm.type === 'preview') {
                                                     return html`
-                                                        <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
-                                                           onclick="${gvc.event(() => {
-                                                               const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id)
-                                                               if (select_.container_cf) {
-                                                                   const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc
-                                                                   gvc_.glitter.htmlGenerate.selectWidget({
-                                                                       widget: select_.container_cf,
-                                                                       widgetComponentID: select_.container_cf.id,
-                                                                       gvc: gvc_,
-                                                                       scroll_to_hover: true,
-                                                                       glitter: glitter,
-                                                                   });
-                                                               } else {
-                                                                   Storage.lastSelect = '';
-                                                                   gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                   gvc.glitter.share.selectEditorItem();
-                                                               }
-                                                           })}"></i>
+                                                        <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "></i>
                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
                                                         <div class="flex-fill"></div>
                                                         <button class="btn sel_normal"
@@ -758,8 +741,10 @@ export const widgetComponent = {
                                                     let name = widget.label
                                                     return html`
                                                         <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
-                                                           onclick="${gvc.event(() => {
+                                                           onclick="${gvc.event((e,event) => {
                                                                vm.type = 'preview';
+                                                               event.stopPropagation();
+                                                               event.preventDefault();
                                                                gvc.notifyDataChange(vm.id)
                                                            })}"></i>
                                                         ${
@@ -787,7 +772,30 @@ export const widgetComponent = {
                                             },
                                             divCreate: {
                                                 class: `px-3 mx-n2  border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
-                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
+                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
+                                                option:[{
+                                                    key:'onclick',
+                                                    value:gvc.event((e,event)=>{
+                                                        if(vm.type==='editor'){
+                                                            return
+                                                        }
+                                                        const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id)
+                                                        if (select_.container_cf) {
+                                                            const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc
+                                                            gvc_.glitter.htmlGenerate.selectWidget({
+                                                                widget: select_.container_cf,
+                                                                widgetComponentID: select_.container_cf.id,
+                                                                gvc: gvc_,
+                                                                scroll_to_hover: true,
+                                                                glitter: glitter,
+                                                            });
+                                                        } else {
+                                                            Storage.lastSelect = '';
+                                                            gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                            gvc.glitter.share.selectEditorItem();
+                                                        }
+                                                    })
+                                                }]
                                             }
                                         }
                                     }),

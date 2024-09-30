@@ -768,46 +768,48 @@ console.log(`selectEditEvent-->`)
                                 clearInterval(interval)
                             }
                         }, 100)
-                    }
-                    const interval = setInterval(() => {
+                    }else{
+                        const interval = setInterval(() => {
 
-                        if ((window as any).Sortable) {
-                            try {
-                                gvc.addStyle(`ul {
+                            if ((window as any).Sortable) {
+                                try {
+                                    gvc.addStyle(`ul {
   list-style: none;
   padding: 0;
 }`)
 
-                                function swapArr(arr: any, index1: number, index2: number) {
-                                    const data = arr[index1];
-                                    arr.splice(index1, 1);
-                                    arr.splice(index2, 0, data);
-                                }
-
-                                let startIndex = 0
-                                //@ts-ignore
-                                Sortable.create(document.getElementById(parId), {
-                                    group: gvc.glitter.getUUID(),
-                                    animation: 100,
-                                    // Called when dragging element changes position
-                                    onChange: function (evt: any) {
-                                        // swapArr(original, startIndex, evt.newIndex)
-                                    },
-                                    onEnd: (evt: any) => {
-                                        swapArr(original, startIndex, evt.newIndex)
-
-                                    },
-                                    onStart: function (evt: any) {
-                                        startIndex = evt.oldIndex
-
-                                        console.log(`oldIndex--`, startIndex)
+                                    function swapArr(arr: any, index1: number, index2: number) {
+                                        const data = arr[index1];
+                                        arr.splice(index1, 1);
+                                        arr.splice(index2, 0, data);
                                     }
-                                });
-                            } catch (e) {
+
+                                    let startIndex = 0
+                                    //@ts-ignore
+                                    Sortable.create(document.getElementById(parId), {
+                                        group: gvc.glitter.getUUID(),
+                                        animation: 100,
+                                        // Called when dragging element changes position
+                                        onChange: function (evt: any) {
+                                            // swapArr(original, startIndex, evt.newIndex)
+                                        },
+                                        onEnd: (evt: any) => {
+                                            swapArr(original, startIndex, evt.newIndex)
+
+                                        },
+                                        onStart: function (evt: any) {
+                                            startIndex = evt.oldIndex
+
+                                            console.log(`oldIndex--`, startIndex)
+                                        }
+                                    });
+                                } catch (e) {
+                                }
+                                clearInterval(interval)
                             }
-                            clearInterval(interval)
-                        }
-                    }, 100)
+                        }, 100)
+                    }
+
                 }
             }
         })

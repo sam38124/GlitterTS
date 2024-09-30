@@ -150,9 +150,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         const id = gvc.glitter.getUUID()
 
                                         function updatePageConfig(formData: any, type: any, oWidget: any) {
+
                                             oWidget && (widget = oWidget);
                                             viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
-                                            document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                            const view= getView();
+                                            (window.parent as any).glitter.share.loading_dialog.dataLoading({visible:true})
+                                            setTimeout(()=>{
+                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML =view;
+                                                (window.parent as any).glitter.share.loading_dialog.dataLoading({visible:false})
+                                            },10)
+
                                         }
 
                                         function getView() {

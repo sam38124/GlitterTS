@@ -348,38 +348,40 @@ export class PageEditor {
                             }
                         }, 100);
                     }
-                    const interval = setInterval(() => {
-                        if (window.Sortable) {
-                            try {
-                                gvc.addStyle(`ul {
+                    else {
+                        const interval = setInterval(() => {
+                            if (window.Sortable) {
+                                try {
+                                    gvc.addStyle(`ul {
   list-style: none;
   padding: 0;
 }`);
-                                function swapArr(arr, index1, index2) {
-                                    const data = arr[index1];
-                                    arr.splice(index1, 1);
-                                    arr.splice(index2, 0, data);
-                                }
-                                let startIndex = 0;
-                                Sortable.create(document.getElementById(parId), {
-                                    group: gvc.glitter.getUUID(),
-                                    animation: 100,
-                                    onChange: function (evt) {
-                                    },
-                                    onEnd: (evt) => {
-                                        swapArr(original, startIndex, evt.newIndex);
-                                    },
-                                    onStart: function (evt) {
-                                        startIndex = evt.oldIndex;
-                                        console.log(`oldIndex--`, startIndex);
+                                    function swapArr(arr, index1, index2) {
+                                        const data = arr[index1];
+                                        arr.splice(index1, 1);
+                                        arr.splice(index2, 0, data);
                                     }
-                                });
+                                    let startIndex = 0;
+                                    Sortable.create(document.getElementById(parId), {
+                                        group: gvc.glitter.getUUID(),
+                                        animation: 100,
+                                        onChange: function (evt) {
+                                        },
+                                        onEnd: (evt) => {
+                                            swapArr(original, startIndex, evt.newIndex);
+                                        },
+                                        onStart: function (evt) {
+                                            startIndex = evt.oldIndex;
+                                            console.log(`oldIndex--`, startIndex);
+                                        }
+                                    });
+                                }
+                                catch (e) {
+                                }
+                                clearInterval(interval);
                             }
-                            catch (e) {
-                            }
-                            clearInterval(interval);
-                        }
-                    }, 100);
+                        }, 100);
+                    }
                 }
             };
         });
