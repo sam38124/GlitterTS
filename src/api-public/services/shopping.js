@@ -23,6 +23,7 @@ const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
 const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
+const sns_js_1 = require("./sns.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -951,6 +952,11 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
+                    if (carData.customer_info.phone) {
+                        let sns = new sns_js_1.Sns(this.app);
+                        await sns.sendCustomerSns('auto-email-shipment-arrival', carData.orderID, carData.customer_info.phone);
+                        console.log("訂單簡訊寄送成功");
+                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                          values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
@@ -1464,11 +1470,20 @@ class Shopping {
                  WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
+                let sns = new sns_js_1.Sns(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                    if (data.orderData.customer_info.phone) {
+                        await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
+                        console.log("出貨簡訊寄送成功");
+                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
+                    if (data.orderData.customer_info.phone) {
+                        await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
+                        console.log("到貨簡訊寄送成功");
+                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].status !== 1 && update.status === 1) {
@@ -1509,6 +1524,11 @@ class Shopping {
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
+            if (orderData.customer_info.phone) {
+                let sns = new sns_js_1.Sns(this.app);
+                await sns.sendCustomerSns('auto-email-shipment-arrival', order_id, orderData.customer_info.phone);
+                console.log("訂單待核款簡訊寄送成功");
+            }
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
                  set orderData=?
                  where cart_token = ?`, [JSON.stringify(orderData), order_id]);

@@ -12,7 +12,7 @@ declare const _default: {
     scan: (key: string) => Promise<unknown>;
     hkeys: (key: string) => Promise<unknown>;
     hget: (key: string, field: string) => Promise<unknown>;
-    hdel: (key: string, fields: Array<any>) => Promise<unknown>;
+    hdel: (key: string, fields: any[]) => Promise<unknown>;
     deleteKey: (key: string) => Promise<unknown>;
 };
 export default _default;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendmail = sendmail;
+exports.sendmail = void 0;
 async function sendmail(sender, recipient, subject, body, callback) {
     const AWS = require('aws-sdk');
     AWS.config.update({ region: 'us-west-2' });
@@ -35,4 +35,5 @@ async function sendmail(sender, recipient, subject, body, callback) {
     }
     sendEmail(sender, recipient, subject, body);
 }
+exports.sendmail = sendmail;
 //# sourceMappingURL=ses.js.map
