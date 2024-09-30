@@ -22,7 +22,7 @@ const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
 const delivery_js_1 = require("./delivery.js");
-const sns_js_1 = require("./sns.js");
+const config_js_1 = require("../../config.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -31,13 +31,13 @@ class Shopping {
     async workerExample(data) {
         try {
             const jsonData = await database_js_1.default.query(`SELECT *
-                                             FROM \`${this.app}\`.t_voucher_history`, []);
+                 FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
             if (data.type === 0) {
                 for (const record of jsonData) {
                     await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\`
-                                    SET ?
-                                    WHERE id = ?`, [record, record.id]);
+                         SET ?
+                         WHERE id = ?`, [record, record.id]);
                 }
                 return {
                     type: 'single',
@@ -97,7 +97,15 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
-            if (!query.is_manger && `${query.show_hidden}` !== 'true') {
+            if (query.filter_visible) {
+                if (query.filter_visible === 'true') {
+                    querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+                }
+                else {
+                    querySql.push(`(content->>'$.visible' = 'false')`);
+                }
+            }
+            else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.productType) {
@@ -151,6 +159,9 @@ class Shopping {
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${database_js_1.default.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
+            }
+            if (query.id_list) {
+                query.order_by = ` order by id in (${query.id_list})`;
             }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
@@ -276,8 +287,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -355,8 +366,7 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-        console.log(`data.give_away=>`, data.give_away);
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -466,11 +476,19 @@ class Shopping {
                     resolve([]);
                 }
             });
+            shipment_setting.custom_delivery = (_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : [];
+            for (const form of shipment_setting.custom_delivery) {
+                form.form = (await new user_js_1.User(this.app).getConfigV2({
+                    user_id: 'manager',
+                    key: `form_delivery_${form.id}`
+                })).list || [];
+            }
+            shipment_setting.support = (_b = shipment_setting.support) !== null && _b !== void 0 ? _b : [];
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_a = data.email) !== null && _a !== void 0 ? _a : ((data.user_info && data.user_info.email) || ''),
+                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -478,15 +496,44 @@ class Shopping {
                 orderID: data.orderID || this.generateOrderID(),
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
+                shipment_selector: [{
+                        name: '一般宅配', value: 'normal'
+                    },
+                    {
+                        name: '全家店到店', value: 'FAMIC2C'
+                    },
+                    {
+                        name: '萊爾富店到店', value: 'HILIFEC2C'
+                    },
+                    {
+                        name: 'OK超商店到店', value: 'OKMARTC2C'
+                    },
+                    {
+                        name: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+                    },
+                    {
+                        name: '實體門市取貨', value: 'shop'
+                    }].concat(((_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
+                    return {
+                        form: dd.form,
+                        name: dd.name,
+                        value: dd.id
+                    };
+                })).filter((d1) => {
+                    return shipment_setting.support.find((d2) => {
+                        return d2 === d1.value;
+                    });
+                }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away,
+                user_rebate_sum: 0
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -580,7 +627,8 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -602,6 +650,10 @@ class Shopping {
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
+            if (userData && userData.account) {
+                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
+                carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
+            }
             function checkDuring(jsonData) {
                 const now = new Date();
                 const currentDateTime = now.getTime();
@@ -643,7 +695,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 const gift_product = [];
@@ -651,23 +704,25 @@ class Shopping {
                     return dd.reBackType === 'giveaway';
                 })) {
                     let index = -1;
-                    for (const b of (_c = dd.add_on_products) !== null && _c !== void 0 ? _c : []) {
+                    for (const b of (_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []) {
                         index++;
-                        const pdDqlData = ((_d = (await this.getProduct({
+                        const pdDqlData = ((_g = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'active',
-                        })).data) !== null && _d !== void 0 ? _d : { content: {} }).content;
+                        })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
-                    const addGift = (_e = data.give_away) === null || _e === void 0 ? void 0 : _e.find((d1) => {
+                    const addGift = (_h = data.give_away) === null || _h === void 0 ? void 0 : _h.find((d1) => {
                         var _a;
                         return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
-                            return (`${d1.id}` === `${d2.id}`) && (`${d1.voucher_id}` === `${dd.id}`) && d2.variants.find((dd) => {
-                                return dd.spec.join('') === d1.spec.join('');
-                            });
+                            return (`${d1.id}` === `${d2.id}` &&
+                                `${d1.voucher_id}` === `${dd.id}` &&
+                                d2.variants.find((dd) => {
+                                    return dd.spec.join('') === d1.spec.join('');
+                                }));
                         });
                     });
                     if (addGift) {
@@ -675,29 +730,29 @@ class Shopping {
                             spec: addGift.spec,
                             id: addGift.id,
                             count: 1,
-                            voucher_id: dd.id
+                            voucher_id: dd.id,
                         };
-                        const pd = ((_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []).find((d2) => {
-                            return (`${gift.id}` === `${d2.id}`) && (`${gift.voucher_id}` === `${dd.id}`);
+                        const pd = ((_j = dd.add_on_products) !== null && _j !== void 0 ? _j : []).find((d2) => {
+                            return `${gift.id}` === `${d2.id}` && `${gift.voucher_id}` === `${dd.id}`;
                         });
                         pd.selected = true;
                         gift_product.push(gift);
                         dd.select_gif = gift;
-                        for (const b of (_g = dd.add_on_products) !== null && _g !== void 0 ? _g : []) {
+                        for (const b of (_k = dd.add_on_products) !== null && _k !== void 0 ? _k : []) {
                             b.have_select = true;
                         }
                         if (type !== 'preview') {
-                            const variant = ((_h = pd.variants.find((d1) => {
+                            const variant = (_l = pd.variants.find((d1) => {
                                 return d1.spec.join('-') === gift.spec.join('-');
-                            })) !== null && _h !== void 0 ? _h : {});
+                            })) !== null && _l !== void 0 ? _l : {};
                             carData.lineItems.push({
-                                "spec": gift.spec,
-                                "id": gift.id,
-                                "count": 1,
-                                "preview_image": pd.preview_image,
-                                "title": `《 贈品 》 ${pd.title}`,
-                                "sale_price": 0,
-                                "sku": variant.sku
+                                spec: gift.spec,
+                                id: gift.id,
+                                count: 1,
+                                preview_image: pd.preview_image,
+                                title: `《 贈品 》 ${pd.title}`,
+                                sale_price: 0,
+                                sku: variant.sku,
                             });
                         }
                     }
@@ -767,7 +822,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_j = data.total) !== null && _j !== void 0 ? _j : 0;
+                carData.total = (_m = data.total) !== null && _m !== void 0 ? _m : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -833,7 +888,7 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_delivery',
             }))[0];
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config) {
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.toggle === 'true') {
                 const keyData = del_config.value;
                 console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
                 const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
@@ -856,10 +911,10 @@ class Shopping {
                 });
                 if (delivery.result) {
                     carData.deliveryData = delivery.data;
-                    console.log('綠界物流訂單 建立成功');
+                    console.info('綠界物流訂單 建立成功');
                 }
                 else {
-                    console.log(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                    console.info(`綠界物流訂單 建立錯誤: ${delivery.message}`);
                 }
             }
             if (carData.use_wallet === carData.total) {
@@ -896,11 +951,6 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
-                    if (carData.customer_info.phone) {
-                        let sns = new sns_js_1.Sns(this.app);
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', carData.orderID, carData.customer_info.phone);
-                        console.log("訂單簡訊寄送成功");
-                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                          values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
@@ -1414,20 +1464,11 @@ class Shopping {
                  WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
-                let sns = new sns_js_1.Sns(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
-                    if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
-                        console.log("出貨簡訊寄送成功");
-                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
-                    if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
-                        console.log("到貨簡訊寄送成功");
-                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].status !== 1 && update.status === 1) {
@@ -1468,11 +1509,6 @@ class Shopping {
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
-            if (orderData.customer_info.phone) {
-                let sns = new sns_js_1.Sns(this.app);
-                await sns.sendCustomerSns('auto-email-shipment-arrival', order_id, orderData.customer_info.phone);
-                console.log("訂單待核款簡訊寄送成功");
-            }
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
                  set orderData=?
                  where cart_token = ?`, [JSON.stringify(orderData), order_id]);
@@ -1774,43 +1810,58 @@ class Shopping {
         }
     }
     async postVariantsAndPriceValue(content) {
-        var _a, _b, _c;
-        content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
-        content.min_price = undefined;
-        content.max_price = undefined;
-        content.id &&
-            (await database_js_1.default.query(`DELETE
-             from \`${this.app}\`.t_variants
-             WHERE (product_id = ${content.id})
-               and id > 0`, []));
-        for (const a of content.variants) {
-            content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
-            content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
-            if (a.sale_price < content.min_price) {
-                content.min_price = a.sale_price;
+        var _a;
+        try {
+            content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
+            content.min_price = undefined;
+            content.max_price = undefined;
+            if (content.id) {
+                await database_js_1.default.query(`DELETE
+                     FROM \`${this.app}\`.t_variants
+                     WHERE (product_id = ${content.id})
+                       AND id > 0
+                    `, []);
             }
-            if (a.sale_price > content.max_price) {
-                content.max_price = a.sale_price;
-            }
-            a.type = 'variants';
-            a.product_id = content.id;
-            await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
-                 SET ?`, [
+            const formatJsonData = content.variants.map((a) => {
+                var _a, _b;
+                content.min_price = (_a = content.min_price) !== null && _a !== void 0 ? _a : a.sale_price;
+                content.max_price = (_b = content.max_price) !== null && _b !== void 0 ? _b : a.sale_price;
+                if (a.sale_price < content.min_price) {
+                    content.min_price = a.sale_price;
+                }
+                if (a.sale_price > content.max_price) {
+                    content.max_price = a.sale_price;
+                }
+                a.type = 'variants';
+                a.product_id = content.id;
+                return {
+                    sql: `INSERT INTO \`${this.app}\`.t_variants
+                          SET ?`,
+                    data: [
+                        {
+                            content: JSON.stringify(a),
+                            product_id: content.id,
+                        },
+                    ],
+                };
+            });
+            await workers_js_1.Workers.query({
+                queryList: formatJsonData,
+                divisor: 8,
+            });
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                 SET ?
+                 WHERE id = ?
+                `, [
                 {
-                    content: JSON.stringify(a),
-                    product_id: content.id,
+                    content: JSON.stringify(content),
                 },
+                content.id,
             ]);
         }
-        await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
-             SET ?
-             where id = ?
-            `, [
-            {
-                content: JSON.stringify(content),
-            },
-            content.id,
-        ]);
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + express_1.default, null);
+        }
     }
     async getDataAnalyze(tags) {
         try {
@@ -1836,14 +1887,32 @@ class Shopping {
                         case 'order_avg_sale_price':
                             result[tag] = await this.getOrderAvgSalePrice();
                             break;
+                        case 'order_avg_sale_price_year':
+                            result[tag] = await this.getOrderAvgSalePriceYear();
+                            break;
                         case 'orders_per_month_1_year':
                             result[tag] = await this.getOrdersPerMonth1Year();
+                            break;
+                        case 'orders_per_month_2_weak':
+                            result[tag] = await this.getOrdersPerMonth2Weak();
+                            break;
+                        case 'sales_per_month_2_weak':
+                            result[tag] = await this.getSalesPerMonth2Weak();
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
                             break;
                         case 'order_today':
                             result[tag] = await this.getOrderToDay();
+                            break;
+                        case 'recent_register':
+                            result[tag] = await this.getRegisterRecent();
+                            break;
+                        case 'active_recent_year':
+                            result[tag] = await this.getActiveRecentYear();
+                            break;
+                        case 'active_recent_2weak':
+                            result[tag] = await this.getActiveRecent2Weak();
                             break;
                     }
                 }
@@ -1853,6 +1922,109 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
+        }
+    }
+    async getActiveRecentYear() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const monthRegisterSQL = `
+                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name=${database_js_1.default.escape(this.app)} and  req_type='file' and (
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                        );
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            }
+            return {
+                count_array: countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
+        }
+    }
+    async getActiveRecent2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthRegisterSQL = `
+                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name=${database_js_1.default.escape(this.app)} and
+                        req_type='file' and 
+                        (DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY)));
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            }
+            return {
+                count_array: countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecent2Weak Error:' + e, null);
+        }
+    }
+    async getRegister2weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthCheckoutSQL = `
+                    SELECT count(1)
+                    FROM \`${this.app}\`.t_user
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                countArray.unshift((await database_js_1.default.query(monthCheckoutSQL, []))[0]['count(1)']);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getRegisterRecent() {
+        try {
+            const order = await database_js_1.default.query(`SELECT count(1)
+                 FROM \`${this.app}\`.t_user
+                 WHERE DATE (created_time) = CURDATE()`, []);
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const monthRegisterSQL = `
+                    SELECT count(1)
+                    FROM \`${this.app}\`.t_user
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH));
+                `;
+                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, []))[0]['count(1)']);
+            }
+            return {
+                today: order[0]['count(1)'],
+                count_register: countArray,
+                count_2_weak_register: (await this.getRegister2weak()).countArray
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
         }
     }
     async getOrderToDay() {
@@ -2016,12 +2188,38 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+    async getOrdersPerMonth2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const orderCountSQL = `
+                    SELECT count(1) as c
+                    FROM \`${this.app}\`.t_checkout
+                        
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                const orders = await database_js_1.default.query(orderCountSQL, []);
+                countArray.unshift(orders[0].c);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
     async getOrdersPerMonth1Year() {
         try {
             const countArray = [];
             for (let index = 0; index < 12; index++) {
                 const orderCountSQL = `
-                    SELECT count(id) as c
+                    SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout
                     WHERE
                         MONTH (created_time) = MONTH (DATE_SUB(NOW()
@@ -2059,6 +2257,67 @@ class Shopping {
                     total += parseInt(checkout.orderData.total, 10);
                 });
                 countArray.unshift(total);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getSalesPerMonth2Weak() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 14; index++) {
+                const monthCheckoutSQL = `
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
+                `;
+                const monthCheckout = await database_js_1.default.query(monthCheckoutSQL, []);
+                let total = 0;
+                monthCheckout.map((checkout) => {
+                    total += parseInt(checkout.orderData.total, 10);
+                });
+                countArray.unshift(total);
+            }
+            return { countArray };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getOrderAvgSalePriceYear() {
+        try {
+            const countArray = [];
+            for (let index = 0; index < 12; index++) {
+                const orderCountSQL = `
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND status = 1;
+                `;
+                const monthCheckout = await database_js_1.default.query(orderCountSQL, []);
+                let total = 0;
+                monthCheckout.map((checkout) => {
+                    total += parseInt(checkout.orderData.total, 10);
+                });
+                if (monthCheckout.length == 0) {
+                    countArray.unshift(0);
+                }
+                else {
+                    countArray.unshift(Math.floor((total / monthCheckout.length) * 100) / 100);
+                }
             }
             return { countArray };
         }

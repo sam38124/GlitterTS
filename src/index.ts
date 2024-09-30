@@ -33,25 +33,33 @@ import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
 import {SystemSchedule} from './services/system-schedule';
 import {Ai} from "./services/ai.js";
-import AWS from "aws-sdk";
-import {DomainCheck} from "./domain-check.js";
-import {UpdateScript} from "./update-script.js";
-
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import {Monitor} from "./api-public/services/monitor.js";
 export const app = express();
 const logger = new Logger();
 
 app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address');
     res.status(200).send();
 });
+// 配置 session 中间件
+app.use(session({
+    secret: config.SECRET_KEY,  // 应用中应该使用一个更强壮的密钥
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 } // 设置 Cookie 有效期为1年
+}));
 
+app.use(cookieParser());
 app.use(cors());
 app.use(compression());
 app.use(express.raw({limit: '100MB'}));
 app.use(express.json({limit: '100MB'}));
 app.use(bodyParser.urlencoded({extended: true}));
+
 app.use(bodyParser.json({limit: '100MB'}));
 app.use(createContext);
 app.use(bodyParser.raw({type: '*/*'}));
@@ -64,7 +72,6 @@ export async function initial(serverPort: number) {
         await Ai.initial();
         await SaasScheme.createScheme();
         await ApiPublic.createScheme(saasConfig.SAAS_NAME as string);
-        await DomainCheck.initial()
         await redis.connect();
         await createAppRoute();
         await listBuckets();
@@ -127,6 +134,12 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    req.headers['g-app']=appName
+                    await Monitor.insertHistory({
+                        req_type:'file',
+                        req:req
+                    })
+                    await ApiPublic.createScheme(appName);
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
 
                     let data = await Seo.getPageInfo(appName, req.query.page as string);

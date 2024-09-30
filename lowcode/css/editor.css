@@ -108,7 +108,9 @@ h6 {
     color: var(--item-primary);
     background: var(--background-1);
 }
-
+.active_F2F2F2{
+    background: #F2F2F2;
+}
 .editor_item .primary {
     color: var(--item-primary);
 }

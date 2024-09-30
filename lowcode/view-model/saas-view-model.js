@@ -112,7 +112,21 @@ export class SaasViewModel {
                                                                         }),
                                                                         html ` <div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
                                                                                                 <div class="d-flex gap-2" style="text-wrap: wrap;">
-                                                                                                    <span class="tx_700">${dd.theme_config.name || dd.appName}</span>
+                                                                                                    <span class="tx_700">${gvc.bindView(() => {
+                                                                            return {
+                                                                                bind: gvc.glitter.getUUID(),
+                                                                                view: () => {
+                                                                                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                        try {
+                                                                                            resolve(((yield ApiUser.getPublicConfig('store-information', 'manager', dd.appName)).response.value.shop_name || dd.theme_config.name || dd.appName));
+                                                                                        }
+                                                                                        catch (e) {
+                                                                                            resolve((dd.theme_config.name || dd.appName));
+                                                                                        }
+                                                                                    }));
+                                                                                }, divCreate: {}
+                                                                            };
+                                                                        })}</span>
                                                                                                 </div>
                                                                                                 <div class="my-1">
                                                                                                     ${dd.store_permission_title === 'owner' ? BgWidget.infoInsignia('商店擁有人') : ''}
@@ -480,7 +494,7 @@ export class SaasViewModel {
                                                     ? `overflow:hidden;background: #FFB400;border: 1px solid #FF6C02;padding:10px;border-radius: 5px;`
                                                     : ``}"
                                                                         >
-                                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 133%;">
                                                                                 <div
                                                                                     class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
                                                                                     style="overflow: hidden;"
@@ -591,7 +605,7 @@ export class SaasViewModel {
                         sub_domain: sub_domain,
                         brand: register ? window.appName : window.glitterBase,
                         name: pick_name,
-                        copyWith: ['checkout', 'manager_post', 'user_post', 'user', 'public_config'],
+                        copyWith: ['checkout', 'user', 'public_config'],
                     }),
                 }).then((d2) => {
                     shareDialog.dataLoading({ visible: false });

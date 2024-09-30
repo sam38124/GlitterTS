@@ -20,6 +20,7 @@ export class Main_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
+        const color_pick = gvc.glitter.getUUID();
         return gvc.bindView(() => {
             const vid = glitter.getUUID();
             return {
@@ -62,16 +63,25 @@ export class Main_editor {
                         return [
                             html `
                                 <div
-                                        class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
+                                        class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-items-center"
                                         style="cursor: pointer;color:#393939;"
-                                        onclick="${gvc.event(() => {
-                                Storage.lastSelect = '';
-                                glitter.share.editorViewModel.selectItem = undefined;
-                                glitter.share.selectEditorItem();
-                            })}"
                                 >
                                     <span>${viewModel.data.name}</span>
-
+<div class="flex-fill"></div>
+                                   <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-custom-class="custom-tooltip"
+                                        data-bs-title="全站預設背景色">
+                                     ${EditorElem.colorBtn({
+                                gvc: gvc,
+                                def: glitter.share.editorViewModel.appConfig._background || (glitter.share.editorViewModel.appConfig.color_theme[0] && glitter.share.editorViewModel.appConfig.color_theme[0].background) || '#FFFFFF',
+                                style: `width:24px;height:24px;`,
+                                callback: (text) => {
+                                    glitter.share.editorViewModel.appConfig._background = text;
+                                    document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = text;
+                                }
+                            })}
+                                   </div>
                                 </div>
                             `,
                             `    ${(() => {
@@ -97,6 +107,7 @@ export class Main_editor {
                                             gvc.notifyDataChange(vid);
                                         }
                                         const list = [];
+                                        let no_toggle = true;
                                         function loop(array, list) {
                                             array.map((dd) => {
                                                 var _a, _b;
@@ -109,8 +120,11 @@ export class Main_editor {
                                                         child: child,
                                                         info: dd,
                                                         array: dd.data.setting,
-                                                        toggle: (_a = dd.toggle) !== null && _a !== void 0 ? _a : false,
+                                                        toggle: (_a = (dd.toggle && no_toggle)) !== null && _a !== void 0 ? _a : false,
                                                     });
+                                                    if (dd.toggle) {
+                                                        no_toggle = false;
+                                                    }
                                                 }
                                                 else {
                                                     list.push({
@@ -118,13 +132,20 @@ export class Main_editor {
                                                         index: 0,
                                                         info: dd,
                                                         array: array,
-                                                        toggle: (_b = dd.toggle) !== null && _b !== void 0 ? _b : false,
+                                                        toggle: (_b = (dd.toggle && no_toggle)) !== null && _b !== void 0 ? _b : false,
                                                     });
+                                                    if (dd.toggle) {
+                                                        no_toggle = false;
+                                                    }
                                                 }
                                             });
                                         }
                                         loop(pageConfig, list);
                                         function renderItems(list, og_array, root) {
+                                            const toggle_view = {
+                                                close_last_toggle: () => {
+                                                }
+                                            };
                                             return gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
@@ -134,12 +155,26 @@ export class Main_editor {
                                                         return (list
                                                             .map((dd, index) => {
                                                             var _a;
+                                                            const toggle_id = glitter.getUUID();
+                                                            if (dd.toggle) {
+                                                                const time_out = 200;
+                                                                toggle_view.close_last_toggle = () => {
+                                                                    dd.toggle = false;
+                                                                    dd.info && (dd.info.toggle = false);
+                                                                };
+                                                                setTimeout(() => {
+                                                                    $('.' + toggle_id).animate({ height: 38 * (dd.child.length + 1) + 'px' }, time_out);
+                                                                    setTimeout(() => {
+                                                                        $('.' + toggle_id).css('height', 'auto');
+                                                                    }, time_out + 10);
+                                                                }, 10);
+                                                            }
                                                             og_array[index].visible = (_a = og_array[index].visible) !== null && _a !== void 0 ? _a : true;
                                                             return html `
                                                                         <li>
                                                                             <div
-                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                                    style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 it-${dd.info.id} ${dd.toggle && dd.type === 'container' ? `active_F2F2F2` : ``}"
+                                                                                    style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;` : ``}"
                                                                                     onclick="${gvc.event(() => {
                                                                 if (lastClick.stop() > 0.1) {
                                                                     dd.info && (dd.info.toggle = !dd.info.toggle);
@@ -165,11 +200,16 @@ export class Main_editor {
                                                                           <div class="hoverBtn p-1 "
                                                                              onclick="${gvc.event((e, event) => {
                                                                     lastClick.zeroing();
+                                                                    if (!dd.toggle) {
+                                                                        toggle_view.close_last_toggle();
+                                                                    }
+                                                                    setTimeout(() => {
+                                                                        dd.toggle = !dd.toggle;
+                                                                        dd.info && (dd.info.toggle = dd.toggle);
+                                                                        gvc.notifyDataChange(id);
+                                                                    });
                                                                     event.preventDefault();
                                                                     event.stopPropagation();
-                                                                    dd.toggle = !dd.toggle;
-                                                                    dd.info && (dd.info.toggle = !dd.info.toggle);
-                                                                    gvc.notifyDataChange(id);
                                                                 })}">
                                                                                ${!dd.toggle
                                                                     ? `
@@ -237,7 +277,7 @@ export class Main_editor {
                                                                                 </div>
                                                                             </div>
                                                                             ${dd.type === 'container'
-                                                                ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`}" style="margin-left:3px;">${renderItems(dd.child, dd.array, false)}</div>`
+                                                                ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`} ${toggle_id}" style="margin-left:3px;height:0px;overflow: hidden;">${renderItems(dd.child, dd.array, false)}</div>`
                                                                 : ``}
                                                                         </li>
                                                                     `;
@@ -379,7 +419,7 @@ export class Main_editor {
                                             });
                                         }
                                         return html `
-                                            <div class="p-2">${renderItems(list, pageConfig, true)}</div>`;
+                                            <div class="p-2 root-left-container">${renderItems(list, pageConfig, true)}</div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -439,6 +479,8 @@ export class Main_editor {
                 },
                 divCreate: { class: `swiper-slide h-100 position-relative design-guide-1` },
                 onCreate: () => {
+                    $('.tooltip').remove();
+                    $('[data-bs-toggle="tooltip"]').tooltip();
                 },
             };
         });
@@ -598,9 +640,6 @@ export class Main_editor {
                         catch (e) {
                         }
                     });
-                    if (`${vm.index}` === '0') {
-                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
-                    }
                     vm.back();
                 },
                 gvc: gvc,

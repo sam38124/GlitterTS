@@ -45,7 +45,7 @@ export class AiMessage {
                         })}"
                             >
                                 <div
-                                    class="position-fixed vh-100  top-0 scroll-in bg-white ai-left"
+                                    class="position-fixed vh-100 top-0 scroll-in bg-white ai-left"
                                     style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
                                     onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
@@ -135,7 +135,6 @@ export class AiMessage {
                                             return ``;
                                         }
                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                            console.log(`AiMessage.vm.select_bt=>`, AiMessage.vm.select_bt);
                                             yield Chat.post({
                                                 type: 'user',
                                                 participant: [cf.user_id, AiMessage.vm.select_bt],
@@ -486,8 +485,8 @@ export class AiMessage {
                                                                 key: 'writer',
                                                                 data: [
                                                                     '幫我撰寫一個精品包的文案',
-                                                                    '幫我撰寫一個限時特價的文案',
                                                                     '撰寫一個關於我們的範本',
+                                                                    '幫我撰寫一個限時特價的文案',
                                                                     '撰寫一個關於退貨條款的範本',
                                                                     '撰寫一個關於服務條款的範本',
                                                                 ],
@@ -495,28 +494,32 @@ export class AiMessage {
                                                             {
                                                                 key: 'order_analysis',
                                                                 data: [
-                                                                    '這個月的銷售額是多少',
-                                                                    '賣最好的五個商品',
-                                                                    '未付款的訂單有哪些',
-                                                                    '哪個客戶買最多商品?',
-                                                                    '尚未出貨的訂單還有哪些?',
+                                                                    '這個月的銷售額是多少？',
+                                                                    '這週賣最好的五個商品？',
+                                                                    '未付款的訂單有哪些？',
+                                                                    '哪個客戶買最多商品？',
+                                                                    '尚未出貨的訂單還有哪些？',
                                                                 ],
                                                             },
                                                             {
                                                                 key: 'operation_guide',
                                                                 data: [
-                                                                    '請問要如何新增訂單？',
-                                                                    '請問要如何封存訂單？',
-                                                                    '請問要如何匯出訂單列表?',
-                                                                    '請問要如何匯出商品列表?',
-                                                                    '新增商品該怎麼做？',
+                                                                    '如何新增訂單？',
+                                                                    '購物金的用途是什麼？',
+                                                                    '什麼是安全庫存？',
+                                                                    '如何設定優惠促銷活動？',
+                                                                    '要如何匯出商品列表？',
+                                                                    '如何設定網站佈景主題？',
                                                                 ],
                                                             },
                                                         ]
                                                             .find((dd) => {
                                                             return dd.key === AiMessage.vm.select_bt;
                                                         })) === null || _a === void 0 ? void 0 : _a.data.map((dd) => {
-                                                            return `<div class="insignia insignia-secondary bgf6" style="white-space: nowrap;cursor: pointer;" onclick="${gvc.event(() => {
+                                                            return html `<div
+                                                                                    class="insignia insignia-secondary bgf6"
+                                                                                    style="white-space: nowrap;cursor: pointer;"
+                                                                                    onclick="${gvc.event(() => {
                                                                 vm.ai_loading = true;
                                                                 gvc.notifyDataChange('footer-ai');
                                                                 Chat.postMessage({
@@ -529,24 +532,21 @@ export class AiMessage {
                                                                 }).then(() => {
                                                                     vm.message = '';
                                                                 });
-                                                            })}">${dd}</div>`;
+                                                            })}"
+                                                                                >
+                                                                                    ${dd}
+                                                                                </div>`;
                                                         }).join('')}
                                                                     </div>
-                                                                    <div class="px-2  d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
+                                                                    <div class="px-2 d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
                                                                         ${BgWidget.customButton({
-                                                            button: { color: 'snow', size: 'sm', style: 'min-height:48px;' },
-                                                            text: {
-                                                                name: html `
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <i class="fa-regular fa-broom-wide"></i>
-                                                                                        重置對話
-                                                                                    </div>
-                                                                                `,
-                                                            },
+                                                            button: { color: 'snow', size: 'sm', style: 'min-height: 40px;' },
+                                                            icon: { name: 'fa-regular fa-broom-wide text-dark' },
+                                                            text: { name: '重置' },
                                                             event: gvc.event(() => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認刪除所有對話，將會重置AI解除所有上下文關聯。',
+                                                                dialog.warningMessage({
+                                                                    text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
                                                                     callback: (response) => {
                                                                         if (response) {
                                                                             dialog.dataLoading({ visible: true });

@@ -69,7 +69,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     appName: appName,
                                     copyApp: createAPP,
                                     brand: (window as any).appName,
-                                    copyWith: ['checkout', 'manager_post', 'user_post', 'user', 'public_config'],
+                                    copyWith: ['checkout', 'user', 'public_config'],
                                 }),
                             }).then((d2) => {
                                 shareDialog.dataLoading({ visible: false });

@@ -64,39 +64,57 @@ export class ShoppingShipmentSetting {
                         return {
                             bind: id,
                             view: () => {
-                                return BgWidget.tab(
-                                        [
-                                            {
-                                                title: '預設運費', key: 'def'
-                                            },
-                                            {
-                                                title: '一般宅配', key: 'normal'
-                                            },
-                                            {
-                                                title: '全家店到店', key: 'FAMIC2C'
-                                            },
-                                            {
-                                                title: '萊爾富店到店', key: 'HILIFEC2C'
-                                            },
-                                            {
-                                                title: 'OK超商店到店', key: 'OKMARTC2C'
-                                            },
-                                            {
-                                                title: '7-ELEVEN超商交貨便', key: 'UNIMARTC2C'
-                                            },
-                                            {
-                                                title: '門市取貨', key: 'shop'
+                                return new Promise(async (resolve, reject) => {
+                                    const logistics_setting = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting')).response.result[0] ?? {value: {}}).value;
+                                    resolve(BgWidget.tab(
+                                            [
+                                                {
+                                                    title: '預設運費', key: 'def'
+                                                },
+                                                ...(() => {
+                                                    return [{
+                                                        title: '一般宅配', key: 'normal'
+                                                    },
+                                                        {
+                                                            title: '全家店到店', key: 'FAMIC2C'
+                                                        },
+                                                        {
+                                                            title: '萊爾富店到店', key: 'HILIFEC2C'
+                                                        },
+                                                        {
+                                                            title: 'OK超商店到店', key: 'OKMARTC2C'
+                                                        },
+                                                        {
+                                                            title: '7-ELEVEN超商交貨便', key: 'UNIMARTC2C'
+                                                        },
+                                                        {
+                                                            title: '門市取貨', key: 'shop'
+                                                        }].concat((logistics_setting.custom_delivery ?? []).map((dd:any)=>{
+                                                            return {
+                                                                title:dd.name,
+                                                                key:dd.id
+                                                            }
+                                                    })).filter((d1) => {
+                                                        return logistics_setting.support.find((d2: any) => {
+                                                            return d2 === d1.key
+                                                        })
+                                                    })
+                                                })(),
+                                                ...(() => {
+                                                    return []
+                                                })()
+                                            ],
+                                            gvc,
+                                            page,
+                                            (text) => {
+                                                page = text
+                                                data.response = undefined
+                                                // vm.filter_type = text as any;
+                                                gvc.notifyDataChange([page_id, id]);
                                             }
-                                        ],
-                                        gvc,
-                                        page,
-                                        (text) => {
-                                            page = text
-                                            data.response = undefined
-                                            // vm.filter_type = text as any;
-                                            gvc.notifyDataChange([page_id, id]);
-                                        }
-                                )
+                                    ))
+                                })
+
                             },
                             divCreate: {
                                 class: `d-flex w-100 mb-n4`, style: 'gap:10px;overflow-x: auto;'
@@ -283,7 +301,8 @@ export class ShoppingShipmentSetting {
                                                                                                 ${(() => {
                                                                                                     if (shipmentArray.selectCalc == 'volume') {
                                                                                                         return html`
-                                                                                                            <svg class="volumeSelect" xmlns="http://www.w3.org/2000/svg"
+                                                                                                            <svg class="volumeSelect"
+                                                                                                                 xmlns="http://www.w3.org/2000/svg"
                                                                                                                  width="16"
                                                                                                                  height="16"
                                                                                                                  viewBox="0 0 16 16"
@@ -567,7 +586,7 @@ export class ShoppingShipmentSetting {
                                                                                             text: '設定成功',
                                                                                         });
                                                                                     });
-                                                                                }),"儲存","guide4-8"
+                                                                                }), "儲存", "guide4-8"
                                                                         )}
                                                                     </div>`,
                                                             ].join(''),

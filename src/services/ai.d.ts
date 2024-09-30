@@ -7,4 +7,8 @@ export declare class Ai {
         request: string[];
         response: string;
     }[];
+    static defaultProduct: {
+        商品名稱: string;
+        描述: string;
+    }[];
 }

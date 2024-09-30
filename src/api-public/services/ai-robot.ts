@@ -4,9 +4,8 @@ import moment from 'moment';
 import { Ai } from '../../services/ai';
 
 export class AiRobot {
-    //操作引導
+    // 操作引導
     public static async guide(app_name: string, question: string) {
-        console.log(`ask-guide` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
@@ -25,7 +24,7 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `您是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
+        const query = `你是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -53,9 +52,8 @@ export class AiRobot {
         return text.replace(regex, '');
     }
 
-    //訂單分析
+    // 訂單分析
     public static async orderAnalysis(app_name: string, question: string) {
-        console.log(`ask-ai` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
@@ -73,8 +71,7 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。
-`;
+        const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -102,9 +99,8 @@ export class AiRobot {
         return text.replace(regex, '');
     }
 
-    //寫手
+    // 寫手
     public static async writer(app_name: string, question: string) {
-        console.log(`ask-ai` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
@@ -122,8 +118,7 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。
-`;
+        const query = '你是一個電商文案寫手，專門協助撰寫商品描述、行銷文案。';
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',

@@ -94,6 +94,10 @@ type Cart = {
     use_rebate: number;
     orderID: string;
     shipment_support: string[];
+    shipment_selector: {
+        name: string;
+        value: string;
+    }[];
     shipment_info: any;
     use_wallet: number;
     user_email: string;
@@ -103,6 +107,7 @@ type Cart = {
         limit?: number;
         condition?: number;
     };
+    user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
     custom_form_data?: any;
@@ -150,6 +155,7 @@ export declare class Shopping {
         is_manger?: boolean;
         show_hidden?: string;
         productType?: string;
+        filter_visible?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -231,9 +237,9 @@ export declare class Shopping {
         distribution_code?: string;
         code_array: string[];
         give_away?: {
-            "id": number;
-            "spec": string[];
-            "count": number;
+            id: number;
+            spec: string[];
+            count: number;
             voucher_id: string;
         }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
@@ -358,6 +364,20 @@ export declare class Shopping {
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
+    getActiveRecentYear(): Promise<{
+        count_array: any[];
+    }>;
+    getActiveRecent2Weak(): Promise<{
+        count_array: any[];
+    }>;
+    getRegister2weak(): Promise<{
+        countArray: any[];
+    }>;
+    getRegisterRecent(): Promise<{
+        today: any;
+        count_register: any[];
+        count_2_weak_register: any[];
+    }>;
     getOrderToDay(): Promise<{
         total_count: any;
         un_shipment: any;
@@ -382,10 +402,19 @@ export declare class Shopping {
         previous_month_total: any;
         gap: number;
     }>;
+    getOrdersPerMonth2Weak(): Promise<{
+        countArray: any[];
+    }>;
     getOrdersPerMonth1Year(): Promise<{
         countArray: any[];
     }>;
     getSalesPerMonth1Year(): Promise<{
+        countArray: number[];
+    }>;
+    getSalesPerMonth2Weak(): Promise<{
+        countArray: number[];
+    }>;
+    getOrderAvgSalePriceYear(): Promise<{
         countArray: number[];
     }>;
     getOrderAvgSalePrice(): Promise<{

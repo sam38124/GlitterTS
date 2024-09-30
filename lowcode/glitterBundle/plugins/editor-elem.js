@@ -1806,22 +1806,14 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return `<input class="form-control form-control-color p-0 " type="color" style="border:none;width:24px;height: 24px;"
-                 value="${obj.def}" onchange="${obj.gvc.event((e, event) => {
-                        obj.def = e.value;
-                        obj.gvc.notifyDataChange(id);
-                        obj.callback(obj.def);
-                    })}">
-            <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onchange="${obj.gvc.event((e, event) => {
-                        if (!e.value.includes('#')) {
-                            alert('請輸入正確數值');
+                    return `
+   ${EditorElem.colorBtn({ gvc: obj.gvc, def: obj.def, callback: (value) => {
+                            obj.callback(value);
                             obj.gvc.notifyDataChange(id);
-                        }
-                        else {
-                            obj.def = e.value;
-                            obj.callback(obj.def);
-                            obj.gvc.notifyDataChange(id);
-                        }
+                        } })}
+
+            <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onclick="${obj.gvc.event((e, event) => {
+                        document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`).click();
                     })}">`;
                 },
                 divCreate: {
@@ -1830,6 +1822,80 @@ ${obj.gvc.bindView(() => {
                 },
             };
         })} `;
+    }
+    static colorBtn(obj) {
+        const gvc = obj.gvc;
+        const css = String.raw;
+        gvc.addStyle(css `.pcr-button{
+        width:18px !important;
+            height:18px !important;
+            margin:0px !important;
+            transform: translateY(-1px);
+            padding:0px !important;
+            border:1px solid #e2e5f1;
+        }
+            .pcr-app{
+                z-index:99999;
+            }
+        .pickr{
+            width:19px !important;
+            height:19px !important;
+            margin:0px !important;
+            padding:0px !important;
+        }
+        `);
+        return gvc.bindView(() => {
+            const classic = gvc.glitter.getUUID();
+            return {
+                bind: gvc.glitter.getUUID(),
+                view: () => {
+                    return ``;
+                },
+                divCreate: {
+                    option: [
+                        { key: 'id', value: classic }
+                    ], style: obj.style || ''
+                },
+                onCreate: () => {
+                    const pickr = window.Pickr.create({
+                        el: '#' + classic,
+                        default: obj.def,
+                        theme: 'classic',
+                        swatches: [
+                            'rgba(244, 67, 54, 1)',
+                            'rgba(233, 30, 99, 0.95)',
+                            'rgba(156, 39, 176, 0.9)',
+                            'rgba(103, 58, 183, 0.85)',
+                            'rgba(63, 81, 181, 0.8)',
+                            'rgba(33, 150, 243, 0.75)',
+                            'rgba(3, 169, 244, 0.7)',
+                            'rgba(0, 188, 212, 0.7)',
+                            'rgba(0, 150, 136, 0.75)',
+                            'rgba(76, 175, 80, 0.8)',
+                            'rgba(139, 195, 74, 0.85)',
+                            'rgba(205, 220, 57, 0.9)',
+                            'rgba(255, 235, 59, 0.95)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        components: {
+                            preview: true,
+                            opacity: true,
+                            hue: true,
+                            interaction: {
+                                hex: true,
+                                rgba: true,
+                                input: true,
+                                save: true
+                            }
+                        }
+                    });
+                    pickr.on('save', (color, instance) => {
+                        obj.callback(color.toHEXA().toString());
+                        pickr.hide();
+                    });
+                }
+            };
+        });
     }
     static select(obj) {
         var _a, _b;

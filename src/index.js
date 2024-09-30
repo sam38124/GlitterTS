@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -62,15 +64,24 @@ const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
-const domain_check_js_1 = require("./domain-check.js");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const express_session_1 = __importDefault(require("express-session"));
+const monitor_js_1 = require("./api-public/services/monitor.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address');
     res.status(200).send();
 });
+exports.app.use((0, express_session_1.default)({
+    secret: config_1.config.SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 }
+}));
+exports.app.use((0, cookie_parser_1.default)());
 exports.app.use((0, cors_1.default)());
 exports.app.use((0, compression_1.default)());
 exports.app.use(express_1.default.raw({ limit: '100MB' }));
@@ -87,7 +98,6 @@ async function initial(serverPort) {
         await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();
         await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
-        await domain_check_js_1.DomainCheck.initial();
         await redis_1.default.connect();
         await createAppRoute();
         await (0, AWSLib_1.listBuckets)();
@@ -108,7 +118,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -145,6 +154,12 @@ async function createAPP(dd) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    req.headers['g-app'] = appName;
+                    await monitor_js_1.Monitor.insertHistory({
+                        req_type: 'file',
+                        req: req
+                    });
+                    await public_table_check_js_1.ApiPublic.createScheme(appName);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
                     let customCode = await new user_js_1.User(appName).getConfigV2({
@@ -502,7 +517,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

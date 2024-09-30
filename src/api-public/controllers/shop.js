@@ -742,6 +742,7 @@ router.get('/product', async (req, resp) => {
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
+            filter_visible: req.query.filter_visible
         });
         return response_1.default.succ(resp, shopping);
     }

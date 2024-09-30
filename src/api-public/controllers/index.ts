@@ -28,6 +28,7 @@ import recommend = require('./recommend');
 import { Live_source } from '../../live_source.js';
 import { IToken } from '../models/Auth.js';
 import { ApiPublic } from '../services/public-table-check.js';
+import {Monitor} from "../services/monitor.js";
 /*********SET UP Router*************/
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
@@ -114,7 +115,12 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.ai_chat+'/ask-order', 'public'), method: 'GET' }
 ];
 
-async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
+async function doAuthAction(req: express.Request, resp: express.Response, next_step: express.NextFunction) {
+    //將請求紀錄插入SQL，監測用戶數量與避免DDOS攻擊。
+    async function next(){
+        await Monitor.insertHistory({req:req,token:req.body.token,req_type:'api'});
+        next_step()
+    }
     if (Live_source.liveAPP.indexOf(`${(req.get('g-app') as any) ?? req.query['g-app']}`) === -1) {
         return response.fail(resp, exception.PermissionError('INVALID_APP', 'invalid app'));
     }
@@ -137,6 +143,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
         await db.execute(`update \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
         return false;
     }
+
     if (matches.length > 0) {
         try {
             req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
@@ -148,7 +155,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
         } catch (e) {
             console.error('matchTokenError', e);
         }
-        next();
+        await next();
         return;
     }
 
@@ -167,7 +174,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
                 return response.fail(resp, exception.PermissionError('INVALID_TOKEN', 'invalid token'));
             }
         }
-        next();
+        await next();
     } catch (err) {
         logger.error(TAG, `Unexpected exception occurred because ${err}.`);
         return response.fail(resp, exception.PermissionError('INVALID_TOKEN', 'invalid token'));

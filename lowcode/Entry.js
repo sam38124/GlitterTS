@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_11.9.8";
+        glitter.share.editerVersion = "V_12.4.0";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -148,7 +148,8 @@ export class Entry {
             `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -206,9 +207,12 @@ export class Entry {
         glitter.share.evalPlace = (evals) => eval(evals);
         function running() {
             return __awaiter(this, void 0, void 0, function* () {
-                glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css']);
+                glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css', 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
+                    'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
+                    'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css']);
                 yield new Promise((resolve, reject) => {
                     glitter.addMtScript([
+                        'jslib/pickr.min.js',
                         'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
@@ -293,7 +297,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -327,7 +333,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -394,7 +402,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {

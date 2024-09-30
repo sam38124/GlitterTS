@@ -71,8 +71,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const cartData = {
                                 line_items: [],
                                 total: 0,
+                                user_info: {
+                                    shipment: localStorage.getItem('checkout-logistics')
+                                }
                             };
                             if (res.line_items) {
+                                res.user_info = {
+                                    shipment: localStorage.getItem('checkout-logistics')
+                                };
                                 const cart = res;
                                 ApiShop.getCheckout(cart).then((res) => {
                                     if (res.result) {
@@ -107,6 +113,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     code: voucher,
                                     use_rebate: (GlobalUser.token && rebate) ? rebate : undefined,
                                     distribution_code: distributionCode,
+                                    user_info: {
+                                        shipment: localStorage.getItem('checkout-logistics')
+                                    }
                                 }).then((res) => {
                                     if (res.result) {
                                         resolve(res.response.data);

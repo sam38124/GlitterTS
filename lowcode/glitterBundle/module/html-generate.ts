@@ -831,7 +831,7 @@ ${obj.gvc.bindView({
             option = option ?? {};
             const container_id = option.containerID ?? gvc.glitter.getUUID();
             if (isEditMode()) {
-                const cf={
+                const cf = {
                     gvc: gvc,
                     option: option,
                     container: container,
@@ -843,10 +843,10 @@ ${obj.gvc.bindView({
                         return document.querySelector('.editor_it_' + container_id);
                     },
                 };
-                if(container_id==='MainView'){
+                if (container_id === 'MainView') {
                     (window as any).glitter.share.main_view_config = cf;
-                }else{
-                    (container as any).container_config =cf
+                } else {
+                    (container as any).container_config = cf
                 }
 
             }
@@ -1861,14 +1861,14 @@ ${e.line}
                 return {
                     scrollWithHover: () => {
                         clearInterval(gvc.glitter.share.scroll_hover_interval)
-                        gvc.glitter.share.scroll_hover_interval=setTimeout(()=>{
+                        gvc.glitter.share.scroll_hover_interval = setTimeout(() => {
                             gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive')
                             gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
                             gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
                                 behavior: 'smooth', // 使用平滑滾動效果
                                 block: 'center', // 將元素置中
                             });
-                        },250)
+                        }, 250)
 
                     },
                     cancelHover: () => {
@@ -2169,6 +2169,22 @@ ${e.line}
                                                                     value: gvc.event((e, event) => {
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).show();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).show();
+
+                                                                        function loop(item: any) {
+
+                                                                            if(item[0] && item[0].tagName.toLowerCase()==='li'){
+                                                                                if(item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))){
+                                                                                    item[0].children[0].style.background = '#F2F2F2';
+                                                                                }
+                                                                            }
+                                                                            if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                                loop(item.parent())
+                                                                            }
+                                                                        }
+                                                                        if( (window.parent as any).document.querySelector(`.it-${widget.id}`)){
+                                                                            loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
+                                                                            (window.parent as any).document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
+                                                                        }
                                                                         ($(e).children('.editorChild').get(0) as any).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
                                                                     }),
                                                                 },
@@ -2177,7 +2193,22 @@ ${e.line}
                                                                     value: gvc.event((e, event) => {
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).hide();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).hide();
+                                                                        function loop(item: any) {
+                                                                            if(item[0] && item[0].tagName.toLowerCase()==='li'){
+                                                                                if(item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))){
+                                                                                    item[0].children[0].style.background = 'none';
+                                                                                }
+                                                                            }
+                                                                            if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                                loop(item.parent())
+                                                                            }
+                                                                        }
+                                                                        if((window.parent as any).document.querySelector(`.it-${widget.id}`)){
+                                                                            loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
+                                                                            (window.parent as any).document.querySelector(`.it-${widget.id}`).style.removeProperty('background');
+                                                                        }
                                                                         ($(e).children('.editorChild').get(0) as any).style.background = 'none';
+
                                                                     }),
                                                                 },
                                                             ];
@@ -2472,7 +2503,7 @@ background: white;
 
                                                             readClipboardContent()
                                                         },
-                                                        class:`paste-ev`
+                                                        class: `paste-ev`
                                                     },
                                                     // {
                                                     //     text: '拖曳', event: (e: any, event: any) => {
@@ -2481,7 +2512,8 @@ background: white;
                                                     // },
                                                 ].map((dd) => {
                                                     return html`
-                                                        <div class="${dd.class || ''}" style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                                        <div class="${dd.class || ''}"
+                                                             style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
                                                              onmousedown="${cf.gvc.event((e, event) => {
                                                                  dd.event(e, event)
                                                              })}">${dd.text}
@@ -2492,7 +2524,7 @@ background: white;
                                         <i class="fa-solid fa-circle-plus fs-5" id="${plusID}" style="background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%);background-clip: text;
 -webkit-background-clip: text;
 transform: translateY(5px);
--webkit-text-fill-color: transparent;" onmouseover="${cf.gvc.event(async (e,event) => {
+-webkit-text-fill-color: transparent;" onmouseover="${cf.gvc.event(async (e, event) => {
                                             let pasteVisible = false
                                             try {
                                                 const json: any = JSON.parse(await navigator.clipboard.readText());
@@ -2501,11 +2533,12 @@ transform: translateY(5px);
 
                                             }
                                             block_close = false
-                                            if(!pasteVisible){
-                                                return}
-                                            if(!pasteVisible){
+                                            if (!pasteVisible) {
+                                                return
+                                            }
+                                            if (!pasteVisible) {
                                                 cf.gvc.glitter.$(`.paste-ev`).addClass('d-none')
-                                            }else{
+                                            } else {
                                                 cf.gvc.glitter.$(`.paste-ev`).removeClass('d-none')
                                             }
                                             cf.gvc.glitter.$('#' + detID).removeClass('d-none')
@@ -2516,11 +2549,11 @@ transform: translateY(5px);
                                                     cf.gvc.glitter.$('#' + plusID).removeClass('d-none')
                                                 }
                                             }, 100)
-                                        })}" onmousedown="${cf.gvc.event((e,event)=>{
-                                            setTimeout(()=>{
+                                        })}" onmousedown="${cf.gvc.event((e, event) => {
+                                            setTimeout(() => {
                                                 HtmlGenerate.block_timer = new Date().getTime();
                                                 addWidgetEvent(dir)
-                                            },10)
+                                            }, 10)
                                             event.stopPropagation();
                                             event.preventDefault();
                                         })}"></i>

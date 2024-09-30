@@ -131,6 +131,7 @@ export class ProductSelect {
                             callback: (text) => {
                                 bundle.formData[bundle.key].select = text;
                                 bundle.formData[bundle.key].value = [];
+                                bundle.callback(bundle.formData[bundle.key].value);
                                 gvc.notifyDataChange(subVM.id);
                             },
                         })}

@@ -723,7 +723,6 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
             return response.succ(
                 resp,
                 await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','))
-                // await new Shopping(fake['g-app'], fake['Authorization']).getDataAnalyze(tags.split(','))
             );
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -825,6 +824,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
+            filter_visible:req.query.filter_visible as any
         });
         return response.succ(resp, shopping);
     } catch (err) {

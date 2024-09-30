@@ -10,6 +10,7 @@ const saas_table_check_js_1 = require("../../services/saas-table-check.js");
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
 class ApiPublic {
     static async createScheme(appName) {
+        console.log(`createScheme=>`, appName);
         if (ApiPublic.checkApp.find((dd) => {
             return dd.app_name === appName;
         })) {
@@ -22,7 +23,7 @@ class ApiPublic {
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
-            const groupSize = 5;
+            const groupSize = 15;
             const sqlArray = [
                 {
                     scheme: appName,

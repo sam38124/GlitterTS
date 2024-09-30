@@ -1,4 +1,3 @@
-'use strict';
 import mysql from 'mysql2/promise';
 import config from '../config';
 import Logger from './logger';

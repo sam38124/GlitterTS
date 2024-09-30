@@ -22,6 +22,7 @@ import {BgGuide} from "../backend-manager/bg-guide.js";
 import {StepManager} from "../modules/step-manager.js";
 import {CustomerMessageUser} from "../cms-plugin/customer-message-user.js";
 import {AiMessage} from "../cms-plugin/ai-message.js";
+import {BgCustomerMessage} from "../backend-manager/bg-customer-message.js";
 
 const html = String.raw;
 
@@ -206,7 +207,7 @@ color: transparent;"
                                         view: () => {
                                             return [
                                                 html`
-                                                    <div class="indexGuideBTN" style="padding: 10px;cursor: pointer;"  data-bs-toggle="tooltip" data-bs-html="true" title = "新手教學" onclick="${gvc.event(()=>{
+                                                    <div class="indexGuideBTN d-none d-sm-block" style="padding: 10px;cursor: pointer;"  data-bs-toggle="tooltip" data-bs-html="true" title = "新手教學" onclick="${gvc.event(()=>{
                                                         let bgGuide = new BgGuide(gvc,0 , "user-editor");
                                                         bgGuide.drawGuide();
                                                     })}">
@@ -664,7 +665,7 @@ color:white;"
                                         : html`
 
                                             <button
-                                                    class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `d-none d-sm-flex`}"
+                                                    class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} d-none d-sm-flex"
                                                     style="height: 42px;
 display: inline-flex;
 padding: 10px 22px 10px 23px;
@@ -675,10 +676,33 @@ border: 1px solid ${EditorConfig.editor_layout.main_color};
 color:${EditorConfig.editor_layout.main_color};
 "
                                                     onclick="${gvc.event(() => {
-                                                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                                                        url.searchParams.delete('type');
-                                                        url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                                        glitter.openNewTab(url.href);
+                                                        if(glitter.getUrlParameter('tab')==='page_manager'){
+                                                            const content=JSON.parse(localStorage.getItem('preview_data') as string);
+                                                            const href = (() => {
+                                                                return `${gvc.glitter.root_path}${
+                                                                        (() => {
+                                                                            switch (content.page_type) {
+                                                                                case 'shopping':
+                                                                                    return 'shop';
+                                                                                case 'hidden':
+                                                                                    return 'hidden';
+                                                                                case 'page':
+                                                                                    return 'pages';
+                                                                            }
+                                                                            return ``;
+                                                                        })()
+                                                                }/${content.tag}?preview=true&appName=${(window.parent as any).appName}`;
+                                                            })();
+                                                            content.config=glitter.share.editorViewModel.data.config;
+                                                            localStorage.setItem('preview_data',JSON.stringify(content));
+                                                            (window.parent as any).glitter.openNewTab(href);
+                                                        }else{
+                                                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                                                            url.searchParams.delete('type');
+                                                            url.searchParams.set('page', glitter.getUrlParameter('page'));
+                                                            glitter.openNewTab(url.href);
+                                                        }
+                                                      
                                                     })}"
                                             >
                                                 <div style="background: ${EditorConfig.editor_layout.btn_background};
@@ -720,28 +744,18 @@ color:white;
                                                         style=""
                                                         onclick="${gvc.event(() => {
                                                             AiMessage.toggle(true);
-                                                            // const url = new URL(glitter.root_path+'cms-plugin/customer-message-user.js',gvc.glitter.root_path );
-                                                            // gvc.glitter.getModule(url.href, (CustomerMessageUser) => {
-                                                            //     const view=CustomerMessageUser.showCustomerMessage({
-                                                            //         gvc:gvc,
-                                                            //         userID:'manager'
-                                                            //     })
-                                                            //     console.log(`view==>`,view)
-                                                            //     NormalPageEditor.toggle({
-                                                            //         visible:true,
-                                                            //         view:view,
-                                                            //         title:'AI智能助手',
-                                                            //         width:500
-                                                            //     })
-                                                            // })
-                                                          
-                                                            // const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/index` : location.href);
-                                                            // url.searchParams.delete('type');
-                                                            // url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                                            // glitter.openNewTab(url.href);
                                                         })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-2" style="width:24px;height: 24px;">AI助手
+                                                </div>
+                                                <div
+                                                        class=" me-2 bt_orange_lin"
+                                                        style="width:42px;"
+                                                        onclick="${gvc.event(() => {
+                                                            BgCustomerMessage.toggle(true, gvc);
+                                                        })}"
+                                                >
+                                                    <i class="fa-regular fa-messages"></i>
                                                 </div>
                                                 ${gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();

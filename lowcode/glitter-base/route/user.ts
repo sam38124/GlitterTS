@@ -607,13 +607,13 @@ export class ApiUser {
         });
     }
 
-    public static getPublicConfig(key: string, user_id: string) {
+    public static getPublicConfig(key: string, user_id: string,appName:string=getConfig().config.appName) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
+                'g-app': appName,
             },
         });
     }
