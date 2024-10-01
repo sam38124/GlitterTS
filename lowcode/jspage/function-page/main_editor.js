@@ -374,38 +374,48 @@ export class Main_editor {
                                                                     let interVal = 0;
                                                                     function swapElements(element, target) {
                                                                         const container = element.parentNode;
-                                                                        container.insertBefore(element, container.children[target]);
+                                                                        if (container.children.length !== target) {
+                                                                            console.log(`index==>${Array.from(container.children).indexOf(element)}length===>${container.children.length}===target===>${target}`);
+                                                                            if (!(Array.from(container.children).indexOf(element) > target)) {
+                                                                                target++;
+                                                                            }
+                                                                            container.insertBefore(element, container.children[target]);
+                                                                        }
+                                                                        else {
+                                                                            container.appendChild(element);
+                                                                        }
                                                                     }
                                                                     Sortable.create(document.getElementById(id), {
                                                                         group: gvc.glitter.getUUID(),
                                                                         animation: 100,
                                                                         handle: '.dragItem',
-                                                                        onChange: function (evt) {
+                                                                        onChange: function (evt2) {
                                                                             clearInterval(interval);
+                                                                            const newIndex = evt2.newIndex;
                                                                             interVal = setTimeout(() => {
-                                                                                og_array.map((dd, index) => {
-                                                                                    swapElements(dd, index);
+                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
+                                                                                swapArr(og_array, startIndex, newIndex);
+                                                                                startIndex = newIndex;
+                                                                                setTimeout(() => {
+                                                                                    const dd = og_array[newIndex];
+                                                                                    dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
                                                                                 });
-                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex + ((evt.newIndex > startIndex) ? 1 : -1));
-                                                                                swapArr(og_array, startIndex, evt.newIndex);
-                                                                                const newIndex = evt.newIndex;
-                                                                                const dd = og_array[newIndex];
-                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
-                                                                                startIndex = evt.newIndex;
-                                                                            }, 100);
+                                                                            }, 200);
                                                                         },
-                                                                        onEnd: (evt) => {
-                                                                            console.log(`start->${startIndex}-end->${evt.newIndex}`);
-                                                                            og_array.map((dd, index) => {
-                                                                                swapElements(dd, index);
-                                                                            });
-                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex + ((evt.newIndex > startIndex) ? 1 : -1));
-                                                                            swapArr(og_array, startIndex, evt.newIndex);
+                                                                        onEnd: (evt2) => {
+                                                                            const newIndex = evt2.newIndex;
+                                                                            clearInterval(interval);
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
+                                                                            swapArr(og_array, startIndex, newIndex);
                                                                             setPageConfig();
-                                                                            const dd = og_array[evt.newIndex];
+                                                                            const dd = og_array[newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;
                                                                             (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                            setTimeout(() => {
+                                                                                const dd = og_array[newIndex];
+                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
+                                                                            }, 300);
                                                                         },
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
@@ -964,6 +974,7 @@ export class Main_editor {
                 view: () => {
                     return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white iframe_view"
+                    sandbox="allow-same-origin allow-scripts"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>`;
                 },

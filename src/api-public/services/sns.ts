@@ -81,7 +81,7 @@ export class Sns {
             }
             const urlConfig: Config = {
                 method: 'post',
-                url: config.SNS_URL+"/api/mtk/SmSend?CharsetURL=UTF8"??"",
+                url: config.SNS_URL+"/api/mtk/SmSend?CharsetURL=UTF8",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
@@ -137,7 +137,7 @@ export class Sns {
 
             const urlConfig: Config = {
                 method: 'post',
-                url: config.SNS_URL+`/api/mtk/SmCancel?username=${config.SNSAccount}&password=${config.SNSPWD}&msgid=${obj.id}`??"",
+                url: config.SNS_URL+`/api/mtk/SmCancel?username=${config.SNSAccount}&password=${config.SNSPWD}&msgid=${obj.id}`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },

@@ -6,7 +6,7 @@ export class ApiSns {
         return BaseApi.create({
             url:
                 getBaseUrl() +
-                `/api-public/v1/sns?${(() => {
+                `/api-public/v1/sms?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
@@ -26,7 +26,7 @@ export class ApiSns {
 
     public static send(json: PostData) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/sns`,
+            url: getBaseUrl() + `/api-public/v1/sms`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ export class ApiSns {
 
     public static delete(json: { id: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/sns`,
+            url: getBaseUrl() + `/api-public/v1/sms`,
             type: 'delete',
             headers: {
                 'Content-Type': 'application/json',

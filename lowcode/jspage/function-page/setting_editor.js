@@ -1080,12 +1080,29 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'member_plan',
-            group: `方案管理`,
-            title: '方案管理',
+            group: `方案與加值中心`,
+            title: '開店方案',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
             moduleName: '方案管理',
         },
+        {
+            icon: '',
+            page: 'ai-point',
+            group: `方案與加值中心`,
+            title: 'AI 代幣',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
+            moduleName: '方案管理',
+        }, {
+            icon: '',
+            page: 'sms-points',
+            group: `方案與加值中心`,
+            title: 'SMS 代幣',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
+            moduleName: '方案管理',
+        }
     ];
 };
 Setting_editor.noLimitMenuItems = () => {

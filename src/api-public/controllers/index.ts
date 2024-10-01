@@ -18,7 +18,7 @@ import shop_apiRouter = require('./shop');
 import manager_apiRouter = require('./manager');
 import app_release = require('./app-release');
 import smtp = require('./smtp');
-import sns = require('./sns');
+import sns = require('./sms');
 import fcm = require('./fcm');
 import wallet = require('./wallet');
 import article = require('./article');
@@ -50,6 +50,7 @@ router.use(config.getRoute(config.public_route.rebate, 'public'), rebate);
 router.use(config.getRoute(config.public_route.recommend, 'public'), recommend);
 router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config.getRoute(config.public_route.ai_chat, 'public'), require('./ai-chat'));
+router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./ai-points'));
 
 /******************************/
 const whiteList: {}[] = [
@@ -98,8 +99,10 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/redirect', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/notify', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.wallet + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.manager + '/config', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.article, 'public'), method: 'GET' },

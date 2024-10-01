@@ -6,7 +6,7 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
-const sns_js_1 = require("../services/sns.js");
+const sns_js_1 = require("../services/sms.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -58,4 +58,4 @@ router.delete('/', async (req, resp) => {
     }
 });
 module.exports = router;
-//# sourceMappingURL=sns.js.map
+//# sourceMappingURL=sms.js.map

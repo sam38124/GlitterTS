@@ -124,6 +124,7 @@ exports.config = {
         graph_api: '/graph_api',
         ai_chat: '/ai',
         sns: '/sns',
+        ai_points: '/ai/points'
     },
     route: {
         user: '/user',

@@ -125,7 +125,8 @@ export const config = {
         recommend: '/recommend',
         graph_api: '/graph_api',
         ai_chat: '/ai',
-        sns: '/sns',
+        sms: '/sms',
+        ai_points: '/ai/points'
     },
     route: {
         user: '/user',

@@ -77,7 +77,7 @@ export class DataAnalyze {
                                             },
                                             {
                                                 title: '今日成交總額',
-                                                value: `${vm.data.order_today.total_amount} ${BgWidget.grayNote(`(本月:${vm.data.sales_per_month_1_year.countArray.map((dd:any)=>{return dd}).reverse()[0].toLocaleString()})`,'font-weight: 500;')}`,
+                                                value: `${vm.data.order_today.total_amount.toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.sales_per_month_1_year.countArray.map((dd:any)=>{return dd}).reverse()[0].toLocaleString()})`,'font-weight: 500;')}`,
                                                 icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg`
                                             },
                                             {

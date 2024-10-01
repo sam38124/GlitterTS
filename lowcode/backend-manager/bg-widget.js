@@ -241,6 +241,14 @@ export class BgWidget {
             <div class="w-100"
                  style="margin: ${(_a = css === null || css === void 0 ? void 0 : css.margin) !== null && _a !== void 0 ? _a : 1}rem 0; border-bottom: ${(_b = css === null || css === void 0 ? void 0 : css.size) !== null && _b !== void 0 ? _b : 1}px solid ${(_c = css === null || css === void 0 ? void 0 : css.color) !== null && _c !== void 0 ? _c : '#DDD'}"></div>`;
     }
+    static isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    static isValidNumbers(str) {
+        const numberRegex = /^\d+$/;
+        return numberRegex.test(str);
+    }
     static editeInput(obj) {
         var _a, _b, _c, _d, _e, _f;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';

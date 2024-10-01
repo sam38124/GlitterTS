@@ -381,6 +381,7 @@ class App {
             brand: base.brand,
             userData: userData.userData,
             domain: base.domain,
+            user_id: userID
         };
     }
     static async preloadPageData(appName, refer_page) {

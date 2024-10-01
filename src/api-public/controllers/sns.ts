@@ -3,7 +3,7 @@ import response from '../../modules/response';
 import exception from '../../modules/exception';
 import { UtPermission } from '../utils/ut-permission.js';
 import { Mail } from '../services/mail.js';
-import {Sns} from "../services/sns.js";
+import {Sns} from "../services/sms.js";
 
 const router: express.Router = express.Router();
 

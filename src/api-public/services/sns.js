@@ -37,7 +37,7 @@ class Sns {
         }
     }
     async sendSNS(obj, callback) {
-        var _a, _b, _c;
+        var _a, _b;
         try {
             let snsData = {
                 username: (_a = config_1.default.SNSAccount) !== null && _a !== void 0 ? _a : "",
@@ -51,7 +51,7 @@ class Sns {
             }
             const urlConfig = {
                 method: 'post',
-                url: (_c = config_1.default.SNS_URL + "/api/mtk/SmSend?CharsetURL=UTF8") !== null && _c !== void 0 ? _c : "",
+                url: config_1.default.SNS_URL + "/api/mtk/SmSend?CharsetURL=UTF8",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
@@ -82,11 +82,10 @@ class Sns {
         }
     }
     async deleteSNS(obj, callback) {
-        var _a;
         try {
             const urlConfig = {
                 method: 'post',
-                url: (_a = config_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_1.default.SNSAccount}&password=${config_1.default.SNSPWD}&msgid=${obj.id}`) !== null && _a !== void 0 ? _a : "",
+                url: config_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_1.default.SNSAccount}&password=${config_1.default.SNSPWD}&msgid=${obj.id}`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
@@ -252,4 +251,4 @@ function isLater(dateTimeObj) {
     const providedDateTime = new Date(dateTimeString);
     return currentDateTime > providedDateTime;
 }
-//# sourceMappingURL=sns.js.map
+//# sourceMappingURL=sms.js.map

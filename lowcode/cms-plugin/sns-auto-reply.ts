@@ -4,7 +4,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Tool } from '../modules/tool.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import {ShareDialog} from "../dialog/ShareDialog.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
 const html = String.raw;
 
@@ -296,7 +296,7 @@ export class AutoReply {
                             dialog.checkYesOrNot({
                                 callback : (select)=>{
                                     if (select){
-                                        widget.event('loading', { title: '儲存中' });
+                                        dialog.dataLoading({visible:true,text:'儲存中'})
                                         vm.data.updated_time = new Date();
                                         ApiUser.setPublicConfig({
                                             key: tag,
@@ -304,13 +304,13 @@ export class AutoReply {
                                             user_id: 'manager',
                                         }).then(() => {
                                             setTimeout(() => {
-                                                widget.event('loading', { visible: false });
-                                                widget.event('success', { title: '儲存成功!' });
+                                                dialog.dataLoading({visible:false})
+                                                dialog.successMessage({text:'儲存成功'})
                                             }, 1000);
                                         });
                                     }
                                 },
-                                text:`確認無誤後將儲存。`
+                                text:`確認無誤後將儲存`
                             })
                             
                         })

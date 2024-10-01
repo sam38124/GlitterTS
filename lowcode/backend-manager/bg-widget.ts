@@ -322,6 +322,14 @@ export class BgWidget {
                  style="margin: ${css?.margin ?? 1}rem 0; border-bottom: ${css?.size ?? 1}px solid ${css?.color ?? '#DDD'}"></div>`;
     }
 
+    static isValidEmail(email:string) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    static isValidNumbers(str:string) {
+        const numberRegex = /^\d+$/;
+        return numberRegex.test(str);
+    }
     static editeInput(obj: {
         gvc: GVC;
         title: string;
@@ -2891,11 +2899,11 @@ ${obj.default ?? ''}</textarea
         }, windowID);
     }
 
-    public static customForm(gvc: GVC, key: { title: string, key: string,no_padding?:boolean }[]) {
+    public static customForm(gvc: GVC, key: { title: string, key: string, no_padding?: boolean }[]) {
         let form_formats: any = {};
 
         return {
-            view:gvc.bindView(() => {
+            view: gvc.bindView(() => {
                 return {
                     bind: gvc.glitter.getUUID(),
                     view: () => {
@@ -2908,13 +2916,13 @@ ${obj.default ?? ''}</textarea
                                 });
                             }
                             resolve(form_keys.map((dd) => {
-                                if(dd.no_padding){
+                                if (dd.no_padding) {
                                     return FormModule.editor(
                                         gvc,
                                         form_formats[dd.key].list,
                                         dd.title
                                     )
-                                }else{
+                                } else {
                                     return BgWidget.mainCard(
                                         FormModule.editor(
                                             gvc,
@@ -2933,7 +2941,7 @@ ${obj.default ?? ''}</textarea
                     },
                 };
             }),
-            save:async ()=>{
+            save: async () => {
                 for (const b of key) {
                     await ApiUser.setPublicConfig({
                         key: b.key,

@@ -18,7 +18,7 @@ import {Workers} from './workers.js';
 import axios from 'axios';
 import {Delivery, DeliveryData} from './delivery.js';
 import {saasConfig} from "../../config.js";
-import {Sns} from "./sns.js";
+import {Sns} from "./sms.js";
 
 type BindItem = {
     id: string;

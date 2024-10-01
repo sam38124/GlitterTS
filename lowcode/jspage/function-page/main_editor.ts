@@ -417,18 +417,16 @@ export class Main_editor {
                                                                         // const secondElement = children[start];
                                                                         // const sixthElement = children[end];
                                                                         const container=element.parentNode;
-                                                                        // 插入第六个元素到第一个元素之前，这样它就会替换到第二个位置
-                                                                        container.insertBefore(element, container.children[target]);
-                                                                        // 更新子节点列表，因为之前的操作已经影响了子节点顺序。
-                                                                        // 重新获取第一个和第六个元素(现在原第六个元素已经是第二个)
-                                                                        // container.insertBefore(secondElement, children[end]);
-                                                                        // let parent1, next1,parent2, next2;
-                                                                        // parent1 = elm1.parentNode;
-                                                                        // next1 = elm1.nextSibling;
-                                                                        // parent2 = elm2.parentNode;
-                                                                        // next2 = elm2.nextSibling;
-                                                                        // parent1.insertBefore(elm2, next1);
-                                                                        // parent2.insertBefore(elm1, next2);
+                                                                       
+                                                                        if (container.children.length !== target) {
+                                                                            console.log(`index==>${Array.from(container.children).indexOf(element)}length===>${container.children.length}===target===>${target}`)
+                                                                            if(!(Array.from(container.children).indexOf(element)>target)){
+                                                                                target++
+                                                                            }
+                                                                            container.insertBefore(element, container.children[target]);
+                                                                        }else{
+                                                                            container.appendChild(element);
+                                                                        }
                                                                     }
                                                                     //@ts-ignore
                                                                     Sortable.create(document.getElementById(id), {
@@ -436,35 +434,34 @@ export class Main_editor {
                                                                         animation: 100,
                                                                         handle: '.dragItem',
                                                                         // Called when dragging element changes position
-                                                                        onChange: function (evt: any) {
-                                                                       
+                                                                        onChange: function (evt2: any) {
                                                                             clearInterval(interval)
+                                                                            const newIndex=evt2.newIndex
                                                                             interVal=setTimeout(()=>{
-                                                                                og_array.map((dd:any,index:number)=>{
-                                                                                    swapElements(dd, index);
-                                                                                });
-                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex+((evt.newIndex>startIndex) ? 1:-1));
-                                                                                swapArr(og_array, startIndex, evt.newIndex);
-                                                                                const newIndex = evt.newIndex
-                                                                                const dd = og_array[newIndex]
-                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
-                                                                                startIndex = evt.newIndex;
-                                                                            },100)
-                                                                          
+                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
+                                                                                swapArr(og_array, startIndex, newIndex);
+                                                                                startIndex = newIndex;
+                                                                                setTimeout(() => {
+                                                                                    const dd = og_array[newIndex]
+                                                                                    dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
+                                                                                })
+                                                                            },200)
                                                                         },
-                                                                        onEnd: (evt: any) => {
-                                                                            console.log(`start->${startIndex}-end->${evt.newIndex}`)
-                                                                            og_array.map((dd:any,index:number)=>{
-                                                                                swapElements(dd, index);
-                                                                            })
-                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex+((evt.newIndex>startIndex) ? 1:-1));
-                                                                            swapArr(og_array, startIndex, evt.newIndex);
+                                                                        onEnd: (evt2: any) => {
+                                                                            const newIndex=evt2.newIndex
+                                                                            clearInterval(interval)
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
+                                                                            swapArr(og_array, startIndex, newIndex);
                                                                             setPageConfig();
-                                                                            const dd = og_array[evt.newIndex];
+                                                                            const dd = og_array[newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover()
                                                                             // gvc.notifyDataChange('showView');
                                                                             glitter.share.left_block_hover = false;
                                                                             (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe')
+                                                                            setTimeout(() => {
+                                                                                const dd = og_array[newIndex]
+                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
+                                                                            },300)
                                                                         },
                                                                         onStart: function (evt: any) {
                                                                             startIndex = evt.oldIndex;
@@ -1075,6 +1072,7 @@ export class Main_editor {
                 view: () => {
                     return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white iframe_view"
+                    sandbox="allow-same-origin allow-scripts"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>`
                 },

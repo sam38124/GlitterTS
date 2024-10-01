@@ -9,7 +9,7 @@ export declare class Workers {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     }>;
 }

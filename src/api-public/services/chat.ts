@@ -249,9 +249,7 @@ export class Chat {
                                 {
                                     chat_id: room.chat_id,
                                     user_id: b.user_id,
-                                    message: JSON.stringify({
-                                        text: response,
-                                    }),
+                                    message: JSON.stringify(response),
                                     created_time: new Date(),
                                 },
                             ]
@@ -270,9 +268,7 @@ export class Chat {
                                 id: insert.insertId,
                                 chat_id: room.chat_id,
                                 user_id: b.user_id,
-                                message: {
-                                    text: response,
-                                },
+                                message: response,
                                 created_time: new Date(),
                                 user_data: (userData && userData.userData) || {},
                                 type: 'message',

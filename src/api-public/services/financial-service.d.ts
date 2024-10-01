@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
 interface KeyData {
     MERCHANT_ID: string;
@@ -33,11 +32,14 @@ export default class FinancialService {
         user_email: string;
         method: string;
     }): Promise<any>;
-    saveMoney(orderData: {
+    saveWallet(orderData: {
         total: number;
         userID: number;
         note: any;
         method: string;
+        table: string;
+        title: string;
+        ratio: number;
     }): Promise<string>;
 }
 export declare class EzPay {
@@ -65,6 +67,9 @@ export declare class EzPay {
         total: number;
         userID: number;
         note: string;
+        table: string;
+        title: string;
+        ratio: number;
     }): Promise<string>;
 }
 export declare class EcPay {
@@ -95,6 +100,9 @@ export declare class EcPay {
         note: string;
         method: string;
         CheckMacValue?: string;
+        table: string;
+        title: string;
+        ratio: number;
     }): Promise<string>;
 }
 export {};

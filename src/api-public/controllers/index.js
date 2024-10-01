@@ -52,6 +52,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public
 router.use(config_1.config.getRoute(config_1.config.public_route.recommend, 'public'), recommend);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'public'), require('./ai-chat'));
+router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
@@ -98,6 +99,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/notify', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + '/notify', 'public'), method: 'POST' },
