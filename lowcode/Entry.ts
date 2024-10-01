@@ -53,7 +53,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_12.4.0";
+        glitter.share.editerVersion = "V_12.4.4";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -388,20 +388,18 @@ export class Entry {
         setTimeout(() => {
             (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false})
         }, 2000)
-        setTimeout(() => {
-            glitter.htmlGenerate.setHome({
-                app_config: vm.appConfig,
-                page_config: (window.parent as any).page_config ?? {},
-                get config() {
-                    return (window.parent as any).editerData.setting
-                },
-                get editMode() {
-                    return (window.parent as any).editerData
-                },
-                data: {},
-                tag: (window.parent as any).glitter.getUrlParameter('page'),
-            });
-        }, 100)
+        glitter.htmlGenerate.setHome({
+            app_config: vm.appConfig,
+            page_config: (window.parent as any).page_config ?? {},
+            get config() {
+                return (window.parent as any).editerData.setting
+            },
+            get editMode() {
+                return (window.parent as any).editerData
+            },
+            data: {},
+            tag: (window.parent as any).glitter.getUrlParameter('page'),
+        });
 
 
         callback();

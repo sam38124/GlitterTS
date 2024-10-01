@@ -97,7 +97,14 @@ class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`id = ${query.id}`);
+            if (`${query.id || ''}`) {
+                if (`${query.id}`.includes(',')) {
+                    querySql.push(`id in (${query.id})`);
+                }
+                else {
+                    querySql.push(`id = ${query.id}`);
+                }
+            }
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
                     querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
@@ -952,9 +959,9 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
-                    if (carData.customer_info.phone) {
+                    if (data.customer_info.phone) {
                         let sns = new sns_js_1.Sns(this.app);
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', carData.orderID, carData.customer_info.phone);
+                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
@@ -1526,7 +1533,7 @@ class Shopping {
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
             if (orderData.customer_info.phone) {
                 let sns = new sns_js_1.Sns(this.app);
-                await sns.sendCustomerSns('auto-email-shipment-arrival', order_id, orderData.customer_info.phone);
+                await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功");
             }
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
@@ -1706,6 +1713,11 @@ class Shopping {
                     status: status,
                 });
                 await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+                if (cartData.orderData.customer_info.phone) {
+                    let sns = new sns_js_1.Sns(this.app);
+                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
+                    console.log("付款成功簡訊寄送成功");
+                }
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);

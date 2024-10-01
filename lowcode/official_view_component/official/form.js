@@ -20,6 +20,9 @@ export class FormWidget {
         const gvc = obj.gvc;
         const array = obj.array;
         const glitter = obj.gvc.glitter;
+        function refresh() {
+            obj.refresh && obj.refresh();
+        }
         if (obj.user_mode) {
             array.map((dd) => {
                 dd.toggle = false;
@@ -33,7 +36,7 @@ export class FormWidget {
                             window.glitter.getModule(glitter.root_path + `cms-plugin/module/form-module.js`, (module) => {
                                 var _a;
                                 resolve(module.editor(gvc, array, html ` <div class="tx_normal fw-bolder  d-flex flex-column" style="margin-bottom: 12px;">${(_a = obj.title) !== null && _a !== void 0 ? _a : '表單項目'}</div> `, () => {
-                                    obj.refresh && obj.refresh();
+                                    refresh();
                                 }) + html `<div class="w-100 border-top my-3"></div>`);
                             });
                         });
@@ -57,7 +60,7 @@ export class FormWidget {
                             const gvc = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
                             editor_refer.closeEvent = () => {
                                 obj.widget && obj.widget.refreshComponent();
-                                obj.refresh();
+                                refresh();
                             };
                             editor_refer.toggle({
                                 visible: true,
@@ -85,7 +88,7 @@ export class FormWidget {
                                                             if (obj.user_mode) {
                                                                 dd.key = text;
                                                             }
-                                                            obj.refresh();
+                                                            refresh();
                                                         },
                                                     }),
                                                     EditorElem.select({
@@ -179,7 +182,7 @@ export class FormWidget {
                                                                     default: dd.key,
                                                                     callback: (text) => {
                                                                         dd.key = text;
-                                                                        obj.refresh();
+                                                                        refresh();
                                                                     },
                                                                 }),
                                                                 EditorElem.editeInput({
@@ -189,7 +192,7 @@ export class FormWidget {
                                                                     default: dd.category,
                                                                     callback: (text) => {
                                                                         dd.category = text;
-                                                                        obj.refresh();
+                                                                        refresh();
                                                                     },
                                                                 }),
                                                                 EditorElem.buttonPrimary('隱藏條件', gvc.event(() => {
@@ -288,7 +291,7 @@ export class FormWidget {
                         expand: dd,
                         minus: gvc.event(() => {
                             array.splice(index, 1);
-                            obj.refresh();
+                            refresh();
                         }),
                     };
                 });
@@ -336,11 +339,11 @@ export class FormWidget {
                             place_holder: '',
                         },
                     });
-                    obj.refresh();
+                    refresh();
                 }),
             },
             refreshComponent: () => {
-                obj.refresh();
+                refresh();
             },
             customEditor: true,
         });

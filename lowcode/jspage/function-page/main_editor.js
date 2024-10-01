@@ -371,32 +371,37 @@ export class Main_editor {
                                                                         arr.splice(index2, 0, data);
                                                                     }
                                                                     let startIndex = 0;
+                                                                    let interVal = 0;
+                                                                    function swapElements(element, target) {
+                                                                        const container = element.parentNode;
+                                                                        container.insertBefore(element, container.children[target]);
+                                                                    }
                                                                     Sortable.create(document.getElementById(id), {
                                                                         group: gvc.glitter.getUUID(),
                                                                         animation: 100,
                                                                         handle: '.dragItem',
                                                                         onChange: function (evt) {
-                                                                            function swapElements(elm1, elm2) {
-                                                                                var parent1, next1, parent2, next2;
-                                                                                parent1 = elm1.parentNode;
-                                                                                next1 = elm1.nextSibling;
-                                                                                parent2 = elm2.parentNode;
-                                                                                next2 = elm2.nextSibling;
-                                                                                parent1.insertBefore(elm2, next1);
-                                                                                parent2.insertBefore(elm1, next2);
-                                                                            }
-                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, og_array[evt.newIndex].editor_bridge.element().parentNode);
-                                                                            swapArr(og_array, startIndex, evt.newIndex);
-                                                                            const newIndex = evt.newIndex;
-                                                                            setTimeout(() => {
+                                                                            clearInterval(interval);
+                                                                            interVal = setTimeout(() => {
+                                                                                og_array.map((dd, index) => {
+                                                                                    swapElements(dd, index);
+                                                                                });
+                                                                                swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex + ((evt.newIndex > startIndex) ? 1 : -1));
+                                                                                swapArr(og_array, startIndex, evt.newIndex);
+                                                                                const newIndex = evt.newIndex;
                                                                                 const dd = og_array[newIndex];
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
-                                                                            });
-                                                                            startIndex = evt.newIndex;
+                                                                                startIndex = evt.newIndex;
+                                                                            }, 100);
                                                                         },
                                                                         onEnd: (evt) => {
-                                                                            setPageConfig();
+                                                                            console.log(`start->${startIndex}-end->${evt.newIndex}`);
+                                                                            og_array.map((dd, index) => {
+                                                                                swapElements(dd, index);
+                                                                            });
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, evt.newIndex + ((evt.newIndex > startIndex) ? 1 : -1));
                                                                             swapArr(og_array, startIndex, evt.newIndex);
+                                                                            setPageConfig();
                                                                             const dd = og_array[evt.newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;

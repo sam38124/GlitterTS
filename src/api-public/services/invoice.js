@@ -118,7 +118,7 @@ class Invoice {
             const json = {
                 MerchantID: config.merchNO,
                 RelateNumber: (typeof orderID === 'string') ? orderID : orderID.orderID,
-                CustomerID: order.user_info.email,
+                CustomerID: (typeof orderID === 'string') ? orderID : orderID.orderID,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined),
                 CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name),
                 CustomerAddr: order.user_info.address,

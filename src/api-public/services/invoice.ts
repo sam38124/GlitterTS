@@ -155,7 +155,7 @@ export class Invoice {
             const json: EcInvoiceInterface = {
                 MerchantID: config.merchNO as string,
                 RelateNumber: (typeof orderID==='string') ? orderID as string : orderID.orderID,
-                CustomerID: order.user_info.email as string,
+                CustomerID:  (typeof orderID==='string') ? orderID as string : orderID.orderID,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined) as string,
                 CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name) as string,
                 CustomerAddr: order.user_info.address as string,
@@ -182,6 +182,7 @@ export class Invoice {
                     };
                 }),
             };
+
            if(print){
                const cover={
                    "CustomerID": "",

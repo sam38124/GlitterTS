@@ -36,6 +36,7 @@ export class DynamicCode {
         catch (e) {
             console.log(`eval-end-catch`, new Date().getTime());
             console.log(e);
+            console.log(`object.code=>`, object.code);
             return (_a = object.errorCode) !== null && _a !== void 0 ? _a : false;
         }
     }

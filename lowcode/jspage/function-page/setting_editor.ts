@@ -358,7 +358,7 @@ export class Setting_editor {
                 group: '簡訊',
                 title: '自動寄件',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_ses0s4s1sasfs7sb_message-sms-regular.svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
                 moduleName: '已訂閱郵件',
             },
             {
@@ -367,7 +367,7 @@ export class Setting_editor {
                 group: '簡訊',
                 title: '手動寄件',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_ses0s4s1sasfs7sb_message-sms-regular.svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
                 moduleName: '群發設定',
             },
             {
@@ -376,7 +376,7 @@ export class Setting_editor {
                 group: '簡訊',
                 title: '簡訊定型文',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_ses0s4s1sasfs7sb_message-sms-regular.svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
                 moduleName: '群發設定',
             },
             {
@@ -385,7 +385,7 @@ export class Setting_editor {
                 group: '簡訊',
                 title: '寄件紀錄',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_ses0s4s1sasfs7sb_message-sms-regular.svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
                 moduleName: '群發設定',
             },
             {

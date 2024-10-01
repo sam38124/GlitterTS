@@ -7,7 +7,7 @@ export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
 
     public static async createScheme(appName: string) {
-        console.log(`createScheme=>`,appName)
+        // console.log(`createScheme=>`,appName)
         if (
             ApiPublic.checkApp.find((dd) => {
                 return dd.app_name === appName;

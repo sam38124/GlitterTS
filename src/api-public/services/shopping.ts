@@ -249,7 +249,14 @@ export class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`id = ${query.id}`);
+            if(`${query.id || ''}`){
+                if(`${query.id}`.includes(',')){
+                    querySql.push(`id in (${query.id})`);
+                }else{
+                  querySql.push(`id = ${query.id}`);
+                }
+            }
+
             //當非管理員時，檢查是否顯示隱形商品
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
@@ -1349,11 +1356,10 @@ export class Shopping {
                         orderData: carData,
                         status: 0,
                     });
-
-                    if (carData.customer_info.phone){
+                    if (data.customer_info.phone){
                         let sns = new Sns(this.app);
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', carData.orderID, carData.customer_info.phone);
-                        console.log("訂單簡訊寄送成功")
+                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
+                        console.log("訂單簡訊寄送成功");
                     }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
@@ -1986,6 +1992,7 @@ export class Shopping {
                     // await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
 
                 }
+
                 if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
@@ -2042,7 +2049,7 @@ export class Shopping {
 
             if (orderData.customer_info.phone){
                 let sns = new Sns(this.app);
-                await sns.sendCustomerSns('auto-email-shipment-arrival', order_id, orderData.customer_info.phone);
+                await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功")
             }
             await db.query(
@@ -2275,7 +2282,6 @@ export class Shopping {
                      WHERE cart_token = ?`,
                     [1, order_id]
                 );
-
                 const cartData = (
                     await db.query(
                         `SELECT *
@@ -2291,7 +2297,14 @@ export class Shopping {
                     status: status,
                 });
 
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+
+            await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+
+                if (cartData.orderData.customer_info.phone){
+                    let sns = new Sns(this.app);
+                    await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
+                    console.log("付款成功簡訊寄送成功")
+                }
 
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {

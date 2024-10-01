@@ -25,7 +25,7 @@ export class Monitor{
                 req_type:obj.req_type
             }
         ])
-        console.log(`訪客IP:${req.ip}-用戶ID:${obj.token && obj.token.userID}-請求APP:${req.get('g-app')}-請求路徑:${req.baseUrl}-請求類型:${obj.req_type}-MacAddress:${req.get('mac_address') || req.sessionID}`)
+        // console.log(`訪客IP:${req.ip}-用戶ID:${obj.token && obj.token.userID}-請求APP:${req.get('g-app')}-請求路徑:${req.baseUrl}-請求類型:${obj.req_type}-MacAddress:${req.get('mac_address') || req.sessionID}`)
     }
 
 
