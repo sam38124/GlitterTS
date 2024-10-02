@@ -979,7 +979,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'SMS_auto_send',
+            page: 'Sns_auto_send',
             group: '簡訊',
             title: '自動寄件',
             appName: 'cms_system',
@@ -988,7 +988,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'SMS_manual_send',
+            page: 'Sns_manual_send',
             group: '簡訊',
             title: '手動寄件',
             appName: 'cms_system',

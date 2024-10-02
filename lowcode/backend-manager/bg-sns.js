@@ -758,7 +758,7 @@ export class BgSNS {
                                     pointCount = 1;
                                 }
                                 else {
-                                    pointCount = Math.ceil(totalSize /= this.longSMS);
+                                    pointCount = Math.ceil(totalSize / this.longSMS);
                                 }
                                 gvc.notifyDataChange('total_count');
                             }
@@ -1571,7 +1571,7 @@ export class BgSNS {
                                                     pointCount = 1;
                                                 }
                                                 else {
-                                                    pointCount = Math.ceil(totalSize /= this.longSMS);
+                                                    pointCount = Math.ceil(totalSize / this.longSMS);
                                                 }
                                                 gvc.notifyDataChange('total_count');
                                             }
@@ -1675,7 +1675,17 @@ export class BgSNS {
                     });
                 }
                 else {
-                    dialog.errorMessage({ text: '手動寄件失敗' });
+                    if (data.response.message === 'No_Points') {
+                        dialog.warningMessage({ text: `餘額不足是否前往儲值?`, callback: (response) => {
+                                if (response) {
+                                    window.parent.glitter.setUrlParameter('tab', 'sms-points');
+                                    window.parent.glitter.pageConfig[0].gvc.recreateView();
+                                }
+                            } });
+                    }
+                    else {
+                        dialog.errorMessage({ text: '手動寄件失敗' });
+                    }
                 }
             });
         }), '送出')}
@@ -3087,7 +3097,7 @@ export class BgSNS {
 }
 BgSNS.maxSize = 160;
 BgSNS.longSMS = 153;
-BgSNS.ticket = 1.5;
+BgSNS.ticket = 15;
 function defaultEmailText() {
     return `【商店名稱】親愛的顧客，限時優惠！全館商品即日起至9月30日享85折優惠，結帳時輸入優惠代碼：SALE2024，立即享受折扣！詳情請見：https://shopnex.cc/index。`;
 }

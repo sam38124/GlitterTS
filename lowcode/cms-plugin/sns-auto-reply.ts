@@ -11,7 +11,7 @@ const html = String.raw;
 export class AutoReply {
     public static maxSize = 160;
     public static longSMS=153;
-    public static ticket = 1.5;
+    public static ticket = 15;
 
     public static main(gvc: GVC, widget: any) {
         const vm: {
@@ -272,7 +272,7 @@ export class AutoReply {
                                             if (totalSize < this.maxSize){
                                                 pointCount = 1;
                                             }else {
-                                                pointCount =  Math.ceil(totalSize /= this.longSMS);
+                                                pointCount =  Math.ceil(totalSize / this.longSMS);
                                             }
                                             gvc.notifyDataChange(id)
                                             

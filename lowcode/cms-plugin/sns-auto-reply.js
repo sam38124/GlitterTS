@@ -232,7 +232,7 @@ export class AutoReply {
                                         pointCount = 1;
                                     }
                                     else {
-                                        pointCount = Math.ceil(totalSize /= this.longSMS);
+                                        pointCount = Math.ceil(totalSize / this.longSMS);
                                     }
                                     gvc.notifyDataChange(id);
                                 }
@@ -565,5 +565,5 @@ export class AutoReply {
 }
 AutoReply.maxSize = 160;
 AutoReply.longSMS = 153;
-AutoReply.ticket = 1.5;
+AutoReply.ticket = 15;
 window.glitter.setModule(import.meta.url, AutoReply);

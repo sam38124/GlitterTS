@@ -4,7 +4,7 @@ import { GlobalUser } from '../global/global-user.js';
 export class SmsPointsApi {
     public static store(json: { total: number; note: any; method?: any; return_url: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points`,
+            url: getBaseUrl() + `/api-public/v1/sms/points`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ export class SmsPointsApi {
 
     public static withdraw(json: { total: number; note: any }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points/withdraw`,
+            url: getBaseUrl() + `/api-public/v1/sms/points/withdraw`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export class SmsPointsApi {
 
     public static getWallet() {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points/sum`,
+            url: getBaseUrl() + `/api-public/v1/sms/points/sum`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export class SmsPointsApi {
     }
     public static getWalletMemory(cf: { page: number; limit: number; type: string; start_date: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points?page=${cf.page}&limit=${cf.limit}&type=${cf.type}&start_date=${cf.start_date}`,
+            url: getBaseUrl() + `/api-public/v1/sms/points?page=${cf.page}&limit=${cf.limit}&type=${cf.type}&start_date=${cf.start_date}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export class SmsPointsApi {
     }
     public static withdrawPut(json: { id: number; status: number; note: {} }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points/withdraw`,
+            url: getBaseUrl() + `/api-public/v1/sms/points/withdraw`,
             type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export class SmsPointsApi {
     }
     public static storeByManager(json: { userID: number[]; total: number; note: any }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points/manager`,
+            url: getBaseUrl() + `/api-public/v1/sms/points/manager`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export class SmsPointsApi {
     }
     public static delete(json: { id: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points`,
+            url: getBaseUrl() + `/api-public/v1/sms/points`,
             type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export class SmsPointsApi {
 
     public static deleteWithdraw(json: { id: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ai/points/withdraw`,
+            url: getBaseUrl() + `/api-public/v1/sms/points/withdraw`,
             type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export class SmsPointsApi {
         return BaseApi.create({
             url:
                 getBaseUrl() +
-                `/api-public/v1/ai/points?${(() => {
+                `/api-public/v1/sms/points?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
@@ -169,7 +169,7 @@ export class SmsPointsApi {
         return BaseApi.create({
             url:
                 getBaseUrl() +
-                `/api-public/v1/ai/points/withdraw?${(() => {
+                `/api-public/v1/sms/points/withdraw?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
@@ -187,7 +187,7 @@ export class SmsPointsApi {
         return BaseApi.create({
             url:
                 getBaseUrl() +
-                `/api-public/v1/ai/points/sum?${(() => {
+                `/api-public/v1/sms/points/sum?${(() => {
                     let par = [];
                     json.userID && par.push(`userID=${json.userID}`);
                     return par.join('&');

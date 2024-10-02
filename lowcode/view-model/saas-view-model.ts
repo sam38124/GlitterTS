@@ -7,6 +7,7 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import {AiPointsApi} from "../glitter-base/route/ai-points-api.js";
+import {SmsPointsApi} from "../glitter-base/route/sms-points-api.js";
 
 const html = String.raw;
 
@@ -75,6 +76,39 @@ export class SaasViewModel {
                                         })
                                 }』點</a
                                 >
+                                <a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                   onclick="${gvc.event(() => {
+                                       gvc.glitter.setUrlParameter('tab','sms-points')
+                                       gvc.recreateView()
+                                   })}"
+                                ><div class="me-2 d-flex align-items-center justify-content-center fs-6" style="width:24px;height: 24px;"><i class="fa-solid fa-comment-sms"></i></div>剩餘『${
+                                        gvc.bindView(()=>{
+                                            const id=gvc.glitter.getUUID()
+                                            const vm={
+                                                loading:true,
+                                                sum:0
+                                            }
+                                            SmsPointsApi.getSum({}).then((res)=>{
+                                                vm.sum=parseInt(res.response.sum,10)
+                                                vm.loading=false
+
+                                                gvc.notifyDataChange(id)
+                                            })
+                                            return {
+                                                bind:id,
+                                                view:()=>{
+                                                    if(vm.loading){
+                                                        return `<div class="h-100 d-flex align-items-center"><div class="spinner-border" style="height:20px;width: 20px;"></div></div>`
+                                                    }else{
+                                                        return  `${vm.sum.toLocaleString()}`
+                                                    }
+                                                },
+                                                divCreate:{
+                                                    class:`mx-1`
+                                                }
+                                            }
+                                        })
+                                }』點</a>
                                 <a class="dropdown-item cursor_pointer d-flex align-items-center"
                                     onclick="${gvc.event(() => {
                                         SaasViewModel.openShopList(gvc)

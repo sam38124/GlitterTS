@@ -123,8 +123,9 @@ exports.config = {
         recommend: '/recommend',
         graph_api: '/graph_api',
         ai_chat: '/ai',
-        sns: '/sns',
-        ai_points: '/ai/points'
+        sms: '/sms',
+        ai_points: '/ai/points',
+        sms_points: '/sms/points',
     },
     route: {
         user: '/user',

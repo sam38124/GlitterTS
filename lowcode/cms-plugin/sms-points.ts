@@ -18,7 +18,7 @@ export class SmsPoints {
                 html`
                     <div class="d-flex align-items-center rounded-3" style="height:35px;width:100%;max-width: 500px;">
                         <div style="height:100%;background:var(--main-black-hover)"
-                             class="d-flex align-items-center justify-content-center text-white px-3">目前 AI Points
+                             class="d-flex align-items-center justify-content-center text-white px-3">目前 SMS Points
                         </div>
                         <div class="bgf6 d-flex align-items-center flex-fill h-100 ps-3 pe-2">${gvc.bindView(()=>{
                     const id=gvc.glitter.getUUID()
@@ -130,7 +130,7 @@ export class SmsPoints {
                                                 },
                                                 {
                                                     key: '異動原因',
-                                                    value: `${dd.money > 0 ? `加值服務`:`使用AI智能助手`}`,
+                                                    value: `${dd.money > 0 ? `加值服務`:`使用簡訊發送`}`,
                                                 },
                                                 {
                                                     key: '異動時間',
@@ -216,7 +216,7 @@ export class SmsPoints {
                     }),
                     ...(()=>{
                         if(vm.total){
-                            return  [BgWidget.greenNote(`此次儲值可獲得AI Points『 ${(vm.total * 10).toLocaleString()} 』`)]
+                            return  [BgWidget.greenNote(`此次儲值可獲得SMS Points『 ${(vm.total * 10).toLocaleString()} 』`)]
                         }else{
                             return []
                         }

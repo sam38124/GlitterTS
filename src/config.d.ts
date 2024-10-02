@@ -59,8 +59,9 @@ export declare const config: {
         recommend: string;
         graph_api: string;
         ai_chat: string;
-        sns: string;
+        sms: string;
         ai_points: string;
+        sms_points: string;
     };
     route: {
         user: string;

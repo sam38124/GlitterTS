@@ -23,7 +23,7 @@ const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
 const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
-const sns_js_1 = require("./sns.js");
+const sms_js_1 = require("./sms.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -960,7 +960,7 @@ class Shopping {
                         status: 0,
                     });
                     if (data.customer_info.phone) {
-                        let sns = new sns_js_1.Sns(this.app);
+                        let sns = new sms_js_1.SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
                     }
@@ -1477,7 +1477,7 @@ class Shopping {
                  WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
-                let sns = new sns_js_1.Sns(this.app);
+                let sns = new sms_js_1.SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
@@ -1532,7 +1532,7 @@ class Shopping {
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
             if (orderData.customer_info.phone) {
-                let sns = new sns_js_1.Sns(this.app);
+                let sns = new sms_js_1.SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功");
             }
@@ -1714,7 +1714,7 @@ class Shopping {
                 });
                 await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
                 if (cartData.orderData.customer_info.phone) {
-                    let sns = new sns_js_1.Sns(this.app);
+                    let sns = new sms_js_1.SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
                     console.log("付款成功簡訊寄送成功");
                 }

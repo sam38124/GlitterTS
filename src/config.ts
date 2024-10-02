@@ -126,7 +126,8 @@ export const config = {
         graph_api: '/graph_api',
         ai_chat: '/ai',
         sms: '/sms',
-        ai_points: '/ai/points'
+        ai_points: '/ai/points',
+        sms_points: '/sms/points',
     },
     route: {
         user: '/user',

@@ -3,7 +3,7 @@ import response from '../../modules/response';
 import exception from '../../modules/exception';
 import { UtPermission } from '../utils/ut-permission.js';
 import { Mail } from '../services/mail.js';
-import {Sns} from "../services/sms.js";
+import {SMS} from "../services/sms.js";
 
 const router: express.Router = express.Router();
 
@@ -14,7 +14,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         if (await UtPermission.isManager(req)) {
             return response.succ(
                 resp,
-                await new Sns(req.get('g-app') as string, req.body.token).getSns({
+                await new SMS(req.get('g-app') as string, req.body.token).getSns({
                     type: req.query.list ? `${req.query.list}` : '',
                     page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
                     limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 99999,
@@ -35,7 +35,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            const post = await new Sns(req.get('g-app') as string, req.body.token).postSns(req.body);
+            const post = await new SMS(req.get('g-app') as string, req.body.token).postSns(req.body);
             return response.succ(resp, { data: "check OK" });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
@@ -48,7 +48,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
 router.delete('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            const post = await new Sns(req.get('g-app') as string, req.body.token).deleteSns(req.body);
+            const post = await new SMS(req.get('g-app') as string, req.body.token).deleteSns(req.body);
             return response.succ(resp, { data: "check OK" });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));

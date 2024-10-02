@@ -6,6 +6,8 @@ import { AutoSendEmail } from './auto-send-email.js';
 import config from "../../config";
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import {Mail} from "./mail";
+import {App} from "../../services/app.js";
+import Tool from "../../modules/tool.js";
 
 
 interface SNSResponse {
@@ -33,7 +35,7 @@ interface SNSData{
     smsPointFlag:number
 }
 
-export class Sns {
+export class SMS {
     public app;
 
     constructor(app: string, token?: IToken) {
@@ -48,7 +50,6 @@ export class Sns {
                 let check = b.length;
 
                 await new Promise((resolve) => {
-
                     for (const d of b) {
                         this.sendSNS({data:data.content , phone:d , date:date}, (res)=>{
                             check--;
@@ -67,66 +68,54 @@ export class Sns {
             throw exception.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
         }
     }
-    async sendSNS(obj:{data: any, phone: string , date?:string} , callback: (data:SNSResponse)=>void) {
+    async sendSNS(obj:{data: string, phone: string , date?:string,order_id?:string } , callback: (data:SNSResponse)=>void) {
         try {
-            let snsData : SNSData = {
-                username: config.SNSAccount ?? "",
-                password: config.SNSPWD ?? "",
-                dstaddr: obj.phone,
-                smsPointFlag:1,
-                smbody: obj.data
-            }
-            if (obj.date){
-                (snsData as any).dlvtime = obj.date
-            }
-            const urlConfig: Config = {
-                method: 'post',
-                url: config.SNS_URL+"/api/mtk/SmSend?CharsetURL=UTF8",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                data: snsData
-            };
+            //有點數再執行
+            if(await this.checkPoints(obj.data,1)){
+                let snsData : SNSData = {
+                    username: config.SNSAccount ?? "",
+                    password: config.SNSPWD ?? "",
+                    dstaddr: obj.phone,
+                    smsPointFlag:1,
+                    smbody: obj.data
+                }
+                if (obj.date){
+                    (snsData as any).dlvtime = obj.date
+                }
+                const urlConfig: Config = {
+                    method: 'post',
+                    url: config.SNS_URL+"/api/mtk/SmSend?CharsetURL=UTF8",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    data: snsData
+                };
+                //扣除點數
+                await this.usePoints({
+                    message:obj.data,user_count:1,order_id:obj.order_id,phone:obj.phone
+                })
+                return new Promise<boolean>((resolve, reject) => {
+                    axios.request(urlConfig)
+                        .then((response) => {
+                            let result = response.data.split('\r\n')
+                            let snsResponse:SNSResponse = {
+                                clientid : result[0],
+                                msgid : result[1].split('=')[1],
+                                statuscode : result[2].split('=')[1],
+                                smsPoint:result[3].split('=')[1],
+                                accountPoint:result[4].split('=')[1],
+                            }
 
-            return new Promise<boolean>((resolve, reject) => {
-                axios.request(urlConfig)
-                    .then((response) => {
-                        let result = response.data.split('\r\n')
-                        let snsResponse:SNSResponse = {
-                            clientid : result[0],
-                            msgid : result[1].split('=')[1],
-                            statuscode : result[2].split('=')[1],
-                            smsPoint:result[3].split('=')[1],
-                            accountPoint:result[4].split('=')[1],
-                        }
+                            callback(snsResponse)
+                            resolve(response.data)
+                        })
+                        .catch((error) => {
+                            console.log("error -- " , error)
+                            resolve(false)
+                        });
+                })
 
-                        callback(snsResponse)
-                        resolve(response.data)
-                    })
-                    .catch((error) => {
-                        console.log("error -- " , error)
-                        resolve(false)
-                    });
-            })
-            //
-            // var settings = {
-            //     "url": "https://smsapi.mitake.com.tw/api/mtk/SmSend",
-            //     "method": "POST",
-            //     "timeout": 0,
-            //     "headers": {
-            //         "Content-Type": "application/x-www-form-urlencoded"
-            //     },
-            //     "data": {
-            //         "username": `${config.SNSAccount}`,
-            //         "password": `${config.SNSPWD}`,
-            //         "dstaddr": `${phone}`,
-            //         "smbody": `${data}`
-            //     }
-            // };
-            //
-            // $.ajax(settings).done(function (response:any) {
-            //     console.log(response);
-            // });
+            }
 
         }catch (e){
             throw exception.BadRequestError('BAD_REQUEST', 'send SNS Error:' + e, null);
@@ -249,9 +238,12 @@ export class Sns {
             throw exception.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
         }
     }
-
     async postSns(data: any): Promise<{ result: boolean; message: string }> {
-
+        if(!await this.checkPoints(data.content,data.phone.length)){
+            throw exception.BadRequestError('BAD_REQUEST', 'No_Points', {
+                message:'餘額不足'
+            });
+        }
         data.msgid = ""
         try {
             if (Boolean(data.sendTime)) {
@@ -269,7 +261,6 @@ export class Sns {
 
                 this.chunkSendSNS(data, insertData.insertId , formatDateTime(data.sendTime));
             } else {
-
                 const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendSNS',
@@ -286,8 +277,6 @@ export class Sns {
         }
     }
     async deleteSns(data: any): Promise<{ result: boolean; message: string }> {
-
-        // data.msgid = ""
         try {
             const emails = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_triggers
@@ -306,22 +295,80 @@ export class Sns {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
-
     public async sendCustomerSns(tag: string, order_id: string, phone: string) {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
-
             await new Promise((resolve) => {
-                this.sendSNS({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , phone:phone}, (res)=>{
-
-                    // db.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date?0:1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [ id]);
+                this.sendSNS({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , phone:phone,order_id:order_id}, (res)=>{
                     resolve(true);
-
                 })
             })
-
         }
     }
+
+    //判斷餘額是否足夠
+    public async checkPoints(message:string,user_count:number) {
+        const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
+        // 判斷錢包是否有餘額
+        const sum =
+            (
+                await db.query(
+                    `SELECT sum(money)
+                     FROM \`${brandAndMemberType.brand}\`.t_sms_points
+                     WHERE status in (1, 2)
+                       and userID = ?`,
+                    [brandAndMemberType.user_id]
+                )
+            )[0]['sum(money)'] || 0;
+        return sum > ( this.getUsePoints(message,user_count))
+    }
+
+    //點數扣除
+    public  async usePoints(obj:{message:string,user_count:number,order_id?:string,phone:string}) {
+        if(!obj.phone){
+            return  0
+        }
+        let total =  this.getUsePoints(obj.message,obj.user_count)
+        const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
+        await db.query(`insert into \`${brandAndMemberType.brand}\`.t_sms_points
+                        set ?`, [
+            {
+                orderID: obj.order_id || Tool.randomNumber(8),
+                money: total * -1,
+                userID: brandAndMemberType.user_id,
+                status: 1,
+                note: JSON.stringify({
+                    message: obj.message,
+                    phone:obj.phone
+                })
+            }
+        ])
+        return total * -1
+    }
+
+    public  getUsePoints(text:string,user_count:number){
+        let pointCount=0
+        const maxSize=160;
+        const longSMS=153;
+        let totalSize=0
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
+                totalSize += 2;
+            }
+            else {
+                totalSize += 1;
+            }
+        }
+        if (totalSize < maxSize) {
+            pointCount = 1;
+        }
+        else {
+            pointCount = Math.ceil(totalSize / longSMS);
+        }
+        return pointCount * 15 * user_count
+    }
+
 }
 function formatDate(date:any) {
     const year = date.getFullYear();

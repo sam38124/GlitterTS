@@ -7,8 +7,8 @@ import { UtPermission } from '../utils/ut-permission.js';
 import { Private_config } from '../../services/private_config.js';
 import { EcPay, EzPay } from '../services/financial-service.js';
 import { UtDatabase } from '../utils/ut-database.js';
-import {AiPointes} from "../services/ai-pointes.js";
 import {Invoice} from "../services/invoice.js";
+import {SmsPoints} from "../services/sms-pointes.js";
 
 const router: express.Router = express.Router();
 
@@ -31,7 +31,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         }
         req.query.start_date && query.push(`created_time>${db.escape(req.query.start_date)}`);
         query.push(`status in (1,2)`);
-        const data = await new UtDatabase(req.get('g-app') as string, `t_ai_points`).querySql(query, req.query as any);
+        const data = await new UtDatabase(req.get('g-app') as string, `t_sms_points`).querySql(query, req.query as any);
         for (const b of data.data) {
             let userData = (
                 await db.query(
@@ -53,7 +53,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         const app = req.get('g-app') as string;
         return response.succ(
             resp,
-            await new AiPointes(app, req.body.token).store({
+            await new SmsPoints(app, req.body.token).store({
                 return_url: req.body.return_url,
                 total: req.body.total,
                 note: req.body.note,
@@ -68,7 +68,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
 router.delete('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            await new AiPointes(req.get('g-app') as string, req.body.token).delete({
+            await new SmsPoints(req.get('g-app') as string, req.body.token).delete({
                 id: req.body.id,
             });
             return response.succ(resp, {
@@ -120,7 +120,7 @@ router.put('/withdraw', async (req: express.Request, resp: express.Response) => 
     try {
         const app = req.get('g-app') as string;
         if (await UtPermission.isManager(req)) {
-            await new AiPointes(app, req.body.token).putWithdraw({
+            await new SmsPoints(app, req.body.token).putWithdraw({
                 id: req.body.id,
                 status: req.body.status,
                 note: req.body.note,
@@ -139,7 +139,7 @@ router.put('/withdraw', async (req: express.Request, resp: express.Response) => 
 router.delete('/withdraw', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            await new AiPointes(req.get('g-app') as string, req.body.token).deleteWithDraw({
+            await new SmsPoints(req.get('g-app') as string, req.body.token).deleteWithDraw({
                 id: req.body.id,
             });
             return response.succ(resp, {
@@ -160,7 +160,7 @@ router.get('/sum', async (req: express.Request, resp: express.Response) => {
             sum:
                 (
                     await db.query(
-                        `SELECT sum(money) FROM \`${app}\`.t_ai_points
+                        `SELECT sum(money) FROM \`${app}\`.t_sms_points
                             WHERE status in (1, 2) AND userID = ?`,
                         [req.query.userID || req.body.token.userID]
                     )
@@ -178,7 +178,7 @@ router.post('/manager', async (req: express.Request, resp: express.Response) => 
             let orderID = new Date().getTime();
             for (const b of req.body.userID) {
                 await db.execute(
-                    `insert into \`${app}\`.t_ai_points (orderID, userID, money, status, note)
+                    `insert into \`${app}\`.t_sms_points (orderID, userID, money, status, note)
                         values (?, ?, ?, ?, ?)`,
                     [orderID++, b, req.body.total, 2, req.body.note]
                 );
@@ -235,15 +235,15 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
 
         if (decodeData['Status'] === 'SUCCESS') {
             await db.execute(
-                `update \`${appName}\`.t_ai_points set status=? where orderID = ?
+                `update \`${appName}\`.t_sms_points set status=? where orderID = ?
                 `,
                 [1, decodeData['Result']['MerchantOrderNo']]
             );
-            const data=(await db.query(`select * from \`${appName}\`.t_ai_points where orderID=?`,[decodeData['Result']['MerchantOrderNo']]))[0]
+             const data=(await db.query(`select * from \`${appName}\`.t_sms_points where orderID=?`,[decodeData['Result']['MerchantOrderNo']]))[0]
              new Invoice(appName).postCheckoutInvoice({
                  lineItems:[
                      {
-                         ItemName:`AI Points 儲值${data.money.toLocaleString()}點`,
+                         ItemName:`SMS Points 儲值${data.money.toLocaleString()}點`,
                          count:1,
                          sale_price:data.money/10,
                          spec:[]
@@ -253,7 +253,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             }, false);
         } else {
             await db.execute(
-                `update \`${appName}\`.t_ai_points set status=? where orderID = ?
+                `update \`${appName}\`.t_sms_points set status=? where orderID = ?
                 `,
                 [-1, decodeData['Result']['MerchantOrderNo']]
             );
