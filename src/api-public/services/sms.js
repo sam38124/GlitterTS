@@ -83,6 +83,9 @@ class SMS {
                     });
                 });
             }
+            else {
+                return false;
+            }
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send SNS Error:' + e, null);
@@ -226,10 +229,9 @@ class SMS {
     async sendCustomerSns(tag, order_id, phone) {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
-            await new Promise((resolve) => {
-                this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => {
-                    resolve(true);
-                });
+            await new Promise(async (resolve) => {
+                resolve(await this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => {
+                }));
             });
         }
     }

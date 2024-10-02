@@ -36,6 +36,8 @@ import {Ai} from "./services/ai.js";
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import {Monitor} from "./api-public/services/monitor.js";
+import tool from "./services/tool.js";
+import {InitialFakeData} from "./api-public/services/initial-fake-data.js";
 export const app = express();
 const logger = new Logger();
 

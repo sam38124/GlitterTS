@@ -61,9 +61,10 @@ class User {
     }
     async findAuthUser(email) {
         try {
-            const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
-                    WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-                `, [email]))[0];
+            const authData = (await database_1.default.query(`SELECT *
+                     FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                     WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                    `, [email]))[0];
             return authData;
         }
         catch (e) {
@@ -950,7 +951,7 @@ class User {
                     });
                 }
                 const users = await database_1.default.query(`SELECT userID
-                                              FROM \`${this.app}\`.t_user;`, []);
+                     FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));
@@ -1407,6 +1408,19 @@ class User {
                  where \`key\` = ${database_1.default.escape(config.key)}
                    and user_id = ${database_1.default.escape(config.user_id)}
                 `, []);
+            if ((!data[0]) && config.user_id === 'manager') {
+                switch (config.key) {
+                    case "member_level_config":
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                "levels": []
+                            }
+                        });
+                        return await this.getConfigV2(config);
+                }
+            }
             return (data[0] && data[0].value) || {};
         }
         catch (e) {
@@ -1449,14 +1463,15 @@ class User {
         var _a;
         try {
             const result = await database_1.default.query(`select count(1)
-                                           from ${process_1.default.env.GLITTER_DB}.app_config
-                                           where appName = ?
-                                             and user = ?`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+                 from ${process_1.default.env.GLITTER_DB}.app_config
+                 where appName = ?
+                   and user = ?`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
             return {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) { }
+        catch (e) {
+        }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;

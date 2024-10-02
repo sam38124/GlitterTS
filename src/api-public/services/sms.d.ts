@@ -17,7 +17,7 @@ export declare class SMS {
         phone: string;
         date?: string;
         order_id?: string;
-    }, callback: (data: SNSResponse) => void): Promise<boolean | undefined>;
+    }, callback: (data: SNSResponse) => void): Promise<boolean>;
     deleteSNS(obj: {
         id: string;
     }, callback: (data: any) => void): Promise<boolean>;

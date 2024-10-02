@@ -114,7 +114,8 @@ export class SMS {
                             resolve(false)
                         });
                 })
-
+            }else{
+                return  false
             }
 
         }catch (e){
@@ -298,10 +299,10 @@ export class SMS {
     public async sendCustomerSns(tag: string, order_id: string, phone: string) {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
-            await new Promise((resolve) => {
-                this.sendSNS({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , phone:phone,order_id:order_id}, (res)=>{
-                    resolve(true);
-                })
+            await new Promise(async (resolve) => {
+                resolve(await this.sendSNS({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , phone:phone,order_id:order_id}, (res)=>{
+
+                }))
             })
         }
     }

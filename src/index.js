@@ -67,6 +67,7 @@ const ai_js_1 = require("./services/ai.js");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
+const initial_fake_data_js_1 = require("./api-public/services/initial-fake-data.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -95,6 +96,7 @@ exports.app.use(public_contollers);
 async function initial(serverPort) {
     await (async () => {
         await database_1.default.createPool();
+        await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
         await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();
         await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
