@@ -1040,7 +1040,6 @@ export class User {
                 where: querySql,
                 orderBy: query.order_string ?? '',
             });
-
             return {
                 // 所有註冊會員的詳細資料
                 data: (await db.query(dataSQL, [])).map((dd: any) => {

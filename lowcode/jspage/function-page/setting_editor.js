@@ -1026,7 +1026,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'line_manual_send',
             group: 'line訊息',
-            title: '手動寄件',
+            title: '手動發送',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-lines-light.svg',
             moduleName: 'line群發設定',
