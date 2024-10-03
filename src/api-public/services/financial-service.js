@@ -48,7 +48,7 @@ class FinancialService {
         return await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
             `, [orderData.orderID, 0, orderData.user_email, orderData]);
     }
-    async saveMoney(orderData) {
+    async saveWallet(orderData) {
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
         }
@@ -139,13 +139,13 @@ class EzPay {
             Version: '2.0',
             MerchantOrderNo: new Date().getTime(),
             Amt: orderData.total,
-            ItemDesc: '加值服務',
+            ItemDesc: orderData.title,
             NotifyURL: this.keyData.NotifyURL,
             ReturnURL: this.keyData.ReturnURL,
         };
         const appName = this.appName;
-        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
-            `, [params.MerchantOrderNo, orderData.userID, orderData.total, 0, orderData.note]);
+        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `, [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
         const qs = FinancialService.JsonToQueryString(params);
         const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         const tradeSha = crypto_1.default.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
@@ -296,7 +296,7 @@ class EcPay {
             MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
             TotalAmount: orderData.total,
             TradeDesc: '商品資訊',
-            ItemName: '加值服務',
+            ItemName: orderData.title,
             ReturnURL: this.keyData.NotifyURL,
             ChoosePayment: orderData.method && orderData.method !== 'ALL'
                 ? (() => {
@@ -343,8 +343,8 @@ class EcPay {
         };
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
-        await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
-            `, [params.MerchantTradeNo, orderData.userID, orderData.total, 0, orderData.note]);
+        await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `, [params.MerchantTradeNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
         return html `
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
                 <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />

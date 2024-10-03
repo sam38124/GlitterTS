@@ -22,7 +22,7 @@ const shop_apiRouter = require("./shop");
 const manager_apiRouter = require("./manager");
 const app_release = require("./app-release");
 const smtp = require("./smtp");
-const sns = require("./sns");
+const sms = require("./sms");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
 const article = require("./article");
@@ -43,7 +43,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ec, 'public'), 
 router.use(config_1.config.getRoute(config_1.config.public_route.manager, 'public'), manager_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'), app_release);
 router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
-router.use(config_1.config.getRoute(config_1.config.public_route.sns, 'public'), sns);
+router.use(config_1.config.getRoute(config_1.config.public_route.sms, 'public'), sms);
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);
@@ -52,6 +52,8 @@ router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public
 router.use(config_1.config.getRoute(config_1.config.public_route.recommend, 'public'), recommend);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'public'), require('./ai-chat'));
+router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
+router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
@@ -98,8 +100,10 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/notify', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.sms_points + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + '/config', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.article, 'public'), method: 'GET' },

@@ -37,11 +37,14 @@ export class Wallet {
                 "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 "MERCHANT_ID": keyData.MERCHANT_ID,
                 TYPE:keyData.TYPE
-            }).saveMoney({
+            }).saveWallet({
                 total: cf.total,
                 userID: this.token.userID!,
                 note: cf.note,
-                method:cf.method || ''
+                method:cf.method || '',
+                table:'t_wallet',
+                title:'錢包儲值',
+                ratio:1
             })))
         }
     }

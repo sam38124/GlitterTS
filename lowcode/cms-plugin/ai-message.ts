@@ -4,6 +4,7 @@ import { Chat } from '../glitter-base/route/chat.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { AiChat } from '../glitter-base/route/ai-chat.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import {AiPointsApi} from "../glitter-base/route/ai-points-api.js";
 
 export class AiMessage {
     public static config: any = {
@@ -168,6 +169,7 @@ export class AiMessage {
                                                         chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                     })
                                                 ).response.data[0];
+
                                                 if (chatRoom.who === 'manager') {
                                                     chatRoom.user_data = AiMessage.config;
                                                 }
@@ -187,7 +189,19 @@ export class AiMessage {
                                                             />
                                                             <div class="d-flex flex-column px-1 text-white">
                                                                 <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
-                                                                <span class="fw-500 d-none" style="font-size:13px;">剩餘代幣:10</span>
+                                                                ${gvc.bindView(()=>{
+                                                                    return {
+                                                                        bind:'ai_points_count',
+                                                                        view:()=>{
+                                                                            return new Promise(async (resolve, reject)=>{
+                                                                                resolve(`剩餘『<span class="fw-bold mx-1">${parseInt(((await AiPointsApi.getSum({})).response.sum),10).toLocaleString()}</span>』 AI Points`)
+                                                                            })
+                                                                        },
+                                                                        divCreate:{
+                                                                            class:`fw-500 d-flex`,style:`font-size:13px;`
+                                                                        }
+                                                                    }
+                                                                })}
                                                             </div>
                                                             <div class="flex-fill" style="flex: 1;"></div>
                                                             <i
@@ -306,6 +320,7 @@ export class AiMessage {
                                             return '<' + tag + '><li>' + content + '</li></' + tag + '>';
                                         });
 
+
                                         return markdownString.replace(/\n/g, '<br>');
                                     }
 
@@ -313,7 +328,6 @@ export class AiMessage {
                                         if (dd.user_id == 'manager') {
                                             dd.user_data = AiMessage.config;
                                         }
-
                                         const replacedString = markdownToHTML(dd.message.text);
 
                                         if (cf.user_id !== dd.user_id) {
@@ -330,8 +344,9 @@ export class AiMessage {
                                                         style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                     >
                                                         ${replacedString}
+                                                        <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none`:``}" style="letter-spacing: 1.2px;">${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points`:``}</div>
                                                     </div>
-                                                    <div class="fs-sm text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                    <div class="fs-sm d-flex text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
                                                         ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
                                                     </div>
                                                 </div>
@@ -390,7 +405,6 @@ export class AiMessage {
                                         let interVal: any = 0;
                                         socket.addEventListener('message', function (event: any) {
                                             const data = JSON.parse(event.data);
-                                            console.log(`message_in`, data.data);
                                             if (data.type === 'update_read_count') {
                                                 vm.last_read = data.data;
                                             } else {
@@ -415,6 +429,7 @@ export class AiMessage {
                                                 } else {
                                                     vm.lastScroll = st;
                                                 }
+                                                gvc.notifyDataChange('ai_points_count')
                                             }
 
                                             // const element: any = document.querySelector('.chatContainer')!;

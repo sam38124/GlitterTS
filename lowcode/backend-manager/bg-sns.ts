@@ -13,7 +13,7 @@ import {ApiSmtp} from '../glitter-base/route/smtp.js';
 import {BgListComponent} from './bg-list-component.js';
 import {Tool} from '../modules/tool.js';
 import {ApiWallet} from "../glitter-base/route/wallet.js";
-import {ApiSns} from "../glitter-base/route/sns.js";
+import {ApiSns} from "../glitter-base/route/sms.js";
 
 const html = String.raw;
 
@@ -43,7 +43,7 @@ const inputStyle = 'font-size: 16px; height:40px; width:300px;';
 export class BgSNS {
     public static maxSize = 160;
     public static longSMS = 153;
-    public static ticket = 1.5;
+    public static ticket = 15;
 
     public static email(gvc: GVC, type: 'list' | 'select' = 'list', callback: (select: any) => void = () => {
     }) {
@@ -839,7 +839,6 @@ export class BgSNS {
                                                         gvc: gvc,
                                                         title: '簡訊主題',
                                                         default: postData.title,
-                                                        readonly:true,
                                                         placeHolder: '請輸入簡訊主題',
                                                         callback: (text) => {
                                                             postData.title = text;
@@ -847,7 +846,14 @@ export class BgSNS {
                                                     })}
                                                     <div class="d-flex align-items-center my-3">
                                                         <div class="tx_normal fw-normal me-2">簡訊內文</div>
-                                                        <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount*this.ticket}點</div>
+                                                        ${gvc.bindView(()=>{
+                                                            return {
+                                                                bind:'total_count',
+                                                                view:()=>{
+                                                                    return `<div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount*this.ticket}點</div>`
+                                                                }
+                                                            }
+                                                        })}
                                                     </div>
                                                     ${EditorElem.editeText({
                                                         gvc: gvc,
@@ -872,9 +878,9 @@ export class BgSNS {
                                                             if (totalSize < this.maxSize) {
                                                                 pointCount = 1;
                                                             } else {
-                                                                pointCount = Math.ceil(totalSize /= this.longSMS);
+                                                                pointCount = Math.ceil(totalSize / this.longSMS);
                                                             }
-                                                            gvc.notifyDataChange(bi)
+                                                            gvc.notifyDataChange('total_count')
 
                                                         }
                                                     })}`
@@ -1721,10 +1727,17 @@ export class BgSNS {
                                                                                     gvc.notifyDataChange(vm.containerId);
                                                                                 })
                                                                         )}
-                                                                        <div class="d-flex align-items-end ms-3"
+                                                                        ${gvc.bindView(()=>{
+                                                                            return {
+                                                                                bind:'total_count',
+                                                                                view:()=>{
+                                                                                    return `<div class="d-flex align-items-end ms-3"
                                                                              style="font-size: 12px;color: #8D8D8D">
                                                                                 預計每則簡訊花費${pointCount * this.ticket}點
-                                                                        </div>
+                                                                        </div>`
+                                                                                }
+                                                                            }
+                                                                        })}
                                                                     </div>
                                                                     ${EditorElem.editeText({
                                                                         gvc: gvc,
@@ -1748,9 +1761,9 @@ export class BgSNS {
                                                                             if (totalSize < this.maxSize) {
                                                                                 pointCount = 1;
                                                                             } else {
-                                                                                pointCount = Math.ceil(totalSize /= this.longSMS);
+                                                                                pointCount = Math.ceil(totalSize / this.longSMS);
                                                                             }
-                                                                            gvc.notifyDataChange(vm.containerId)
+                                                                            gvc.notifyDataChange('total_count')
 
                                                                         }
                                                                     })}
@@ -1863,7 +1876,17 @@ export class BgSNS {
                                             text: postData.sendTime ? '排定成功' : '發送成功',
                                         });
                                     } else {
-                                        dialog.errorMessage({text: '手動寄件失敗'});
+                                        if(data.response.message==='No_Points'){
+                                            dialog.warningMessage({text: `餘額不足是否前往儲值?`,callback:(response)=>{
+                                                if(response){
+                                                    (window.parent as any).glitter.setUrlParameter('tab','sms-points');
+                                                    (window.parent as any).glitter.pageConfig[0].gvc.recreateView();
+                                                }
+                                                }});
+                                        }else{
+                                            dialog.errorMessage({text: '手動寄件失敗'});
+                                        }
+                                     
                                     }
                                 });
                             }),

@@ -308,6 +308,40 @@ export class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_ai_points',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`money\` int NOT NULL,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`note\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
+  KEY \`index2\` (\`userID\`),
+  KEY \`index3\` (\`status\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
+                    table: 't_sms_points',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`money\` int NOT NULL,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`note\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
+  KEY \`index2\` (\`userID\`),
+  KEY \`index3\` (\`status\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
                     table: 't_rebate_point',
                     sql: `(
                         \`id\` int NOT NULL AUTO_INCREMENT,

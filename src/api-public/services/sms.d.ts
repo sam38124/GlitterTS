@@ -8,14 +8,15 @@ interface SNSResponse {
     smsPoint?: number;
     message?: string;
 }
-export declare class Sns {
+export declare class SMS {
     app: string;
     constructor(app: string, token?: IToken);
     chunkSendSNS(data: any, id: number, date?: string): Promise<void>;
     sendSNS(obj: {
-        data: any;
+        data: string;
         phone: string;
         date?: string;
+        order_id?: string;
     }, callback: (data: SNSResponse) => void): Promise<boolean>;
     deleteSNS(obj: {
         id: string;
@@ -42,5 +43,13 @@ export declare class Sns {
         message: string;
     }>;
     sendCustomerSns(tag: string, order_id: string, phone: string): Promise<void>;
+    checkPoints(message: string, user_count: number): Promise<boolean>;
+    usePoints(obj: {
+        message: string;
+        user_count: number;
+        order_id?: string;
+        phone: string;
+    }): Promise<number>;
+    getUsePoints(text: string, user_count: number): number;
 }
 export {};

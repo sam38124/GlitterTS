@@ -79,7 +79,7 @@ export default class FinancialService {
         );
     }
 
-    async saveMoney(orderData: { total: number; userID: number; note: any; method: string }): Promise<string> {
+    async saveWallet(orderData: { total: number; userID: number; note: any; method: string ,table:string,title:string,ratio:number}): Promise<string> {
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -212,7 +212,7 @@ export class EzPay {
         </form>`;
     }
 
-    async saveMoney(orderData: { total: number; userID: number; note: string }) {
+    async saveMoney(orderData: { total: number; userID: number; note: string,table:string,title:string,ratio:number }) {
         // 1. 建立請求的參數
         const params = {
             MerchantID: this.keyData.MERCHANT_ID,
@@ -221,16 +221,16 @@ export class EzPay {
             Version: '2.0',
             MerchantOrderNo: new Date().getTime(),
             Amt: orderData.total,
-            ItemDesc: '加值服務',
+            ItemDesc: orderData.title,
             NotifyURL: this.keyData.NotifyURL,
             ReturnURL: this.keyData.ReturnURL,
         };
 
         const appName = this.appName;
         await db.execute(
-            `INSERT INTO \`${appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
             `,
-            [params.MerchantOrderNo, orderData.userID, orderData.total, 0, orderData.note]
+            [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
         );
 
         // 2. 產生 Query String
@@ -410,14 +410,14 @@ export class EcPay {
         `;
     }
 
-    async saveMoney(orderData: { total: number; userID: number; note: string; method: string; CheckMacValue?: string }) {
+    async saveMoney(orderData: { total: number; userID: number; note: string; method: string; CheckMacValue?: string,table:string,title:string ,ratio:number}) {
         // 1. 建立請求的參數
         const params = {
             MerchantTradeNo: new Date().getTime(),
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
             TotalAmount: orderData.total,
             TradeDesc: '商品資訊',
-            ItemName: '加值服務',
+            ItemName: orderData.title,
             ReturnURL: this.keyData.NotifyURL,
             ChoosePayment:
                 orderData.method && orderData.method !== 'ALL'
@@ -467,9 +467,9 @@ export class EcPay {
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO \`${this.appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
             `,
-            [params.MerchantTradeNo, orderData.userID, orderData.total, 0, orderData.note]
+            [params.MerchantTradeNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
         );
 
         // 5. 回傳物件

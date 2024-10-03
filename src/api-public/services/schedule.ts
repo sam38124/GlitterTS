@@ -7,6 +7,7 @@ import { Shopping } from './shopping';
 import { Mail } from '../services/mail.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { saasConfig } from '../../config';
+import {InitialFakeData} from "./initial-fake-data.js";
 
 type ScheduleItem = {
     second: number;
@@ -267,6 +268,11 @@ export class Schedule {
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
 
+    async initialSampleApp(sec: number){
+        await new InitialFakeData(`t_1725992531001`).run()
+        setTimeout(() => this.initialSampleApp(sec), sec * 1000);
+    }
+
     main() {
         const scheduleList: ScheduleItem[] = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
@@ -275,6 +281,7 @@ export class Schedule {
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 3600*24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {
             scheduleList.forEach((schedule) => {

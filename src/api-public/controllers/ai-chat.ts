@@ -138,7 +138,9 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                                         FROM \`${req.get('g-app') as string}\`.t_chat_detail where chat_id=? order by id desc limit 0,5`,[
                                             [type,'manager'].sort().join('-')
         ])).reverse()){
-            await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.text })
+            if(b.message.text){
+                await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.text })
+            }
         }
         await new Private_config(req.body.token).setConfig({
             appName: req.get('g-app') as string,

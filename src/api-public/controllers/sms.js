@@ -6,12 +6,12 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
-const sns_js_1 = require("../services/sns.js");
+const sms_js_1 = require("../services/sms.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new sns_js_1.Sns(req.get('g-app'), req.body.token).getSns({
+            return response_1.default.succ(resp, await new sms_js_1.SMS(req.get('g-app'), req.body.token).getSns({
                 type: req.query.list ? `${req.query.list}` : '',
                 page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
                 limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 99999,
@@ -32,7 +32,7 @@ router.get('/', async (req, resp) => {
 router.post('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            const post = await new sns_js_1.Sns(req.get('g-app'), req.body.token).postSns(req.body);
+            const post = await new sms_js_1.SMS(req.get('g-app'), req.body.token).postSns(req.body);
             return response_1.default.succ(resp, { data: "check OK" });
         }
         else {
@@ -46,7 +46,7 @@ router.post('/', async (req, resp) => {
 router.delete('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            const post = await new sns_js_1.Sns(req.get('g-app'), req.body.token).deleteSns(req.body);
+            const post = await new sms_js_1.SMS(req.get('g-app'), req.body.token).deleteSns(req.body);
             return response_1.default.succ(resp, { data: "check OK" });
         }
         else {
@@ -58,4 +58,4 @@ router.delete('/', async (req, resp) => {
     }
 });
 module.exports = router;
-//# sourceMappingURL=sns.js.map
+//# sourceMappingURL=sms.js.map

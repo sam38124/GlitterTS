@@ -18,7 +18,7 @@ import {Workers} from './workers.js';
 import axios from 'axios';
 import {Delivery, DeliveryData} from './delivery.js';
 import {saasConfig} from "../../config.js";
-import {Sns} from "./sns.js";
+import {SMS} from "./sms.js";
 
 type BindItem = {
     id: string;
@@ -1357,7 +1357,7 @@ export class Shopping {
                         status: 0,
                     });
                     if (data.customer_info.phone){
-                        let sns = new Sns(this.app);
+                        let sns = new SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
                     }
@@ -1971,7 +1971,7 @@ export class Shopping {
 
             if (update.orderData && JSON.parse(update.orderData)) {
                 // 商品出貨信件通知（消費者）
-                let sns = new Sns(this.app);
+                let sns = new SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone){
@@ -2048,7 +2048,7 @@ export class Shopping {
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
             if (orderData.customer_info.phone){
-                let sns = new Sns(this.app);
+                let sns = new SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功")
             }
@@ -2301,7 +2301,7 @@ export class Shopping {
             await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
 
                 if (cartData.orderData.customer_info.phone){
-                    let sns = new Sns(this.app);
+                    let sns = new SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
                     console.log("付款成功簡訊寄送成功")
                 }
