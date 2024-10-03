@@ -120,7 +120,7 @@ export class AutoReply {
                     return BgWidget.container(
                         html`
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('自動寄送簡訊')}
+                                ${BgWidget.title('line自動發送訊息')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${BgWidget.container(
@@ -132,12 +132,12 @@ export class AutoReply {
                                             vmi = vmk;
                                             vmi.pageSize = Math.ceil(1);
                                             vm.dataList = [
-                                                'auto-sns-shipment-arrival',
-                                                'auto-sns-shipment',
-                                                'auto-sns-payment-successful',
-                                                'auto-sns-order-create',
-                                                'sns-proof-purchase',
-                                                'auto-sns-birthday',
+                                                'auto-line-shipment-arrival',
+                                                'auto-line-shipment',
+                                                'auto-line-payment-successful',
+                                                'auto-line-order-create',
+                                                'line-proof-purchase',
+                                                'auto-line-birthday',
                                             ];
                                             let index = 0;
                                             for (const b of vm.dataList) {
@@ -324,7 +324,7 @@ export class AutoReply {
     public static async getDefCompare(tag: string) {
         const dataList: any = [
             {
-                tag: 'auto-sns-shipment',
+                tag: 'auto-line-shipment',
                 tag_name: '商品出貨',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
@@ -332,7 +332,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-shipment-arrival',
+                tag: 'auto-line-shipment-arrival',
                 tag_name: '商品到貨',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
@@ -340,7 +340,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-payment-successful',
+                tag: 'auto-line-payment-successful',
                 tag_name: '訂單付款成功',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
@@ -348,7 +348,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-order-create',
+                tag: 'auto-line-order-create',
                 tag_name: '訂單成立',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
@@ -356,7 +356,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'sns-proof-purchase',
+                tag: 'line-proof-purchase',
                 tag_name: '訂單待核款',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已進入待核款',
@@ -364,7 +364,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-order-cancel-success',
+                tag: 'auto-line-order-cancel-success',
                 tag_name: '取消訂單成功',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
@@ -372,15 +372,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-order-cancel-false',
-                tag_name: '取消訂單失敗',
-                name: '@{{app_name}}',
-                title: '[@{{app_name}}] 取消訂單申請 #@{{訂單號碼}} 已失敗',
-                content: '[@{{app_name}}] 取消訂單申請 #@{{訂單號碼}} 已失敗',
-                toggle: true,
-            },
-            {
-                tag: 'auto-sns-birthday',
+                tag: 'auto-line-birthday',
                 tag_name: '生日祝福',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] [@{{user_name}}] 今天是您一年一度的大日子！祝您生日快樂！',
@@ -388,7 +380,7 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-sns-welcome',
+                tag: 'auto-line-welcome',
                 tag_name: '歡迎信件',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 歡迎您加入@{{app_name}}！ 最豐富的選品商店',
