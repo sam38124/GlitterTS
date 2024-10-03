@@ -316,6 +316,7 @@ class User {
                     {
                         name: userData.name || '未命名',
                         lineID: userData.sub,
+                        email: line_profile.email,
                     },
                     1,
                 ]);

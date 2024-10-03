@@ -411,7 +411,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'send_line',
                 group: 'line訊息',
-                title: '簡訊定型文',
+                title: '訊息定型文',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-lines-light.svg',
                 moduleName: 'line群發設定',

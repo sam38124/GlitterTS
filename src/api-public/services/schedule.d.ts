@@ -11,5 +11,6 @@ export declare class Schedule {
     resetVoucherHistory(sec: number): Promise<void>;
     autoSendMail(sec: number): Promise<void>;
     autoSetSNS(sec: number): Promise<void>;
+    initialSampleApp(sec: number): Promise<void>;
     main(): void;
 }

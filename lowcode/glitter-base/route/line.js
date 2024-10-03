@@ -3,7 +3,7 @@ export class ApiLineMessage {
     static history(json) {
         return BaseApi.create({
             url: getBaseUrl() +
-                `/api-public/v1/sns?${(() => {
+                `/api-public/v1/line_message?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
@@ -22,7 +22,7 @@ export class ApiLineMessage {
     }
     static send(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/lineMessage`,
+            url: getBaseUrl() + `/api-public/v1/line_message`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

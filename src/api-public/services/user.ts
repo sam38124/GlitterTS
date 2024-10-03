@@ -412,6 +412,7 @@ export class User {
                         {
                             name: (userData as any).name || '未命名',
                             lineID: (userData as any).sub,
+                            email: line_profile.email,
                         },
                         1,
                     ]

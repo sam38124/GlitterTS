@@ -20,7 +20,6 @@ import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting
 import { BgListComponent } from './bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { ApiWallet } from "../glitter-base/route/wallet.js";
-import { ApiSns } from "../glitter-base/route/sns.js";
 import { ApiLineMessage } from "../glitter-base/route/line.js";
 const html = String.raw;
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
@@ -219,7 +218,7 @@ export class BgLine {
             };
         });
     }
-    static emailSetting(gvc) {
+    static lineSetting(gvc) {
         const glitter = gvc.glitter;
         const vm = {
             type: 'list',
@@ -237,7 +236,7 @@ export class BgLine {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                                 <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('簡訊定型文')}
+                                    ${BgWidget.title('訊息定型文')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.data = undefined;
@@ -251,7 +250,7 @@ export class BgLine {
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-sns-config',
+                                    type: 'notify-line-config',
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -395,7 +394,7 @@ export class BgLine {
             };
         });
     }
-    static snsHistory(gvc) {
+    static lineHistory(gvc) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -441,7 +440,7 @@ export class BgLine {
                                                 vm.query = e.value;
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
-                                            }), vm.query || '', '搜尋所有信件內容'),
+                                            }), vm.query || '', '搜尋所有訊息內容'),
                                             BgWidget.funnelFilter({
                                                 gvc,
                                                 callback: () => {
@@ -481,7 +480,7 @@ export class BgLine {
                                         getData: (vmi) => {
                                             var _a, _b;
                                             const limit = 20;
-                                            ApiSns.history({
+                                            ApiLineMessage.history({
                                                 page: vmi.page - 1,
                                                 limit: limit,
                                                 search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
@@ -495,6 +494,7 @@ export class BgLine {
                                                     vm.dataList = data.response.data;
                                                     function getDatalist() {
                                                         return data.response.data.map((dd) => {
+                                                            console.log(dd);
                                                             return [
                                                                 {
                                                                     key: '寄件類型',
@@ -504,7 +504,7 @@ export class BgLine {
                                                                 {
                                                                     key: '標題',
                                                                     value: html `<span
-                                                                                                    class="fs-7">${Tool.truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
+                                                                                                    class="fs-7">${Tool.truncateString(`${dd.content.title}`, 25)}</span>`,
                                                                 },
                                                                 {
                                                                     key: '收件群組',
@@ -601,7 +601,7 @@ export class BgLine {
         const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             content: '',
             title: '',
-            type: 'notify-sns-config',
+            type: 'notify-line-config',
             name: '',
         };
         let pointCount = 1;
@@ -610,7 +610,7 @@ export class BgLine {
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-                    ${BgWidget.title(obj.readonly ? '簡訊詳細內容' : '編輯簡訊定型文')}
+                    ${BgWidget.title(obj.readonly ? '訊息詳細內容' : '編輯訊息定型文')}
                     <div class="flex-fill"></div>
                     ${obj.readonly
             ? [
@@ -641,14 +641,18 @@ export class BgLine {
             return {
                 bind: bi,
                 view: () => {
-                    var _a;
+                    var _a, _b;
                     let htmlList = [];
                     if (obj.readonly) {
                         const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html `
                                             <div class="c_filter_tag">${str}</div>`);
-                        const phoneHTML = vm.data.phone.map((str) => html `
-                                            <div class="c_filter_tag">${str}</div>`);
+                        const emailHTML = vm.data.userList.map((data) => html `
+                                            <div class="c_filter_tag">${data.email}</div>`);
                         htmlList = htmlList.concat([
+                            BgWidget.mainCard(html `
+                                                <div class="tx_normal fw-normal">收訊者信箱</div>
+                                                <div class="c_filter_container">${emailHTML.join('')}</div>
+                                            `),
                             BgWidget.mainCard(html `
                                                         <div class="tx_normal fw-normal">篩選條件</div>
                                                         <div class="c_filter_container">
@@ -661,10 +665,6 @@ export class BgLine {
                                                                     >`)}
                                                         </div>
                                                     `),
-                            BgWidget.mainCard(html `
-                                                <div class="tx_normal fw-normal">電話號碼</div>
-                                                <div class="c_filter_container">${phoneHTML.join('')}</div>
-                                            `),
                             BgWidget.mainCard(html `
                                                 <div class="tx_700 mb-3">發送時間</div>
                                                 ${EditorElem.radio({
@@ -717,17 +717,16 @@ export class BgLine {
                         BgWidget.mainCard(html `
                                                     ${BgWidget.editeInput({
                             gvc: gvc,
-                            title: '簡訊主題',
-                            default: postData.title,
+                            title: '訊息主題',
+                            default: (_b = postData.title) !== null && _b !== void 0 ? _b : "",
                             readonly: true,
-                            placeHolder: '請輸入簡訊主題',
+                            placeHolder: '請輸入訊息主題',
                             callback: (text) => {
                                 postData.title = text;
                             },
                         })}
                                                     <div class="d-flex align-items-center my-3">
-                                                        <div class="tx_normal fw-normal me-2">簡訊內文</div>
-                                                        <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount * this.ticket}點</div>
+                                                        <div class="tx_normal fw-normal me-2">訊息內文</div>
                                                     </div>
                                                     ${EditorElem.editeText({
                             gvc: gvc,
@@ -737,23 +736,6 @@ export class BgLine {
                             placeHolder: "",
                             callback: (text) => {
                                 postData.content = text;
-                                let totalSize = 0;
-                                for (let i = 0; i < text.length; i++) {
-                                    const char = text[i];
-                                    if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
-                                        totalSize += 2;
-                                    }
-                                    else {
-                                        totalSize += 1;
-                                    }
-                                }
-                                if (totalSize < this.maxSize) {
-                                    pointCount = 1;
-                                }
-                                else {
-                                    pointCount = Math.ceil(totalSize /= this.longSMS);
-                                }
-                                gvc.notifyDataChange(bi);
                             }
                         })}`),
                     ]);
@@ -792,7 +774,7 @@ export class BgLine {
                     ${BgWidget.danger(gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '取消預約中', visible: true });
-            ApiSns.delete({
+            ApiLineMessage.delete({
                 id: vm.data.name
             }).then(r => {
                 dialog.dataLoading({ visible: false });
@@ -813,7 +795,7 @@ export class BgLine {
             : BgWidget.save(gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 if (obj.type === 'replace') {
-                    dialog.dataLoading({ text: '變更簡訊中', visible: true });
+                    dialog.dataLoading({ text: '變更訊息中', visible: true });
                     ApiPost.put({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -830,7 +812,7 @@ export class BgLine {
                     });
                 }
                 else {
-                    dialog.dataLoading({ text: '新增簡訊', visible: true });
+                    dialog.dataLoading({ text: '新增訊息', visible: true });
                     ApiPost.post({
                         postData: postData,
                         token: window.parent.saasConfig.config.token,
@@ -1015,7 +997,7 @@ export class BgLine {
                                 if (user.userData.lineID) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.userData.account,
+                                        email: user.account,
                                         lineID: user.userData.lineID,
                                     });
                                 }
@@ -1037,7 +1019,7 @@ export class BgLine {
                                         if (user.userData.lineID) {
                                             postData.userList.push({
                                                 id: user.userID,
-                                                email: user.userData.account,
+                                                email: user.account,
                                                 lineID: user.userData.lineID,
                                             });
                                         }
@@ -1074,7 +1056,7 @@ export class BgLine {
                                         if (user && user.userData.lineID) {
                                             postData.userList.push({
                                                 id: user.userID,
-                                                email: user.userData.account,
+                                                email: user.account,
                                                 lineID: user.userData.lineID,
                                             });
                                         }
@@ -1103,7 +1085,7 @@ export class BgLine {
                                 if (user.userData.lineID) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.userData.account,
+                                        email: user.account,
                                         lineID: user.userData.lineID,
                                     });
                                 }
@@ -1123,7 +1105,7 @@ export class BgLine {
                                 if (user.userData.lineID) {
                                     postData.userList.push({
                                         id: user.userID,
-                                        email: user.userData.account,
+                                        email: user.account,
                                         lineID: user.userData.lineID,
                                     });
                                 }
@@ -1277,7 +1259,7 @@ export class BgLine {
                     return [
                         BgWidget.mainCard([
                             html `
-                                                        <div class="tx_700">選擇收件對象</div>`,
+                                                        <div class="tx_700">選擇收訊對象</div>`,
                             html `
                                                         <div class="tx_normal fw-normal mt-3">根據</div>`,
                             html `
@@ -1380,14 +1362,14 @@ export class BgLine {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data
                                                                         .filter((item) => {
-                                                                        return item.userData.email && item.userData.email.length > 0;
+                                                                        return item.account && item.account.length > 0;
                                                                     })
                                                                         .map((item) => {
                                                                         var _a;
                                                                         return {
                                                                             key: item.userID,
                                                                             value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
-                                                                            note: item.userData.email,
+                                                                            note: item.account,
                                                                         };
                                                                     });
                                                                     resolve(vm.dataList);
@@ -1451,9 +1433,9 @@ export class BgLine {
                         ].join('')),
                         BgWidget.mainCard([
                             html `
-                                                        <div class="tx_700">信件內容</div>`,
+                                                        <div class="tx_700">訊息內容</div>`,
                             html `
-                                                        <div class="tx_normal fw-normal mt-3">信件樣式</div>`,
+                                                        <div class="tx_normal fw-normal mt-3">定型文樣式</div>`,
                             (() => {
                                 const selectVM = {
                                     id: glitter.getUUID(),
@@ -1483,7 +1465,7 @@ export class BgLine {
                                             ApiPost.getManagerPost({
                                                 page: 0,
                                                 limit: 9999,
-                                                type: 'notify-sns-config',
+                                                type: 'notify-line-config',
                                             }).then((res) => {
                                                 if (res.result) {
                                                     selectVM.dataList = res.response.data.map((data) => {
@@ -1509,22 +1491,13 @@ export class BgLine {
                                     },
                                 });
                             })(),
-                            BgWidget.editeInput({
-                                gvc: gvc,
-                                title: '簡訊主旨',
-                                default: postData.title,
-                                placeHolder: '請輸入簡訊主旨',
-                                callback: (text) => {
-                                    postData.title = text;
-                                },
-                            }),
                             gvc.bindView({
                                 bind: vm.emailId,
                                 view: () => {
                                     return [
                                         html `
                                                                     <div class="d-flex align-items-center mb-3">
-                                                                        <div class="tx_normal fw-normal me-2 d-flex">簡訊內容
+                                                                        <div class="tx_normal fw-normal me-2 d-flex">訊息內容
                                                                         </div>
                                                                         ${BgWidget.selEventButton('範例', gvc.event(() => {
                                             postData.content = defaultEmailText();
@@ -1538,7 +1511,6 @@ export class BgLine {
                                             placeHolder: "",
                                             callback: (text) => {
                                                 postData.content = text;
-                                                gvc.notifyDataChange(vm.containerId);
                                             }
                                         })}
                                                                 `,
@@ -1628,9 +1600,8 @@ export class BgLine {
                 dialog.errorMessage({ text: '請選擇發送對象' });
                 return;
             }
-            console.log(" postData -- ", postData);
             dialog.dataLoading({
-                text: postData.sendTime ? '信件排定中...' : '信件發送中...',
+                text: postData.sendTime ? '訊息排定中...' : '訊息發送中...',
                 visible: true,
             });
             ApiLineMessage.send(Object.assign({}, postData)).then((data) => {

@@ -493,7 +493,6 @@ export class BgSNS {
                                                 if (data.result) {
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vm.dataList = data.response.data;
-                                                    console.log("data.response.data -- ", data.response.data);
                                                     function getDatalist() {
                                                         return data.response.data.map((dd) => {
                                                             return [
@@ -505,7 +504,7 @@ export class BgSNS {
                                                                 {
                                                                     key: '標題',
                                                                     value: html `<span
-                                                                                                    class="fs-7">${Tool.truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
+                                                                                                    class="fs-7">${Tool.truncateString(`${dd.content.title}`, 25)}</span>`,
                                                                 },
                                                                 {
                                                                     key: '收件群組',

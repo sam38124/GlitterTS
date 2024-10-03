@@ -19,6 +19,7 @@ import manager_apiRouter = require('./manager');
 import app_release = require('./app-release');
 import smtp = require('./smtp');
 import sms = require('./sms');
+import line_message = require('./line-message');
 import fcm = require('./fcm');
 import wallet = require('./wallet');
 import article = require('./article');
@@ -42,6 +43,7 @@ router.use(config.getRoute(config.public_route.manager, 'public'), manager_apiRo
 router.use(config.getRoute(config.public_route.app, 'public'), app_release);
 router.use(config.getRoute(config.public_route.smtp, 'public'), smtp);
 router.use(config.getRoute(config.public_route.sms, 'public'), sms);
+router.use(config.getRoute(config.public_route.line_message, 'public'), line_message);
 router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
 router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 router.use(config.getRoute(config.public_route.article, 'public'), article);

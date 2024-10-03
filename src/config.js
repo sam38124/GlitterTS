@@ -124,6 +124,7 @@ exports.config = {
         graph_api: '/graph_api',
         ai_chat: '/ai',
         sms: '/sms',
+        line_message: '/line_message',
         ai_points: '/ai/points',
         sms_points: '/sms/points',
     },
