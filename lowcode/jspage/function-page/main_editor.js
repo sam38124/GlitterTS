@@ -894,6 +894,19 @@ export class Main_editor {
                         ${(() => {
                 const view = [];
                 if ((viewModel.selectItem.deletable !== 'false')) {
+                    setTimeout(() => {
+                        $('.tooltip').remove();
+                        $('[data-bs-toggle="tooltip"]').tooltip();
+                    }, 100);
+                    view.push(`<button class="btn btn-snow" type="button" style="width:30px;" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="返回列表" onclick="${gvc.event(() => {
+                        Storage.lastSelect = '';
+                        gvc.glitter.share.editorViewModel.selectItem = undefined;
+                        gvc.glitter.share.selectEditorItem();
+                    })}">
+                <span class="tx_700"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
+            </button>`);
                     if (container_cf) {
                         view.push(BgWidget.cancel(gvc.event(() => {
                             glitter.htmlGenerate.selectWidget({
@@ -975,7 +988,7 @@ export class Main_editor {
                     return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white iframe_view"
                     sandbox="allow-same-origin allow-scripts"
-                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
+                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
                 </div>`;
                 },
                 divCreate: () => {

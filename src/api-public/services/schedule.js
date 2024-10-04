@@ -13,6 +13,7 @@ const shopping_1 = require("./shopping");
 const mail_js_1 = require("../services/mail.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
+const initial_fake_data_js_1 = require("./initial-fake-data.js");
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
@@ -231,6 +232,10 @@ class Schedule {
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
+    async initialSampleApp(sec) {
+        await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
+        setTimeout(() => this.initialSampleApp(sec), sec * 1000);
+    }
     main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
@@ -239,6 +244,7 @@ class Schedule {
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 3600 * 24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {
             scheduleList.forEach((schedule) => {

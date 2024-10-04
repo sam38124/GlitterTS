@@ -11,7 +11,7 @@ export class EditorElem {
     static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 
     public static uploadImage(obj: { title: string; gvc: GVC; def: string; callback: (data: string) => void }) {
-        const glitter = (window as any).glitter;
+        const glitter = (obj.gvc).glitter;
         const $ = glitter.$;
         return html`${EditorElem.h3(obj.title)}
         ${obj.gvc.bindView(() => {

@@ -14,13 +14,14 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { ApiUser } from "../glitter-base/route/user.js";
 import { FormModule } from "../cms-plugin/module/form-module.js";
+import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 const html = String.raw;
 export class BgWidget {
     static title(title, style = '') {
         return html ` <h3 class="my-auto tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
     }
     static grayNote(text, style = '') {
-        return html `<span style="color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
+        return html `<span style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
     }
     static blueNote(text, event = '', style = '') {
         return html `<span
@@ -2087,7 +2088,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <div class="c_dialog">
                             <div class="c_dialog_body">
                                 <div class="c_dialog_main"
-                                     style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">
+                                     style="${obj.style ? obj.style : `gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;`}">
                                     ${obj.innerHTML && obj.innerHTML(gvc)}
                                 </div>
                             </div>
@@ -2115,6 +2116,75 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             response && gvc.closeDialog();
                         });
                     }), (_c = obj.save.text) !== null && _c !== void 0 ? _c : '確認')
+                    : ''}
+                                    </div>
+                                `
+                : ''}
+                    </div>
+                </div>`;
+        }, Tool.randomString(7));
+    }
+    static appPreview(obj) {
+        if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
+            obj.gvc = window.parent.glitter.pageConfig[0].gvc;
+        }
+        return obj.gvc.glitter.innerDialog((gvc) => {
+            var _a, _b;
+            return html `
+                <div
+                        class="bg-white shadow rounded-3"
+                        style="overflow-y: auto;width:414px;"
+                >
+                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                        <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                            <div class="tx_700">${obj.title}</div>
+                            <div class="flex-fill"></div>
+                            <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                var _a, _b;
+                if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
+                    (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then((response) => {
+                        response && gvc.closeDialog();
+                    });
+                }
+                else {
+                    gvc.closeDialog();
+                }
+            })}"
+                            ></i>
+                        </div>
+                        <div class="c_dialog">
+                            <div class="c_dialog_body">
+                                <div class="c_dialog_main p-0"
+                                     style="${obj.style ? obj.style : `gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;`}">
+                                    <iframe src="${obj.src}" style="width:414px;height:902px;max-width: 100vw;max-height: 100%;"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        ${obj.save || obj.cancel
+                ? html `
+                                    <div class="c_dialog_bar">
+                                        ${obj.cancel
+                    ? BgWidget.cancel(gvc.event(() => {
+                        var _a, _b;
+                        if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
+                            (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then((response) => {
+                                response && gvc.closeDialog();
+                            });
+                        }
+                        else {
+                            gvc.closeDialog();
+                        }
+                    }), (_a = obj.cancel.text) !== null && _a !== void 0 ? _a : '取消')
+                    : ''}
+                                        ${obj.save
+                    ? BgWidget.save(gvc.event(() => {
+                        var _a;
+                        (_a = obj.save) === null || _a === void 0 ? void 0 : _a.event(gvc).then((response) => {
+                            response && gvc.closeDialog();
+                        });
+                    }), (_b = obj.save.text) !== null && _b !== void 0 ? _b : '確認')
                     : ''}
                                     </div>
                                 `
@@ -2316,11 +2386,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                  src="${image}"/>
                                         </div>
                                         <div
-                                                class=" child_"
+                                                class="child_"
                                                 style="position: absolute;    width: 100%;    height: 100%;    background: rgba(0, 0, 0, 0.726);top: 0px;  "
                                                 onclick="${gvc.event(() => {
-                            image = '';
-                            callback('');
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.checkYesOrNot({
+                                text: '是否確認移除圖片?',
+                                callback: (response) => {
+                                    if (response) {
+                                        image = '';
+                                        callback('');
+                                    }
+                                }
+                            });
                             gvc.notifyDataChange(id);
                         })}"
                                         >

@@ -43,7 +43,7 @@ export class BgWidget {
     }
 
     static grayNote(text: string, style: string = ''): string {
-        return html`<span style="color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
+        return html`<span style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
     }
 
     static blueNote(text: string, event: string = '', style: string = ''): string {
@@ -2449,6 +2449,7 @@ ${obj.default ?? ''}</textarea
             text?: string;
             event?: (gvc: GVC) => Promise<boolean>;
         };
+        style?:string
     }) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
             obj.gvc = (window.parent as any).glitter.pageConfig[0].gvc
@@ -2479,7 +2480,7 @@ ${obj.default ?? ''}</textarea
                         <div class="c_dialog">
                             <div class="c_dialog_body">
                                 <div class="c_dialog_main"
-                                     style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">
+                                     style="${obj.style ? obj.style:`gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;`}">
                                     ${obj.innerHTML && obj.innerHTML(gvc)}
                                 </div>
                             </div>
@@ -2514,6 +2515,91 @@ ${obj.default ?? ''}</textarea
                                     </div>
                                 `
                                 : ''}
+                    </div>
+                </div>`;
+        }, Tool.randomString(7));
+    }
+
+    static appPreview(obj: {
+        gvc: GVC;
+        title: string;
+        width?: number;
+        height?: number;
+        src:string,
+        save?: {
+            text?: string;
+            event: (gvc: GVC) => Promise<boolean>;
+        };
+        cancel?: {
+            text?: string;
+            event?: (gvc: GVC) => Promise<boolean>;
+        };
+        style?:string
+    }) {
+        if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
+            obj.gvc = (window.parent as any).glitter.pageConfig[0].gvc
+        }
+        return obj.gvc.glitter.innerDialog((gvc: GVC) => {
+            return html`
+                <div
+                        class="bg-white shadow rounded-3"
+                        style="overflow-y: auto;width:414px;"
+                >
+                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                        <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                            <div class="tx_700">${obj.title}</div>
+                            <div class="flex-fill"></div>
+                            <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                if (obj.cancel?.event) {
+                    obj.cancel?.event(gvc).then((response) => {
+                        response && gvc.closeDialog();
+                    });
+                } else {
+                    gvc.closeDialog();
+                }
+            })}"
+                            ></i>
+                        </div>
+                        <div class="c_dialog">
+                            <div class="c_dialog_body">
+                                <div class="c_dialog_main p-0"
+                                     style="${obj.style ? obj.style:`gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;`}">
+                                    <iframe src="${obj.src}" style="width:414px;height:902px;max-width: 100vw;max-height: 100%;"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        ${obj.save || obj.cancel
+                ? html`
+                                    <div class="c_dialog_bar">
+                                        ${obj.cancel
+                    ? BgWidget.cancel(
+                        gvc.event(() => {
+                            if (obj.cancel?.event) {
+                                obj.cancel?.event(gvc).then((response) => {
+                                    response && gvc.closeDialog();
+                                });
+                            } else {
+                                gvc.closeDialog();
+                            }
+                        }),
+                        obj.cancel.text ?? '取消'
+                    )
+                    : ''}
+                                        ${obj.save
+                    ? BgWidget.save(
+                        gvc.event(() => {
+                            obj.save?.event(gvc).then((response) => {
+                                response && gvc.closeDialog();
+                            });
+                        }),
+                        obj.save.text ?? '確認'
+                    )
+                    : ''}
+                                    </div>
+                                `
+                : ''}
                     </div>
                 </div>`;
         }, Tool.randomString(7));
@@ -2727,11 +2813,20 @@ ${obj.default ?? ''}</textarea
                                                  src="${image}"/>
                                         </div>
                                         <div
-                                                class=" child_"
+                                                class="child_"
                                                 style="position: absolute;    width: 100%;    height: 100%;    background: rgba(0, 0, 0, 0.726);top: 0px;  "
                                                 onclick="${gvc.event(() => {
-                                                    image = '';
-                                                    callback('');
+                                                    const dialog=new ShareDialog(gvc.glitter)
+                                                    dialog.checkYesOrNot({
+                                                        text:'是否確認移除圖片?',
+                                                        callback:(response)=>{
+                                                            if(response){
+                                                                image = '';
+                                                                callback('');
+                                                            }
+                                                        }
+                                                    })
+                                                   
                                                     gvc.notifyDataChange(id);
                                                 })}"
                                         >

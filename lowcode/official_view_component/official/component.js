@@ -1192,7 +1192,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                             pageData.config.tag = pageData.tag;
                                                             appendHtml(pageData, widget, true, pageData.id, pageData.config);
                                                             function loop(array, id, parent_config) {
-                                                                var _a;
+                                                                var _a, _b, _c;
                                                                 return __awaiter(this, void 0, void 0, function* () {
                                                                     for (const dd of array) {
                                                                         if (dd.type === 'container') {
@@ -1203,13 +1203,26 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                 tag: dd.data.tag,
                                                                                 appName: dd.data.refer_app
                                                                             } : dd.data.tag);
+                                                                            pageData.template_config = (_a = pageData.template_config) !== null && _a !== void 0 ? _a : {};
+                                                                            pageData.template_config.tag = (_b = pageData.template_config.tag) !== null && _b !== void 0 ? _b : [];
                                                                             if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd) => {
                                                                                 return dd === "商品卡片";
                                                                             }))) {
-                                                                                appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+                                                                                console.log(`pageData.template_config.tag`, pageData.template_config.tag);
+                                                                                if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('標頭元件')) {
+                                                                                }
+                                                                                else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Header')) {
+                                                                                }
+                                                                                else if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('頁腳元件')) {
+                                                                                }
+                                                                                else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Footer')) {
+                                                                                }
+                                                                                else {
+                                                                                    appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+                                                                                }
                                                                                 if (!dd.data.refer_app) {
                                                                                     pageData.config.tag = pageData.tag;
-                                                                                    yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : [], pageData.id, pageData.config);
+                                                                                    yield loop((_c = pageData.config) !== null && _c !== void 0 ? _c : [], pageData.id, pageData.config);
                                                                                 }
                                                                             }
                                                                         }

@@ -160,7 +160,6 @@ export const widgetComponent = {
                                                 }),
                                             },
                                         ])
-
                                     }
                                     classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);

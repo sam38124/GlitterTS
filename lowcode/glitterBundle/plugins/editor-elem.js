@@ -14,7 +14,7 @@ import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 const html = String.raw;
 export class EditorElem {
     static uploadImage(obj) {
-        const glitter = window.glitter;
+        const glitter = (obj.gvc).glitter;
         const $ = glitter.$;
         return html `${EditorElem.h3(obj.title)}
         ${obj.gvc.bindView(() => {
