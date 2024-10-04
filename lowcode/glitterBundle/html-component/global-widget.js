@@ -71,7 +71,7 @@ export class GlobalWidget {
                         </div>`;
                 },
                 divCreate: {
-                    class: `d-flex align-items-center border-bottom mx-n2 mt-n2 p-2 guide-user-editor-4`, style: ``
+                    class: `${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none` : `d-flex`} align-items-center border-bottom mx-n2 mt-n2 p-2 guide-user-editor-4`, style: ``
                 },
                 onCreate: () => {
                     $('.tooltip').remove();
@@ -161,7 +161,7 @@ export class GlobalWidget {
         if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
             GlobalWidget.glitter_view_type = obj.gvc.glitter.getCookieByName('ViewType');
         }
-        if (GlobalWidget.glitter_view_type === 'def') {
+        if ((GlobalWidget.glitter_view_type === 'def') || (obj.gvc.glitter.getUrlParameter('device') === 'mobile')) {
             return obj.view(obj.widget, 'def');
         }
         else {

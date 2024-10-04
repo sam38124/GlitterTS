@@ -980,7 +980,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'Sns_auto_send',
-            group: '簡訊',
+            group: '簡訊群發',
             title: '自動寄件',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -989,7 +989,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'Sns_manual_send',
-            group: '簡訊',
+            group: '簡訊群發',
             title: '手動寄件',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -998,7 +998,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'send_sns',
-            group: '簡訊',
+            group: '簡訊群發',
             title: '簡訊定型文',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -1007,7 +1007,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'send_sns_history',
-            group: '簡訊',
+            group: '簡訊群發',
             title: '寄件紀錄',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -1088,9 +1088,9 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'ios_upload',
+            page: 'app-upload',
             group: 'APP',
-            title: 'APP上架',
+            title: 'APP設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
             moduleName: 'IOS應用上架',

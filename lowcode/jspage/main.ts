@@ -26,6 +26,7 @@ import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {SearchIdea} from "../editor/search-idea.js";
 import {AiMessage} from "../cms-plugin/ai-message.js";
+import {GlobalWidget} from "../glitterBundle/html-component/global-widget.js";
 
 const html = String.raw;
 //
@@ -77,6 +78,24 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
     `);
     gvc.addStyle(css`
+        .parent_ {
+            position: relative; /* 确保子元素相对于父元素定位 */
+        }
+
+        .child_ {
+            display: none; /* 默认隐藏子元素 */
+            position: absolute; /* 可选：使子元素定位 */
+            top: 100%; /* 可选：根据需要调整子元素的位置 */
+            left: 0;
+            background-color: lightgrey; /* 可选：子元素背景颜色 */
+            padding: 10px; /* 可选：子元素内边距 */
+            border: 1px solid #ccc; /* 可选：子元素边框 */
+        }
+
+        .parent_:hover .child_ {
+            display: block; /* 当父元素被 hover 时显示子元素 */
+        }
+
         .scroll-right-in {
 
             right: -120%; /* 將元素移到畫面外 */
@@ -466,7 +485,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             viewModel.selectContainer = undefined;
             lod();
         };
-
     });
     return {
         onCreateView: () => {
@@ -516,6 +534,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                 hint: '設計元件'
                                                             }
                                                         ]
+                                                                .filter((dd)=>{
+                                                                    if(gvc.glitter.getUrlParameter('device')==='mobile'){
+                                                                        return dd.index!=='widget'
+                                                                    }else{
+                                                                        return true
+                                                                    }
+                                                                })
                                                                 .map((da: any) => {
                                                                     return html`<i
                                                                             class=" ${da.src} fs-5 fw-bold   p-2 rounded"
@@ -685,6 +710,11 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
 function initialEditor(gvc: GVC, viewModel: any) {
     const glitter = gvc.glitter;
+    //如果是APP版本
+    if(gvc.glitter.getUrlParameter('device')==='mobile'){
+        gvc.glitter.setCookie('ViewType','mobile')
+        GlobalWidget.glitter_view_type = 'mobile';
+    }
     //找靈感組件
     glitter.share.SearchIdea = SearchIdea
     glitter.share.editorViewModel = viewModel;

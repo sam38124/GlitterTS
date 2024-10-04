@@ -299,6 +299,14 @@ export class ToolSetting {
                                                                                                                     classDataType: 'static',
                                                                                                                     preloadEvenet: {},
                                                                                                                     share: {},
+                                                                                                                    "arrayData": {
+                                                                                                                        "clickEvent": [{
+                                                                                                                            "clickEvent": {"src": "./official_event/event.js", "route": "code"},
+                                                                                                                            "codeVersion": "v2",
+                                                                                                                            "code": "    //判斷不是APP在顯示\n    if ((gvc.glitter.deviceType === glitter.deviceTypeEnum.Web) && (glitter.getUrlParameter('device') !== 'mobile')) {\n        return [subData]\n    } else {\n        return []\n    }"
+                                                                                                                        }]
+                                                                                                                    },
+                                                                                                                    "gCount": "multiple"
                                                                                                                 };
                                                                                                                 ApiPageConfig.setPage({
                                                                                                                     id: widget.id,

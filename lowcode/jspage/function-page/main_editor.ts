@@ -1,24 +1,15 @@
 import {GVC} from '../../glitterBundle/GVController.js';
 import {Swal} from '../../modules/sweetAlert.js';
-import Add_item_dia from '../../glitterBundle/plugins/add_item_dia.js';
 import {EditorElem} from '../../glitterBundle/plugins/editor-elem.js';
 import {PageEditor} from '../../editor/page-editor.js';
-import {fileManager} from '../../setting/appSetting.js';
 import {ShareDialog} from '../../glitterBundle/dialog/ShareDialog.js';
-import {allKeys} from 'underscore';
-import {Setting_editor} from './setting_editor.js';
-import {HtmlGenerate} from '../../glitterBundle/module/html-generate.js';
-import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
-import {ApiPageConfig} from '../../api/pageConfig.js';
 import {Storage} from '../../glitterBundle/helper/storage.js';
 import {AddComponent} from '../../editor/add-component.js';
-import {NormalPageEditor} from '../../editor/normal-page-editor.js';
-import {ColorThemeSelector} from "../../form-view/editor/color-theme-selector.js";
 import {EditorConfig} from "../../editor-config.js";
 import {ToolSetting} from "./tool-setting.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
-import {SearchIdea} from "../../editor/search-idea.js";
+import {AppearType} from "../../glitterBundle/module/Enum.js";
 
 
 enum ViewType {
@@ -984,8 +975,20 @@ export class Main_editor {
                     <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
                          style="height: 60px;">
                         ${(() => {
+                           
                             const view: any = [];
                             if ((viewModel.selectItem.deletable !== 'false')) {
+                                setTimeout(()=>{  $('.tooltip').remove();
+                                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();},100)
+                                view.push(`<button class="btn btn-snow" type="button" style="width:30px;" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="返回列表" onclick="${gvc.event(()=>{
+                                    Storage.lastSelect = '';
+                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                    gvc.glitter.share.selectEditorItem();
+                                })}">
+                <span class="tx_700"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
+            </button>`)
                                 if (container_cf) {
                                     view.push(BgWidget.cancel(gvc.event(() => {
                                         glitter.htmlGenerate.selectWidget({
@@ -1073,7 +1076,7 @@ export class Main_editor {
                     return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white iframe_view"
                     sandbox="allow-same-origin allow-scripts"
-                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
+                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
                 </div>`
                 },
                 divCreate: () => {

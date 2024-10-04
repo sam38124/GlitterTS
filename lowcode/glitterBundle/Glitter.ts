@@ -40,7 +40,7 @@ export class Glitter {
     public debugMode = localStorage.getItem('glitter-db-mode') || 'false'
     public publicBeans = {};
     public share: any = {};
-    public deviceType = this.deviceTypeEnum.Web
+        public deviceType = this.deviceTypeEnum.Web
     public modelJsList: { src: string, create: (glitter: Glitter) => void }[] = []
     public pageIndex = 0
     public getBoundingClientRect = {}

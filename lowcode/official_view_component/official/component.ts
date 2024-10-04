@@ -153,12 +153,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                             oWidget && (widget = oWidget);
                                             viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
-                                            const view= getView();
-                                            (window.parent as any).glitter.share.loading_dialog.dataLoading({visible:true})
-                                            setTimeout(()=>{
-                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML =view;
-                                                (window.parent as any).glitter.share.loading_dialog.dataLoading({visible:false})
-                                            },10)
+                                            const view = getView();
+                                            (window.parent as any).glitter.share.loading_dialog.dataLoading({visible: true})
+                                            setTimeout(() => {
+                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = view;
+                                                (window.parent as any).glitter.share.loading_dialog.dataLoading({visible: false})
+                                            }, 10)
 
                                         }
 
@@ -970,7 +970,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                              onclick="${gvc.event(() => {
                                                                                                                                                  const cGvc = gvc
                                                                                                                                                  EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
-
                                                                                                                                                      return html`
                                                                                                                                                          <div class="p-3">
                                                                                                                                                              ${[
@@ -1229,10 +1228,24 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                             tag: dd.data.tag,
                                                                             appName: dd.data.refer_app
                                                                         } : dd.data.tag);
+                                                                        pageData.template_config=pageData.template_config??{}
+                                                                        pageData.template_config.tag=pageData.template_config.tag??[]
                                                                         if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd: any) => {
                                                                             return dd === "商品卡片"
                                                                         }))) {
-                                                                            appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+console.log(`pageData.template_config.tag`,pageData.template_config.tag)
+                                                                            if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('標頭元件')) {
+
+                                                                            } else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Header'))  {
+
+                                                                            }else if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('頁腳元件')) {
+
+                                                                            } else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Footer'))  {
+
+                                                                            }else{
+                                                                                appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+                                                                            }
+
                                                                             if (!dd.data.refer_app) {
                                                                                 pageData.config.tag = pageData.tag;
                                                                                 await loop(pageData.config ?? [], pageData.id, pageData.config);

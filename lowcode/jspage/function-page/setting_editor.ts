@@ -356,7 +356,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'Sns_auto_send',
-                group: '簡訊',
+                group: '簡訊群發',
                 title: '自動寄件',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -365,7 +365,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'Sns_manual_send',
-                group: '簡訊',
+                group: '簡訊群發',
                 title: '手動寄件',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -374,7 +374,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'send_sns',
-                group: '簡訊',
+                group: '簡訊群發',
                 title: '簡訊定型文',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -383,7 +383,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'send_sns_history',
-                group: '簡訊',
+                group: '簡訊群發',
                 title: '寄件紀錄',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-sms-regular.svg',
@@ -453,6 +453,15 @@ export class Setting_editor {
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                 moduleName: '網誌管理',
             },
+            // {
+            //     icon: '',
+            //     page: 'ios_upload',
+            //     group: 'APP',
+            //     title: 'APP上架',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+            //     moduleName: 'IOS應用上架',
+            // },
             {
                 icon: '',
                 page: 'menus-setting',
@@ -464,9 +473,9 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'ios_upload',
+                page: 'app-upload',
                 group: 'APP',
-                title: 'APP上架',
+                title: 'APP設定',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                 moduleName: 'IOS應用上架',

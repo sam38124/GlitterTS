@@ -27,6 +27,7 @@ import { Setting_editor } from './function-page/setting_editor.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
 import { AiMessage } from "../cms-plugin/ai-message.js";
 import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
+import { BgWidget } from "../backend-manager/bg-widget.js";
 const html = String.raw;
 export var ViewType;
 (function (ViewType) {
@@ -206,14 +207,19 @@ color: transparent;"
                     view: () => {
                         return [
                             html `
-                                                    <div class="indexGuideBTN d-none d-sm-block" style="padding: 10px;cursor: pointer;"  data-bs-toggle="tooltip" data-bs-html="true" title = "新手教學" onclick="${gvc.event(() => {
+                                                    <div class="indexGuideBTN d-none d-sm-block"
+                                                         style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
+                                                         data-bs-html="true" title="新手教學"
+                                                         onclick="${gvc.event(() => {
                                 let bgGuide = new BgGuide(gvc, 0, "user-editor");
                                 bgGuide.drawGuide();
                             })}">
                                                         <div style="display: flex;width: 32px;height: 32px;padding: 7px;justify-content: center;align-items: center;border-radius: 5.833px;border: 1px solid #DDD;background: #FFF;">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18"
+                                                                 height="18" viewBox="0 0 18 18" fill="none">
                                                                 <g clip-path="url(#clip0_12535_211966)">
-                                                                    <path d="M16.3125 9C16.3125 7.0606 15.5421 5.20064 14.1707 3.82928C12.7994 2.45792 10.9394 1.6875 9 1.6875C7.0606 1.6875 5.20064 2.45792 3.82928 3.82928C2.45792 5.20064 1.6875 7.0606 1.6875 9C1.6875 10.9394 2.45792 12.7994 3.82928 14.1707C5.20064 15.5421 7.0606 16.3125 9 16.3125C10.9394 16.3125 12.7994 15.5421 14.1707 14.1707C15.5421 12.7994 16.3125 10.9394 16.3125 9ZM0 9C0 6.61305 0.948212 4.32387 2.63604 2.63604C4.32387 0.948212 6.61305 0 9 0C11.3869 0 13.6761 0.948212 15.364 2.63604C17.0518 4.32387 18 6.61305 18 9C18 11.3869 17.0518 13.6761 15.364 15.364C13.6761 17.0518 11.3869 18 9 18C6.61305 18 4.32387 17.0518 2.63604 15.364C0.948212 13.6761 0 11.3869 0 9ZM5.96953 5.81133C6.24727 5.02734 6.99258 4.5 7.82578 4.5H9.87539C11.1023 4.5 12.0938 5.49492 12.0938 6.71836C12.0938 7.51289 11.6684 8.24766 10.9793 8.64492L9.84375 9.29531C9.83672 9.75234 9.46055 10.125 9 10.125C8.53242 10.125 8.15625 9.74883 8.15625 9.28125V8.80664C8.15625 8.5043 8.31797 8.22656 8.58164 8.07539L10.1391 7.18242C10.3043 7.0875 10.4062 6.91172 10.4062 6.72187C10.4062 6.42656 10.1672 6.19102 9.87539 6.19102H7.82578C7.70625 6.19102 7.60078 6.26484 7.56211 6.37734L7.54805 6.41953C7.39336 6.85898 6.9082 7.0875 6.47227 6.93281C6.03633 6.77812 5.8043 6.29297 5.95898 5.85703L5.97305 5.81484L5.96953 5.81133ZM7.875 12.375C7.875 12.0766 7.99353 11.7905 8.2045 11.5795C8.41548 11.3685 8.70163 11.25 9 11.25C9.29837 11.25 9.58452 11.3685 9.7955 11.5795C10.0065 11.7905 10.125 12.0766 10.125 12.375C10.125 12.6734 10.0065 12.9595 9.7955 13.1705C9.58452 13.3815 9.29837 13.5 9 13.5C8.70163 13.5 8.41548 13.3815 8.2045 13.1705C7.99353 12.9595 7.875 12.6734 7.875 12.375Z" fill="#393939"/>
+                                                                    <path d="M16.3125 9C16.3125 7.0606 15.5421 5.20064 14.1707 3.82928C12.7994 2.45792 10.9394 1.6875 9 1.6875C7.0606 1.6875 5.20064 2.45792 3.82928 3.82928C2.45792 5.20064 1.6875 7.0606 1.6875 9C1.6875 10.9394 2.45792 12.7994 3.82928 14.1707C5.20064 15.5421 7.0606 16.3125 9 16.3125C10.9394 16.3125 12.7994 15.5421 14.1707 14.1707C15.5421 12.7994 16.3125 10.9394 16.3125 9ZM0 9C0 6.61305 0.948212 4.32387 2.63604 2.63604C4.32387 0.948212 6.61305 0 9 0C11.3869 0 13.6761 0.948212 15.364 2.63604C17.0518 4.32387 18 6.61305 18 9C18 11.3869 17.0518 13.6761 15.364 15.364C13.6761 17.0518 11.3869 18 9 18C6.61305 18 4.32387 17.0518 2.63604 15.364C0.948212 13.6761 0 11.3869 0 9ZM5.96953 5.81133C6.24727 5.02734 6.99258 4.5 7.82578 4.5H9.87539C11.1023 4.5 12.0938 5.49492 12.0938 6.71836C12.0938 7.51289 11.6684 8.24766 10.9793 8.64492L9.84375 9.29531C9.83672 9.75234 9.46055 10.125 9 10.125C8.53242 10.125 8.15625 9.74883 8.15625 9.28125V8.80664C8.15625 8.5043 8.31797 8.22656 8.58164 8.07539L10.1391 7.18242C10.3043 7.0875 10.4062 6.91172 10.4062 6.72187C10.4062 6.42656 10.1672 6.19102 9.87539 6.19102H7.82578C7.70625 6.19102 7.60078 6.26484 7.56211 6.37734L7.54805 6.41953C7.39336 6.85898 6.9082 7.0875 6.47227 6.93281C6.03633 6.77812 5.8043 6.29297 5.95898 5.85703L5.97305 5.81484L5.96953 5.81133ZM7.875 12.375C7.875 12.0766 7.99353 11.7905 8.2045 11.5795C8.41548 11.3685 8.70163 11.25 9 11.25C9.29837 11.25 9.58452 11.3685 9.7955 11.5795C10.0065 11.7905 10.125 12.0766 10.125 12.375C10.125 12.6734 10.0065 12.9595 9.7955 13.1705C9.58452 13.3815 9.29837 13.5 9 13.5C8.70163 13.5 8.41548 13.3815 8.2045 13.1705C7.99353 12.9595 7.875 12.6734 7.875 12.375Z"
+                                                                          fill="#393939"/>
                                                                 </g>
                                                                 <defs>
                                                                     <clipPath id="clip0_12535_211966">
@@ -292,13 +298,15 @@ color: transparent;"
                                                 >
                                                     <button
                                                             type="button"
-                                                            class="btn btn-outline-secondary rounded px-2"
+                                                            class="btn btn-outline-secondary rounded px-2 "
                                                             onclick="${gvc.event(() => {
-                        $('#topd').toggle();
+                        if (gvc.glitter.getUrlParameter('device') !== 'mobile') {
+                            $('#topd').toggle();
+                        }
                     })}"
                                                     >
                                                         <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${data.data.name}</span>
-                                                        <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y"
+                                                        <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y ${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none` : ``}"
                                                            style="top: 50%;right: 20px;"></i>
                                                     </button>
                                                     ${gvc.bindView(() => {
@@ -508,36 +516,21 @@ color: transparent;"
                     ].join(`<div class="me-1"></div>`);
                 }
             })()}
-                                <div
-                                        class=" align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
-${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page') ? `d-none` : `d-none d-sm-flex`}`}
-"
-                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-custom-class="custom-tooltip"
-                                        data-bs-title="返回首頁"
-                                        onclick="${gvc.event(() => {
-                const url = new URL(glitter.root_path + glitter.share.editorViewModel.homePage);
-                url.search = location.search;
-                location.href = url.href;
-            })}"
-                                >
-                                    <i class="fa-regular fa-house"></i>
-                                </div>
                                 ${gvc.bindView(() => {
                 return {
                     bind: 'step-container',
                     view: () => {
                         const stepManager = glitter.share.stepManager;
                         return html `
-                                                <div class="fs-5" style="cursor: pointer;color: ${(!stepManager.canGoBack()) ? `#DDDDDD` : `#393939`};"
+                                                <div class="fs-5"
+                                                     style="cursor: pointer;color: ${(!stepManager.canGoBack()) ? `#DDDDDD` : `#393939`};"
                                                      onclick="${gvc.event(() => {
                             (stepManager.previousStep())();
                         })}">
                                                     <i class="fa-solid fa-arrow-rotate-left"></i>
                                                 </div>
-                                                <div class=" fs-5" style="cursor: pointer;color: ${(!stepManager.canGoForward()) ? `#DDDDDD` : `#393939`};"
+                                                <div class=" fs-5"
+                                                     style="cursor: pointer;color: ${(!stepManager.canGoForward()) ? `#DDDDDD` : `#393939`};"
                                                      onclick="${gvc.event(() => {
                             (stepManager.nextStep())();
                         })}">
@@ -593,7 +586,10 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.shar
                                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                                             onclick="${gvc.event(() => {
                                 Storage.view_type = dd.type;
-                                glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
+                                glitter.share.loading_dialog.dataLoading({
+                                    text: '模組加載中...',
+                                    visible: true
+                                });
                                 gvc.notifyDataChange('HtmlEditorContainer');
                             })}"
                                                                     >
@@ -606,7 +602,7 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.shar
                                             </div>`;
                 },
                 divCreate: {
-                    class: ` d-none d-sm-block`,
+                    class: `d-none ${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `` : `d-sm-block`}`,
                 },
             })}
                                 ${document.body.clientWidth < 768
@@ -659,6 +655,14 @@ color:${EditorConfig.editor_layout.main_color};
                         localStorage.setItem('preview_data', JSON.stringify(content));
                         window.parent.glitter.openNewTab(href);
                     }
+                    else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
+                        BgWidget.appPreview({
+                            gvc: gvc,
+                            title: "預覽頁面",
+                            src: `http://127.0.0.1:4000/shopnex/index-mobile?appName=shop-template-clothing-v3&device=mobile`,
+                            style: `max-height: calc(100vh - 100px);`
+                        });
+                    }
                     else {
                         const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                         url.searchParams.delete('type');
@@ -699,7 +703,8 @@ color:white;
                         gvc: gvc,
                         userID: 'manager',
                         toUser: 'robot'
-                    })}</div>
+                    })}
+                                                </div>
                                                 <div
                                                         class="ms-auto me-2 bt_orange_lin"
                                                         style=""
@@ -707,7 +712,8 @@ color:white;
                         AiMessage.toggle(true);
                     })}"
                                                 >
-                                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-2" style="width:24px;height: 24px;">AI助手
+                                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                         class="me-2" style="width:24px;height: 24px;">AI助手
                                                 </div>
                                                 <div
                                                         class=" me-2 bt_orange_lin"
