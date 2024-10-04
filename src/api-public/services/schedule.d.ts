@@ -10,7 +10,7 @@ export declare class Schedule {
     birthBlessMail(sec: number): Promise<void>;
     resetVoucherHistory(sec: number): Promise<void>;
     autoSendMail(sec: number): Promise<void>;
-    autoSetSNS(sec: number): Promise<void>;
+    autoSendLine(sec: number): Promise<void>;
     initialSampleApp(sec: number): Promise<void>;
     main(): void;
 }

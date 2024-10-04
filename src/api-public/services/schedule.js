@@ -14,6 +14,7 @@ const mail_js_1 = require("../services/mail.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
+const line_message_1 = require("./line-message");
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
@@ -211,26 +212,26 @@ class Schedule {
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
-    async autoSetSNS(sec) {
+    async autoSendLine(sec) {
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
                     const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
-                        tag = 'sendSNS' AND 
+                        tag = 'sendLineBySchedule' AND 
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {
-                            new mail_js_1.Mail(app).chunkSendMail(email.content, email.id);
+                            new line_message_1.LineMessage(app).chunkSendLine(email.userList, email.content, email.id);
                         }
                     }
                 }
             }
             catch (e) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendSNS Error: ' + e, null);
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
             }
         }
-        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+        setTimeout(() => this.autoSendLine(sec), sec * 1000);
     }
     async initialSampleApp(sec) {
         await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
@@ -244,6 +245,7 @@ class Schedule {
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600 * 24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {

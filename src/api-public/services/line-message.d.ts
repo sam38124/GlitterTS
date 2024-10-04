@@ -33,7 +33,7 @@ export declare class LineMessage {
         result: boolean;
         message: string;
     }>;
-    sendCustomerSns(tag: string, order_id: string, lineID: string): Promise<void>;
+    sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
     checkPoints(message: string, user_count: number): Promise<boolean>;
     usePoints(obj: {
         message: string;

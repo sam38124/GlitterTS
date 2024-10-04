@@ -231,16 +231,15 @@ export class LineMessage {
                 }
                 const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
-                        tag: 'sendLine',
+                        tag: 'sendLineBySchedule',
                         content: JSON.stringify(data),
                         trigger_time: formatDateTime(data.sendTime),
                         status: 0,
                     },
                 ]);
 
-                this.chunkSendLine(data.userList , data.content , insertData.insertId , formatDateTime(data.sendTime));
+                // this.chunkSendLine(data.userList , data.content , insertData.insertId , formatDateTime(data.sendTime));
             } else {
-                console.log("data --- " , data)
                 const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendLine',
@@ -275,7 +274,7 @@ export class LineMessage {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
-    public async sendCustomerSns(tag: string, order_id: string, lineID: string) {
+    public async sendCustomerLine(tag: string, order_id: string, lineID: string) {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {

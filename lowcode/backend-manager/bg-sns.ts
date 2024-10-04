@@ -319,7 +319,6 @@ export class BgSNS {
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / 20);
                                                             vm.dataList = data.response.data;
-                                                            console.log("data -- " , data)
                                                             function getDatalist() {
                                                                 return data.response.data.map((dd: any) => {
                                                                     return [

@@ -160,16 +160,14 @@ class LineMessage {
                 }
                 const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
-                        tag: 'sendLine',
+                        tag: 'sendLineBySchedule',
                         content: JSON.stringify(data),
                         trigger_time: formatDateTime(data.sendTime),
                         status: 0,
                     },
                 ]);
-                this.chunkSendLine(data.userList, data.content, insertData.insertId, formatDateTime(data.sendTime));
             }
             else {
-                console.log("data --- ", data);
                 const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendLine',
@@ -202,7 +200,7 @@ class LineMessage {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
-    async sendCustomerSns(tag, order_id, lineID) {
+    async sendCustomerLine(tag, order_id, lineID) {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {

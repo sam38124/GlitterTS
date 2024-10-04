@@ -24,6 +24,7 @@ const axios_1 = __importDefault(require("axios"));
 const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
+const line_message_1 = require("./line-message");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -959,10 +960,16 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
+                    console.log(" data.customer_info --- ", data.customer_info);
                     if (data.customer_info.phone) {
                         let sns = new sms_js_1.SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
+                    }
+                    if (data.customer_info.lineID) {
+                        let line = new line_message_1.LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, data.customer_info.lineID);
+                        console.log("訂單line訊息寄送成功");
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1484,12 +1491,22 @@ class Shopping {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("出貨簡訊寄送成功");
                     }
+                    if (data.orderData.customer_info.lineID) {
+                        let line = new line_message_1.LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
+                        console.log("付款成功line訊息寄送成功");
+                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("到貨簡訊寄送成功");
+                    }
+                    if (data.orderData.customer_info.lineID) {
+                        let line = new line_message_1.LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
+                        console.log("付款成功line訊息寄送成功");
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
@@ -1535,6 +1552,11 @@ class Shopping {
                 let sns = new sms_js_1.SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功");
+            }
+            if (orderData.customer_info.lineID) {
+                let line = new line_message_1.LineMessage(this.app);
+                await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
+                console.log("付款成功line訊息寄送成功");
             }
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
                  set orderData=?
@@ -1717,6 +1739,11 @@ class Shopping {
                     let sns = new sms_js_1.SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
                     console.log("付款成功簡訊寄送成功");
+                }
+                if (cartData.orderData.customer_info.lineID) {
+                    let line = new line_message_1.LineMessage(this.app);
+                    await line.sendCustomerLine('auto-line-payment-successful', order_id, cartData.orderData.customer_info.lineID);
+                    console.log("付款成功line訊息寄送成功");
                 }
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {

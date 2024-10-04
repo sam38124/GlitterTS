@@ -8,6 +8,7 @@ import { Mail } from '../services/mail.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { saasConfig } from '../../config';
 import {InitialFakeData} from "./initial-fake-data.js";
+import {LineMessage} from "./line-message";
 
 type ScheduleItem = {
     second: number;
@@ -243,29 +244,31 @@ export class Schedule {
 
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
-    async autoSetSNS(sec: number) {
+    async autoSendLine(sec: number) {
+
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
                     const emails = await db.query(
                         `SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
-                        tag = 'sendSNS' AND 
+                        tag = 'sendLineBySchedule' AND 
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
                         []
                     );
+
                     for (const email of emails) {
                         if (email.status === 0) {
-                            new Mail(app).chunkSendMail(email.content, email.id);
+                            new LineMessage(app).chunkSendLine(email.userList , email.content , email.id);
                         }
                     }
                 }
             } catch (e) {
-                throw exception.BadRequestError('BAD_REQUEST', 'autoSendSNS Error: ' + e, null);
+                throw exception.BadRequestError('BAD_REQUEST', 'autoSendLine Error: ' + e, null);
             }
         }
 
-        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+        setTimeout(() => this.autoSendLine(sec), sec * 1000);
     }
 
     async initialSampleApp(sec: number){
@@ -281,6 +284,7 @@ export class Schedule {
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600*24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {

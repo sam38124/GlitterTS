@@ -19,6 +19,7 @@ import axios from 'axios';
 import {Delivery, DeliveryData} from './delivery.js';
 import {saasConfig} from "../../config.js";
 import {SMS} from "./sms.js";
+import {LineMessage} from "./line-message";
 
 type BindItem = {
     id: string;
@@ -1356,10 +1357,16 @@ export class Shopping {
                         orderData: carData,
                         status: 0,
                     });
+                    console.log(" data.customer_info --- " , data.customer_info)
                     if (data.customer_info.phone){
                         let sns = new SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
+                    }
+                    if (data.customer_info.lineID){
+                        let line = new LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, data.customer_info.lineID);
+                        console.log("訂單line訊息寄送成功");
                     }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
@@ -1978,8 +1985,14 @@ export class Shopping {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("出貨簡訊寄送成功")
                     }
+                    if (data.orderData.customer_info.lineID){
+                        let line = new LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
+                        console.log("付款成功line訊息寄送成功")
+                    }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
+
 
                 // 商品到貨信件通知（消費者）
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
@@ -1987,6 +2000,11 @@ export class Shopping {
                     if (data.orderData.customer_info.phone){
                         await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("到貨簡訊寄送成功")
+                    }
+                    if (data.orderData.customer_info.lineID){
+                        let line = new LineMessage(this.app);
+                        await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
+                        console.log("付款成功line訊息寄送成功")
                     }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                     // await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
@@ -2051,6 +2069,11 @@ export class Shopping {
                 let sns = new SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功")
+            }
+            if (orderData.customer_info.lineID){
+                let line = new LineMessage(this.app);
+                await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
+                console.log("付款成功line訊息寄送成功")
             }
             await db.query(
                 `update \`${this.app}\`.t_checkout
@@ -2304,6 +2327,11 @@ export class Shopping {
                     let sns = new SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
                     console.log("付款成功簡訊寄送成功")
+                }
+                if (cartData.orderData.customer_info.lineID){
+                    let line = new LineMessage(this.app);
+                    await line.sendCustomerLine('auto-line-payment-successful', order_id, cartData.orderData.customer_info.lineID);
+                    console.log("付款成功line訊息寄送成功")
                 }
 
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
