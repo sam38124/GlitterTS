@@ -7,6 +7,7 @@ import {Article} from '../glitter-base/route/article.js';
 import {ApiUser} from "../glitter-base/route/user.js";
 import {FormModule} from "../cms-plugin/module/form-module.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+import {FormCheck} from "../cms-plugin/module/form-check.js";
 
 const html = String.raw;
 
@@ -210,11 +211,11 @@ export class BgWidget {
                         ${obj.options
                                 .map((dd) => {
                                     return html`<a
-                                            class="dropdown-item"
+                                            class="dropdown-item d-flex align-items-center"
                                             onclick="${obj.gvc.event(() => {
                                                 dd.callback();
                                             })}"
-                                    >${dd.icon}${dd.title}</a
+                                    ><div class="me-2">${dd.icon}</div>${dd.title}</a
                                     >`;
                                 })
                                 .join('')}
@@ -3006,6 +3007,11 @@ ${obj.default ?? ''}</textarea
                             let form_keys = key;
                             for (const b of form_keys) {
                                 form_formats[b.key] = (await ApiUser.getPublicConfig(b.key, 'manager')).response.value || {list: []};
+                                console.log(`form_formats[${b.key}].list`,form_formats[b.key].list)
+                                //判斷是註冊表單，必須帶入必要值
+                                if(b.key==='custom_form_register'){
+                                    FormCheck.initialRegisterForm(form_formats[b.key].list)
+                                }
                                 form_formats[b.key].list.map((dd: any) => {
                                     dd.toggle = false;
                                 });

@@ -11,22 +11,22 @@ export class FormModule {
         };
         const option = [
             {
-                icon: '<i class="fa-solid fa-text me-3"></i>',
+                icon: '<i class="fa-solid fa-text "></i>',
                 title: '輸入框',
                 key: 'input',
             },
             {
-                icon: '<i class="fa-regular fa-square-chevron-down me-3"></i>',
+                icon: '<i class="fa-regular fa-square-chevron-down "></i>',
                 title: '下拉選單',
                 key: 'form-select',
             },
             {
-                icon: '<i class="fa-regular fa-circle-dot me-3"></i>',
+                icon: '<i class="fa-regular fa-circle-dot "></i>',
                 title: '單選',
                 key: 'check_box',
             },
             {
-                icon: '<i class="fa-solid fa-square-check me-3"></i>',
+                icon: '<i class="fa-solid fa-square-check "></i>',
                 title: '多選',
                 key: 'mutiple_select',
             },
@@ -64,7 +64,27 @@ export class FormModule {
                                 })}"
                                     >
                                         <i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
-                                        ${opc.icon}${dd.title || opc.title}
+                                        <div style="width:12px;" class="d-flex align-items-center justify-content-center me-3">
+                                            ${(() => {
+                                    switch (dd.form_config.type) {
+                                        case 'email':
+                                            return `<i class="fa-solid fa-envelope "></i>`;
+                                        case 'phone':
+                                            return `<i class="fa-solid fa-phone "></i>`;
+                                        case 'date':
+                                            return `<i class="fa-solid fa-calendar-days "></i>`;
+                                        default:
+                                            return opc.icon;
+                                    }
+                                })()}
+                                        </div>${dd.title || opc.title}${(() => {
+                                    if (dd.deletable === false) {
+                                        return `<div class="ms-2">${BgWidget.blueNote(`系統預設`)}</div>`;
+                                    }
+                                    else {
+                                        return ``;
+                                    }
+                                })()}
                                         <div class="flex-fill"></div>
                                         ${dd.toggle ? `<i class="fa-solid fa-angle-up"></i>` : `<i class="fa-solid fa-angle-down"></i>`}
                                     </div>
@@ -72,100 +92,160 @@ export class FormModule {
                                     ? html `
                                               <div class="w-100 p-3">
                                                   ${(() => {
-                                        var _a, _b;
+                                        var _a;
+                                        const editor_option = [BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                                if (dd.require) {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    if (dd.key === 'email' && !vm.data.find((dd) => {
+                                                        return dd.key === 'phone' && dd.require;
+                                                    })) {
+                                                        dialog.errorMessage({ text: '電話或信箱，必須有一個為必填' });
+                                                        gvc.notifyDataChange(vm.id);
+                                                        return;
+                                                    }
+                                                    else if (dd.key === 'phone' && !vm.data.find((dd) => {
+                                                        return dd.key === 'email' && dd.require;
+                                                    })) {
+                                                        dialog.errorMessage({ text: '電話或信箱，必須有一個為必填' });
+                                                        gvc.notifyDataChange(vm.id);
+                                                        return;
+                                                    }
+                                                }
+                                                dd.require = !dd.require;
+                                                if (dd.require) {
+                                                    dd.hidden = false;
+                                                }
+                                                update && update();
+                                                gvc.notifyDataChange(vm.id);
+                                            }),
+                                            ...(() => {
+                                                var _a;
+                                                if (dd.require) {
+                                                    return [];
+                                                }
+                                                else {
+                                                    return [BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '隱藏此欄位' }], [`${(_a = dd.hidden) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                                            dd.hidden = !dd.hidden;
+                                                            update && update();
+                                                            gvc.notifyDataChange(vm.id);
+                                                        })];
+                                                }
+                                            })(),
+                                            html `<div class="d-flex align-items-center justify-content-end ${(dd.deletable === false) ? `d-none` : ``}">
+                                                                      ${BgWidget.cancel(gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: '是否確認刪除欄位?',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            vm.data.splice(index, 1);
+                                                            gvc.notifyDataChange(vm.id);
+                                                            update && update();
+                                                        }
+                                                    },
+                                                });
+                                            }), '刪除欄位')}
+                                                                  </div>`];
                                         switch (dd.page) {
                                             case 'multiple_line_text':
                                             case 'input':
                                                 return [
-                                                    EditorElem.select({
-                                                        title: html `<div class="tx_normal fw-normal">資料類型</div>`,
-                                                        gvc: gvc,
-                                                        callback: (value) => {
-                                                            dd.form_config.type = value;
-                                                            if (value === 'textArea') {
-                                                                dd.page = 'multiple_line_text';
-                                                            }
-                                                            else {
-                                                                dd.page = 'input';
-                                                            }
-                                                            update && update();
-                                                            gvc.notifyDataChange(vm.id);
-                                                        },
-                                                        def: dd.form_config.type,
-                                                        array: [
-                                                            {
-                                                                key: 'default',
-                                                                name: '單行文字',
-                                                                value: 'text',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '多行文字',
-                                                                value: 'textArea',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '名稱',
-                                                                value: 'name',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '日期',
-                                                                value: 'date',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '時間',
-                                                                value: 'time',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: 'email',
-                                                                value: 'email',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '電話',
-                                                                value: 'phone',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '顏色',
-                                                                value: 'color',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '數字',
-                                                                value: 'number',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '地址',
-                                                                value: 'address',
-                                                                visible: 'visible',
-                                                            },
-                                                            {
-                                                                key: 'default',
-                                                                name: '密碼',
-                                                                value: 'password',
-                                                                visible: 'visible',
-                                                            },
-                                                        ].map((dd) => {
-                                                            return {
-                                                                title: dd.name,
-                                                                value: dd.value,
-                                                            };
-                                                        }),
-                                                    }),
+                                                    (() => {
+                                                        if (dd.deletable === false) {
+                                                            return [];
+                                                        }
+                                                        else {
+                                                            return [EditorElem.select({
+                                                                    title: html `<div class="tx_normal fw-normal">資料類型</div>`,
+                                                                    gvc: gvc,
+                                                                    callback: (value) => {
+                                                                        dd.form_config.type = value;
+                                                                        if (value === 'textArea') {
+                                                                            dd.page = 'multiple_line_text';
+                                                                        }
+                                                                        else {
+                                                                            dd.page = 'input';
+                                                                        }
+                                                                        update && update();
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    },
+                                                                    def: dd.form_config.type,
+                                                                    array: [
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '單行文字',
+                                                                            value: 'text',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '多行文字',
+                                                                            value: 'textArea',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '名稱',
+                                                                            value: 'name',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '日期',
+                                                                            value: 'date',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '時間',
+                                                                            value: 'time',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: 'email',
+                                                                            value: 'email',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '電話',
+                                                                            value: 'phone',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '顏色',
+                                                                            value: 'color',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '數字',
+                                                                            value: 'number',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '地址',
+                                                                            value: 'address',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                        {
+                                                                            key: 'default',
+                                                                            name: '密碼',
+                                                                            value: 'password',
+                                                                            visible: 'visible',
+                                                                        },
+                                                                    ].map((dd) => {
+                                                                        return {
+                                                                            title: dd.name,
+                                                                            value: dd.value,
+                                                                        };
+                                                                    }),
+                                                                })];
+                                                        }
+                                                    })(),
                                                     BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: '自訂欄位名稱',
@@ -188,26 +268,7 @@ export class FormModule {
                                                         },
                                                         placeHolder: '請輸入關於這項欄位的描述或指引',
                                                     }),
-                                                    BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
-                                                        dd.require = !dd.require;
-                                                        update && update();
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }),
-                                                    html `<div class="d-flex align-items-center justify-content-end">
-                                                                      ${BgWidget.cancel(gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認刪除欄位?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    vm.data.splice(index, 1);
-                                                                    update && update();
-                                                                    gvc.notifyDataChange(vm.id);
-                                                                }
-                                                            },
-                                                        });
-                                                    }), '刪除欄位')}
-                                                                  </div>`,
+                                                    ...editor_option
                                                 ].join('<div class="my-2"></div>');
                                             case 'form-select':
                                             case 'check_box':
@@ -282,26 +343,7 @@ export class FormModule {
                                                         };
                                                     })}
                                                                   `,
-                                                    BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_b = dd.require) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
-                                                        dd.require = !dd.require;
-                                                        update && update();
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }),
-                                                    html `<div class="d-flex align-items-center justify-content-end">
-                                                                      ${BgWidget.cancel(gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認刪除欄位?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    vm.data.splice(index, 1);
-                                                                    gvc.notifyDataChange(vm.id);
-                                                                    update && update();
-                                                                }
-                                                            },
-                                                        });
-                                                    }), '刪除欄位')}
-                                                                  </div>`,
+                                                    ...editor_option
                                                 ].join('<div class="my-2"></div>');
                                             default:
                                                 return '';

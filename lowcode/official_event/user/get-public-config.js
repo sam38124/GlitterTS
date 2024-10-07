@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { ApiUser } from "../../glitter-base/route/user.js";
+import { FormCheck } from "../../cms-plugin/module/form-check.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -39,7 +40,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc: gvc, widget: widget, clickEvent: object.userID, subData: subData
                         });
                         (ApiUser.getPublicConfig(key, userID)).then((dd) => {
-                            resolve(dd.response.value || {});
+                            var _a;
+                            const data = dd.response.value || {};
+                            if (key === 'custom_form_register') {
+                                data.list = (_a = data.list) !== null && _a !== void 0 ? _a : [];
+                                FormCheck.initialRegisterForm(data.list);
+                            }
+                            resolve(data);
                         });
                     }));
                 },

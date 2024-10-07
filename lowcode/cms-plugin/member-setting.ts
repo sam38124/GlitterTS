@@ -474,7 +474,7 @@ export class MemberSetting {
                                                     <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
                                                          style="margin-bottom: 12px;">
                                                         結帳頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於結帳頁面中設定顧客必須填寫的額外資料</span>
+                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於結帳頁面中設定顧客必須填寫的資料</span>
                                                     </div>
 
                                                 `
@@ -484,7 +484,7 @@ export class MemberSetting {
                                                     <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
                                                          style="margin-bottom: 12px;">
                                                         註冊頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的額外資料</span>
+                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
                                                     </div>`
                                             }, {
                                                 key: 'customer_form_user_setting',

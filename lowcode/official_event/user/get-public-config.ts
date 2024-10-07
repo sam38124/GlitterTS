@@ -3,6 +3,7 @@ import {GlobalEvent} from "../../glitterBundle/api/global-event.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {FormCheck} from "../../cms-plugin/module/form-check.js";
 
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
@@ -33,8 +34,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const userID = await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.userID, subData: subData
                         });
+
                         (ApiUser.getPublicConfig(key as string, userID as any)).then((dd) => {
-                            resolve(dd.response.value || {})
+                            const data = dd.response.value || {}
+                            if (key === 'custom_form_register') {
+                                data.list = data.list ?? []
+                                FormCheck.initialRegisterForm(data.list)
+                            }
+                            resolve(data)
                         });
                     })
                 },

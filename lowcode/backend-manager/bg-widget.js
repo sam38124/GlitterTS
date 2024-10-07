@@ -15,6 +15,7 @@ import { Article } from '../glitter-base/route/article.js';
 import { ApiUser } from "../glitter-base/route/user.js";
 import { FormModule } from "../cms-plugin/module/form-module.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { FormCheck } from "../cms-plugin/module/form-check.js";
 const html = String.raw;
 export class BgWidget {
     static title(title, style = '') {
@@ -151,11 +152,11 @@ export class BgWidget {
                         ${obj.options
             .map((dd) => {
             return html `<a
-                                            class="dropdown-item"
+                                            class="dropdown-item d-flex align-items-center"
                                             onclick="${obj.gvc.event(() => {
                 dd.callback();
             })}"
-                                    >${dd.icon}${dd.title}</a
+                                    ><div class="me-2">${dd.icon}</div>${dd.title}</a
                                     >`;
         })
             .join('')}
@@ -2560,6 +2561,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             let form_keys = key;
                             for (const b of form_keys) {
                                 form_formats[b.key] = (yield ApiUser.getPublicConfig(b.key, 'manager')).response.value || { list: [] };
+                                console.log(`form_formats[${b.key}].list`, form_formats[b.key].list);
+                                if (b.key === 'custom_form_register') {
+                                    FormCheck.initialRegisterForm(form_formats[b.key].list);
+                                }
                                 form_formats[b.key].list.map((dd) => {
                                     dd.toggle = false;
                                 });
