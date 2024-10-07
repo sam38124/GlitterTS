@@ -13,10 +13,11 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             object.getType = (_a = object.getType) !== null && _a !== void 0 ? _a : "manual";
             object.count = (_b = object.count) !== null && _b !== void 0 ? _b : {};
             object.productType = (_c = object.productType) !== null && _c !== void 0 ? _c : {};
+            object.domain_from = (_d = object.domain_from) !== null && _d !== void 0 ? _d : {};
             return {
                 editor: () => {
                     var _a;
@@ -100,6 +101,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                 hover: false,
                                                 title: "取得商品ID",
                                                 option: []
+                                            }), TriggerEvent.editer(gvc, widget, object.domain_from, {
+                                                hover: false,
+                                                title: "取得商品DOMAIN",
+                                                option: []
                                             }), TriggerEvent.editer(gvc, widget, object.count, {
                                                 hover: false,
                                                 title: "商品數量限制",
@@ -141,6 +146,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.productType,
                                     subData: subData
                                 });
+                                const domain = yield TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.domain_from,
+                                    subData: subData
+                                });
                                 switch (id.select) {
                                     case "collection":
                                         searchJson = {
@@ -161,7 +172,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             searchJson = { page: 0, limit: count || 200, id_list: `${id}`.split(',').concat([`-99`]).join(',') };
                                         }
                                         else {
-                                            searchJson = { page: 0, limit: count || 200, id: `${id}`.split(',').concat([`-99`]).join(',') };
+                                            if (domain) {
+                                                searchJson = { page: 0, limit: count || 200, domain: domain };
+                                            }
+                                            else {
+                                                searchJson = { page: 0, limit: count || 200, id: `${id}`.split(',').concat([`-99`]).join(',') };
+                                            }
                                         }
                                 }
                                 productType && (searchJson.productType = productType);

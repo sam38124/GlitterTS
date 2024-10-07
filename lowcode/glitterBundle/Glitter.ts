@@ -587,7 +587,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         else
             css.appendChild(document.createTextNode(glitter.share.wait_add_style_string));
         glitter.share.wait_add_style_string = ''
-        document.getElementsByTagName("head")[0].appendChild(css);
+        document.head.appendChild(css);
 
         // setTimeout(()=>{
         //     document.querySelector('#style_base')!.innerHTML+=`\n${style}`

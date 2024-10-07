@@ -788,6 +788,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             searchType: req.query.searchType as string,
             sku: req.query.sku as string,
             id: req.query.id as string,
+            domain:req.query.domain as string,
             collection: req.query.collection as string,
             accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',

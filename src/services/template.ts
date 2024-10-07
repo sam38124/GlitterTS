@@ -211,6 +211,10 @@ export class Template {
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product'
         }
+        //當判斷是商品頁時
+        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+            page = 'products'
+        }
         return page
     }
     public async getPage(config: {

@@ -1005,7 +1005,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         else
             css.appendChild(document.createTextNode(glitter.share.wait_add_style_string));
         glitter.share.wait_add_style_string = '';
-        document.getElementsByTagName("head")[0].appendChild(css);
+        document.head.appendChild(css);
     }
     addStyleLink(data, doc) {
         return __awaiter(this, void 0, void 0, function* () {

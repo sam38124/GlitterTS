@@ -9,11 +9,11 @@ export class FileSystemGet {
                     const links = data.response.value;
                     function loop(array) {
                         array.map((dd) => {
-                            var _a;
+                            var _a, _b;
                             if (dd.type === 'folder') {
                                 loop((_a = dd.items) !== null && _a !== void 0 ? _a : []);
                             }
-                            else if (cf.id.includes(dd.id)) {
+                            else if (((_b = cf.id) !== null && _b !== void 0 ? _b : []).includes(dd.id)) {
                                 find.push(dd);
                             }
                         });

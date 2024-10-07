@@ -240,6 +240,7 @@ export class ApiShop {
                     json.accurate_search_text && par.push(`accurate_search_text=true`);
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.domain && par.push(`domain=${json.domain}`);
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);
                     json.minPrice && par.push(`min_price=${json.minPrice}`);
                     json.status && par.push(`status=${json.status}`);
@@ -446,13 +447,25 @@ export class ApiShop {
         });
     }
     static getCollection() {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/manager/config?key=collection`,
-            type: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-            },
+        return new Promise((resolve, reject) => {
+            var _a;
+            window.glitter.share._public_config = (_a = window.glitter.share._public_config) !== null && _a !== void 0 ? _a : {};
+            const config = window.glitter.share._public_config;
+            if (config[`collection-manager`]) {
+                resolve(config[`collection-manager`]);
+                return;
+            }
+            BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/manager/config?key=collection`,
+                type: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                },
+            }).then((res) => {
+                config[`collection-manager`] = res;
+                resolve(res);
+            });
         });
     }
     static getInvoiceType() {

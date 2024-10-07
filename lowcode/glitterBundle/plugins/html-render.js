@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -19,6 +20,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         loading: true,
         mainView: ''
     };
+    console.log(`the-page`, gvc.glitter.getUrlParameter('page'));
     console.log(`waitCreateView-time:`, window.renderClock.stop());
     function load() {
         var _a;
@@ -87,6 +89,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             var _a, _b;
+            if (gvc.glitter.getUrlParameter('page') === 'account_userinfo' && !GlobalUser.token) {
+                gvc.glitter.href = '/login';
+                return ``;
+            }
             document.querySelector('body').style.background = gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
             console.log(`onCreateView-time:`, window.renderClock.stop());
             const mainId = glitter.getUUID();
@@ -229,10 +235,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }));
                 },
                 divCreate: {
-                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
-                    
-                    `
+                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ' d-none',
+                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                 },
                 onCreate: () => {
                     var _a;
@@ -245,6 +249,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             }
                         }
                     });
+                    setTimeout(() => {
+                        document.querySelector(`[gvc-id='${gvc.id(mainId)}']`).classList.remove('d-none');
+                    }, 20);
                 }
             }));
             return map.join('');

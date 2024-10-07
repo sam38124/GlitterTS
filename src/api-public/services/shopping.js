@@ -98,6 +98,9 @@ class Shopping {
                         break;
                 }
             }
+            if (query.domain) {
+                querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+            }
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
@@ -259,6 +262,9 @@ class Shopping {
                     .filter((dd) => {
                     return dd;
                 });
+            }
+            if (query.domain && products.data[0]) {
+                products.data = products.data[0];
             }
             return products;
         }
@@ -2680,7 +2686,16 @@ class Shopping {
         });
     }
     async postProduct(content) {
-        var _a;
+        var _a, _b;
+        content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
+        content.seo.domain = content.seo.domain || content.title;
+        const find_conflict = await database_js_1.default.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
+        if (find_conflict[0]['count(1)'] > 0) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                message: '網域已被使用',
+                code: '733'
+            });
+        }
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
@@ -2688,7 +2703,7 @@ class Shopping {
                  SET ?
                 `, [
                 {
-                    userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
+                    userID: (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID,
                     content: JSON.stringify(content),
                 },
             ]);
@@ -2795,6 +2810,13 @@ class Shopping {
         await Promise.all(promises);
     }
     async putProduct(content) {
+        const find_conflict = await database_js_1.default.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}') and id != ${content.id}`, []);
+        if (find_conflict[0]['count(1)'] > 0) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                message: '網域已被使用',
+                code: '733'
+            });
+        }
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);

@@ -706,6 +706,7 @@ router.get('/product', async (req, resp) => {
             searchType: req.query.searchType,
             sku: req.query.sku,
             id: req.query.id,
+            domain: req.query.domain,
             collection: req.query.collection,
             accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',

@@ -608,14 +608,33 @@ export class ApiUser {
     }
 
     public static getPublicConfig(key: string, user_id: string,appName:string=getConfig().config.appName) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
-            type: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': appName,
-            },
-        });
+
+        return new Promise<{result:boolean,response:any}>((resolve, reject)=>{
+            (window as any).glitter.share._public_config= (window as any).glitter.share._public_config??{}
+            const config=(window as any).glitter.share._public_config
+            if(config[key+user_id]){
+                resolve(config[key+user_id])
+                return
+            }
+            BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
+                type: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': appName,
+                },
+            }).then((res)=>{
+                switch (key){
+                    case 'collection':
+                    case 'footer-setting':
+                    case 'menu-setting':
+                    case 'message_setting':
+                        config[key+user_id]=res
+                        break
+                }
+                resolve(res)
+            })
+        })
     }
 
     public static getUserGroupList(type?: string, tag?: string) {

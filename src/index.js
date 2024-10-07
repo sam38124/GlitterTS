@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -65,6 +67,7 @@ const ai_js_1 = require("./services/ai.js");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
+const update_script_js_1 = require("./update-script.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -107,6 +110,7 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
+        await update_script_js_1.UpdateScript.run();
         if (config_1.ConfigSetting.runSchedule) {
             new schedule_js_1.Schedule().main();
             new system_schedule_1.SystemSchedule().start();
@@ -116,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -169,7 +172,12 @@ async function createAPP(dd) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
-                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct({
+                            const product_domain = req.query.page.split('/')[1];
+                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct((product_domain) ? {
+                                page: 0,
+                                limit: 1,
+                                domain: decodeURIComponent(product_domain),
+                            } : {
                                 page: 0,
                                 limit: 1,
                                 id: req.query.product_id,
@@ -180,6 +188,7 @@ async function createAPP(dd) {
                                 data.page_config = (_d = data.page_config) !== null && _d !== void 0 ? _d : {};
                                 data.page_config.seo = (_e = data.page_config.seo) !== null && _e !== void 0 ? _e : {};
                                 data.page_config.seo.title = productSeo.title;
+                                data.page_config.seo.image = pd.data.content.preview_image[0];
                                 data.page_config.seo.content = productSeo.content;
                             }
                             else {
@@ -516,7 +525,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

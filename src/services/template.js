@@ -190,6 +190,9 @@ class Template {
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';
         }
+        if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
+            page = 'products';
+        }
         return page;
     }
     async getPage(config) {

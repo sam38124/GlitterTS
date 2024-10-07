@@ -66,10 +66,11 @@ export class imageLibrary {
             }).length;
         }
 
-        function getPublicConfig(callback:()=>void){
+        function getPublicConfig(callback: () => void) {
             ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
                 if (data.response.value) {
                     vm.link = data.response.value;
+
                     function loop(array: FileItem[]) {
                         array.map((dd) => {
                             if (dd.type === 'folder') {
@@ -77,15 +78,17 @@ export class imageLibrary {
                             }
                         })
                     }
+
                     loop(vm.link);
                     vm.loading = false;
                     callback()
-                }else{
+                } else {
                     vm.loading = false;
                     callback()
                 }
             });
         }
+
         const dialog = new ShareDialog(cf.gvc.glitter)
 
         function clearNoNeedData(items: FileItem[]) {
@@ -96,6 +99,7 @@ export class imageLibrary {
                 clearNoNeedData(dd.items || []);
             });
         }
+
         function save(finish: () => void) {
             clearNoNeedData(vm.link);
             dialog.dataLoading({visible: true})
@@ -109,6 +113,7 @@ export class imageLibrary {
                 finish()
             });
         }
+
         BgWidget.imageLibraryDialog({
             gvc: gvc,
             title: cf.title,
@@ -124,189 +129,203 @@ export class imageLibrary {
                             return {
                                 bind: id,
                                 view: () => {
-                                    let editArray: boolean[] = [];
-                                    let sortArray = array.map((dd)=>{
-                                        return dd
-                                    });
-                                    switch (vm.orderString){
-                                        case "created_time_desc" :{
+                                   try {
+                                       let editArray: boolean[] = [];
+                                       let sortArray = array.map((dd) => {
+                                           return dd
+                                       });
+                                       switch (vm.orderString) {
+                                           case "created_time_desc" : {
 
-                                            sortArray.reverse();
-                                            break;
-                                        }
-                                        case "created_time_asc" :{
-                                            break;
-                                        }
-                                        case "name_AtoZ" :{
-                                            sortArray.sort((a, b) => {
-                                                return a.title.localeCompare(b.title);
-                                            })
-                                            break;
-                                        }
-                                        case "name_ZtoA" :{
-                                            sortArray.sort((b, a) => {
-                                                return a.title.localeCompare(b.title);
-                                            })
-                                            break;
-                                        }
-                                        default:
+                                               sortArray.reverse();
+                                               break;
+                                           }
+                                           case "created_time_asc" : {
+                                               break;
+                                           }
+                                           case "name_AtoZ" : {
+                                               sortArray.sort((a, b) => {
+                                                   return a.title.localeCompare(b.title);
+                                               })
+                                               break;
+                                           }
+                                           case "name_ZtoA" : {
+                                               sortArray.sort((b, a) => {
+                                                   return a.title.localeCompare(b.title);
+                                               })
+                                               break;
+                                           }
+                                           default:
 
-                                            break
+                                               break
 
-                                    }
-                                    return sortArray.map((dd, index) => {
-                                        if (editArray.length < index + 1) {
-                                            editArray.push(false)
-                                        }
+                                       }
+                                       return sortArray.map((dd, index) => {
+                                           dd.title=dd.title || ''
+                                           if (editArray.length < index + 1) {
+                                               editArray.push(false)
+                                           }
 
-                                        if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())){
+                                           if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())) {
 
-                                            return
-                                        }
+                                               return
+                                           }
 
-                                        let viewID = gvc.glitter.getUUID();
-                                        return gvc.bindView({
-                                            bind: viewID,
-                                            view: () => {
+                                           let viewID = gvc.glitter.getUUID();
+                                           return gvc.bindView({
+                                               bind: viewID,
+                                               view: () => {
+                                                   try {
+                                                       const passType = ["file", "folderView", "folderEdit", "folderADD"];
+                                                       const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 
-                                                const passType = ["file", "folderView", "folderEdit" , "folderADD"];
-                                                const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-
-                                                const imageUrl = (passType.includes(vm.type))
-                                                    ? dd.data
-                                                    : (vm.link.find(data => data?.tag?.includes(dd.title))?.data ?? noImageURL);
+                                                       const imageUrl = (passType.includes(vm.type))
+                                                           ? dd.data
+                                                           : (vm.link.find(data => data?.tag?.includes(dd.title))?.data ?? noImageURL);
 
 
-                                                return html`
-                                                    <div class=""
-                                                         style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index]?`border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;`:``}"
-                                                         onclick="${gvc.event((e, event) => {
-                                                             let defaultSelect = (dd as any).selected;
-                                                             if (vm.type == "folder") {
-                                                                 array = [];
-                                                                 vm.type = "folderView"
-                                                                 vm.tag = dd.title
-                                                                 gvc.notifyDataChange(vm.id)
-                                                                 return;
-                                                             }
-                                                             if (opt?.onlyRead) {
-                                                                 return
-                                                             }
-                                                             if (!cf.mul) {
-                                                                 array.forEach((data) => {
-                                                                     (data as any).selected = false;
-                                                                 })
-                                                             }
-                                                             (dd as any).selected = !defaultSelect;
-                                                             gvc.notifyDataChange(vm.id)
-                                                             event.stopPropagation();
-                                                         })}"
-                                                         onmouseenter="${gvc.event(() => {
-                                                             if (opt?.onlyRead || cf.key == "album") {
-                                                                 return
-                                                             }
-                                                             if (!editArray[index]) {
-                                                                 editArray[index] = true;
-                                                                 gvc.notifyDataChange(viewID);
-                                                             }
-
-                                                         })}"
-                                                         onmouseleave="${gvc.event(() => {
-                                                             if (opt?.onlyRead) {
-                                                                 return
-                                                             }
-                                                             editArray[index] = false;
-                                                             gvc.notifyDataChange(viewID);
-                                                         })}">
-                                                        <div class="${(editArray[index] && !(dd as any).selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
-                                                             style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
+                                                       return html`
+                                                        <div class=""
+                                                             style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
                                                              onclick="${gvc.event((e, event) => {
-                                                                 event.stopPropagation();
-                                                                 if (vm.type == "folder") {
-                                                                     //編輯資料夾內容
-                                                                     vm.tag = dd.title;
-                                                                     that.selectImageLibrary(gvc, (selectData) => {
-                                                                         vm.link = selectData;
-                                                                         gvc.notifyDataChange(vm.id);
-                                                                         
-                                                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
-                                                                         key: 'folderEdit',
-                                                                         mul: true,
-                                                                         tag: dd.title,
-                                                                     })
-                                                                     
-                                                                 } else {
-                                                                     cf.edit(dd, (replace) => {
-                                                                         if (!replace) {
-                                                                             let selectData = vm.link.findIndex(data => {return data.id == dd.id})
-                                                                             vm.link.splice(selectData, 1)
-                                                                             save(()=>{
-                                                                                 gvc.notifyDataChange(vm.id);
-                                                                             })
-                                                                         } else {
-                                                                             let replaceIndex = vm.link.findIndex(data=> data.id == replace.id)
-                                                                             vm.link[replaceIndex] = replace;
-                                                                             // console.log("vm.link -- " , vm.link);
-                                                                             save(()=>{
-                                                                                 gvc.notifyDataChange(vm.id);
-                                                                             })
-                                                                             
-                                                                         }
+                                                           let defaultSelect = (dd as any).selected;
+                                                           if (vm.type == "folder") {
+                                                               array = [];
+                                                               vm.type = "folderView"
+                                                               vm.tag = dd.title
+                                                               gvc.notifyDataChange(vm.id)
+                                                               return;
+                                                           }
+                                                           if (opt?.onlyRead) {
+                                                               return
+                                                           }
+                                                           if (!cf.mul) {
+                                                               array.forEach((data) => {
+                                                                   (data as any).selected = false;
+                                                               })
+                                                           }
+                                                           (dd as any).selected = !defaultSelect;
+                                                           gvc.notifyDataChange(vm.id)
+                                                           event.stopPropagation();
+                                                       })}"
+                                                             onmouseenter="${gvc.event(() => {
+                                                           if (opt?.onlyRead || cf.key == "album") {
+                                                               return
+                                                           }
+                                                           if (!editArray[index]) {
+                                                               editArray[index] = true;
+                                                               gvc.notifyDataChange(viewID);
+                                                           }
 
-                                                                     })
-                                                                 }
+                                                       })}"
+                                                             onmouseleave="${gvc.event(() => {
+                                                           if (opt?.onlyRead) {
+                                                               return
+                                                           }
+                                                           editArray[index] = false;
+                                                           gvc.notifyDataChange(viewID);
+                                                       })}">
+                                                            <div class="${(editArray[index] && !(dd as any).selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
+                                                                 style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
+                                                                 onclick="${gvc.event((e, event) => {
+                                                           event.stopPropagation();
+                                                           if (vm.type == "folder") {
+                                                               //編輯資料夾內容
+                                                               vm.tag = dd.title;
+                                                               that.selectImageLibrary(gvc, (selectData) => {
+                                                                   vm.link = selectData;
+                                                                   gvc.notifyDataChange(vm.id);
 
-                                                             })}">
-                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                 width="12"
-                                                                 height="12"
-                                                                 viewBox="0 0 12 12"
-                                                                 fill="none">
-                                                                <g clip-path="url(#clip0_13619_1920)">
-                                                                    <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
-                                                                          fill="white"/>
-                                                                </g>
-                                                                <defs>
-                                                                    <clipPath
-                                                                            id="clip0_13619_1920">
-                                                                        <rect width="12"
-                                                                              height="12"
+                                                               }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                                   key: 'folderEdit',
+                                                                   mul: true,
+                                                                   tag: dd.title,
+                                                               })
+
+                                                           } else {
+                                                               cf.edit(dd, (replace) => {
+                                                                   if (!replace) {
+                                                                       let selectData = vm.link.findIndex(data => {
+                                                                           return data.id == dd.id
+                                                                       })
+                                                                       vm.link.splice(selectData, 1)
+                                                                       save(() => {
+                                                                           gvc.notifyDataChange(vm.id);
+                                                                       })
+                                                                   } else {
+                                                                       let replaceIndex = vm.link.findIndex(data => data.id == replace.id)
+                                                                       vm.link[replaceIndex] = replace;
+                                                                       // console.log("vm.link -- " , vm.link);
+                                                                       save(() => {
+                                                                           gvc.notifyDataChange(vm.id);
+                                                                       })
+
+                                                                   }
+
+                                                               })
+                                                           }
+
+                                                       })}">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                     width="12"
+                                                                     height="12"
+                                                                     viewBox="0 0 12 12"
+                                                                     fill="none">
+                                                                    <g clip-path="url(#clip0_13619_1920)">
+                                                                        <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
                                                                               fill="white"/>
-                                                                    </clipPath>
-                                                                </defs>
-                                                            </svg>
-                                                        </div>
-                                                        <div class="${((dd as any).selected) ? `d-flex` : `d-none`}  "
-                                                             style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
-                                                        >
-                                                            <i class="fa-solid fa-square-check "
-                                                               style="color: #393939;font-size: 24px;"></i>
+                                                                    </g>
+                                                                    <defs>
+                                                                        <clipPath
+                                                                                id="clip0_13619_1920">
+                                                                            <rect width="12"
+                                                                                  height="12"
+                                                                                  fill="white"/>
+                                                                        </clipPath>
+                                                                    </defs>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="${((dd as any).selected) ? `d-flex` : `d-none`}  "
+                                                                 style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
+                                                            >
+                                                                <i class="fa-solid fa-square-check "
+                                                                   style="color: #393939;font-size: 24px;"></i>
 
-                                                        </div>
+                                                            </div>
 
-                                                        <div style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
-                                                        <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
-                                                             style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
-                                                             contenteditable="true"
-                                                             onchange="${gvc.event((e: any) => {
-                                                             })}">
-                                                            ${dd.title}
+                                                            <div style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
+                                                            <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
+                                                                 style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
+                                                                 contenteditable="true"
+                                                                 onchange="${gvc.event((e: any) => {
+                                                       })}">
+                                                                ${dd.title}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                `
-                                            },
-                                            divCreate: {style: `${gvc.glitter.ut.frSize({
-                                                    sm:`width:15%;`
-                                                },`width:33%;`)}cursor:pointer;`}
-                                        })
-                                    }).join('')
+                                                    `
+                                                   } catch (e) {
+                                                       console.log(e)
+                                                       return ``
+                                                   }
+                                               },
+                                               divCreate: {
+                                                   style: `${gvc.glitter.ut.frSize({
+                                                       sm: `width:15%;`
+                                                   }, `width:33%;`)}cursor:pointer;`
+                                               }
+                                           })
+                                       }).join('')
+                                   }catch (e) {
+                                       console.log(`error=>`,e)
+                                       return ``
+                                   }
                                 },
                                 divCreate: {
                                     elem: 'ul',
                                     class: `w-100 my-2 flex-wrap `,
                                     style: `display:flex;gap:${gvc.glitter.ut.frSize({
-                                        sm:`17`
-                                    },`0`)}px;`,
+                                        sm: `17`
+                                    }, `0`)}px;`,
                                 },
                                 onCreate: () => {
                                     gvc.glitter.addMtScript(
@@ -364,7 +383,7 @@ export class imageLibrary {
                     );
                 }
 
-                getPublicConfig(()=>{
+                getPublicConfig(() => {
                     gvc.notifyDataChange(vm.id);
                 });
                 return gvc.bindView(() => {
@@ -372,6 +391,7 @@ export class imageLibrary {
                         bind: vm.id,
                         view: async () => {
                             const dialog = new ShareDialog(cf.gvc.glitter)
+
                             function pageBTN() {
                                 let key = [
                                     {
@@ -397,6 +417,7 @@ export class imageLibrary {
                                     `
                                 }).join('')
                             }
+
                             // 空白夾新增的頁面
 
                             if (vm.type == "folderADD") {
@@ -444,7 +465,7 @@ export class imageLibrary {
                                                      vm.link.push(folder);
                                                      vm.type = "folder"
                                                      gvc.notifyDataChange(vm.id);
-                                                     save(()=>{
+                                                     save(() => {
                                                          gvc.notifyDataChange(vm.id);
                                                      })
                                                      // postMD.content_array = id
@@ -452,8 +473,8 @@ export class imageLibrary {
                                                      // getPublicConfig(()=>{
                                                      //     gvc.notifyDataChange(vm.id);
                                                      // });
-                                                     
-                                                     
+
+
                                                  }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
                                                      key: 'album',
                                                      mul: true,
@@ -526,12 +547,12 @@ export class imageLibrary {
                                     </div>
                                     <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
                                         ${BgWidget.searchFilter(
-                                            gvc.event((e) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(vm.id);
-                                            }),
-                                            vm.query || '',
-                                            "搜尋圖片"
+                                                gvc.event((e) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(vm.id);
+                                                }),
+                                                vm.query || '',
+                                                "搜尋圖片"
                                         )}
                                         ${BgWidget.updownFilter({
                                             gvc,
@@ -551,7 +572,7 @@ export class imageLibrary {
                                                     let group = vm.link.filter((item2) => {
                                                         return item2.tag && item2.tag.includes(vm.tag ?? "")
                                                     });
-                                                    console.log("array -- " , group)
+                                                    console.log("array -- ", group)
                                                     return renderItems(group);
                                                 }
                                                 return ``
@@ -606,8 +627,8 @@ export class imageLibrary {
                                                 });
                                             })
 
-                                            let folder = vm.link.find((dd)=>{
-                                                return (dd.title == vm.tag && dd.type =="folder")
+                                            let folder = vm.link.find((dd) => {
+                                                return (dd.title == vm.tag && dd.type == "folder")
                                             });
                                             gvc.notifyDataChange(vm.id);
                                         }))}
@@ -616,17 +637,25 @@ export class imageLibrary {
                                             gvc.glitter.innerDialog((gvc: GVC) => {
                                                 return html`
                                                     <div style="width: 445px;height: 255px;border-radius: 10px;background: #FFF;">
-                                                        <div class="d-flex" style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;">新增圖片
-                                                            <span class="d-flex align-items-center justify-content-center" style="margin-left: auto;cursor: pointer;" onclick="${gvc.event(()=>{
-                                                                gvc.glitter.closeDiaLog('add')
-                                                            })}">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                                  <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round"/>
-                                                                  <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round"/>
+                                                        <div class="d-flex"
+                                                             style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;">
+                                                            新增圖片
+                                                            <span class="d-flex align-items-center justify-content-center"
+                                                                  style="margin-left: auto;cursor: pointer;"
+                                                                  onclick="${gvc.event(() => {
+                                                                      gvc.glitter.closeDiaLog('add')
+                                                                  })}">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14" viewBox="0 0 14 14" fill="none">
+                                                                  <path d="M1 1L13 13" stroke="#393939"
+                                                                        stroke-linecap="round"/>
+                                                                  <path d="M13 1L1 13" stroke="#393939"
+                                                                        stroke-linecap="round"/>
                                                                 </svg>
                                                             </span>
                                                         </div>
-                                                        <div class="d-flex justify-content-center" style="padding-top:61px;gap:14px;">
+                                                        <div class="d-flex justify-content-center"
+                                                             style="padding-top:61px;gap:14px;">
                                                             <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
                                                                  onclick="${gvc.event(() => {
                                                                      this.selectImageLibrary(gvc, (selectData) => {
@@ -643,7 +672,7 @@ export class imageLibrary {
                                                                              }
                                                                              (data as any).selected = false;
                                                                          });
-                                                                         
+
                                                                          gvc.glitter.closeDiaLog('add');
                                                                          thatGVC.notifyDataChange(vm.id);
                                                                      }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
@@ -735,7 +764,7 @@ export class imageLibrary {
                                                         let viewData = vm.link.filter((data) => {
                                                             return data.type == vm.type
                                                         });
-                                                        
+
                                                         if (viewData.length == 0) {
                                                             return html`
                                                                 <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
@@ -762,7 +791,7 @@ export class imageLibrary {
                                                                              if (vm.type == "file") {
                                                                                  cf.plus(gvc, (file) => {
                                                                                      vm.link.push(...file)
-                                                                                     save(()=>{
+                                                                                     save(() => {
                                                                                          gvc.notifyDataChange(vm.id)
                                                                                      })
                                                                                  }, "file")
@@ -782,19 +811,20 @@ export class imageLibrary {
                                                                  style="padding: 39px 0;border-radius: 10px;border: 1px solid #DDD;background: #FFF;">
                                                                 <div style="padding:6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);font-size: 16px;font-weight: 400;cursor:pointer;"
                                                                      onclick="${gvc.event(() => {
-                                                                        if (vm.type == "file") {
-                                                                            cf.plus(gvc, (file) => {
-                                                                                vm.link.push(...file)
-                                                                                save(()=>{
-                                                                                    gvc.notifyDataChange(vm.id)
-                                                                                })
-                                                                            }, "file")
-                                                                        }else{
-                                                                            vm.tag = "";
-                                                                            vm.type = "folderADD";
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        }
-                                                                     })}">${vm.type=="file"?"上傳新照片":"上傳相簿"}
+                                                                         if (vm.type == "file") {
+                                                                             cf.plus(gvc, (file) => {
+                                                                                 vm.link.push(...file)
+                                                                                 save(() => {
+                                                                                     gvc.notifyDataChange(vm.id)
+                                                                                 })
+                                                                             }, "file")
+                                                                         } else {
+                                                                             vm.tag = "";
+                                                                             vm.type = "folderADD";
+                                                                             gvc.notifyDataChange(vm.id);
+                                                                         }
+                                                                     })}">
+                                                                    ${vm.type == "file" ? "上傳新照片" : "上傳相簿"}
                                                                 </div>
                                                             </div>
                                                             ${renderItems(viewData)}
@@ -806,14 +836,15 @@ export class imageLibrary {
                                     </div>
                                 `
                             }
-                            if (vm.loading){
+
+                            if (vm.loading) {
                                 dialog.dataLoading({
-                                    visible:true
+                                    visible: true
                                 })
                                 return ``
                             }
                             dialog.dataLoading({
-                                visible:false
+                                visible: false
                             })
                             return drawSelectImg();
                         },
@@ -851,17 +882,17 @@ export class imageLibrary {
                 }
 
                 switch (cf.key) {
-                    case "folderEdit":{
+                    case "folderEdit": {
                         return [BgWidget.cancel(gvc.event(() => {
                             gvc.closeDialog()
                         })),
-                            BgWidget.danger(gvc.event(()=>{
+                            BgWidget.danger(gvc.event(() => {
                                 const dialog = new ShareDialog(gvc.glitter)
                                 dialog.checkYesOrNot({
                                     text: `刪除後使用此資源的內容將被取消關聯，是否確認刪除?`,
                                     callback: (response) => {
                                         if (response) {
-                                            let selectedData = vm.link.filter(item => (item?.tag && item?.tag?.includes(vm.tag??"")));
+                                            let selectedData = vm.link.filter(item => (item?.tag && item?.tag?.includes(vm.tag ?? "")));
                                             selectedData.forEach(item => {
                                                 (item as any).selected = false;
                                                 item.tag = item.tag.filter((tag) => {
@@ -869,12 +900,12 @@ export class imageLibrary {
                                                 });
                                             })
 
-                                            let folder = vm.link.findIndex((dd)=>{
-                                                return (dd.title == vm.tag && dd.type =="folder")
+                                            let folder = vm.link.findIndex((dd) => {
+                                                return (dd.title == vm.tag && dd.type == "folder")
                                             });
                                             vm.link.splice(folder, 1)
                                             cf.getSelect(vm.link);
-                                            save(()=>{
+                                            save(() => {
                                                 gvc.closeDialog();
                                             })
 
@@ -886,28 +917,29 @@ export class imageLibrary {
                                     }
                                 })
 
-                            }),"刪除相簿")
-                            ,BgWidget.save(gvc.event(() => {
+                            }), "刪除相簿")
+                            , BgWidget.save(gvc.event(() => {
                                 cf.getSelect(vm.link);
-                                save(()=>{
+                                save(() => {
                                     gvc.closeDialog();
                                 })
 
 
                             }), '確定變更')].join('')
                     }
-                    default:{
-                        let finishBTN = ( cf.key == 'album' )?'建立':'完成'
+                    default: {
+                        let finishBTN = (cf.key == 'album') ? '建立' : '完成'
                         return [BgWidget.cancel(gvc.event(() => {
                             if (vm.type == "folderView" || vm.type == "folderADD") {
                                 vm.type = "folder";
                                 gvc.notifyDataChange(vm.id);
-                            }else{
+                            } else {
                                 gvc.closeDialog()
                             }
 
                         })), BgWidget.save(gvc.event(() => {
                             let select: FileItem[] = []
+
                             function loop(array: FileItem[]) {
                                 array.map((dd) => {
                                     if (dd.type === 'folder') {
@@ -919,21 +951,22 @@ export class imageLibrary {
                                     }
                                 })
                             }
+
                             loop(vm.link);
                             if (cf.key == 'album') {
                                 dialog.successMessage({
-                                    text:'相簿建立成功'
+                                    text: '相簿建立成功'
                                 })
                             }
                             if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
-                                if (select.length > 0){
+                                if (select.length > 0) {
                                     save(() => {
                                         cf.getSelect(select);
                                         gvc.closeDialog();
                                     })
-                                }else{
+                                } else {
                                     const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.errorMessage({text:'請選擇至少一張圖片'});
+                                    dialog.errorMessage({text: '請選擇至少一張圖片'});
                                 }
                                 // save(() => {
                                 //     if (select.length > 0){
@@ -1037,7 +1070,6 @@ export class imageLibrary {
                 EditorElem.uploadFileFunction({
                     gvc: gvc,
                     callback: (text: any) => {
-
                         callback(text.map((item: string) => {
                             return {
                                 title: item.split('_')[3],

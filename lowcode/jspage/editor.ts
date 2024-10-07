@@ -696,7 +696,7 @@ color:${EditorConfig.editor_layout.main_color};
                                                             BgWidget.appPreview({
                                                                 gvc: gvc,
                                                                 title: "預覽頁面",
-                                                              src:`http://127.0.0.1:4000/shopnex/index-mobile?appName=shop-template-clothing-v3&device=mobile`,
+                                                              src:`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`,
                                                                 style: `max-height: calc(100vh - 100px);`
                                                             })
                                                         } else {

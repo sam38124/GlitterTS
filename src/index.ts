@@ -38,6 +38,7 @@ import session from 'express-session';
 import {Monitor} from "./api-public/services/monitor.js";
 import tool from "./services/tool.js";
 import {InitialFakeData} from "./api-public/services/initial-fake-data.js";
+import {UpdateScript} from "./update-script.js";
 export const app = express();
 const logger = new Logger();
 
@@ -85,7 +86,7 @@ export async function initial(serverPort: number) {
         if (process.env.firebase) {
             await Firebase.initial();
         }
-        // UpdateScript.run()
+        await UpdateScript.run()
         if (ConfigSetting.runSchedule) {
             new Schedule().main();
             new SystemSchedule().start();
@@ -153,17 +154,24 @@ export async function createAPP(dd: any) {
                         data.page_config = data.page_config ?? {};
                         const d = data.page_config.seo ?? {};
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
-                            const pd = await new Shopping(appName, undefined).getProduct({
+                            const product_domain= (req.query.page as string).split('/')[1]
+                            const pd = await new Shopping(appName, undefined).getProduct((product_domain) ? {
+                                page: 0,
+                                limit: 1,
+                                domain: decodeURIComponent(product_domain),
+                            }:{
                                 page: 0,
                                 limit: 1,
                                 id: req.query.product_id as string,
                             });
+
                             if (pd.data.content) {
                                 const productSeo = pd.data.content.seo ?? {};
                                 data = await Seo.getPageInfo(appName, data.config.homePage);
                                 data.page_config = data.page_config ?? {};
                                 data.page_config.seo = data.page_config.seo ?? {};
                                 data.page_config.seo.title = productSeo.title;
+                                data.page_config.seo.image=pd.data.content.preview_image[0];
                                 data.page_config.seo.content = productSeo.content;
                             } else {
                                 data = await Seo.getPageInfo(appName, data.config.homePage);

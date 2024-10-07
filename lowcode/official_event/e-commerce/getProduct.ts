@@ -9,6 +9,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.getType = object.getType ?? "manual"
             object.count=object.count ?? {}
             object.productType=object.productType??{}
+            object.domain_from=object.domain_from ?? {}
             return {
                 editor: () => {
                     const id = gvc.glitter.getUUID()
@@ -90,6 +91,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             hover: false,
                                             title: "取得商品ID",
                                             option: []
+                                        }),TriggerEvent.editer(gvc, widget, object.domain_from, {
+                                            hover: false,
+                                            title: "取得商品DOMAIN",
+                                            option: []
                                         }), TriggerEvent.editer(gvc, widget, object.count, {
                                             hover: false,
                                             title: "商品數量限制",
@@ -131,6 +136,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.productType,
                                     subData: subData
                                 })
+                                const domain=await TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.domain_from,
+                                    subData: subData
+                                })
 
                                 switch (id.select) {
                                     case "collection":
@@ -152,7 +163,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
 
                                             searchJson = {page: 0, limit: count || 200, id_list: `${id}`.split(',').concat([`-99`]).join(',')}
                                         } else {
-                                            searchJson = {page: 0, limit: count || 200, id: `${id}`.split(',').concat([`-99`]).join(',')}
+                                            if(domain){
+                                                searchJson = {page: 0, limit: count || 200, domain: domain}
+                                            }else{
+                                                searchJson = {page: 0, limit: count || 200, id: `${id}`.split(',').concat([`-99`]).join(',')}
+                                            }
+
                                         }
                                 }
                                 productType && (searchJson.productType=productType);

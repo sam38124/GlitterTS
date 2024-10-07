@@ -10,6 +10,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { FileItem, FileSystem } from '../modules/file-system.js';
 import { FileSystemGet } from '../modules/file-system-get.js';
+import {CheckInput} from "../modules/checkInput.js";
 
 interface variant {
     save_stock?: string;
@@ -2081,6 +2082,7 @@ export class ShoppingProductSetting {
             specs: { title: string; option: any }[];
             variants: variant[];
             seo: {
+                domain:string;
                 title: string;
                 content: string;
                 keywords: string;
@@ -2106,6 +2108,7 @@ export class ShoppingProductSetting {
                 title: '',
                 content: '',
                 keywords: '',
+                domain:''
             },
             relative_product: [],
             template: '',
@@ -2365,7 +2368,11 @@ export class ShoppingProductSetting {
                                                         value="${postMD.title ?? ''}"
                                                         style="border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px 9px 18px;align-items: center;align-self: stretch;"
                                                         onchange="${gvc.event((e) => {
+                                                            if(postMD.seo.domain===postMD.title){
+                                                                postMD.seo.domain=e.value;
+                                                            }
                                                             postMD.title = e.value;
+                                                            gvc.notifyDataChange('seo')
                                                         })}"
                                                     />
                                                 </div>
@@ -3930,28 +3937,64 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                         title: '',
                                                         content: '',
                                                     };
-                                                    const id = seoID;
+                                                 
                                                     return {
-                                                        bind: id,
+                                                        bind: 'seo',
                                                         view: () => {
                                                             try {
-                                                                const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`;
+                                                                postMD.seo.domain=postMD.seo.domain || postMD.title
+                                                                const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products`;
                                                                 return html` <div style="font-weight: 700;" class="mb-3">搜尋引擎列表</div>
-                                                                    <div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>
-                                                                    ${BgWidget.greenNote(
-                                                                        href,
-                                                                        gvc.event(() => {
-                                                                            (window.parent as any).glitter.openNewTab(href);
-                                                                        })
-                                                                    )}
-                                                                    <div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>
+                                                                    ${ [
+                                                                        html` <div class="tx_normal fw-normal mb-2">商品網址</div>`,
+                                                                        html` <div
+                                                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                                                                .body.clientWidth > 768
+                                                                                ? 'gap: 18px; '
+                                                                                : 'flex-direction: column; gap: 0px; '}"
+                                                                class="w-100"
+                                                            >
+                                                                <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                    <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                        ${href}/
+                                                                    </div>
+                                                                </div>
+                                                                <input
+                                                                    class="flex-fill"
+                                                                    style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                                                                                .body.clientWidth > 768
+                                                                                ? ''
+                                                                                : 'padding: 9px 18px;'}"
+                                                                    value="${postMD.seo.domain || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                                                            let text = e.value;
+                                                                            if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
+                                                                            } else {
+                                                                                postMD.seo.domain = text;
+                                                                            }
+                                                                            gvc.notifyDataChange('seo');
+                                                                        })}"
+                                                                />
+                                                            </div>`,
+                                                                        html` <div class="mt-2 mb-1">
+                                                                <span class="tx_normal me-1">網址預覽</span>
+                                                                ${BgWidget.greenNote(
+                                                                                href+`/${postMD.seo.domain}`,
+                                                                                gvc.event(() => {
+                                                                                    window.parent.open(href, '_blank');
+                                                                                })
+                                                                        )}
+                                                            </div>`,
+                                                                    ].join('')}
                                                                     <div class="w-100" style="margin: 18px 0 8px;">SEO標題</div>
                                                                     <input
                                                                         value="${postMD.seo.title ?? ''}"
                                                                         style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                         onchange="${gvc.event((e) => {
                                                                             postMD.seo.title = e.value;
-                                                                            obj.gvc.notifyDataChange(id);
+                                                                            obj.gvc.notifyDataChange('seo');
                                                                         })}"
                                                                     />
                                                                     <div class="w-100" style="margin: 18px 0 8px;">SEO描述</div>
@@ -3961,7 +4004,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                         style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                         onchange="${gvc.event((e) => {
                                                                             postMD.seo.content = e.value;
-                                                                            obj.gvc.notifyDataChange(id);
+                                                                            obj.gvc.notifyDataChange('seo');
                                                                         })}"
                                                                     >
 ${postMD.seo.content ?? ''}</textarea
@@ -4328,7 +4371,9 @@ ${postMD.seo.content ?? ''}</textarea
             if (re.result) {
                 dialog.successMessage({ text: `更改成功` });
                 vm.type = 'list';
-            } else {
+            } else if(re.response.data.code==='733'){
+                dialog.errorMessage({ text: `此網域已被使用` });
+            }else{
                 dialog.errorMessage({ text: `上傳失敗` });
             }
         });
@@ -4346,7 +4391,9 @@ ${postMD.seo.content ?? ''}</textarea
             if (re.result) {
                 dialog.successMessage({ text: `上傳成功` });
                 vm.type = 'list';
-            } else {
+            } else if(re.response.data.code==='733'){
+                dialog.errorMessage({ text: `此網域已被使用` });
+            }else {
                 dialog.errorMessage({ text: `上傳失敗` });
             }
         });

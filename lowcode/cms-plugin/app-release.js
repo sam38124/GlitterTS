@@ -1,5 +1,4 @@
 import { BgWidget } from "../backend-manager/bg-widget.js";
-import { NormalPageEditor } from "../editor/normal-page-editor.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 export class AppRelease {
@@ -127,112 +126,72 @@ ${(() => {
                             class: 'fs-6 fw-500'
                         }),
                         [{
-                                title: '步驟一 . 版面編輯',
-                                editor: BgWidget.save(gvc.event(() => {
-                                    window.parent.glitter.setUrlParameter('function', 'user-editor');
-                                    window.parent.glitter.setUrlParameter('device', 'mobile');
-                                    window.parent.glitter.setUrlParameter('page', 'index-mobile');
-                                    localStorage.setItem('lastSelect', '');
-                                    localStorage.setItem('ViewType', 'mobile');
-                                    window.parent.location.reload();
-                                }), '編輯')
-                            }, {
-                                title: '步驟二 . 品牌內容',
-                                editor: BgWidget.save(gvc.event(() => {
+                                title: '品牌內容',
+                                editor: (() => {
                                     let postMD = JSON.parse(JSON.stringify(postMDRefer));
-                                    const editor_refer = window.parent.glitter.share.NormalPageEditor || NormalPageEditor;
-                                    const gvc = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     const id = gvc.glitter.getUUID();
-                                    editor_refer.closeEvent = () => {
-                                        if (JSON.stringify(postMD) !== JSON.stringify(postMDRefer)) {
-                                            dialog.checkYesOrNot({
-                                                text: '是否儲存變更?',
-                                                callback: (response) => {
-                                                    if (response) {
-                                                        save(false, postMD, (result) => {
-                                                        });
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    };
-                                    editor_refer.toggle({
-                                        visible: true,
-                                        title: '品牌內容編輯',
-                                        view: gvc.bindView(() => {
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    return [
-                                                        BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: `<div class="d-flex flex-column" style="gap:3px;">
+                                    const html = String.raw;
+                                    return gvc.bindView(() => {
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return [
+                                                    BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: `<div class="d-flex flex-column" style="gap:3px;">
 App 名稱
 ${BgWidget.grayNote('將展示於APP Logo下方，建議不要超過14個字元')}
 </div>`,
-                                                            default: postMD.name || '',
-                                                            placeHolder: '請輸入APP名稱',
-                                                            callback: (text) => {
-                                                                postMD.name = text;
-                                                            },
-                                                        }),
-                                                        `<div class="w-100">
+                                                        default: postMD.name || '',
+                                                        placeHolder: '請輸入APP名稱',
+                                                        callback: (text) => {
+                                                            postMD.name = text;
+                                                        },
+                                                    }),
+                                                    `<div class="w-100">
 <div class="d-flex flex-column mb-2" style="gap:3px;">
 APP Logo
 ${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}
 </div>
 ${BgWidget.imageSelector(gvc, postMD.logo, (text) => {
-                                                            postMD.logo = text;
-                                                            gvc.notifyDataChange(id);
-                                                        })}
+                                                        postMD.logo = text;
+                                                        gvc.notifyDataChange(id);
+                                                    })}
 </div>`,
-                                                        `<div class="w-100">
+                                                    `<div class="w-100">
 <div class="d-flex flex-column mb-2" style="gap:3px;">
-APP Logo
-${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}
+APP啟動畫面
+${BgWidget.grayNote('圖片上傳尺寸為1080 * 2400')}
 </div>
 ${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
-                                                            postMD.landing_page = text;
-                                                            gvc.notifyDataChange(id);
-                                                        })}
-</div>`
-                                                    ].join(`<div class="my-3"></div>`);
-                                                },
-                                                divCreate: {
-                                                    class: `m-3`
-                                                }
-                                            };
-                                        }),
-                                        width: 400,
-                                    });
-                                }), '編輯')
-                            },
-                            {
-                                title: '步驟三 . 上架資訊',
-                                editor: BgWidget.save(gvc.event(() => {
-                                    let postMD = JSON.parse(JSON.stringify(postMDRefer));
-                                    const editor_refer = window.parent.glitter.share.NormalPageEditor || NormalPageEditor;
-                                    const gvc = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    const id = gvc.glitter.getUUID();
-                                    editor_refer.closeEvent = () => {
-                                        if (JSON.stringify(postMD) !== JSON.stringify(postMDRefer)) {
-                                            dialog.checkYesOrNot({
-                                                text: '是否儲存變更?',
-                                                callback: (response) => {
-                                                    if (response) {
+                                                        postMD.landing_page = text;
+                                                        gvc.notifyDataChange(id);
+                                                    })}
+</div>`,
+                                                    html `
+                                                        <div class="w-100 d-flex align-items-center justify-content-end">
+                                                            ${BgWidget.cancel(gvc.event(() => {
                                                         save(false, postMD, (result) => {
                                                         });
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    };
-                                    editor_refer.toggle({
-                                        visible: true,
-                                        title: '上架資訊編輯',
-                                        view: gvc.bindView(() => {
+                                                    }), '儲存')}
+                                                        </div>`
+                                                ].join(`<div class="my-3"></div>`);
+                                            },
+                                            divCreate: {
+                                                class: ``
+                                            }
+                                        };
+                                    });
+                                })()
+                            },
+                            {
+                                title: '上架資訊',
+                                editor: (() => {
+                                    let postMD = JSON.parse(JSON.stringify(postMDRefer));
+                                    const id = gvc.glitter.getUUID();
+                                    return [
+                                        gvc.bindView(() => {
                                             return {
                                                 bind: id,
                                                 view: () => {
@@ -360,38 +319,26 @@ ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
                                                     ].join(`<div class="my-3"></div>`);
                                                 },
                                                 divCreate: {
-                                                    class: `m-3`
+                                                    class: ``
                                                 }
                                             };
                                         }),
-                                        width: 600,
-                                    });
-                                }), '編輯')
+                                        `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                                                            ${BgWidget.cancel(gvc.event(() => {
+                                            save(false, postMD, (result) => {
+                                            });
+                                        }), '儲存')}
+                                                        </div>`
+                                    ].join(``);
+                                })()
                             }, {
-                                title: '步驟四 . 聯絡資訊',
-                                editor: BgWidget.save(gvc.event(() => {
+                                title: '聯絡資訊',
+                                editor: (() => {
                                     let postMD = JSON.parse(JSON.stringify(postMDRefer));
-                                    const editor_refer = window.parent.glitter.share.NormalPageEditor || NormalPageEditor;
-                                    const gvc = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     const id = gvc.glitter.getUUID();
-                                    editor_refer.closeEvent = () => {
-                                        if (JSON.stringify(postMD) !== JSON.stringify(postMDRefer)) {
-                                            dialog.checkYesOrNot({
-                                                text: '是否儲存變更?',
-                                                callback: (response) => {
-                                                    if (response) {
-                                                        save(false, postMD, (result) => {
-                                                        });
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    };
-                                    editor_refer.toggle({
-                                        visible: true,
-                                        title: '上架資訊編輯',
-                                        view: gvc.bindView(() => {
+                                    return [
+                                        gvc.bindView(() => {
                                             return {
                                                 bind: id,
                                                 view: () => {
@@ -443,26 +390,31 @@ ${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}
                                                     ].join(`<div class="my-3"></div>`);
                                                 },
                                                 divCreate: {
-                                                    class: `m-3`
+                                                    class: ``
                                                 }
                                             };
                                         }),
-                                        width: 600,
-                                    });
-                                }), '編輯')
-                            }, {
-                                title: '步驟五 . 發佈送審',
-                                editor: BgWidget.save(gvc.event(() => {
-                                    save(true, postMDRefer, () => {
-                                    });
-                                }), '送出')
-                            }].map((dd) => {
-                            return BgWidget.card(`<div class="d-flex">${BgWidget.title(dd.title, 'font-size:20px;')}
+                                        `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                                                            ${BgWidget.cancel(gvc.event(() => {
+                                            save(false, postMD, (result) => {
+                                            });
+                                        }), '儲存')}
+                                                        </div>`
+                                    ].join('');
+                                })()
+                            }
+                        ].map((dd) => {
+                            return BgWidget.card(`<div class="d-flex flex-column">${BgWidget.title(dd.title, 'font-size:20px;')}
 <div class="flex-fill"></div>
-${dd.editor}
+<div class="my-3">${dd.editor}</div>
 </div>`);
-                        }).join(`<div class="my-2"></div>`)
-                    ].join(`<div class="my-3"></div>`), 800);
+                        }).join(`<div class="my-2"></div>`),
+                        `<div class="w-100 d-flex align-items-center justify-content-end">
+${BgWidget.save(gvc.event(() => {
+                            save(true, postMDRefer, () => {
+                            });
+                        }), '將APP提交審查')}
+</div>`].join(`<div class="my-3"></div>`), 800);
                 }
             };
         });

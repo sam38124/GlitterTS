@@ -24,9 +24,8 @@ export class FileSystemGet {
 
                             if (dd.type === 'folder') {
                                 loop(dd.items ?? [])
-                            }else if (cf.id.includes(dd.id)) {
+                            }else if ((cf.id ?? []).includes(dd.id)) {
                                 find.push(dd)
-
                             }
                         })
                     }

@@ -211,6 +211,7 @@ export class ApiPublic {
   KEY \`index2\` (\`userID\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+
                 {
                     scheme: appName,
                     table: 't_user',

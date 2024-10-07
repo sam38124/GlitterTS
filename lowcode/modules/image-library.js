@@ -93,167 +93,184 @@ export class imageLibrary {
                         return {
                             bind: id,
                             view: () => {
-                                let editArray = [];
-                                let sortArray = array.map((dd) => {
-                                    return dd;
-                                });
-                                switch (vm.orderString) {
-                                    case "created_time_desc": {
-                                        sortArray.reverse();
-                                        break;
+                                try {
+                                    let editArray = [];
+                                    let sortArray = array.map((dd) => {
+                                        return dd;
+                                    });
+                                    switch (vm.orderString) {
+                                        case "created_time_desc": {
+                                            sortArray.reverse();
+                                            break;
+                                        }
+                                        case "created_time_asc": {
+                                            break;
+                                        }
+                                        case "name_AtoZ": {
+                                            sortArray.sort((a, b) => {
+                                                return a.title.localeCompare(b.title);
+                                            });
+                                            break;
+                                        }
+                                        case "name_ZtoA": {
+                                            sortArray.sort((b, a) => {
+                                                return a.title.localeCompare(b.title);
+                                            });
+                                            break;
+                                        }
+                                        default:
+                                            break;
                                     }
-                                    case "created_time_asc": {
-                                        break;
-                                    }
-                                    case "name_AtoZ": {
-                                        sortArray.sort((a, b) => {
-                                            return a.title.localeCompare(b.title);
-                                        });
-                                        break;
-                                    }
-                                    case "name_ZtoA": {
-                                        sortArray.sort((b, a) => {
-                                            return a.title.localeCompare(b.title);
-                                        });
-                                        break;
-                                    }
-                                    default:
-                                        break;
-                                }
-                                return sortArray.map((dd, index) => {
-                                    if (editArray.length < index + 1) {
-                                        editArray.push(false);
-                                    }
-                                    if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())) {
-                                        return;
-                                    }
-                                    let viewID = gvc.glitter.getUUID();
-                                    return gvc.bindView({
-                                        bind: viewID,
-                                        view: () => {
-                                            var _a, _b;
-                                            const passType = ["file", "folderView", "folderEdit", "folderADD"];
-                                            const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-                                            const imageUrl = (passType.includes(vm.type))
-                                                ? dd.data
-                                                : ((_b = (_a = vm.link.find(data => { var _a; return (_a = data === null || data === void 0 ? void 0 : data.tag) === null || _a === void 0 ? void 0 : _a.includes(dd.title); })) === null || _a === void 0 ? void 0 : _a.data) !== null && _b !== void 0 ? _b : noImageURL);
-                                            return html `
-                                                    <div class=""
-                                                         style="padding: 10px 12px;position: relative;${(dd.selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
-                                                         onclick="${gvc.event((e, event) => {
-                                                let defaultSelect = dd.selected;
-                                                if (vm.type == "folder") {
-                                                    array = [];
-                                                    vm.type = "folderView";
-                                                    vm.tag = dd.title;
-                                                    gvc.notifyDataChange(vm.id);
-                                                    return;
-                                                }
-                                                if (opt === null || opt === void 0 ? void 0 : opt.onlyRead) {
-                                                    return;
-                                                }
-                                                if (!cf.mul) {
-                                                    array.forEach((data) => {
-                                                        data.selected = false;
-                                                    });
-                                                }
-                                                dd.selected = !defaultSelect;
-                                                gvc.notifyDataChange(vm.id);
-                                                event.stopPropagation();
-                                            })}"
-                                                         onmouseenter="${gvc.event(() => {
-                                                if ((opt === null || opt === void 0 ? void 0 : opt.onlyRead) || cf.key == "album") {
-                                                    return;
-                                                }
-                                                if (!editArray[index]) {
-                                                    editArray[index] = true;
-                                                    gvc.notifyDataChange(viewID);
-                                                }
-                                            })}"
-                                                         onmouseleave="${gvc.event(() => {
-                                                if (opt === null || opt === void 0 ? void 0 : opt.onlyRead) {
-                                                    return;
-                                                }
-                                                editArray[index] = false;
-                                                gvc.notifyDataChange(viewID);
-                                            })}">
-                                                        <div class="${(editArray[index] && !dd.selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
-                                                             style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
+                                    return sortArray.map((dd, index) => {
+                                        dd.title = dd.title || '';
+                                        if (editArray.length < index + 1) {
+                                            editArray.push(false);
+                                        }
+                                        if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())) {
+                                            return;
+                                        }
+                                        let viewID = gvc.glitter.getUUID();
+                                        return gvc.bindView({
+                                            bind: viewID,
+                                            view: () => {
+                                                var _a, _b;
+                                                try {
+                                                    const passType = ["file", "folderView", "folderEdit", "folderADD"];
+                                                    const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                                                    const imageUrl = (passType.includes(vm.type))
+                                                        ? dd.data
+                                                        : ((_b = (_a = vm.link.find(data => { var _a; return (_a = data === null || data === void 0 ? void 0 : data.tag) === null || _a === void 0 ? void 0 : _a.includes(dd.title); })) === null || _a === void 0 ? void 0 : _a.data) !== null && _b !== void 0 ? _b : noImageURL);
+                                                    return html `
+                                                        <div class=""
+                                                             style="padding: 10px 12px;position: relative;${(dd.selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
                                                              onclick="${gvc.event((e, event) => {
-                                                event.stopPropagation();
-                                                if (vm.type == "folder") {
-                                                    vm.tag = dd.title;
-                                                    that.selectImageLibrary(gvc, (selectData) => {
-                                                        vm.link = selectData;
+                                                        let defaultSelect = dd.selected;
+                                                        if (vm.type == "folder") {
+                                                            array = [];
+                                                            vm.type = "folderView";
+                                                            vm.tag = dd.title;
+                                                            gvc.notifyDataChange(vm.id);
+                                                            return;
+                                                        }
+                                                        if (opt === null || opt === void 0 ? void 0 : opt.onlyRead) {
+                                                            return;
+                                                        }
+                                                        if (!cf.mul) {
+                                                            array.forEach((data) => {
+                                                                data.selected = false;
+                                                            });
+                                                        }
+                                                        dd.selected = !defaultSelect;
                                                         gvc.notifyDataChange(vm.id);
-                                                    }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
-                                                        key: 'folderEdit',
-                                                        mul: true,
-                                                        tag: dd.title,
-                                                    });
-                                                }
-                                                else {
-                                                    cf.edit(dd, (replace) => {
-                                                        if (!replace) {
-                                                            let selectData = vm.link.findIndex(data => { return data.id == dd.id; });
-                                                            vm.link.splice(selectData, 1);
-                                                            save(() => {
+                                                        event.stopPropagation();
+                                                    })}"
+                                                             onmouseenter="${gvc.event(() => {
+                                                        if ((opt === null || opt === void 0 ? void 0 : opt.onlyRead) || cf.key == "album") {
+                                                            return;
+                                                        }
+                                                        if (!editArray[index]) {
+                                                            editArray[index] = true;
+                                                            gvc.notifyDataChange(viewID);
+                                                        }
+                                                    })}"
+                                                             onmouseleave="${gvc.event(() => {
+                                                        if (opt === null || opt === void 0 ? void 0 : opt.onlyRead) {
+                                                            return;
+                                                        }
+                                                        editArray[index] = false;
+                                                        gvc.notifyDataChange(viewID);
+                                                    })}">
+                                                            <div class="${(editArray[index] && !dd.selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
+                                                                 style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
+                                                                 onclick="${gvc.event((e, event) => {
+                                                        event.stopPropagation();
+                                                        if (vm.type == "folder") {
+                                                            vm.tag = dd.title;
+                                                            that.selectImageLibrary(gvc, (selectData) => {
+                                                                vm.link = selectData;
                                                                 gvc.notifyDataChange(vm.id);
+                                                            }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                                key: 'folderEdit',
+                                                                mul: true,
+                                                                tag: dd.title,
                                                             });
                                                         }
                                                         else {
-                                                            let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
-                                                            vm.link[replaceIndex] = replace;
-                                                            save(() => {
-                                                                gvc.notifyDataChange(vm.id);
+                                                            cf.edit(dd, (replace) => {
+                                                                if (!replace) {
+                                                                    let selectData = vm.link.findIndex(data => {
+                                                                        return data.id == dd.id;
+                                                                    });
+                                                                    vm.link.splice(selectData, 1);
+                                                                    save(() => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
+                                                                    vm.link[replaceIndex] = replace;
+                                                                    save(() => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    });
+                                                                }
                                                             });
                                                         }
-                                                    });
-                                                }
-                                            })}">
-                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                 width="12"
-                                                                 height="12"
-                                                                 viewBox="0 0 12 12"
-                                                                 fill="none">
-                                                                <g clip-path="url(#clip0_13619_1920)">
-                                                                    <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
-                                                                          fill="white"/>
-                                                                </g>
-                                                                <defs>
-                                                                    <clipPath
-                                                                            id="clip0_13619_1920">
-                                                                        <rect width="12"
-                                                                              height="12"
+                                                    })}">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                     width="12"
+                                                                     height="12"
+                                                                     viewBox="0 0 12 12"
+                                                                     fill="none">
+                                                                    <g clip-path="url(#clip0_13619_1920)">
+                                                                        <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
                                                                               fill="white"/>
-                                                                    </clipPath>
-                                                                </defs>
-                                                            </svg>
-                                                        </div>
-                                                        <div class="${(dd.selected) ? `d-flex` : `d-none`}  "
-                                                             style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
-                                                        >
-                                                            <i class="fa-solid fa-square-check "
-                                                               style="color: #393939;font-size: 24px;"></i>
+                                                                    </g>
+                                                                    <defs>
+                                                                        <clipPath
+                                                                                id="clip0_13619_1920">
+                                                                            <rect width="12"
+                                                                                  height="12"
+                                                                                  fill="white"/>
+                                                                        </clipPath>
+                                                                    </defs>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="${(dd.selected) ? `d-flex` : `d-none`}  "
+                                                                 style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
+                                                            >
+                                                                <i class="fa-solid fa-square-check "
+                                                                   style="color: #393939;font-size: 24px;"></i>
 
-                                                        </div>
+                                                            </div>
 
-                                                        <div style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
-                                                        <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
-                                                             style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
-                                                             contenteditable="true"
-                                                             onchange="${gvc.event((e) => {
-                                            })}">
-                                                            ${dd.title}
+                                                            <div style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
+                                                            <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
+                                                                 style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
+                                                                 contenteditable="true"
+                                                                 onchange="${gvc.event((e) => {
+                                                    })}">
+                                                                ${dd.title}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                `;
-                                        },
-                                        divCreate: { style: `${gvc.glitter.ut.frSize({
-                                                sm: `width:15%;`
-                                            }, `width:33%;`)}cursor:pointer;` }
-                                    });
-                                }).join('');
+                                                    `;
+                                                }
+                                                catch (e) {
+                                                    console.log(e);
+                                                    return ``;
+                                                }
+                                            },
+                                            divCreate: {
+                                                style: `${gvc.glitter.ut.frSize({
+                                                    sm: `width:15%;`
+                                                }, `width:33%;`)}cursor:pointer;`
+                                            }
+                                        });
+                                    }).join('');
+                                }
+                                catch (e) {
+                                    console.log(`error=>`, e);
+                                    return ``;
+                                }
                             },
                             divCreate: {
                                 elem: 'ul',
@@ -534,17 +551,25 @@ export class imageLibrary {
                                     gvc.glitter.innerDialog((gvc) => {
                                         return html `
                                                     <div style="width: 445px;height: 255px;border-radius: 10px;background: #FFF;">
-                                                        <div class="d-flex" style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;">新增圖片
-                                                            <span class="d-flex align-items-center justify-content-center" style="margin-left: auto;cursor: pointer;" onclick="${gvc.event(() => {
+                                                        <div class="d-flex"
+                                                             style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;">
+                                                            新增圖片
+                                                            <span class="d-flex align-items-center justify-content-center"
+                                                                  style="margin-left: auto;cursor: pointer;"
+                                                                  onclick="${gvc.event(() => {
                                             gvc.glitter.closeDiaLog('add');
                                         })}">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                                  <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round"/>
-                                                                  <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round"/>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14" viewBox="0 0 14 14" fill="none">
+                                                                  <path d="M1 1L13 13" stroke="#393939"
+                                                                        stroke-linecap="round"/>
+                                                                  <path d="M13 1L1 13" stroke="#393939"
+                                                                        stroke-linecap="round"/>
                                                                 </svg>
                                                             </span>
                                                         </div>
-                                                        <div class="d-flex justify-content-center" style="padding-top:61px;gap:14px;">
+                                                        <div class="d-flex justify-content-center"
+                                                             style="padding-top:61px;gap:14px;">
                                                             <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
                                                                  onclick="${gvc.event(() => {
                                             this.selectImageLibrary(gvc, (selectData) => {
@@ -707,7 +732,8 @@ export class imageLibrary {
                                             vm.type = "folderADD";
                                             gvc.notifyDataChange(vm.id);
                                         }
-                                    })}">${vm.type == "file" ? "上傳新照片" : "上傳相簿"}
+                                    })}">
+                                                                    ${vm.type == "file" ? "上傳新照片" : "上傳相簿"}
                                                                 </div>
                                                             </div>
                                                             ${renderItems(viewData)}

@@ -197,8 +197,32 @@ export class GVC {
             }
         };
     }
+    getStyleCheckSum(style) {
+        var _a, _b;
+        const gvc = this;
+        const style_check_sum = gvc.glitter.generateCheckSum(style);
+        if (!GVC.add_style_string.find((dd) => {
+            return dd === style_check_sum;
+        })) {
+            gvc.glitter.share._style_string = (_a = gvc.glitter.share._style_string) !== null && _a !== void 0 ? _a : '';
+            gvc.glitter.share._style_get_running = (_b = gvc.glitter.share._style_get_running) !== null && _b !== void 0 ? _b : false;
+            GVC.add_style_string.push(style_check_sum);
+            gvc.glitter.share._style_string += `\n.s${style_check_sum} {
+                        ${style || ''}
+                        }\n`;
+            if (!gvc.glitter.share._style_get_running) {
+                gvc.glitter.share._style_get_running = true;
+                setTimeout(() => {
+                    gvc.addStyle(gvc.glitter.share._style_string);
+                    gvc.glitter.share._style_string = '';
+                    gvc.glitter.share._style_get_running = false;
+                }, 5);
+            }
+        }
+        return `s${style_check_sum}`;
+    }
     bindView(map) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         const gvc = this;
         if (typeof map === "function") {
             map = map();
@@ -235,12 +259,12 @@ export class GVC {
         });
         gvc.glitter.elementCallback[gvc.id(map.bind)].getView = map.view;
         gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
-            var _a, _b, _c;
+            var _a, _b;
             try {
                 const id = gvc.id(map.bind);
                 const divCreate2 = (typeof map.divCreate === "function") ? map.divCreate() : map.divCreate;
                 if (divCreate2) {
-                    ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).concat({ key: 'class', value: ((_b = divCreate2.class) !== null && _b !== void 0 ? _b : '').split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '') }, { key: 'style', value: ((_c = divCreate2.style) !== null && _c !== void 0 ? _c : '').trim() }).map((dd) => {
+                    ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).concat({ key: 'class', value: ((_b = divCreate2.class) !== null && _b !== void 0 ? _b : '').split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '') + ` ${this.getStyleCheckSum(divCreate2.style || '')}` }).map((dd) => {
                         try {
                             gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`));
                         }
@@ -255,12 +279,12 @@ export class GVC {
             }
         });
         const divCreate = (_d = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _d !== void 0 ? _d : { elem: 'div' };
-        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${((_f = divCreate.class) !== null && _f !== void 0 ? _f : "").split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '')}" style="${(_g = divCreate.style) !== null && _g !== void 0 ? _g : ""}"
+        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${((_f = divCreate.class) !== null && _f !== void 0 ? _f : "").split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '')} ${this.getStyleCheckSum(divCreate.style || '')}" 
  glem="bindView"  gvc-id="${gvc.id(map.bind)}"
- ${gvc.map(((_h = divCreate.option) !== null && _h !== void 0 ? _h : []).map((dd) => {
+ ${gvc.map(((_g = divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
             return ` ${dd.key}="${dd.value}"`;
         }))}
-></${(_j = divCreate.elem) !== null && _j !== void 0 ? _j : 'div'}>`;
+></${(_h = divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>`;
     }
     event(fun, noCycle) {
         const gvc = this;
@@ -380,6 +404,7 @@ export class GVC {
     }
 }
 GVC.initial = false;
+GVC.add_style_string = [];
 export function init(metaURL, fun) {
     var _a;
     GVC.glitter.share.GVControllerList = (_a = GVC.glitter.share.GVControllerList) !== null && _a !== void 0 ? _a : {};

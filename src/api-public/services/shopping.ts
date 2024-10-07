@@ -202,6 +202,7 @@ export class Shopping {
         limit: number;
         sku?: string;
         id?: string;
+        domain?:string;
         search?: string;
         searchType?: string;
         collection?: string;
@@ -249,6 +250,9 @@ export class Shopping {
                         );
                         break;
                 }
+            }
+            if(query.domain){
+                querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`)
             }
             if(`${query.id || ''}`){
                 if(`${query.id}`.includes(',')){
@@ -445,7 +449,9 @@ export class Shopping {
                         return dd;
                     });
             }
-
+if(query.domain && products.data[0]){
+    products.data=products.data[0]
+}
             return products;
         } catch (e) {
             console.error(e);
@@ -3378,6 +3384,15 @@ export class Shopping {
     }
 
     async postProduct(content: any) {
+        content.seo=content.seo ?? {}
+        content.seo.domain= content.seo.domain || content.title;
+        const find_conflict=await db.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`,[])
+        if(find_conflict[0]['count(1)']>0){
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:' , {
+                message:'網域已被使用',
+                code:'733'
+            });
+        }
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
@@ -3522,6 +3537,13 @@ export class Shopping {
     }
 
     async putProduct(content: any) {
+        const find_conflict=await db.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}') and id != ${content.id}`,[])
+        if(find_conflict[0]['count(1)']>0){
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:' , {
+                message:'網域已被使用',
+                code:'733'
+            });
+        }
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);

@@ -1,6 +1,7 @@
 import {init} from '../GVController.js';
 import {TriggerEvent} from "./trigger-event.js";
 import {EditorConfig} from "../../editor-config.js";
+import {GlobalUser} from "../../glitter-base/global/global-user.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -11,6 +12,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         loading: true,
         mainView: ''
     };
+
+    console.log(`the-page`,gvc.glitter.getUrlParameter('page'))
     console.log(`waitCreateView-time:`, (window as any).renderClock.stop())
 
     async function load() {
@@ -67,6 +70,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
+            //判斷如果是帳號頁面，且未登入則重新導向
+            if(gvc.glitter.getUrlParameter('page')==='account_userinfo' && !GlobalUser.token){
+                gvc.glitter.href='/login'
+                return ``
+            }
             document.querySelector('body')!.style.background=gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
             const mainId = glitter.getUUID()
@@ -212,10 +220,8 @@ is_page:true
 
                 },
                 divCreate: {
-                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
-                    
-                    `
+                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class()+' d-none',
+                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                 },
                 onCreate: () => {
                     (gBundle.page_config.initialList ?? []).map((dd: any) => {
@@ -226,6 +232,9 @@ is_page:true
                             }
                         }
                     })
+                    setTimeout(()=>{
+                        (document.querySelector(`[gvc-id='${gvc.id(mainId)}']`) as any).classList.remove('d-none')
+                    },20)
                 }
             }))
             return map.join('');

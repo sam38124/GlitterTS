@@ -210,7 +210,30 @@ export class GVC {
             }
         }
     }
-
+    public static add_style_string:string[]=[]
+    public getStyleCheckSum(style:string){
+        const gvc=this
+        const style_check_sum=gvc.glitter.generateCheckSum(style);
+        if(!GVC.add_style_string.find((dd)=>{
+            return dd===style_check_sum
+        })){
+            gvc.glitter.share._style_string= gvc.glitter.share._style_string ?? ''
+            gvc.glitter.share._style_get_running= gvc.glitter.share._style_get_running ?? false
+            GVC.add_style_string.push(style_check_sum)
+            gvc.glitter.share._style_string+=`\n.s${style_check_sum} {
+                        ${style||'' }
+                        }\n`
+            if(!gvc.glitter.share._style_get_running){
+                gvc.glitter.share._style_get_running=true
+                setTimeout(()=>{
+                    gvc.addStyle(gvc.glitter.share._style_string)
+                    gvc.glitter.share._style_string=''
+                    gvc.glitter.share._style_get_running=false
+                },5)
+            }
+        }
+        return `s${style_check_sum}`
+    }
     public bindView(map: (
         () =>
             { view: () => (string) | Promise<string>, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void, onDestroy?: () => void }) |
@@ -243,7 +266,6 @@ export class GVC {
                 })
             })
         }
-
         gvc.parameter.bindViewList[map.bind] = map
         gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (map as any).onInitial ?? (() => {
         })
@@ -258,8 +280,8 @@ export class GVC {
                 const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
                 if (divCreate2) {
                     (divCreate2.option ?? []).concat(
-                        {key: 'class', value: (divCreate2.class ?? '').split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')},
-                        {key: 'style', value: (divCreate2.style ?? '').trim()}
+                        {key: 'class', value: (divCreate2.class ?? '').split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')+` ${this.getStyleCheckSum(divCreate2.style || '')}`},
+                        // {key: 'style', value: (divCreate2.style ?? '').trim()}
                     ).map((dd: any) => {
                         try {
                             gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`)!)
@@ -275,8 +297,7 @@ export class GVC {
         })
 
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
-        // const data = map.view()
-        return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')}" style="${divCreate.style ?? ""}"
+        return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')} ${this.getStyleCheckSum(divCreate.style || '')}" 
  glem="bindView"  gvc-id="${gvc.id(map.bind)}"
  ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             return ` ${dd.key}="${dd.value}"`
