@@ -15,7 +15,7 @@ export interface ChatMessage {
 }
 export declare class Chat {
     app: string;
-    token: IToken;
+    token?: IToken;
     addChatRoom(room: ChatRoom): Promise<any>;
     getChatRoom(qu: any, userID: string): Promise<{
         data: any;
@@ -41,5 +41,5 @@ export declare class Chat {
     }>;
     unReadMessage(user_id: string): Promise<any>;
     unReadMessageCount(user_id: string): Promise<any>;
-    constructor(app: string, token: IToken);
+    constructor(app: string, token?: IToken);
 }

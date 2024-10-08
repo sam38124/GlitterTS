@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LineMessage = void 0;
+exports.FbMessage = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const auto_send_email_js_1 = require("./auto-send-email.js");
@@ -12,16 +12,16 @@ const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
-class LineMessage {
+class FbMessage {
     constructor(app, token) {
         this.app = app;
     }
-    async chunkSendLine(userList, content, id, date) {
+    async chunkSendMessage(userList, content, id, date) {
         try {
             let check = userList.length;
             await new Promise((resolve) => {
                 for (const d of userList) {
-                    this.sendLine({ data: content, lineID: d.lineID }, (res) => {
+                    this.sendMessage({ data: content, fbID: d.lineID }, (res) => {
                         check--;
                         if (check === 0) {
                             database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date ? 0 : 1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [id]);
@@ -35,26 +35,21 @@ class LineMessage {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
         }
     }
-    async sendLine(obj, callback) {
+    async sendMessage(obj, callback) {
         try {
-            let postData = {
-                "to": obj.lineID,
-                "messages": [
-                    {
-                        "type": "text",
-                        "text": obj.data
-                    }
-                ]
+            const payload = {
+                recipient: { id: obj.fbID },
+                message: { text: obj.data }
             };
-            let token = "Bearer XBcCOSLLaQuVIQ8O6BR/KV8MSqHlOs5lqdu/fWkJGwRuEUItbWtfkt920OX49wtNzD9GP1dl0LqgqnT2GmGRinnk3Z7stN84gCSrDTnUAtgxfmd8Lsd/QfwfdIGwTg4cTicgQ88DVEJDZK5FKi6rZwdB04t89/1O/w1cDnyilFU=";
+            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD";
             const urlConfig = {
                 method: 'post',
-                url: "https://api.line.me/v2/bot/message/push",
+                url: "https://graph.facebook.com/v12.0/me/messages",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": token
                 },
-                data: JSON.stringify(postData)
+                data: JSON.stringify(payload)
             };
             return new Promise((resolve, reject) => {
                 axios_1.default.request(urlConfig)
@@ -177,7 +172,7 @@ class LineMessage {
                         status: 0,
                     },
                 ]);
-                this.chunkSendLine(data.userList, data.content, insertData.insertId);
+                this.chunkSendMessage(data.userList, data.content, insertData.insertId);
             }
             return { result: true, message: '寄送成功' };
         }
@@ -226,7 +221,7 @@ class LineMessage {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendLine({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), lineID: lineID }, (res) => {
+                resolve(await this.sendMessage({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), fbID: lineID }, (res) => {
                 }));
             });
         }
@@ -283,7 +278,7 @@ class LineMessage {
         return pointCount * 15 * user_count;
     }
 }
-exports.LineMessage = LineMessage;
+exports.FbMessage = FbMessage;
 function formatDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -312,4 +307,4 @@ function isLater(dateTimeObj) {
     const providedDateTime = new Date(dateTimeString);
     return currentDateTime > providedDateTime;
 }
-//# sourceMappingURL=line-message.js.map
+//# sourceMappingURL=fb-message.js.map

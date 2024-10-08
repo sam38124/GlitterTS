@@ -245,7 +245,7 @@ export class Schedule {
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
     async autoSendLine(sec: number) {
-
+        console.log("test")
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {

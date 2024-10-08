@@ -9,6 +9,7 @@ import { WebSocket } from '../../services/web-socket.js';
 import { Firebase } from '../../modules/firebase.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { AiRobot } from './ai-robot.js';
+import {LineMessage} from "./line-message";
 
 export interface ChatRoom {
     chat_id: string;
@@ -28,7 +29,7 @@ export interface ChatMessage {
 
 export class Chat {
     public app: string;
-    public token: IToken;
+    public token?: IToken;
 
     public async addChatRoom(room: ChatRoom) {
         try {
@@ -46,10 +47,8 @@ export class Chat {
                                   where chat_id = ?`,
                         [room.chat_id]
                     )
-                )[0]['count(1)'] === 1
+                )[0]['count(1)'] === 0
             ) {
-                throw exception.BadRequestError('BAD_REQUEST', 'THIS CHATROOM ALREADY EXISTS.', null);
-            } else {
                 const data = await db.query(
                     `INSERT INTO \`${this.app}\`.\`t_chat_list\`
                                              SET ?`,
@@ -159,8 +158,20 @@ export class Chat {
                     [room.chat_id]
                 )
             )[0];
+            console.log("room -- " , room)
             if (!chatRoom) {
                 throw exception.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
+            }
+            //檢查是不是要回傳給line
+            if (room.chat_id.startsWith('line')) {
+                console.log('chat_id 的前綴是 line');
+                const newChatId = room.chat_id.slice(4).split("-")[0];
+                console.log(room.message.text , newChatId)
+                await new LineMessage(this.app).sendLine({
+                    data: room.message.text,
+                    lineID: newChatId
+                }, () => {
+                });
             }
             //傳送者
             const user = (
@@ -180,6 +191,7 @@ export class Chat {
             );
             //更新聊天內容的時間點
             await db.query(`update \`${this.app}\`.t_chat_list set updated_time=NOW() where chat_id = ?`, [room.chat_id]);
+
             const insert = await db.query(
                 `
                 insert into \`${this.app}\`.\`t_chat_detail\`
@@ -293,6 +305,7 @@ export class Chat {
                         if (robot.question) {
                             for (const d of robot.question) {
                                 if (d.ask === room.message.text) {
+
                                     const insert = await db.query(
                                         `
                                     insert into \`${this.app}\`.\`t_chat_detail\`
@@ -548,9 +561,11 @@ export class Chat {
         );
     }
 
-    constructor(app: string, token: IToken) {
+    constructor(app: string, token?: IToken) {
         this.app = app;
-        this.token = token;
+        if (token){
+            this.token = token;
+        }
     }
 }
 

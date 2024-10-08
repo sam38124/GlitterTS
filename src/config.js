@@ -125,10 +125,12 @@ exports.config = {
         ai_chat: '/ai',
         sms: '/sms',
         line_message: '/line_message',
+        fb_message: '/fb_message',
         ai_points: '/ai/points',
         sms_points: '/sms/points',
     },
     route: {
+        line_message: '/line_message',
         user: '/user',
         template: '/template',
         app: '/app',

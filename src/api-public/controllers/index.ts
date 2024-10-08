@@ -20,6 +20,7 @@ import app_release = require('./app-release');
 import smtp = require('./smtp');
 import sms = require('./sms');
 import line_message = require('./line-message');
+import fb_message = require('./fb-message');
 import fcm = require('./fcm');
 import wallet = require('./wallet');
 import article = require('./article');
@@ -44,6 +45,7 @@ router.use(config.getRoute(config.public_route.app, 'public'), app_release);
 router.use(config.getRoute(config.public_route.smtp, 'public'), smtp);
 router.use(config.getRoute(config.public_route.sms, 'public'), sms);
 router.use(config.getRoute(config.public_route.line_message, 'public'), line_message);
+router.use(config.getRoute(config.public_route.fb_message, 'public'), fb_message);
 router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
 router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 router.use(config.getRoute(config.public_route.article, 'public'), article);
@@ -56,6 +58,10 @@ router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 /******************************/
 const whiteList: {}[] = [
+    { url: config.getRoute(config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },
+
     { url: config.getRoute(config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.chat, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.invoice + '/invoice-type', 'public'), method: 'GET' },

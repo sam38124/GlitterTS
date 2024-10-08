@@ -97,6 +97,57 @@ export async function initial(serverPort: number) {
     })();
 }
 
+function openLineWebhook(){
+    const app = express();
+    const PORT = process.env.PORT || 3000;
+    const VERIFY_TOKEN = 'Ee7DWSoCMu8Fc/D0DbDyeWJYSgTp6kyx4JjKmN+6UnCFaBz7zZkzMLWCfJgbTwdPquynA5mLTYHv2DPYYL7Bf5VhHGyN70bi/Q5nx+/gz4fc1KakDEWXKpJpJsT+OVjZknTTdvI42ooj67rjY4RmMAdB04t89/1O/w1cDnyilFU=';
+    // 解析application/json類型的請求體
+    app.use(bodyParser.json());
+
+    // @ts-ignore
+    app.get('/webhook', (req: Request, res: Response) => {
+        // @ts-ignore
+        const mode = req.query['hub.mode'];
+        // @ts-ignore
+        const token = req.query['hub.verify_token'];
+        // @ts-ignore
+        const challenge = req.query['hub.challenge'];
+
+        // 檢查確認token是否一致
+        if (mode && token && mode === 'subscribe' && token === VERIFY_TOKEN) {
+            console.log('Webhook verified');
+            // @ts-ignore
+            res.status(200).send(challenge);
+        } else {
+            // @ts-ignore
+            res.sendStatus(403);
+        }
+    });
+    // @ts-ignore
+    app.post('/webhook', (req: Request, res: Response) => {
+        const body = req.body;
+        // @ts-ignore
+        if (body.object === 'page') {
+            // @ts-ignore
+            body.entry.forEach((entry: any) => {
+                const webhookEvent = entry.messaging[0];
+                const senderId = webhookEvent.sender.id;
+
+                if (webhookEvent.message) {
+                    console.log(`Received message: ${webhookEvent.message.text}`);
+                    // @ts-ignore
+                    sendMessage(senderId, `You said: ${webhookEvent.message.text}`);
+                }
+            });
+            // @ts-ignore
+            res.status(200).send('EVENT_RECEIVED');
+        } else {
+            // @ts-ignore
+            res.sendStatus(404);
+        }
+    });
+}
+
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
     const uuid = uuidv4();
     const ip = req.ip;

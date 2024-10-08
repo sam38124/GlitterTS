@@ -11,7 +11,7 @@ import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
 
 
-interface LineResponse {
+interface FbResponse {
     // 定義 response 物件的結構，根據實際 API 回應的格式進行調整
     clientid?:string,
     msgid?:string,
@@ -36,7 +36,7 @@ interface Config {
     data: any;
 }
 
-interface LineData{
+interface FbData{
     username: string,
     password: string,
     dstaddr: string
@@ -44,21 +44,21 @@ interface LineData{
     smsPointFlag:number
 }
 
-export class LineMessage {
+export class FbMessage {
     public app;
 
     constructor(app: string, token?: IToken) {
         this.app = app;
     }
 
-    async chunkSendLine(userList:any , content: any, id: number , date?:string) {
+    async chunkSendMessage(userList:any , content: any, id: number , date?:string) {
         try {
             // let msgid = ""
 
             let check = userList.length;
             await new Promise((resolve) => {
                 for (const d of userList) {
-                    this.sendLine({data:content , lineID:d.lineID}, (res)=>{
+                    this.sendMessage({data:content , fbID:d.lineID}, (res)=>{
                         check--;
                         if (check === 0) {
                             db.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date?0:1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [ id]);
@@ -72,34 +72,56 @@ export class LineMessage {
             throw exception.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
         }
     }
-    async sendLine(obj:{data: string, lineID: string  } , callback: (data:any)=>void) {
+    async sendMessage(obj:{data: string, fbID: string  } , callback: (data:any)=>void) {
         try {
-            let postData = {
-                "to": obj.lineID,
-                "messages":
-                    [
-                        {
-                            "type":"text",
-                            "text":obj.data
-                        }
-                    ]
-            }
-            let token = "Bearer XBcCOSLLaQuVIQ8O6BR/KV8MSqHlOs5lqdu/fWkJGwRuEUItbWtfkt920OX49wtNzD9GP1dl0LqgqnT2GmGRinnk3Z7stN84gCSrDTnUAtgxfmd8Lsd/QfwfdIGwTg4cTicgQ88DVEJDZK5FKi6rZwdB04t89/1O/w1cDnyilFU="
+            const payload = {
+                recipient: { id: obj.fbID },
+                message: { text: obj.data }
+            };
+            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD"
             const urlConfig: Config = {
                 method: 'post',
-                url: "https://api.line.me/v2/bot/message/push",
+                url: "https://graph.facebook.com/v12.0/me/messages",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization":token
                 },
-                data: JSON.stringify(postData)
+                data: JSON.stringify(payload)
             };
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
                     .then((response) => {
                         // let result = response.data.split('\r\n')
+                        callback(response)
+                        resolve(response.data)
+                    })
+                    .catch((error) => {
+                        console.log("error -- " , error.data)
+                        resolve(false)
+                    });
+            })
 
+        }catch (e:any){
+            throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
+        }
+    }
+    async sendUserInf(fbID: string  , callback: (data:any)=>void) {
+        try {
 
+            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD"
+            const urlConfig: Config = {
+                method: 'post',
+                url: `https://graph.facebook.com/v12.0/${fbID}?fields=first_name,last_name,profile_pic`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization":token
+                },
+                data: JSON.stringify({})
+            };
+            return new Promise<boolean>((resolve, reject) => {
+                axios.request(urlConfig)
+                    .then((response) => {
+                        // let result = response.data.split('\r\n')
                         callback(response)
                         resolve(response.data)
                     })
@@ -257,7 +279,7 @@ export class LineMessage {
                         status: 0,
                     },
                 ]);
-                this.chunkSendLine(data.userList , data.content , insertData.insertId);
+                this.chunkSendMessage(data.userList , data.content , insertData.insertId);
             }
             return { result: true, message: '寄送成功' };
         } catch (e) {
@@ -318,7 +340,7 @@ export class LineMessage {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendLine({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , lineID:lineID}, (res)=>{
+                resolve(await this.sendMessage({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , fbID:lineID}, (res)=>{
 
                 }))
             })
@@ -343,7 +365,7 @@ export class LineMessage {
     }
 
     //點數扣除
-    public  async usePoints(obj:{message:string,user_count:number,order_id?:string,phone:string}) {
+    public async usePoints(obj:{message:string,user_count:number,order_id?:string,phone:string}) {
         if(!obj.phone){
             return  0
         }
@@ -365,7 +387,7 @@ export class LineMessage {
         return total * -1
     }
 
-    public  getUsePoints(text:string,user_count:number){
+    public getUsePoints(text:string,user_count:number){
         let pointCount=0
         const maxSize=160;
         const longSMS=153;

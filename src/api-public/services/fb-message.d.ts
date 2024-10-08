@@ -5,13 +5,13 @@ export interface ChatRoom {
     info: any;
     participant: string[];
 }
-export declare class LineMessage {
+export declare class FbMessage {
     app: string;
     constructor(app: string, token?: IToken);
-    chunkSendLine(userList: any, content: any, id: number, date?: string): Promise<void>;
-    sendLine(obj: {
+    chunkSendMessage(userList: any, content: any, id: number, date?: string): Promise<void>;
+    sendMessage(obj: {
         data: string;
-        lineID: string;
+        fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
     deleteSNS(obj: {
         id: string;

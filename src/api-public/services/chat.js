@@ -14,6 +14,7 @@ const web_socket_js_1 = require("../../services/web-socket.js");
 const firebase_js_1 = require("../../modules/firebase.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const ai_robot_js_1 = require("./ai-robot.js");
+const line_message_1 = require("./line-message");
 class Chat {
     async addChatRoom(room) {
         try {
@@ -26,10 +27,7 @@ class Chat {
             }
             if ((await database_1.default.query(`select count(1)
                                   from \`${this.app}\`.t_chat_list
-                                  where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 1) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'THIS CHATROOM ALREADY EXISTS.', null);
-            }
-            else {
+                                  where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 0) {
                 const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
                                              SET ?`, [
                     {
@@ -113,8 +111,19 @@ class Chat {
             const chatRoom = (await database_1.default.query(`select *
                                                from \`${this.app}\`.t_chat_list
                                                where chat_id = ?`, [room.chat_id]))[0];
+            console.log("room -- ", room);
             if (!chatRoom) {
                 throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
+            }
+            if (room.chat_id.startsWith('line')) {
+                console.log('chat_id 的前綴是 line');
+                const newChatId = room.chat_id.slice(4).split("-")[0];
+                console.log(room.message.text, newChatId);
+                await new line_message_1.LineMessage(this.app).sendLine({
+                    data: room.message.text,
+                    lineID: newChatId
+                }, () => {
+                });
             }
             const user = (await database_1.default.query(`SELECT userID,userData
                                           FROM \`${this.app}\`.t_user
@@ -403,7 +412,9 @@ class Chat {
     }
     constructor(app, token) {
         this.app = app;
-        this.token = token;
+        if (token) {
+            this.token = token;
+        }
     }
 }
 exports.Chat = Chat;

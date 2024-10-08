@@ -33,6 +33,20 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.post('/listenMessage', async (req: express.Request, resp: express.Response) => {
+    try {
+        await new LineMessage(req.get('g-app') as string, req.body.token).listenMessage(req.body)
+        return response.succ(
+            resp,
+            {
+                "result":"OK"
+            }
+        )
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {

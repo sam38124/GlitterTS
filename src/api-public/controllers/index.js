@@ -24,6 +24,7 @@ const app_release = require("./app-release");
 const smtp = require("./smtp");
 const sms = require("./sms");
 const line_message = require("./line-message");
+const fb_message = require("./fb-message");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
 const article = require("./article");
@@ -46,6 +47,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'),
 router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
 router.use(config_1.config.getRoute(config_1.config.public_route.sms, 'public'), sms);
 router.use(config_1.config.getRoute(config_1.config.public_route.line_message, 'public'), line_message);
+router.use(config_1.config.getRoute(config_1.config.public_route.fb_message, 'public'), fb_message);
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);
@@ -57,6 +59,9 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
 const whiteList = [
+    { url: config_1.config.getRoute(config_1.config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.invoice + '/invoice-type', 'public'), method: 'GET' },
