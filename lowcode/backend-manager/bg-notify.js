@@ -706,15 +706,7 @@ export class BgNotify {
                                 obj.gvc.notifyDataChange(bi);
                             }))}
                                             </div>
-                                            ${EditorElem.richText({
-                            gvc: obj.gvc,
-                            def: postData.content,
-                            callback: (text) => {
-                                postData.content = text;
-                            },
-                            style: `overflow-y: auto;`,
-                            readonly: obj.readonly,
-                        })}`),
+                                            <div class="p-1">${postData.content}</div>`),
                     ]);
                     return htmlList.filter((str) => str.length > 0).join(BgWidget.mbContainer(16));
                 },
