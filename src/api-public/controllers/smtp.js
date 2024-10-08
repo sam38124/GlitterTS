@@ -43,5 +43,19 @@ router.post('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.delete('/:id', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            const data = await new mail_js_1.Mail(req.get('g-app'), req.body.token).cancelSendMail(req.params.id);
+            return response_1.default.succ(resp, { data });
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=smtp.js.map

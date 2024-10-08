@@ -528,9 +528,11 @@ export class BgNotify {
                                                                     value: (() => {
                                                                         switch (dd.status) {
                                                                             case 0:
-                                                                                return html `<div class="badge fs-7" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
+                                                                                return BgWidget.warningInsignia('尚未寄送');
                                                                             case 1:
-                                                                                return html `<div class="badge fs-7" style="color: #393939; background: #0000000f;">已寄出</div>`;
+                                                                                return BgWidget.infoInsignia('已寄出');
+                                                                            case 2:
+                                                                                return BgWidget.secondaryInsignia('取消寄送');
                                                                         }
                                                                     })(),
                                                                 },
@@ -546,6 +548,7 @@ export class BgNotify {
                                         rowClick: (data, index) => {
                                             vm.dataList[index].content.status = vm.dataList[index].status;
                                             vm.data = vm.dataList[index].content;
+                                            vm.data.id = vm.dataList[index].id;
                                             vm.type = 'replace';
                                         },
                                     });
@@ -583,17 +586,19 @@ export class BgNotify {
                     ${BgWidget.title(obj.readonly ? '信件詳細內容' : '編輯信件樣式')}
                     <div class="flex-fill"></div>
                     ${obj.readonly
-            ? [
-                html `<div class="badge fs-7 me-2" style="color: #393939; background: #0000000f;">${vm.data.typeName}</div>`,
-                (() => {
-                    switch (vm.data.status) {
-                        case 0:
-                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
-                        case 1:
-                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
-                    }
-                })(),
-            ].join('')
+            ? html `<div class="d-flex gap-2">
+                              ${BgWidget.secondaryInsignia(vm.data.typeName)}
+                              ${(() => {
+                switch (vm.data.status) {
+                    case 0:
+                        return BgWidget.warningInsignia('尚未寄送');
+                    case 1:
+                        return BgWidget.infoInsignia('已寄出');
+                    case 2:
+                        return BgWidget.secondaryInsignia('取消寄送');
+                }
+            })()}
+                          </div>`
             : ''}
                 </div>
                 ${BgWidget.mbContainer(18)}
@@ -742,6 +747,28 @@ export class BgNotify {
                     },
                 });
             }))
+            : ''}
+                    ${vm.data.status === 0 && obj.readonly
+            ? BgWidget.danger(gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.checkYesOrNot({
+                    callback: (bool) => {
+                        if (bool) {
+                            dialog.dataLoading({ text: '取消排定中...', visible: true });
+                            ApiSmtp.cancel(vm.data.id).then((data) => {
+                                dialog.dataLoading({ visible: false });
+                                if (data.result) {
+                                    dialog.successMessage({ text: '取消排定發送成功' });
+                                }
+                                else {
+                                    dialog.errorMessage({ text: '取消排定發送失敗' });
+                                }
+                            });
+                        }
+                    },
+                    text: '確定取消排定發送的信件嗎？',
+                });
+            }), '取消排定發送')
             : ''}
                     ${BgWidget.cancel(gvc.event(() => {
             vm.type = 'list';

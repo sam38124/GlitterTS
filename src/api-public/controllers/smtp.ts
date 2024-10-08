@@ -43,3 +43,16 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+
+router.delete('/:id', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            const data = await new Mail(req.get('g-app') as string, req.body.token).cancelSendMail(req.params.id);
+            return response.succ(resp, { data });
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
