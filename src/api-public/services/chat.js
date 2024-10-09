@@ -15,6 +15,7 @@ const firebase_js_1 = require("../../modules/firebase.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const ai_robot_js_1 = require("./ai-robot.js");
 const line_message_1 = require("./line-message");
+const fb_message_1 = require("./fb-message");
 class Chat {
     async addChatRoom(room) {
         try {
@@ -111,17 +112,26 @@ class Chat {
             const chatRoom = (await database_1.default.query(`select *
                                                from \`${this.app}\`.t_chat_list
                                                where chat_id = ?`, [room.chat_id]))[0];
-            console.log("room -- ", room);
             if (!chatRoom) {
                 throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
             if (room.chat_id.startsWith('line')) {
                 console.log('chat_id 的前綴是 line');
-                const newChatId = room.chat_id.slice(4).split("-")[0];
-                console.log(room.message.text, newChatId);
+                const newChatId = room.chat_id.slice(5).split("-")[0];
                 await new line_message_1.LineMessage(this.app).sendLine({
                     data: room.message.text,
                     lineID: newChatId
+                }, () => {
+                });
+            }
+            console.log("room -- ", room);
+            if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
+                console.log('chat_id 的前綴是 fb');
+                const newChatId = room.chat_id.slice(3).split("-")[0];
+                console.log(room.message.text, newChatId);
+                await new fb_message_1.FbMessage(this.app).sendMessage({
+                    data: room.message.text,
+                    fbID: newChatId
                 }, () => {
                 });
             }

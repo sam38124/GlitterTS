@@ -734,6 +734,13 @@ export class BgCustomerMessage {
                                                                     width="40"
                                                                     alt="Devon Lane"
                                                             />
+                                                            ${(()=>{
+                                                                let id:string = dd.chat_id
+                                                                if (id.startsWith('line')){
+                                                                    return `<i class="fa-brands fa-line" style="position:absolute;right:0;bottom:0;"></i>`
+                                                                }
+                                                                return ``
+                                                            })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">
@@ -1163,7 +1170,7 @@ export class BgCustomerMessage {
                                                         style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
                                                         class: `form-control`,
                                                         option: [
-                                                            {key: 'placeholder', value: '輸入訊息內容'},
+                                                            {key: 'placeholder', value: '輸入訊息內容22'},
                                                             {
                                                                 key: 'onchange',
                                                                 value: gvc.event((e) => {

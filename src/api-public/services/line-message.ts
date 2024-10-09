@@ -293,7 +293,7 @@ export class LineMessage {
                 quoteToken:string,
                 text:string
             } = data.events[0].message;
-            let userID = "line"+data.events[0].source.userId;
+            let userID = "line_"+data.events[0].source.userId;
             let chatData:any = {
                 chat_id:[userID , "manager"].sort().join(''),
                 type:"user",

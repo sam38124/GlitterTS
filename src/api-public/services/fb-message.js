@@ -11,6 +11,7 @@ const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
+const chat_1 = require("./chat");
 class FbMessage {
     constructor(app, token) {
         this.app = app;
@@ -40,7 +41,7 @@ class FbMessage {
                 recipient: { id: obj.fbID },
                 message: { text: obj.data }
             };
-            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD";
+            let token = "Bearer EAAjqQPeQMmUBO8TNUS1C9MC1AZAcgZAIEIu6N2YkFa5q7UPR7WPdhzjHXMgfLTCNfOEwyZC6eRLPZALFV6kt90ymdQ7zAr3OP7KNVwdC7rR5VDDazZAO8hpGZBtKqBaAWbOEf1dZC4F7DIMFq4wjmnZBooZCJMCbferrgaxfarMatwGoFNIu0xrYXxZB0J7fyR2KUbSAZDZD";
             const urlConfig = {
                 method: 'post',
                 url: "https://graph.facebook.com/v12.0/me/messages",
@@ -50,6 +51,7 @@ class FbMessage {
                 },
                 data: JSON.stringify(payload)
             };
+            console.log("送出訊息 -- ", payload);
             return new Promise((resolve, reject) => {
                 axios_1.default.request(urlConfig)
                     .then((response) => {
@@ -231,7 +233,7 @@ class FbMessage {
                     const messagingEvents = entry.messaging;
                     for (const event of messagingEvents) {
                         if (event.message && event.message.text) {
-                            const senderId = event.sender.id;
+                            const senderId = "fb_" + event.sender.id;
                             const messageText = event.message.text;
                             let chatData = {
                                 chat_id: [senderId, "manager"].sort().join(''),
@@ -239,9 +241,11 @@ class FbMessage {
                                 user_id: senderId,
                                 participant: [senderId, "manager"]
                             };
+                            await new chat_1.Chat(this.app).addChatRoom(chatData);
                             chatData.message = {
                                 "text": messageText
                             };
+                            await new chat_1.Chat(this.app).addMessage(chatData);
                         }
                     }
                 }

@@ -10,6 +10,7 @@ import { Firebase } from '../../modules/firebase.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { AiRobot } from './ai-robot.js';
 import {LineMessage} from "./line-message";
+import {FbMessage} from "./fb-message";
 
 export interface ChatRoom {
     chat_id: string;
@@ -158,18 +159,26 @@ export class Chat {
                     [room.chat_id]
                 )
             )[0];
-            console.log("room -- " , room)
             if (!chatRoom) {
                 throw exception.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
             //檢查是不是要回傳給line
             if (room.chat_id.startsWith('line')) {
                 console.log('chat_id 的前綴是 line');
-                const newChatId = room.chat_id.slice(4).split("-")[0];
-                console.log(room.message.text , newChatId)
+                const newChatId = room.chat_id.slice(5).split("-")[0];
                 await new LineMessage(this.app).sendLine({
                     data: room.message.text,
                     lineID: newChatId
+                }, () => {
+                });
+            }
+            //檢查是不是要回傳給fb
+            if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
+                const newChatId = room.chat_id.slice(3).split("-")[0];
+                console.log(room.message.text , newChatId)
+                await new FbMessage(this.app).sendMessage({
+                    data: room.message.text,
+                    fbID: newChatId
                 }, () => {
                 });
             }

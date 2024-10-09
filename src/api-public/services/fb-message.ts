@@ -78,7 +78,7 @@ export class FbMessage {
                 recipient: { id: obj.fbID },
                 message: { text: obj.data }
             };
-            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD"
+            let token = "Bearer EAAjqQPeQMmUBO8TNUS1C9MC1AZAcgZAIEIu6N2YkFa5q7UPR7WPdhzjHXMgfLTCNfOEwyZC6eRLPZALFV6kt90ymdQ7zAr3OP7KNVwdC7rR5VDDazZAO8hpGZBtKqBaAWbOEf1dZC4F7DIMFq4wjmnZBooZCJMCbferrgaxfarMatwGoFNIu0xrYXxZB0J7fyR2KUbSAZDZD"
             const urlConfig: Config = {
                 method: 'post',
                 url: "https://graph.facebook.com/v12.0/me/messages",
@@ -88,6 +88,7 @@ export class FbMessage {
                 },
                 data: JSON.stringify(payload)
             };
+            console.log("送出訊息 -- " , payload)
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
                     .then((response) => {
@@ -316,7 +317,7 @@ export class FbMessage {
                     // 使用 for...of 來處理每個 messaging 事件
                     for (const event of messagingEvents) {
                         if (event.message && event.message.text) {
-                            const senderId = event.sender.id;
+                            const senderId = "fb_"+event.sender.id;
                             const messageText = event.message.text;
 
                             // 建立要傳遞的訊息資料
@@ -326,11 +327,11 @@ export class FbMessage {
                                 user_id:senderId,
                                 participant:[senderId , "manager"]
                             }
-                            // await new Chat(this.app).addMessage(chatData);
+                            await new Chat(this.app).addChatRoom(chatData);
                             chatData.message = {
                                 "text" : messageText
                             };
-                            // await new Chat(this.app).addMessage(chatData);
+                            await new Chat(this.app).addMessage(chatData);
                         }
                     }
                 }

@@ -204,7 +204,7 @@ class LineMessage {
     async listenMessage(data) {
         try {
             let message = data.events[0].message;
-            let userID = "line" + data.events[0].source.userId;
+            let userID = "line_" + data.events[0].source.userId;
             let chatData = {
                 chat_id: [userID, "manager"].sort().join(''),
                 type: "user",
