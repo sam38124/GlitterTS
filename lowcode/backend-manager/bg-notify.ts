@@ -450,13 +450,12 @@ export class BgNotify {
                             gvc: gvc,
                             type: 'replace',
                         });
-                    } else {
-                        return this.emailEditor({
-                            vm: vm,
-                            gvc: gvc,
-                            type: 'add',
-                        });
                     }
+                    return this.emailEditor({
+                        vm: vm,
+                        gvc: gvc,
+                        type: 'add',
+                    });
                 },
             };
         });
@@ -821,7 +820,16 @@ export class BgNotify {
                                                           })
                                                       )}
                                             </div>
-                                            <div class="p-1">${postData.content}</div>`
+                                            ${obj.readonly
+                                                ? html`<div class="p-1">${postData.content}</div>`
+                                                : EditorElem.richText({
+                                                      gvc: gvc,
+                                                      def: postData.content,
+                                                      callback: (text) => {
+                                                          postData.content = text;
+                                                      },
+                                                      style: `overflow-y: auto;`,
+                                                  })}`
                                     ),
                                 ]);
                                 return htmlList.filter((str) => str.length > 0).join(BgWidget.mbContainer(16));
@@ -834,7 +842,7 @@ export class BgNotify {
                 )}
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
-                    ${obj.type === 'replace' && !obj.readonly
+                    ${!obj.readonly && obj.type === 'replace'
                         ? BgWidget.danger(
                               obj.gvc.event(() => {
                                   const dialog = new ShareDialog(gvc.glitter);
@@ -860,7 +868,7 @@ export class BgNotify {
                               })
                           )
                         : ''}
-                    ${vm.data.status === 0 && obj.readonly
+                    ${obj.readonly && vm.data.status === 0
                         ? BgWidget.danger(
                               gvc.event(() => {
                                   const dialog = new ShareDialog(gvc.glitter);
@@ -872,6 +880,9 @@ export class BgNotify {
                                                   dialog.dataLoading({ visible: false });
                                                   if (data.result) {
                                                       dialog.successMessage({ text: '取消排定發送成功' });
+                                                      setTimeout(() => {
+                                                          vm.type = 'list';
+                                                      }, 100);
                                                   } else {
                                                       dialog.errorMessage({ text: '取消排定發送失敗' });
                                                   }
