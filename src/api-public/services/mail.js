@@ -117,6 +117,15 @@ class Mail {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
+    async cancelSendMail(id) {
+        try {
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET ? WHERE id = ?;`, [{ status: 2 }, id]);
+            return { result: true, message: '取消排定發送成功' };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
+        }
+    }
 }
 exports.Mail = Mail;
 function formatDateTime(sendTime) {

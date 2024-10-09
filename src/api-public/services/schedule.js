@@ -198,6 +198,7 @@ class Schedule {
                     const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
                         tag = 'sendMailBySchedule' AND 
+                        status = 0 AND
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {

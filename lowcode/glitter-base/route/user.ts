@@ -148,6 +148,17 @@ export class ApiUser {
             },
         });
     }
+    public static getUsersDataWithEmailOrPhone(search_s: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user?search=${search_s}&type=email_or_phone`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token || GlobalUser.token,
+            },
+        });
+    }
 
     public static subScribe(email: string, tag: string) {
         return BaseApi.create({
@@ -160,6 +171,32 @@ export class ApiUser {
             data: JSON.stringify({
                 email: email,
                 tag: tag,
+            }),
+        });
+    }
+    public static emailVerify(email: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/email-verify`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                email: email
+            }),
+        });
+    }
+    public static phoneVerify(phone_number: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                phone_number: phone_number
             }),
         });
     }
@@ -622,6 +659,7 @@ export class ApiUser {
                 headers: {
                     'Content-Type': 'application/json',
                     'g-app': appName,
+                    Authorization:getConfig().config.token,
                 },
             }).then((res)=>{
                 switch (key){

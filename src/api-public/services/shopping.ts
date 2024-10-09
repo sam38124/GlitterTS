@@ -202,7 +202,7 @@ export class Shopping {
         limit: number;
         sku?: string;
         id?: string;
-        domain?:string;
+        domain?: string;
         search?: string;
         searchType?: string;
         collection?: string;
@@ -251,14 +251,14 @@ export class Shopping {
                         break;
                 }
             }
-            if(query.domain){
+            if (query.domain) {
                 querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`)
             }
-            if(`${query.id || ''}`){
-                if(`${query.id}`.includes(',')){
+            if (`${query.id || ''}`) {
+                if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-                }else{
-                  querySql.push(`id = ${query.id}`);
+                } else {
+                    querySql.push(`id = ${query.id}`);
                 }
             }
 
@@ -437,6 +437,20 @@ export class Shopping {
                 return product;
             });
 
+
+            if (query.id_list) {
+                let tempData: any = []
+                query.id_list
+                    .split(',').map((id) => {
+                    const find = products.data.find((product: { id: number }) => {
+                        return `${product.id}` === `${id}`;
+                    })
+                    if (find) {
+                        tempData.push(find)
+                    }
+                })
+                products.data = tempData
+            }
             if (query.id_list && query.order_by === 'order by id desc') {
                 products.data = query.id_list
                     .split(',')
@@ -449,9 +463,9 @@ export class Shopping {
                         return dd;
                     });
             }
-if(query.domain && products.data[0]){
-    products.data=products.data[0]
-}
+            if (query.domain && products.data[0]) {
+                products.data = products.data[0]
+            }
             return products;
         } catch (e) {
             console.error(e);
@@ -798,7 +812,7 @@ if(query.domain && products.data[0]){
                     key: `form_delivery_${form.id}`
                 })).list || []
             }
-            shipment_setting.support=shipment_setting.support??[]
+            shipment_setting.support = shipment_setting.support ?? []
             // 購物車資料
             const carData: Cart = {
                 customer_info: data.customer_info || {},
@@ -1363,13 +1377,13 @@ if(query.domain && products.data[0]){
                         orderData: carData,
                         status: 0,
                     });
-                    console.log(" data.customer_info --- " , data.customer_info)
-                    if (data.customer_info.phone){
+                    console.log(" data.customer_info --- ", data.customer_info)
+                    if (data.customer_info.phone) {
                         let sns = new SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
                     }
-                    if (data.customer_info.lineID){
+                    if (data.customer_info.lineID) {
                         let line = new LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-order-create', carData.orderID, data.customer_info.lineID);
                         console.log("訂單line訊息寄送成功");
@@ -1987,11 +2001,11 @@ if(query.domain && products.data[0]){
                 let sns = new SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
-                    if (data.orderData.customer_info.phone){
+                    if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("出貨簡訊寄送成功")
                     }
-                    if (data.orderData.customer_info.lineID){
+                    if (data.orderData.customer_info.lineID) {
                         let line = new LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log("付款成功line訊息寄送成功")
@@ -2003,11 +2017,11 @@ if(query.domain && products.data[0]){
                 // 商品到貨信件通知（消費者）
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
 
-                    if (data.orderData.customer_info.phone){
+                    if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log("到貨簡訊寄送成功")
                     }
-                    if (data.orderData.customer_info.lineID){
+                    if (data.orderData.customer_info.lineID) {
                         let line = new LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log("付款成功line訊息寄送成功")
@@ -2071,12 +2085,12 @@ if(query.domain && products.data[0]){
             new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
-            if (orderData.customer_info.phone){
+            if (orderData.customer_info.phone) {
                 let sns = new SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
                 console.log("訂單待核款簡訊寄送成功")
             }
-            if (orderData.customer_info.lineID){
+            if (orderData.customer_info.lineID) {
                 let line = new LineMessage(this.app);
                 await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
                 console.log("付款成功line訊息寄送成功")
@@ -2103,6 +2117,7 @@ if(query.domain && products.data[0]){
         id?: string;
         search?: string;
         email?: string;
+        phone?: string;
         status?: string;
         searchType?: string;
         shipment?: string;
@@ -2199,7 +2214,12 @@ if(query.domain && products.data[0]){
             }
 
             query.status && querySql.push(`status IN (${query.status})`);
-            query.email && querySql.push(`email=${db.escape(query.email)}`);
+            const orderMath = [];
+            query.email && orderMath.push(`(email=${db.escape(query.email)})`);
+            query.phone && orderMath.push(`(email=${db.escape(query.phone)})`);
+            if (orderMath.length) {
+                querySql.push(`(${orderMath.join(' or ')})`);
+            }
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
 
             if (query.filter_type === 'true' || query.archived) {
@@ -2327,14 +2347,14 @@ if(query.domain && products.data[0]){
                 });
 
 
-            await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
 
-                if (cartData.orderData.customer_info.phone){
+                if (cartData.orderData.customer_info.phone) {
                     let sns = new SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
                     console.log("付款成功簡訊寄送成功")
                 }
-                if (cartData.orderData.customer_info.lineID){
+                if (cartData.orderData.customer_info.lineID) {
                     let line = new LineMessage(this.app);
                     await line.sendCustomerLine('auto-line-payment-successful', order_id, cartData.orderData.customer_info.lineID);
                     console.log("付款成功line訊息寄送成功")
@@ -2591,13 +2611,13 @@ if(query.domain && products.data[0]){
                             result[tag] = await this.getOrderToDay();
                             break;
                         case 'recent_register':
-                            result[tag]  = await this.getRegisterRecent();
+                            result[tag] = await this.getRegisterRecent();
                             break
                         case 'active_recent_year':
-                            result[tag]  = await this.getActiveRecentYear();
+                            result[tag] = await this.getActiveRecentYear();
                             break
                         case 'active_recent_2weak':
-                            result[tag]  = await this.getActiveRecent2Weak();
+                            result[tag] = await this.getActiveRecent2Weak();
                             break
                     }
                 }
@@ -2608,49 +2628,55 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
     }
+
     async getActiveRecentYear() {
         try {
             const countArray = [];
             for (let index = 0; index < 12; index++) {
                 const monthRegisterSQL = `
-                  SELECT distinct mac_address from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name=${db.escape(this.app)} and  req_type='file' and (
+                    SELECT distinct mac_address
+                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${db.escape(this.app)}
+                      and req_type = 'file'
+                      and (
                         MONTH (created_time) = MONTH (DATE_SUB(NOW()
                         , INTERVAL ${index} MONTH))
                         AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                         , INTERVAL ${index} MONTH))
                         );
                 `;
-                countArray.unshift((await db.query(monthRegisterSQL,[])).length);
+                countArray.unshift((await db.query(monthRegisterSQL, [])).length);
             }
             return {
-                count_array:countArray
+                count_array: countArray
             };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
         }
     }
+
     async getActiveRecent2Weak() {
 
         try {
             const countArray = [];
             for (let index = 0; index < 14; index++) {
                 const monthRegisterSQL = `
-                  SELECT distinct mac_address from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name=${db.escape(this.app)} and
-                        req_type='file' and 
-                        (DAY (created_time) = DAY (DATE_SUB(NOW()
+                    SELECT distinct mac_address
+                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${db.escape(this.app)}
+                      and req_type = 'file'
+                      and (DAY (created_time) = DAY (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY)));
                 `;
-                countArray.unshift((await db.query(monthRegisterSQL,[])).length);
+                countArray.unshift((await db.query(monthRegisterSQL, [])).length);
             }
             return {
-                count_array:countArray
+                count_array: countArray
             };
         } catch (e) {
             console.error(e);
@@ -2659,7 +2685,7 @@ if(query.domain && products.data[0]){
     }
 
 
-    async getRegister2weak(){
+    async getRegister2weak() {
         try {
             const countArray = [];
 
@@ -2684,6 +2710,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getRegisterRecent() {
 
         try {
@@ -2705,21 +2732,22 @@ if(query.domain && products.data[0]){
                       AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                         , INTERVAL ${index} MONTH));
                 `;
-                countArray.unshift( (await db.query(monthRegisterSQL,[]))[0]['count(1)']);
+                countArray.unshift((await db.query(monthRegisterSQL, []))[0]['count(1)']);
             }
             return {
                 //用戶總數
-                today:order[0]['count(1)'],
+                today: order[0]['count(1)'],
                 //每月紀錄
-                count_register:countArray,
+                count_register: countArray,
                 //兩週紀錄
-                count_2_weak_register:(await this.getRegister2weak()).countArray
+                count_2_weak_register: (await this.getRegister2weak()).countArray
             };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
         }
     }
+
     async getOrderToDay() {
         try {
             const order = await db.query(
@@ -2902,6 +2930,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getOrdersPerMonth2Weak() {
         try {
             const countArray = [];
@@ -2910,7 +2939,7 @@ if(query.domain && products.data[0]){
                 const orderCountSQL = `
                     SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout
-                        
+
                     WHERE
                         DAY (created_time) = DAY (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
@@ -2929,6 +2958,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getOrdersPerMonth1Year() {
         try {
             const countArray = [];
@@ -2982,6 +3012,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getSalesPerMonth2Weak() {
         try {
             const countArray = [];
@@ -3012,6 +3043,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getOrderAvgSalePriceYear() {
         try {
             const countArray = [];
@@ -3043,6 +3075,7 @@ if(query.domain && products.data[0]){
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getOrderAvgSalePrice() {
         try {
             const countArray = [];
@@ -3384,13 +3417,15 @@ if(query.domain && products.data[0]){
     }
 
     async postProduct(content: any) {
-        content.seo=content.seo ?? {}
-        content.seo.domain= content.seo.domain || content.title;
-        const find_conflict=await db.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`,[])
-        if(find_conflict[0]['count(1)']>0){
-            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:' , {
-                message:'網域已被使用',
-                code:'733'
+        content.seo = content.seo ?? {}
+        content.seo.domain = content.seo.domain || content.title;
+        const find_conflict = await db.query(`select count(1)
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, [])
+        if (find_conflict[0]['count(1)'] > 0) {
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                message: '網域已被使用',
+                code: '733'
             });
         }
         try {
@@ -3537,11 +3572,14 @@ if(query.domain && products.data[0]){
     }
 
     async putProduct(content: any) {
-        const find_conflict=await db.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}') and id != ${content.id}`,[])
-        if(find_conflict[0]['count(1)']>0){
-            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:' , {
-                message:'網域已被使用',
-                code:'733'
+        const find_conflict = await db.query(`select count(1)
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
+                                                and id != ${content.id}`, [])
+        if (find_conflict[0]['count(1)'] > 0) {
+            throw exception.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                message: '網域已被使用',
+                code: '733'
             });
         }
         try {

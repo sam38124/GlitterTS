@@ -342,6 +342,7 @@ export class ApiShop {
         page: number;
         search?: string;
         email?: string;
+        phone?:number;
         searchType?: string;
         id?: string;
         data_from?: 'user' | 'manager';
@@ -363,6 +364,7 @@ export class ApiShop {
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.email && par.push(`email=${json.email}`);
+                    json.phone &&par.push(`phone=${json.phone}`)
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);

@@ -364,7 +364,6 @@ export class FormModule {
                                 </li>`;
                                 })
                                 .join('')
-                            console.log(`vm.data`,view)
                             return view;
                         }catch (e) {
                             console.log(e)

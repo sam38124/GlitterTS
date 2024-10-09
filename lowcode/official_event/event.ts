@@ -401,6 +401,14 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 用戶註冊',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/register.js'),
     },
+    email_verify: {
+        title: '用戶相關 / 信箱驗證',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-verify.js'),
+    },
+    phone_verify: {
+        title: '用戶相關 / 電話驗證',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/phone-verify.js'),
+    },
     logout: {
         title: '用戶相關 / 用戶登出',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/logout.js'),

@@ -20,4 +20,8 @@ export declare class Mail {
         result: boolean;
         message: string;
     }>;
+    cancelSendMail(id: string): Promise<{
+        result: boolean;
+        message: string;
+    }>;
 }

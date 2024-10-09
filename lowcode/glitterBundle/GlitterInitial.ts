@@ -95,7 +95,6 @@ function traverseHTML(element: any, document: any) {
         (glitter.elementCallback[id] as any).first_paint = (glitter.elementCallback[id] as any).first_paint ?? true;
         function renderBindView() {
             glitter.consoleLog(`renderBindView`);
-
             function notifyLifeCycle() {
                 try {
                     setTimeout(() => {
@@ -181,6 +180,7 @@ function traverseHTML(element: any, document: any) {
             element.wasRecreate = true;
         }
         renderBindView();
+
     } else {
         for (const b of element.attributes ?? []) {
             glitter.renderView.replaceAttributeValue(

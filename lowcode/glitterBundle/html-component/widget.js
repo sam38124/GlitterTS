@@ -56,7 +56,6 @@ export const widgetComponent = {
                             };
                         })}`,
                         view: (widget) => {
-                            var _a;
                             function isEditorMode() {
                                 return ((window.parent.editerData !== undefined) || (window.editerData !== undefined));
                             }
@@ -364,39 +363,43 @@ export const widgetComponent = {
                                     });
                                     return getView();
                                 }
-                                if ((widget.data.dataFrom === "code")) {
-                                    if (widget.data.elem !== 'select') {
-                                        innerText = '';
-                                    }
-                                    widget.data.innerEvenet = (_a = widget.data.innerEvenet) !== null && _a !== void 0 ? _a : {};
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: widget.data.innerEvenet,
-                                        subData
-                                    }).then((data) => {
-                                        if (widget.data.elem === 'select') {
-                                            formData[widget.data.key] = data;
+                                function getCodeText() {
+                                    var _a;
+                                    if ((widget.data.dataFrom === "code")) {
+                                        if (widget.data.elem !== 'select') {
+                                            innerText = '';
                                         }
-                                        innerText = data || '';
-                                        gvc.notifyDataChange(id);
-                                    });
-                                }
-                                else if (widget.data.dataFrom === "code_text") {
-                                    const inner = (eval(`(() => {
-                                        ${widget.data.inner}
-                                    })()`));
-                                    if (inner && inner.then) {
-                                        inner.then((data) => {
+                                        widget.data.innerEvenet = (_a = widget.data.innerEvenet) !== null && _a !== void 0 ? _a : {};
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: widget.data.innerEvenet,
+                                            subData
+                                        }).then((data) => {
+                                            if (widget.data.elem === 'select') {
+                                                formData[widget.data.key] = data;
+                                            }
                                             innerText = data || '';
                                             gvc.notifyDataChange(id);
                                         });
                                     }
-                                    else {
-                                        innerText = inner;
-                                        gvc.notifyDataChange(id);
+                                    else if (widget.data.dataFrom === "code_text") {
+                                        const inner = (eval(`(() => {
+                                        ${widget.data.inner}
+                                    })()`));
+                                        if (inner && inner.then) {
+                                            inner.then((data) => {
+                                                innerText = data || '';
+                                                gvc.notifyDataChange(id);
+                                            });
+                                        }
+                                        else {
+                                            innerText = inner;
+                                            gvc.notifyDataChange(id);
+                                        }
                                     }
                                 }
+                                getCodeText();
                                 return gvc.bindView(() => {
                                     return {
                                         bind: id,
@@ -487,14 +490,7 @@ export const widgetComponent = {
                                                     view.push(innerText);
                                                     break;
                                             }
-                                            if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                                view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                                    id: widget.id,
-                                                    gvc: gvc,
-                                                    label: widget.label,
-                                                    widget: widget
-                                                }));
-                                            }
+                                            console.log(`htmlGenerate.root`, htmlGenerate.root);
                                             return view.join('');
                                         },
                                         divCreate: getCreateOption,
@@ -539,6 +535,8 @@ export const widgetComponent = {
                                                 clickEvent: widget.onInitialEvent,
                                                 subData: subData
                                             });
+                                        },
+                                        onResume: () => {
                                         }
                                     };
                                 });

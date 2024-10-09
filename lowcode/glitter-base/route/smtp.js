@@ -32,6 +32,17 @@ export class ApiSmtp {
             data: JSON.stringify(json),
         });
     }
+    static cancel(id) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/smtp/${id}`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
 }
 function getConfig() {
     const saasConfig = window.parent.saasConfig;

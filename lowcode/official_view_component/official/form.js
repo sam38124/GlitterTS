@@ -855,7 +855,6 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                             subData: subData,
                                             element: element,
                                         });
-                                        getCodeView();
                                     },
                                     widget: widget,
                                     subData: subData,
@@ -890,7 +889,6 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                 subData: subData,
                                                 element: element,
                                             });
-                                            gvc.notifyDataChange(id);
                                         },
                                         widget: widget,
                                         subData: subData,

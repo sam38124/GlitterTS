@@ -120,7 +120,7 @@ export class AutoReply {
                     return BgWidget.container(
                         html`
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('line自動發送訊息')}
+                                ${BgWidget.title('LINE自動發送訊息')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${BgWidget.container(

@@ -12,6 +12,7 @@ const ut_permission_js_1 = require("../utils/ut-permission.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_1 = __importDefault(require("../../modules/tool"));
 const share_permission_1 = require("../services/share-permission");
+const filter_protect_data_js_1 = require("../services/filter-protect-data.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -22,6 +23,10 @@ router.get('/', async (req, resp) => {
         else if (req.query.type === 'account' && (await ut_permission_js_1.UtPermission.isManager(req))) {
             const user = new user_1.User(req.get('g-app'));
             return response_1.default.succ(resp, await user.getUserData(req.query.email, 'account'));
+        }
+        else if (req.query.type === 'email_or_phone') {
+            const user = new user_1.User(req.get('g-app'));
+            return response_1.default.succ(resp, await user.getUserData(req.query.search, 'email_or_phone'));
         }
         else {
             const user = new user_1.User(req.get('g-app'));
@@ -96,10 +101,30 @@ router.get('/level/config', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/email-verify', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        const res = await user.emailVerify(req.body.email);
+        return response_1.default.succ(resp, res);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/phone-verify', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        const res = await user.phoneVerify(req.body.phone_number);
+        return response_1.default.succ(resp, res);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/register', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));
-        if (await user.checkUserExists(req.body.account)) {
+        if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         }
         else {
@@ -117,7 +142,7 @@ router.post('/manager/register', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             const user = new user_1.User(req.get('g-app'));
-            if (await user.checkUserExists(req.body.account)) {
+            if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
             }
             else {
@@ -368,16 +393,27 @@ router.post('/fcm', async (req, resp) => {
     }
 });
 router.get('/public/config', async (req, resp) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         const post = new user_1.User(req.get('g-app'), req.body.token);
-        return response_1.default.succ(resp, {
-            result: true,
-            value: (_b = ((_a = (await post.getConfig({
-                key: req.query.key,
-                user_id: req.query.user_id,
-            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : '',
-        });
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, {
+                result: true,
+                value: (_b = ((_a = (await post.getConfig({
+                    key: req.query.key,
+                    user_id: req.query.user_id,
+                }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : '',
+            });
+        }
+        else {
+            return response_1.default.succ(resp, {
+                result: true,
+                value: filter_protect_data_js_1.FilterProtectData.filter(req.query.key, (_d = ((_c = (await post.getConfig({
+                    key: req.query.key,
+                    user_id: req.query.user_id,
+                }))[0]) !== null && _c !== void 0 ? _c : {})['value']) !== null && _d !== void 0 ? _d : ''),
+            });
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);

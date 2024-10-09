@@ -251,6 +251,19 @@ class Shopping {
                 product.total_sales = record ? record.count : 0;
                 return product;
             });
+            if (query.id_list) {
+                let tempData = [];
+                query.id_list
+                    .split(',').map((id) => {
+                    const find = products.data.find((product) => {
+                        return `${product.id}` === `${id}`;
+                    });
+                    if (find) {
+                        tempData.push(find);
+                    }
+                });
+                products.data = tempData;
+            }
             if (query.id_list && query.order_by === 'order by id desc') {
                 products.data = query.id_list
                     .split(',')
@@ -1653,7 +1666,12 @@ class Shopping {
                 }
             }
             query.status && querySql.push(`status IN (${query.status})`);
-            query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
+            const orderMath = [];
+            query.email && orderMath.push(`(email=${database_js_1.default.escape(query.email)})`);
+            query.phone && orderMath.push(`(email=${database_js_1.default.escape(query.phone)})`);
+            if (orderMath.length) {
+                querySql.push(`(${orderMath.join(' or ')})`);
+            }
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
@@ -1994,8 +2012,11 @@ class Shopping {
             const countArray = [];
             for (let index = 0; index < 12; index++) {
                 const monthRegisterSQL = `
-                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name=${database_js_1.default.escape(this.app)} and  req_type='file' and (
+                    SELECT distinct mac_address
+                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${database_js_1.default.escape(this.app)}
+                      and req_type = 'file'
+                      and (
                         MONTH (created_time) = MONTH (DATE_SUB(NOW()
                         , INTERVAL ${index} MONTH))
                         AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
@@ -2018,14 +2039,15 @@ class Shopping {
             const countArray = [];
             for (let index = 0; index < 14; index++) {
                 const monthRegisterSQL = `
-                  SELECT distinct mac_address from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name=${database_js_1.default.escape(this.app)} and
-                        req_type='file' and 
-                        (DAY (created_time) = DAY (DATE_SUB(NOW()
+                    SELECT distinct mac_address
+                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${database_js_1.default.escape(this.app)}
+                      and req_type = 'file'
+                      and (DAY (created_time) = DAY (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY)));
                 `;
                 countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
@@ -2260,7 +2282,7 @@ class Shopping {
                 const orderCountSQL = `
                     SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout
-                        
+
                     WHERE
                         DAY (created_time) = DAY (DATE_SUB(NOW()
                         , INTERVAL ${index} DAY))
@@ -2689,7 +2711,9 @@ class Shopping {
         var _a, _b;
         content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
         content.seo.domain = content.seo.domain || content.title;
-        const find_conflict = await database_js_1.default.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
+        const find_conflict = await database_js_1.default.query(`select count(1)
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',
@@ -2810,7 +2834,10 @@ class Shopping {
         await Promise.all(promises);
     }
     async putProduct(content) {
-        const find_conflict = await database_js_1.default.query(`select count(1) from \`${this.app}\`.\`t_manager_post\` where (content->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}') and id != ${content.id}`, []);
+        const find_conflict = await database_js_1.default.query(`select count(1)
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
+                                                and id != ${content.id}`, []);
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',

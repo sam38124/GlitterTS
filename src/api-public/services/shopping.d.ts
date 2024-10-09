@@ -348,6 +348,7 @@ export declare class Shopping {
         id?: string;
         search?: string;
         email?: string;
+        phone?: string;
         status?: string;
         searchType?: string;
         shipment?: string;

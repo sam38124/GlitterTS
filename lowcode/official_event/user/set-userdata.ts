@@ -12,6 +12,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.success=object.success??{}
             object.error=object.error??{}
             object.verify_code=object.verify_code??{}
+            object.phoneVerifyCode = object.phoneVerifyCode ?? {}
+            object.checkError = object.checkError ?? {}
+            object.checkErrorPhone = object.checkErrorPhone ?? {}
             return {
                 editor: () => {
                     return [
@@ -28,7 +31,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc,widget,object.verify_code,{
                             hover:false,
                             option:[],
-                            title:"驗證碼來源。"
+                            title:"信箱驗證碼"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.phoneVerifyCode, {
+                            hover: false,
+                            option: [],
+                            title: "簡訊驗證碼"
                         }),
                         TriggerEvent.editer(gvc,widget,object.success,{
                             hover:false,
@@ -39,6 +47,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             hover:false,
                             option:[],
                             title:"更新失敗事件。"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.checkError, {
+                            hover: false,
+                            option: [],
+                            title: "信箱驗證失敗事件"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.checkErrorPhone, {
+                            hover: false,
+                            option: [],
+                            title: "電話驗證失敗事件"
                         })
                     ].join('<div class="my-2"></div>')
                 },
@@ -58,9 +76,17 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData:subData,
                             element:element
                         })
+                        let phoneVerifyCode=await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.phoneVerifyCode,
+                            subData: subData,
+                            element: element
+                        })
                         if(verify_code){
                             userData.verify_code=verify_code
                         }
+                        userData.verify_code_phone=phoneVerifyCode
                         ApiUser.updateUserData({
                             userData:userData
                         }).then(async (r) => {
@@ -92,13 +118,31 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         }
                                     })
                                 }else{
-                                    await TriggerEvent.trigger({
-                                        gvc:gvc,
-                                        widget:widget,
-                                        clickEvent:object.error,
-                                        subData:r,
-                                        element:element
-                                    })
+                                    if(!r.response.data){
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.error,
+                                            subData: subData,
+                                            element: element
+                                        })
+                                    }else if(r.response.data.msg==='email-verify-false'){
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.checkError,
+                                            subData: subData,
+                                            element: element
+                                        })
+                                    }else if(r.response.data.msg==='phone-verify-false'){
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.checkErrorPhone,
+                                            subData: subData,
+                                            element: element
+                                        })
+                                    }
                                     resolve(false)
                                 }
                             } catch (e) {

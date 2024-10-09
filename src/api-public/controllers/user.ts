@@ -9,6 +9,7 @@ import redis from '../../modules/redis.js';
 import { Shopping } from '../services/shopping';
 import Tool from '../../modules/tool';
 import { SharePermission } from '../services/share-permission';
+import {FilterProtectData} from "../services/filter-protect-data.js";
 
 const router: express.Router = express.Router();
 
@@ -22,7 +23,10 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         } else if (req.query.type === 'account' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.email as any, 'account'));
-        } else {
+        } else  if(req.query.type==='email_or_phone'){
+            const user = new User(req.get('g-app') as string);
+            return response.succ(resp, await user.getUserData(req.query.search as any, 'email_or_phone'));
+        }else{
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.body.token.userID));
         }
@@ -91,11 +95,28 @@ router.get('/level/config', async (req: express.Request, resp: express.Response)
         return response.fail(resp, err);
     }
 });
-
+router.post('/email-verify', async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        const res = await user.emailVerify(req.body.email);
+        return response.succ(resp, res);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/phone-verify', async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        const res = await user.phoneVerify(req.body.phone_number);
+        return response.succ(resp, res);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.post('/register', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        if (await user.checkUserExists(req.body.account)) {
+        if (await user.checkMailAndPhoneExists(req.body.userData.email,req.body.userData.phone)) {
             throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         } else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
@@ -111,7 +132,7 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
     try {
         if (await UtPermission.isManager(req)) {
             const user = new User(req.get('g-app') as string);
-            if (await user.checkUserExists(req.body.account)) {
+            if (await user.checkMailAndPhoneExists(req.body.userData.email,req.body.userData.phone)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
             } else {
                 const res = await user.createUser(req.body.account, Tool.randomString(8), req.body.userData, {}, true);
@@ -350,16 +371,28 @@ router.post('/fcm', async (req: express.Request, resp: express.Response) => {
 router.get('/public/config', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new User(req.get('g-app') as string, req.body.token);
-        return response.succ(resp, {
-            result: true,
-            value:
-                ((
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, {
+                result: true,
+                value:
+                    ((
+                        await post.getConfig({
+                            key: req.query.key as string,
+                            user_id: req.query.user_id as string,
+                        })
+                    )[0] ?? {})['value'] ?? '',
+            });
+        }else{
+            return response.succ(resp, {
+                result: true,
+                value:FilterProtectData.filter(req.query.key as string, ((
                     await post.getConfig({
                         key: req.query.key as string,
                         user_id: req.query.user_id as string,
                     })
-                )[0] ?? {})['value'] ?? '',
-        });
+                )[0] ?? {})['value'] ?? ''),
+            });
+        }
     } catch (err) {
         return response.fail(resp, err);
     }

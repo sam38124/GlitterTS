@@ -228,6 +228,7 @@ export class Schedule {
                         `SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
                         tag = 'sendMailBySchedule' AND 
+                        status = 0 AND
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
                         []
                     );

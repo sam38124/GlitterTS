@@ -718,7 +718,7 @@ export class ShoppingOrderManager {
                 return '';
             },
         };
-        ApiUser.getUsersDataWithEmail(orderData.email).then((res) => {
+        ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then((res) => {
             userData = res.response;
             userDataLoading = false;
             gvc.notifyDataChange(mainViewID);
