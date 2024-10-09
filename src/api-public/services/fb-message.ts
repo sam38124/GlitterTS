@@ -306,30 +306,38 @@ export class FbMessage {
         }
     }
 
-    async listenMessage(data: any): Promise<{ result: boolean; message: string }> {
+    async listenMessage(body: any): Promise<{ result: boolean; message: string }> {
+        let that = this;
         try {
             // console.log("here --" ,data);
-            let message:{
-                type:string,
-                id:string,
-                quoteToken:string,
-                text:string
-            } = data.events[0].message;
-            let userID = "line"+data.events[0].source.userId;
-            let chatData:any = {
-                chat_id:[userID , "manager"].sort().join(''),
-                type:"user",
-                user_id:userID,
-                participant:[userID , "manager"]
+            if (body.object === 'page') {
+                for (const entry of body.entry) {
+                    const messagingEvents = entry.messaging;
+                    // 使用 for...of 來處理每個 messaging 事件
+                    for (const event of messagingEvents) {
+                        if (event.message && event.message.text) {
+                            const senderId = event.sender.id;
+                            const messageText = event.message.text;
+
+                            // 建立要傳遞的訊息資料
+                            let chatData:any = {
+                                chat_id:[senderId , "manager"].sort().join(''),
+                                type:"user",
+                                user_id:senderId,
+                                participant:[senderId , "manager"]
+                            }
+                            // await new Chat(this.app).addMessage(chatData);
+                            chatData.message = {
+                                "text" : messageText
+                            };
+                            // await new Chat(this.app).addMessage(chatData);
+                        }
+                    }
+                }
+
+            } else {
+                return { result: true, message: 'body error' };
             }
-            // console.log("message -- " , JSON.stringify(message, null, 2));
-            await new Chat(this.app).addChatRoom(chatData);
-
-            chatData.message ={
-                "text":message.text
-            };
-
-            await new Chat(this.app).addMessage(chatData);
 
             return { result: true, message: 'accept message' };
         } catch (e) {

@@ -11,7 +11,6 @@ const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
-const chat_1 = require("./chat");
 class FbMessage {
     constructor(app, token) {
         this.app = app;
@@ -50,6 +49,34 @@ class FbMessage {
                     "Authorization": token
                 },
                 data: JSON.stringify(payload)
+            };
+            return new Promise((resolve, reject) => {
+                axios_1.default.request(urlConfig)
+                    .then((response) => {
+                    callback(response);
+                    resolve(response.data);
+                })
+                    .catch((error) => {
+                    console.log("error -- ", error.data);
+                    resolve(false);
+                });
+            });
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
+        }
+    }
+    async sendUserInf(fbID, callback) {
+        try {
+            let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD";
+            const urlConfig = {
+                method: 'post',
+                url: `https://graph.facebook.com/v12.0/${fbID}?fields=first_name,last_name,profile_pic`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token
+                },
+                data: JSON.stringify({})
             };
             return new Promise((resolve, reject) => {
                 axios_1.default.request(urlConfig)
@@ -196,21 +223,32 @@ class FbMessage {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
-    async listenMessage(data) {
+    async listenMessage(body) {
+        let that = this;
         try {
-            let message = data.events[0].message;
-            let userID = "line" + data.events[0].source.userId;
-            let chatData = {
-                chat_id: [userID, "manager"].sort().join(''),
-                type: "user",
-                user_id: userID,
-                participant: [userID, "manager"]
-            };
-            await new chat_1.Chat(this.app).addChatRoom(chatData);
-            chatData.message = {
-                "text": message.text
-            };
-            await new chat_1.Chat(this.app).addMessage(chatData);
+            if (body.object === 'page') {
+                for (const entry of body.entry) {
+                    const messagingEvents = entry.messaging;
+                    for (const event of messagingEvents) {
+                        if (event.message && event.message.text) {
+                            const senderId = event.sender.id;
+                            const messageText = event.message.text;
+                            let chatData = {
+                                chat_id: [senderId, "manager"].sort().join(''),
+                                type: "user",
+                                user_id: senderId,
+                                participant: [senderId, "manager"]
+                            };
+                            chatData.message = {
+                                "text": messageText
+                            };
+                        }
+                    }
+                }
+            }
+            else {
+                return { result: true, message: 'body error' };
+            }
             return { result: true, message: 'accept message' };
         }
         catch (e) {

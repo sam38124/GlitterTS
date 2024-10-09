@@ -1090,6 +1090,15 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'send_line_history',
+            group: 'line訊息',
+            title: '寄件紀錄',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/message-lines-light.svg',
+            moduleName: 'line群發設定',
+        },
+        {
+            icon: '',
             page: 'web_theme',
             group: '品牌官網',
             title: '佈景主題',

@@ -33,10 +33,9 @@ router.get('/', async (req, resp) => {
 });
 router.get('/listenMessage', async (req, resp) => {
     try {
-        console.log("req.query -- ", req.query);
         if (req.query['hub.verify_token'] === 'my_secret_token') {
+            console.log(req.query);
             let challenge = req.query["hub.challenge"];
-            console.log("req.query -- ", req.query);
             return resp.status(http_status_codes_1.default.OK).send(challenge);
         }
     }
@@ -46,28 +45,8 @@ router.get('/listenMessage', async (req, resp) => {
 });
 router.post('/listenMessage', async (req, resp) => {
     try {
-        let body = req.body;
-        if (body.object === 'page') {
-            body.entry.forEach(function (entry) {
-                let webhook_event = entry.messaging[0];
-                console.log(webhook_event);
-                let sender_psid = webhook_event.sender.id;
-                let received_message = webhook_event.message;
-                const pageID = "1285630438150580";
-                if (sender_psid == pageID) {
-                    return;
-                }
-                console.log('Sender PSID:', sender_psid);
-                console.log('Message:', received_message);
-                new fb_message_1.FbMessage(req.get('g-app')).sendMessage({
-                    fbID: sender_psid,
-                    data: "自動回覆訊息"
-                }, () => { });
-            });
-        }
-        else {
-        }
-        return response_1.default.succ(resp, "OK");
+        await new fb_message_1.FbMessage(req.get('g-app'), req.body.token).listenMessage(req.body);
+        return resp.status(http_status_codes_1.default.OK).send("收到你的訊息");
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -13,6 +13,7 @@ export declare class FbMessage {
         data: string;
         fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
+    sendUserInf(fbID: string, callback: (data: any) => void): Promise<boolean>;
     deleteSNS(obj: {
         id: string;
     }, callback: (data: any) => void): Promise<boolean>;
@@ -37,7 +38,7 @@ export declare class FbMessage {
         result: boolean;
         message: string;
     }>;
-    listenMessage(data: any): Promise<{
+    listenMessage(body: any): Promise<{
         result: boolean;
         message: string;
     }>;

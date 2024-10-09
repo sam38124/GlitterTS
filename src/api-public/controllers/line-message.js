@@ -36,12 +36,6 @@ router.post('/listenMessage', async (req, resp) => {
         return response_1.default.succ(resp, {
             "result": "OK"
         });
-        if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            return "OK";
-        }
-        else {
-            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);
