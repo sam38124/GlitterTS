@@ -49,6 +49,12 @@ export declare class User {
     token?: IToken;
     static generateUserID(): string;
     findAuthUser(email: string): Promise<any>;
+    emailVerify(account: string): Promise<{
+        result: boolean;
+    }>;
+    phoneVerify(account: string): Promise<{
+        result: boolean;
+    }>;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
     createUserHook(userID: string): Promise<void>;
     updateAccount(account: string, userID: string): Promise<any>;
@@ -56,7 +62,7 @@ export declare class User {
     loginWithFb(token: string): Promise<any>;
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
-    getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
+    getUserData(query: string, type?: 'userID' | 'account' | 'email_or_phone'): Promise<any>;
     checkMember(userData: any, trigger: boolean): Promise<{
         id: string;
         tag_name: string;
@@ -156,6 +162,7 @@ export declare class User {
     updateAccountBack(token: string): Promise<void>;
     verifyPASS(token: string): Promise<any>;
     checkUserExists(account: string): Promise<boolean>;
+    checkMailAndPhoneExists(email?: string, phone?: string): Promise<boolean | "" | undefined>;
     checkUserIdExists(id: number): Promise<any>;
     setConfig(config: {
         key: string;

@@ -1,8 +1,9 @@
-export class FormCheck {
-    static initialRegisterForm(form_formats) {
-        if (!form_formats.find((dd) => {
-            return dd.key === 'name';
-        })) {
+export class FormCheck{
+    public static initialRegisterForm(form_formats:any[]){
+        //沒有姓名欄位
+        if(!form_formats.find((dd:any)=>{
+            return dd.key==='name'
+        })){
             form_formats.push({
                 "col": "12",
                 "key": "name",
@@ -49,12 +50,13 @@ export class FormCheck {
                     },
                     "place_holder": "請輸入姓名"
                 },
-                "deletable": false
-            });
+                "deletable":false
+            })
         }
-        if (!form_formats.find((dd) => {
-            return dd.key === 'email';
-        })) {
+        //沒有信箱欄位
+        if(!form_formats.find((dd:any)=>{
+            return dd.key==='email'
+        })){
             form_formats.push({
                 "col": "12",
                 "key": "email",
@@ -101,12 +103,13 @@ export class FormCheck {
                     },
                     "place_holder": "請輸入電子信箱"
                 },
-                "deletable": false
-            });
+                "deletable":false
+            })
         }
-        if (!form_formats.find((dd) => {
-            return dd.key === 'phone';
-        })) {
+        //沒有電話欄位
+        if(!form_formats.find((dd:any)=>{
+            return dd.key==='phone'
+        })){
             form_formats.push({
                 "col": "12",
                 "key": "phone",
@@ -153,12 +156,13 @@ export class FormCheck {
                     },
                     "place_holder": "請輸入手機號碼"
                 },
-                "deletable": false
-            });
+                "deletable":false
+            })
         }
-        if (!form_formats.find((dd) => {
-            return dd.key === 'birth';
-        })) {
+        //沒有生日欄位
+        if(!form_formats.find((dd:any)=>{
+            return dd.key==='birth'
+        })){
             form_formats.push({
                 "col": "12",
                 "key": "birth",
@@ -205,68 +209,10 @@ export class FormCheck {
                     },
                     "place_holder": "請輸入你的出生日期"
                 },
-                "deletable": false
-            });
+                "deletable":false
+            })
         }
-        if (!form_formats.find((dd) => {
-            return dd.key === 'gender';
-        })) {
-            form_formats.push({
-                "deletable": false,
-                "require": false,
-                "hidden": true,
-                "col": "12",
-                "key": "gender",
-                "page": "check_box",
-                "type": "form_plugin_v2",
-                "group": "",
-                "title": "性別",
-                "col_sm": "12",
-                "toggle": false,
-                "appName": "cms_system",
-                "readonly": "write",
-                "formFormat": "{}",
-                "moduleName": "單選題",
-                "style_data": {
-                    "input": {
-                        "list": [],
-                        "class": "",
-                        "style": "",
-                        "version": "v2"
-                    },
-                    "label": {
-                        "list": [],
-                        "class": "form-label fs-base ",
-                        "style": "",
-                        "version": "v2"
-                    },
-                    "container": {
-                        "list": [],
-                        "class": "",
-                        "style": "",
-                        "version": "v2"
-                    }
-                },
-                "form_config": {
-                    "type": "name",
-                    "title": "",
-                    "option": [
-                        {
-                            "name": "男生",
-                            "index": 0,
-                            "value": "男生"
-                        },
-                        {
-                            "name": "女生",
-                            "index": 0,
-                            "value": "女生"
-                        }
-                    ],
-                    "input_style": {},
-                    "title_style": {},
-                    "place_holder": ""
-                }
-            });
-        }
+
+
     }
 }

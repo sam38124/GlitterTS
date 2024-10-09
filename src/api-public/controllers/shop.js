@@ -233,6 +233,7 @@ router.get('/order', async (req, resp) => {
                 page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
                 limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
                 search: req.query.search,
+                phone: req.query.phone,
                 id: req.query.id,
                 email: req.query.email,
                 status: req.query.status,
@@ -254,7 +255,8 @@ router.get('/order', async (req, resp) => {
                 limit: ((_d = req.query.limit) !== null && _d !== void 0 ? _d : 50),
                 search: req.query.search,
                 id: req.query.id,
-                email: user_data.account,
+                email: user_data.userData.email,
+                phone: user_data.userData.phone,
                 status: req.query.status,
                 searchType: req.query.searchType,
             }));

@@ -352,7 +352,7 @@ export class HtmlGenerate {
                                     startRender();
                                 }),
                             ];
-                            if ((isEditMode() || isIdeaAble(option.origin_widget)) && option && option.editorSection) {
+                            if ((isEditMode() || isIdeaAble(option.origin_widget)) && option && option.editorSection && root) {
                                 view.push(HtmlGenerate.getEditorSelectSection({
                                     id: option.editorSection,
                                     gvc: gvc,

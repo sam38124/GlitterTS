@@ -1125,7 +1125,8 @@ export class UserList {
                                                                                 page: vd.page - 1,
                                                                                 limit: limit,
                                                                                 data_from: 'manager',
-                                                                                email: vm.data.account,
+                                                                                email: vm.data.userData.email,
+                                                                                phone: vm.data.userData.phone,
                                                                                 status: 1,
                                                                             }).then((data) => {
                                                                                 vd.pageSize = Math.ceil(data.response.total / limit);
@@ -1303,7 +1304,8 @@ export class UserList {
                                                                                 page: 0,
                                                                                 limit: 99999,
                                                                                 data_from: 'manager',
-                                                                                email: vm.data.account,
+                                                                                email: vm.data.userData.email,
+                                                                                phone: vm.data.userData.phone,
                                                                                 status: 1,
                                                                             }).then((data) => {
                                                                                 let total_price = 0;

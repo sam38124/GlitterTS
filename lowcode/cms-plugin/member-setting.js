@@ -38,6 +38,7 @@ export class MemberSetting {
             return {
                 bind: vm.id,
                 view: () => {
+                    var _a, _b;
                     if (vm.loading) {
                         return ``;
                     }
@@ -50,7 +51,7 @@ export class MemberSetting {
                         BgWidget.mainCard([
                             html `
                                                         <div class="tx_normal fw-bolder mt-2"
-                                                             style="margin-bottom: 24px;">登入 / 註冊設定
+                                                             style="margin-bottom: 24px;">第三方登入串接
                                                         </div>`,
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -335,50 +336,23 @@ export class MemberSetting {
                                                         </div>`,
                             html `
                                                         <div class="d-flex flex-column" style="gap:18px;">
-                                                            ${[
-                                {
-                                    title: html `
-                                                                        <div class="d-flex flex-column">
-                                                                            不發送驗證信件
-                                                                            <span class=""
-                                                                                  style="color:#8D8D8D;font-size: 12px;">顧客可用未驗證帳號登入</span>
-                                                                        </div>`,
-                                    checked: !vm.data.email_verify,
-                                },
-                                {
-                                    title: html `
-                                                                        <div class="d-flex flex-column">
-                                                                            發送驗證信件
-                                                                            <span class=""
-                                                                                  style="color:#8D8D8D;font-size: 12px;">顧客必須經過驗證才能登入</span>
-                                                                        </div>`,
-                                    checked: vm.data.email_verify,
-                                },
-                            ]
-                                .map((dd) => {
-                                return html `
-                                                                            <div>
-                                                                                ${[
-                                    html `
-                                                                                        <div
-                                                                                                class="d-flex align-items-center cursor_pointer"
-                                                                                                style="gap:8px;"
-                                                                                                onclick="${gvc.event(() => {
-                                        vm.data.email_verify = !vm.data.email_verify;
-                                        saveEvent();
-                                        gvc.notifyDataChange(vm.id);
-                                    })}"
-                                                                                        >
-                                                                                            ${dd.checked ? html `<i
-                                                                                                    class="fa-sharp fa-solid fa-circle-dot color39"></i>` : ` <div class="c_39_checkbox"></div>`}
-                                                                                            <div class="tx_normal fw-normal">
-                                                                                                ${dd.title}
-                                                                                            </div>
-                                                                                        </div>`,
-                                ].join('')}
-                                                                            </div>`;
-                            })
-                                .join('')}
+                                                            ${[BgWidget.multiCheckboxContainer(gvc, [{
+                                        key: 'true', name: `<div class="d-flex flex-column">是否驗證信箱
+${BgWidget.grayNote(`信箱是否需要驗證才能進行註冊或修改`)}
+</div>`
+                                    }], [`${(_a = vm.data.email_verify) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                    vm.data.email_verify = !vm.data.email_verify;
+                                    saveEvent();
+                                }),
+                                BgWidget.multiCheckboxContainer(gvc, [{
+                                        key: 'true', name: `<div class="d-flex flex-column">是否驗證電話
+${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
+</div>`
+                                    }], [`${(_b = vm.data.phone_verify) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
+                                    vm.data.phone_verify = !vm.data.phone_verify;
+                                    saveEvent();
+                                })
+                            ].join('')}
                                                         </div>`,
                             html `
                                                         <div class="w-100 border-top my-3"></div>`,
@@ -389,7 +363,8 @@ export class MemberSetting {
                             html `
                                                         <div class="d-flex align-items-center w-100"
                                                              style="gap:4px;margin-bottom: 12px;">
-                                                            <div class="tx_normal fw-bolder ">允許訪客結帳</div>
+                                                            <div class="tx_normal fw-bolder d-flex flex-column">允許訪客結帳
+                                                            </div>
                                                             <div class="tx_normal ms-2">
                                                                 ${vm.data.login_in_to_order ? `關閉` : `開啟`}
                                                             </div>
@@ -410,16 +385,6 @@ export class MemberSetting {
                         ].join('')),
                         ...(() => {
                             const form = BgWidget.customForm(gvc, [{
-                                    key: 'custom_form_checkout',
-                                    title: html `
-                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                         style="margin-bottom: 12px;">
-                                                        結帳頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於結帳頁面中設定顧客必須填寫的資料</span>
-                                                    </div>
-
-                                                `
-                                }, {
                                     key: 'custom_form_register',
                                     title: html `
                                                     <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
@@ -433,9 +398,10 @@ export class MemberSetting {
                                                     <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
                                                          style="margin-bottom: 12px;">
                                                         設定頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客必須填寫的額外資料</span>
+                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客可填寫的額外資料</span>
                                                     </div>`
-                                }]);
+                                },
+                            ]);
                             return [
                                 form.view,
                                 html `

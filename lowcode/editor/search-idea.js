@@ -90,7 +90,7 @@ ${gvc.bindView(() => {
                     }
                 },
                 divCreate: {
-                    style: 'height: calc(100vh - 125px);overflow-y:auto;',
+                    style: 'height: calc(100vh - 125px) !important;overflow-y:auto;',
                     class: `p-2`,
                 },
             };
@@ -127,7 +127,7 @@ ${gvc.bindView(() => {
                             </div>`;
                     }
                     return [
-                        `<iframe class="" style="height: calc(2.5 * (100vh - 125px));
+                        `<iframe class="" style="height: calc(2.5 * (100vh - 125px)) !important;
 width: calc(250%);
 transform: scale(0.4) translateX(-75%) translateY(-75%);
     position: absolute;
@@ -139,7 +139,7 @@ transform: scale(0.4) translateX(-75%) translateY(-75%);
                     ].join('');
                 },
                 divCreate: {
-                    style: `position:relative;height:calc(100vh - 125px);overflow-y:auto;`,
+                    style: `position:relative;height:calc(100vh - 125px) !important;overflow-y:auto;`,
                     class: `w-100`,
                 },
             };

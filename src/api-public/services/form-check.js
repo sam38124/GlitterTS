@@ -1,4 +1,7 @@
-export class FormCheck {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FormCheck = void 0;
+class FormCheck {
     static initialRegisterForm(form_formats) {
         if (!form_formats.find((dd) => {
             return dd.key === 'name';
@@ -208,65 +211,7 @@ export class FormCheck {
                 "deletable": false
             });
         }
-        if (!form_formats.find((dd) => {
-            return dd.key === 'gender';
-        })) {
-            form_formats.push({
-                "deletable": false,
-                "require": false,
-                "hidden": true,
-                "col": "12",
-                "key": "gender",
-                "page": "check_box",
-                "type": "form_plugin_v2",
-                "group": "",
-                "title": "性別",
-                "col_sm": "12",
-                "toggle": false,
-                "appName": "cms_system",
-                "readonly": "write",
-                "formFormat": "{}",
-                "moduleName": "單選題",
-                "style_data": {
-                    "input": {
-                        "list": [],
-                        "class": "",
-                        "style": "",
-                        "version": "v2"
-                    },
-                    "label": {
-                        "list": [],
-                        "class": "form-label fs-base ",
-                        "style": "",
-                        "version": "v2"
-                    },
-                    "container": {
-                        "list": [],
-                        "class": "",
-                        "style": "",
-                        "version": "v2"
-                    }
-                },
-                "form_config": {
-                    "type": "name",
-                    "title": "",
-                    "option": [
-                        {
-                            "name": "男生",
-                            "index": 0,
-                            "value": "男生"
-                        },
-                        {
-                            "name": "女生",
-                            "index": 0,
-                            "value": "女生"
-                        }
-                    ],
-                    "input_style": {},
-                    "title_style": {},
-                    "place_holder": ""
-                }
-            });
-        }
     }
 }
+exports.FormCheck = FormCheck;
+//# sourceMappingURL=form-check.js.map

@@ -117,6 +117,7 @@ export class AutoReply {
                                 'auto-sns-order-create',
                                 'sns-proof-purchase',
                                 'auto-sns-birthday',
+                                'auto-phone-verify'
                             ];
                             let index = 0;
                             for (const b of vm.dataList) {
@@ -275,6 +276,14 @@ export class AutoReply {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const dataList = [
+                {
+                    tag: 'auto-phone-verify',
+                    tag_name: '電話認證',
+                    name: '@{{app_name}}',
+                    title: '[@{{app_name}}] 帳號認證通知',
+                    content: '嗨！歡迎加入 @{{app_name}}，請輸入驗證碼「 @{{code}} 」。請於一分鐘內輸入並完成驗證。',
+                    toggle: true,
+                },
                 {
                     tag: 'auto-sns-shipment',
                     tag_name: '商品出貨',

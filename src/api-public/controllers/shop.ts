@@ -257,6 +257,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     page: (req.query.page ?? 0) as number,
                     limit: (req.query.limit ?? 50) as number,
                     search: req.query.search as string,
+                    phone:req.query.phone as string,
                     id: req.query.id as string,
                     email: req.query.email as string,
                     status: req.query.status as string,
@@ -281,7 +282,8 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     limit: (req.query.limit ?? 50) as number,
                     search: req.query.search as string,
                     id: req.query.id as string,
-                    email: user_data.account,
+                    email: user_data.userData.email ,
+                    phone:user_data.userData.phone ,
                     status: req.query.status as string,
                     searchType: req.query.searchType as string,
                 })

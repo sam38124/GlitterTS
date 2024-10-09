@@ -240,69 +240,69 @@ export const widgetComponent = {
                                                                         <div
                                                                                 class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
                                                                                 style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: ${(() => {
-                                                                                    if (widget.data._layout === 'proportion') {
-                                                                                        const wid = (widget.data._ratio_layout_value ?? ``).split(',')
-                                                                                        for (const c of horGroup) {
-                                                                                            if (c.includes(b)) {
-                                                                                                const wid = (widget.data._ratio_layout_value ?? ``).split(',');
-                                                                                                const _gap_y = ((Number(widget.data._gap_y) * (c.length - 1)) / c.length).toFixed(0);
+                                                                        if (widget.data._layout === 'proportion') {
+                                                                            const wid = (widget.data._ratio_layout_value ?? ``).split(',')
+                                                                            for (const c of horGroup) {
+                                                                                if (c.includes(b)) {
+                                                                                    const wid = (widget.data._ratio_layout_value ?? ``).split(',');
+                                                                                    const _gap_y = ((Number(widget.data._gap_y) * (c.length - 1)) / c.length).toFixed(0);
 
-                                                                                                return `calc(${wid[b] || 100}% - ${_gap_y}px) !important;`
-                                                                                            }
-                                                                                        }
-                                                                                        return wid[b] || 100 + '% !important'
-                                                                                    } else {
-                                                                                        return `100%`
-                                                                                    }
-                                                                                })()};height: 100%;"
+                                                                                    return `calc(${wid[b] || 100}% - ${_gap_y}px) !important;`
+                                                                                }
+                                                                            }
+                                                                            return wid[b] || 100 + '% !important'
+                                                                        } else {
+                                                                            return `100%`
+                                                                        }
+                                                                    })()};height: 100%;"
                                                                                 onmousedown="${gvc.event(() => {
-                                                                                    glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                                                                                        glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                                        AddComponent.toggle(true);
-                                                                                        AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                                            (window.parent as any).glitter.share.addComponent(cf);
-                                                                                            RenderValue.custom_style.value(gvc, widget)
-                                                                                            AddComponent.toggle(false);
-                                                                                        };
-                                                                                        AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                                            (window.parent as any).glitter.share.addComponent({
-                                                                                                id: gvc.glitter.getUUID(),
-                                                                                                js: './official_view_component/official.js',
-                                                                                                css: {
-                                                                                                    class: {},
-                                                                                                    style: {},
-                                                                                                },
-                                                                                                data: {
-                                                                                                    refer_app: tdata.copyApp,
-                                                                                                    tag: tdata.copy,
-                                                                                                    list: [],
-                                                                                                    carryData: {},
-                                                                                                    _style_refer_global: {
-                                                                                                        index: `0`,
-                                                                                                    },
-                                                                                                },
-                                                                                                type: 'component',
-                                                                                                class: 'w-100',
-                                                                                                index: 0,
-                                                                                                label: tdata.title,
-                                                                                                style: '',
-                                                                                                bundle: {},
-                                                                                                global: [],
-                                                                                                toggle: false,
-                                                                                                stylist: [],
-                                                                                                dataType: 'static',
-                                                                                                style_from: 'code',
-                                                                                                classDataType: 'static',
-                                                                                                preloadEvenet: {},
-                                                                                                share: {},
-                                                                                            });
-                                                                                            RenderValue.custom_style.value(gvc, widget)
-                                                                                            AddComponent.toggle(false);
-                                                                                        };
-                                                                                    });
-                                                                                })}"
+                                                                        glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                                                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            AddComponent.toggle(true);
+                                                                            AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                                (window.parent as any).glitter.share.addComponent(cf);
+                                                                                RenderValue.custom_style.value(gvc, widget)
+                                                                                AddComponent.toggle(false);
+                                                                            };
+                                                                            AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                                (window.parent as any).glitter.share.addComponent({
+                                                                                    id: gvc.glitter.getUUID(),
+                                                                                    js: './official_view_component/official.js',
+                                                                                    css: {
+                                                                                        class: {},
+                                                                                        style: {},
+                                                                                    },
+                                                                                    data: {
+                                                                                        refer_app: tdata.copyApp,
+                                                                                        tag: tdata.copy,
+                                                                                        list: [],
+                                                                                        carryData: {},
+                                                                                        _style_refer_global: {
+                                                                                            index: `0`,
+                                                                                        },
+                                                                                    },
+                                                                                    type: 'component',
+                                                                                    class: 'w-100',
+                                                                                    index: 0,
+                                                                                    label: tdata.title,
+                                                                                    style: '',
+                                                                                    bundle: {},
+                                                                                    global: [],
+                                                                                    toggle: false,
+                                                                                    stylist: [],
+                                                                                    dataType: 'static',
+                                                                                    style_from: 'code',
+                                                                                    classDataType: 'static',
+                                                                                    preloadEvenet: {},
+                                                                                    share: {},
+                                                                                });
+                                                                                RenderValue.custom_style.value(gvc, widget)
+                                                                                AddComponent.toggle(false);
+                                                                            };
+                                                                        });
+                                                                    })}"
                                                                         >
                                                                             <i class="fa-regular fa-circle-plus text-black"
                                                                                style="font-size: 60px;"></i>
@@ -365,43 +365,45 @@ export const widgetComponent = {
                                     });
                                     return getView()
                                 }
-                                if ((widget.data.dataFrom === "code")) {
-                                    if (widget.data.elem !== 'select') {
-                                        innerText = ''
-                                    }
-                                    widget.data.innerEvenet = widget.data.innerEvenet ?? {}
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: widget.data.innerEvenet,
-                                        subData
-                                    }).then((data) => {
-                                        if (widget.data.elem === 'select') {
-                                            formData[widget.data.key] = data
-                                        }
-                                        innerText = data || ''
-                                        gvc.notifyDataChange(id)
-                                    })
-                                } else if (widget.data.dataFrom === "code_text") {
-                                    const inner = (eval(`(() => {
+                               function getCodeText(){
+                                   if ((widget.data.dataFrom === "code")) {
+                                       if (widget.data.elem !== 'select') {
+                                           innerText = ''
+                                       }
+                                       widget.data.innerEvenet = widget.data.innerEvenet ?? {}
+                                       TriggerEvent.trigger({
+                                           gvc: gvc,
+                                           widget: widget,
+                                           clickEvent: widget.data.innerEvenet,
+                                           subData
+                                       }).then((data) => {
+                                           if (widget.data.elem === 'select') {
+                                               formData[widget.data.key] = data
+                                           }
+                                           innerText = data || ''
+                                           gvc.notifyDataChange(id)
+                                       })
+                                   } else if (widget.data.dataFrom === "code_text") {
+                                       const inner = (eval(`(() => {
                                         ${widget.data.inner}
                                     })()`))
-                                    if (inner && inner.then) {
+                                       if (inner && inner.then) {
 
-                                        inner.then((data: any) => {
-                                            innerText = data || ''
-                                            gvc.notifyDataChange(id)
-                                        })
-                                    } else {
-                                        innerText = inner
-                                        gvc.notifyDataChange(id)
-                                    }
-                                }
+                                           inner.then((data: any) => {
+                                               innerText = data || ''
+                                               gvc.notifyDataChange(id)
+                                           })
+                                       } else {
+                                           innerText = inner
+                                           gvc.notifyDataChange(id)
+                                       }
+                                   }
+                               }
+                                getCodeText()
                                 return gvc.bindView(() => {
                                     return {
                                         bind: id,
                                         view: () => {
-
                                             let view: any = []
                                             switch (widget.data.elem) {
                                                 case 'select':
@@ -488,14 +490,15 @@ export const widgetComponent = {
                                                     break
 
                                             }
-                                            if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                                view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                                    id: widget.id,
-                                                    gvc: gvc,
-                                                    label: widget.label,
-                                                    widget: widget
-                                                }));
-                                            }
+                                            console.log(`htmlGenerate.root`,htmlGenerate.root)
+                                            // if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                            //     view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                            //         id: widget.id,
+                                            //         gvc: gvc,
+                                            //         label: widget.label,
+                                            //         widget: widget
+                                            //     }));
+                                            // }
 
                                             return view.join('')
                                         },
@@ -546,6 +549,8 @@ export const widgetComponent = {
                                                 clickEvent: (widget as any).onInitialEvent,
                                                 subData: subData
                                             })
+                                        },
+                                        onResume:()=>{
                                         }
                                     }
                                 })

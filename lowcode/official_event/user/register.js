@@ -13,7 +13,7 @@ import { ApiUser } from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
             object.successEvent = (_a = object.successEvent) !== null && _a !== void 0 ? _a : {};
             object.errorEvent = (_b = object.errorEvent) !== null && _b !== void 0 ? _b : {};
             object.account = (_c = object.account) !== null && _c !== void 0 ? _c : {};
@@ -21,7 +21,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.userData = (_e = object.userData) !== null && _e !== void 0 ? _e : {};
             object.mailVerify = (_f = object.mailVerify) !== null && _f !== void 0 ? _f : {};
             object.emailVerifyCode = (_g = object.emailVerifyCode) !== null && _g !== void 0 ? _g : {};
-            object.checkError = (_h = object.checkError) !== null && _h !== void 0 ? _h : {};
+            object.phoneVerifyCode = (_h = object.phoneVerifyCode) !== null && _h !== void 0 ? _h : {};
+            object.checkError = (_j = object.checkError) !== null && _j !== void 0 ? _j : {};
+            object.checkErrorPhone = (_k = object.checkErrorPhone) !== null && _k !== void 0 ? _k : {};
             return {
                 editor: () => {
                     return [TriggerEvent.editer(gvc, widget, object.account, {
@@ -40,7 +42,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.emailVerifyCode, {
                             hover: false,
                             option: [],
-                            title: "驗證碼"
+                            title: "信箱驗證碼"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.phoneVerifyCode, {
+                            hover: false,
+                            option: [],
+                            title: "簡訊驗證碼"
                         }),
                         TriggerEvent.editer(gvc, widget, object.mailVerify, {
                             hover: false,
@@ -60,7 +67,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.checkError, {
                             hover: false,
                             option: [],
-                            title: "驗證失敗事件"
+                            title: "信箱驗證失敗事件"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.checkErrorPhone, {
+                            hover: false,
+                            option: [],
+                            title: "電話驗證失敗事件"
                         })
                     ].join(`<div class="my-2"></div>`);
                 },
@@ -87,6 +99,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element
                         });
+                        let phoneVerifyCode = yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.phoneVerifyCode,
+                            subData: subData,
+                            element: element
+                        });
                         let userData = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -95,6 +114,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             element: element
                         })) || {};
                         userData.verify_code = emailVerifyCode;
+                        userData.verify_code_phone = phoneVerifyCode;
                         ApiUser.register({
                             account: account,
                             pwd: pwd,
@@ -102,7 +122,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }).then((r) => {
                             var _a;
                             if (!r.result) {
-                                if (emailVerifyCode) {
+                                if (!r.response.data) {
+                                    TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: object.errorEvent,
+                                        subData: subData,
+                                        element: element
+                                    });
+                                }
+                                else if (r.response.data.msg === 'email-verify-false') {
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
@@ -111,11 +140,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         element: element
                                     });
                                 }
-                                else {
+                                else if (r.response.data.msg === 'phone-verify-false') {
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.errorEvent,
+                                        clickEvent: object.checkErrorPhone,
                                         subData: subData,
                                         element: element
                                     });

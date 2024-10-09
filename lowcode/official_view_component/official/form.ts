@@ -962,7 +962,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                                 subData: subData,
                                                 element: element,
                                             });
-                                            getCodeView();
+                                            // getCodeView();
                                         },
                                         widget: widget,
                                         subData: subData,
@@ -998,7 +998,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                                 subData: subData,
                                                 element: element,
                                             });
-                                            gvc.notifyDataChange(id);
+                                            // gvc.notifyDataChange(id);
                                         },
                                         widget: widget,
                                         subData: subData,

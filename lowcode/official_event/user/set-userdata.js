@@ -13,12 +13,15 @@ import { ApiUser } from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             object.userData = (_a = object.userData) !== null && _a !== void 0 ? _a : {};
             object.emailVerify = (_b = object.emailVerify) !== null && _b !== void 0 ? _b : {};
             object.success = (_c = object.success) !== null && _c !== void 0 ? _c : {};
             object.error = (_d = object.error) !== null && _d !== void 0 ? _d : {};
             object.verify_code = (_e = object.verify_code) !== null && _e !== void 0 ? _e : {};
+            object.phoneVerifyCode = (_f = object.phoneVerifyCode) !== null && _f !== void 0 ? _f : {};
+            object.checkError = (_g = object.checkError) !== null && _g !== void 0 ? _g : {};
+            object.checkErrorPhone = (_h = object.checkErrorPhone) !== null && _h !== void 0 ? _h : {};
             return {
                 editor: () => {
                     return [
@@ -35,7 +38,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.verify_code, {
                             hover: false,
                             option: [],
-                            title: "驗證碼來源。"
+                            title: "信箱驗證碼"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.phoneVerifyCode, {
+                            hover: false,
+                            option: [],
+                            title: "簡訊驗證碼"
                         }),
                         TriggerEvent.editer(gvc, widget, object.success, {
                             hover: false,
@@ -46,6 +54,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             hover: false,
                             option: [],
                             title: "更新失敗事件。"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.checkError, {
+                            hover: false,
+                            option: [],
+                            title: "信箱驗證失敗事件"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.checkErrorPhone, {
+                            hover: false,
+                            option: [],
+                            title: "電話驗證失敗事件"
                         })
                     ].join('<div class="my-2"></div>');
                 },
@@ -65,9 +83,17 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element
                         });
+                        let phoneVerifyCode = yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.phoneVerifyCode,
+                            subData: subData,
+                            element: element
+                        });
                         if (verify_code) {
                             userData.verify_code = verify_code;
                         }
+                        userData.verify_code_phone = phoneVerifyCode;
                         ApiUser.updateUserData({
                             userData: userData
                         }).then((r) => __awaiter(void 0, void 0, void 0, function* () {
@@ -102,13 +128,33 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }));
                                 }
                                 else {
-                                    yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.error,
-                                        subData: r,
-                                        element: element
-                                    });
+                                    if (!r.response.data) {
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.error,
+                                            subData: subData,
+                                            element: element
+                                        });
+                                    }
+                                    else if (r.response.data.msg === 'email-verify-false') {
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.checkError,
+                                            subData: subData,
+                                            element: element
+                                        });
+                                    }
+                                    else if (r.response.data.msg === 'phone-verify-false') {
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.checkErrorPhone,
+                                            subData: subData,
+                                            element: element
+                                        });
+                                    }
                                     resolve(false);
                                 }
                             }
