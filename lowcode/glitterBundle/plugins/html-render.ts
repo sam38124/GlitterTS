@@ -126,6 +126,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             } else {
                 vm.loading = false
             }
+            let toggle_d_none=true
             map.push(gvc.bindView({
                 bind: mainId,
                 view: () => {
@@ -219,9 +220,11 @@ is_page:true
                     })
 
                 },
-                divCreate: {
-                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class()+' d-none',
-                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                divCreate: ()=>{
+                    return {
+                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class()+((toggle_d_none) ? ' d-none':''),
+                        style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    }
                 },
                 onCreate: () => {
                     (gBundle.page_config.initialList ?? []).map((dd: any) => {
@@ -232,10 +235,11 @@ is_page:true
                             }
                         }
                     })
+                    toggle_d_none=false
                     setTimeout(()=>{
                         (document.querySelector(`[gvc-id='${gvc.id(mainId)}']`) as any).classList.remove('d-none')
                     },20)
-                }
+                },
             }))
             return map.join('');
 
