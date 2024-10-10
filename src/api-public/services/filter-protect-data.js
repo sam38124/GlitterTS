@@ -9,6 +9,9 @@ class FilterProtectData {
                     data['secret'] = undefined;
                     data['message_token'] = undefined;
                     break;
+                case 'login_fb_setting':
+                    data['secret'] = undefined;
+                    break;
             }
         }
         return data;
