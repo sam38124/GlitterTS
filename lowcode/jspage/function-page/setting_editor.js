@@ -1099,7 +1099,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'line_auto_send',
+            page: 'third-party-facebook',
             group: '第三方整合',
             title: '臉書 FB 串接設定',
             appName: 'cms_system',
@@ -1108,7 +1108,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'line_auto_send',
+            page: 'third-party-google',
             group: '第三方整合',
             title: 'Google 串接設定',
             appName: 'cms_system',

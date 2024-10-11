@@ -145,6 +145,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             else {
                 vm.loading = false;
             }
+            let toggle_d_none = true;
             map.push(gvc.bindView({
                 bind: mainId,
                 view: () => {
@@ -234,9 +235,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     }));
                 },
-                divCreate: {
-                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ' d-none',
-                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                divCreate: () => {
+                    return {
+                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ((toggle_d_none) ? ' d-none' : ''),
+                        style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    };
                 },
                 onCreate: () => {
                     var _a;
@@ -249,10 +252,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             }
                         }
                     });
+                    toggle_d_none = false;
                     setTimeout(() => {
                         document.querySelector(`[gvc-id='${gvc.id(mainId)}']`).classList.remove('d-none');
                     }, 20);
-                }
+                },
             }));
             return map.join('');
         }
