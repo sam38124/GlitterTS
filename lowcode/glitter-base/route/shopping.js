@@ -258,7 +258,7 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName),
+                'g-app': json.app_name || (window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName)),
                 Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
             },
         });

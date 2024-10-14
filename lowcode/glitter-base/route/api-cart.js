@@ -89,3 +89,9 @@ export class ApiCart {
     }
 }
 ApiCart.cartID = 'lemnoasew';
+const interVal = setInterval(() => {
+    if (window.glitter) {
+        clearInterval(interVal);
+        window.glitter.share.ApiCart = ApiCart;
+    }
+}, 100);

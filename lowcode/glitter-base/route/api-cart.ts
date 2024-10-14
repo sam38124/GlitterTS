@@ -1,3 +1,5 @@
+import {ApiShop} from "./shopping.js";
+
 type Product = {
     id: number;
     spec: string[];
@@ -99,6 +101,13 @@ export class ApiCart{
     static setCart(exe:(cartItem:CartItem)=>void){
         const cart=ApiCart.cart
         exe(cart)
-        ApiCart.cart=cart
+        ApiCart.cart=cart;
     }
 }
+
+const interVal = setInterval(() => {
+    if ((window as any).glitter) {
+        clearInterval(interVal);
+        (window as any).glitter.share.ApiCart = ApiCart;
+    }
+}, 100);

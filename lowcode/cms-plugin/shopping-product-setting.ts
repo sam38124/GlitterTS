@@ -2352,7 +2352,8 @@ export class ShoppingProductSetting {
                                     ${BgWidget.grayButton(
                                         document.body.clientWidth > 768 ? '預覽商品' : '預覽',
                                         gvc.event(() => {
-                                            window.parent.open(`https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
+                                            const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
+                                            window.parent.open(href, '_blank');
                                         }),
                                         { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
                                     )}
@@ -3983,7 +3984,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                 ${BgWidget.greenNote(
                                                                                 href+`/${postMD.seo.domain}`,
                                                                                 gvc.event(() => {
-                                                                                    window.parent.open(href, '_blank');
+                                                                                    window.parent.open(href+`/${postMD.seo.domain}`, '_blank');
                                                                                 })
                                                                         )}
                                                             </div>`,

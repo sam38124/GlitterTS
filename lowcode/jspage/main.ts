@@ -27,12 +27,18 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {SearchIdea} from "../editor/search-idea.js";
 import {AiMessage} from "../cms-plugin/ai-message.js";
 import {GlobalWidget} from "../glitterBundle/html-component/global-widget.js";
+import {BgWidget} from "../backend-manager/bg-widget.js";
+import {ApiUser} from "../glitter-base/route/user.js";
+import {AiPointsApi} from "../glitter-base/route/ai-points-api.js";
+import {ApiCart} from "../glitter-base/route/api-cart.js";
+import {BaseApi} from "../glitterBundle/api/base.js";
+import {GlobalUser} from "../glitter-base/global/global-user.js";
 
 const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-    glitter.share.ai_message=AiMessage
+    glitter.share.ai_message = AiMessage
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
     const css = String.raw;
     gvc.addStyle(css`
@@ -485,6 +491,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             viewModel.selectContainer = undefined;
             lod();
         };
+
     });
     return {
         onCreateView: () => {
@@ -534,10 +541,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                 hint: '設計元件'
                                                             }
                                                         ]
-                                                                .filter((dd)=>{
-                                                                    if(gvc.glitter.getUrlParameter('device')==='mobile'){
-                                                                        return dd.index!=='widget'
-                                                                    }else{
+                                                                .filter((dd) => {
+                                                                    if (gvc.glitter.getUrlParameter('device') === 'mobile') {
+                                                                        return dd.index !== 'widget'
+                                                                    } else {
                                                                         return true
                                                                     }
                                                                 })
@@ -710,9 +717,186 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
 function initialEditor(gvc: GVC, viewModel: any) {
     const glitter = gvc.glitter;
+    //續費功能
+    glitter.share.subscription = async (title: string) => {
+        const dialog = new ShareDialog(glitter)
+        const vm: {
+            total: number,
+            note: any,
+            return_url: string,
+            line_items: any[],
+            user_info: {
+                email: string,
+                invoice_type: 'me' | 'company' | 'donate',
+                company: string,
+                gui_number: string
+            },
+            customer_info: any
+        } = {
+            total: 500,
+            note: {},
+            line_items: [],
+            return_url: (window.parent as any).location.href,
+            user_info: {
+                email: '',
+                invoice_type: 'me',
+                company: '',
+                gui_number: ''
+            },
+            customer_info: {}
+        }
+        const dd = (await ApiUser.getPublicConfig('ai-points-store', 'manager'))
+        if (dd.response.value) {
+            vm.user_info = dd.response.value
+        }
+        const sku = (()=>{
+            switch (title) {
+                case '輕便電商方案':
+                    return 'light-year'
+                case '標準電商方案':
+                    return 'basic-year'
+                case '通路電商方案':
+                    return 'omo-year'
+                case '行動電商方案':
+                    return 'app-year'
+                case '旗艦電商方案':
+                    return 'flagship-year'
+            }
+        })()
+        const product = await ApiShop.getProduct({
+            limit: 1,
+            page: 0,
+            searchType: 'sku',
+            search: sku,
+            app_name: (window.parent as any).glitterBase
+        });
+        vm.line_items = [{
+            id: product.response.data[0].id as any,
+            spec: product.response.data[0].content.variants.find((dd: any) => {
+                return dd.sku === sku
+            }).spec,
+            count: 1
+        }]
+        BgWidget.settingDialog({
+            gvc: gvc,
+            title: title,
+            innerHTML: (gvc: GVC) => {
+                return `<div class="mt-n2">${[
+                    BgWidget.editeInput({
+                        gvc: gvc,
+                        title: `發票寄送電子信箱`,
+                        placeHolder: '請輸入發票寄送電子信箱',
+                        callback: (text) => {
+                            vm.user_info.email = text
+                        },
+                        type: 'email',
+                        default: vm.user_info.email
+                    }),
+                    `<div class="tx_normal fw-normal" >發票開立方式</div>`,
+                    BgWidget.select({
+                        gvc: gvc, callback: (text) => {
+                            vm.user_info.invoice_type = text
+                            gvc.recreateView()
+                        }, options: [
+                            {key: 'me', value: '個人單位'},
+                            {key: 'company', value: '公司行號'}
+                        ], default: vm.user_info.invoice_type
+                    }),
+                    ...(() => {
+                        if (vm.user_info.invoice_type === 'company') {
+                            return [
+                                BgWidget.editeInput({
+                                    gvc: gvc, title: `發票抬頭`, placeHolder: '請輸入發票抬頭', callback: (text) => {
+                                        vm.user_info.company = text
+                                    }, type: 'text', default: `${vm.user_info.company}`
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: `公司統一編號`,
+                                    placeHolder: '請輸入統一編號',
+                                    callback: (text) => {
+                                        vm.user_info.gui_number = text
+                                    },
+                                    type: 'number',
+                                    default: `${vm.user_info.gui_number}`
+                                })
+                            ]
+                        } else {
+                            return []
+                        }
+                    })()
+                ].join(`<div class="my-2"></div>`)}</div>`
+            },
+            footer_html: (gvc: GVC) => {
+                return [BgWidget.cancel(gvc.event(() => {
+                    gvc.closeDialog()
+                })), BgWidget.save(gvc.event(async () => {
+                    if (vm.user_info.invoice_type !== 'company') {
+                        vm.user_info.company = ''
+                        vm.user_info.gui_number = ''
+                    }
+                    if (vm.user_info.invoice_type === 'company' && !vm.user_info.company) {
+                        dialog.errorMessage({text: '請確實填寫發票抬頭'})
+                        return
+                    } else if (vm.user_info.invoice_type === 'company' && !vm.user_info.gui_number) {
+                        dialog.errorMessage({text: '請確實填寫統一編號'})
+                        return
+                    } else if (!vm.user_info.email) {
+                        dialog.errorMessage({text: '請確實填寫信箱'})
+                        return
+                    } else if (!BgWidget.isValidEmail(vm.user_info.email)) {
+                        dialog.errorMessage({text: '請輸入有效信箱'})
+                        return
+                    } else if (vm.user_info.invoice_type === 'company' && !BgWidget.isValidNumbers(vm.user_info.gui_number)) {
+                        dialog.errorMessage({text: '請輸入有效統一編號'})
+                        return
+                    }
+                    dialog.dataLoading({visible: true})
+                    await ApiUser.setPublicConfig({
+                        key: 'ai-points-store',
+                        value: vm.user_info,
+                        user_id: 'manager',
+                    })
+                    vm.note = {
+                        invoice_data: vm.user_info
+                    };
+                    vm.customer_info = {
+                        "payment_select": "ecPay"
+                    }
+                    BaseApi.create({
+                        url: (window.parent as any).saasConfig.config.url + `/api-public/v1/ec/checkout`,
+                        type: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'g-app': 'shopnex',
+                            'Authorization': GlobalUser.saas_token,
+                        },
+                        data: JSON.stringify(vm),
+                    }).then(async (res) => {
+                        dialog.dataLoading({visible: false})
+                        if (res.response.form) {
+                            const id = gvc.glitter.getUUID()
+                            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                gvc.glitter.runJsInterFace("toCheckout", {
+                                    form: res.response.form
+                                }, () => {
+                                })
+                            } else {
+                                (window.parent as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                (window.parent as any).document.querySelector(`#${id} #submit`).click();
+                            }
+gvc.closeDialog()
+                        } else {
+                            dialog.errorMessage({text: '發生錯誤'})
+                        }
+                    })
+                }))].join('')
+            }
+        })
+    }
     //如果是APP版本
-    if(gvc.glitter.getUrlParameter('device')==='mobile'){
-        gvc.glitter.setCookie('ViewType','mobile')
+    if (gvc.glitter.getUrlParameter('device') === 'mobile') {
+        gvc.glitter.setCookie('ViewType', 'mobile')
         GlobalWidget.glitter_view_type = 'mobile';
     }
     //找靈感組件
