@@ -251,14 +251,15 @@ export class GVC {
             });
         }
         gvc.parameter.bindViewList[map.bind] = map;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => {
+        const bind_id = gvc.id(map.bind);
+        gvc.glitter.elementCallback[bind_id].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => {
         });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => {
+        gvc.glitter.elementCallback[bind_id].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => {
         });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (_c = map.onDestroy) !== null && _c !== void 0 ? _c : (() => {
+        gvc.glitter.elementCallback[bind_id].onDestroy = (_c = map.onDestroy) !== null && _c !== void 0 ? _c : (() => {
         });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = map.view;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
+        gvc.glitter.elementCallback[bind_id].getView = map.view;
+        gvc.glitter.elementCallback[bind_id].updateAttribute = (() => {
             var _a, _b;
             try {
                 const id = gvc.id(map.bind);
@@ -278,13 +279,17 @@ export class GVC {
                 console.log(e);
             }
         });
+        if ((typeof gvc.glitter.elementCallback[bind_id].initial_view === 'string')) {
+        }
         const divCreate = (_d = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _d !== void 0 ? _d : { elem: 'div' };
         return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${((_f = divCreate.class) !== null && _f !== void 0 ? _f : "").split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '')} ${this.getStyleCheckSum(divCreate.style || '')}" 
- glem="bindView"  gvc-id="${gvc.id(map.bind)}"
+ glem="bindView"  gvc-id="${bind_id}"
  ${gvc.map(((_g = divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
             return ` ${dd.key}="${dd.value}"`;
         }))}
-></${(_h = divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>`;
+>
+${(typeof gvc.glitter.elementCallback[bind_id].initial_view === 'string') ? gvc.glitter.elementCallback[bind_id].initial_view : ``}
+</${(_h = divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>`;
     }
     event(fun, noCycle) {
         const gvc = this;

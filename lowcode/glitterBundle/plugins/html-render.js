@@ -254,6 +254,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     });
                     toggle_d_none = false;
                     setTimeout(() => {
+                        $('.new_page_loading').addClass('d-none');
                         document.querySelector(`[gvc-id='${gvc.id(mainId)}']`).classList.remove('d-none');
                     }, 20);
                 },

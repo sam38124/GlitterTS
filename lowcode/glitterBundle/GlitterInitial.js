@@ -66,7 +66,8 @@ function traverseHTML(element, document) {
             pageConfig && (pageConfig.initial = true);
         }
     }
-    catch (e) { }
+    catch (e) {
+    }
     let children = element.children;
     if (children && children.length > 0) {
         for (let j = 0; j < children.length; j++) {
@@ -106,28 +107,37 @@ function traverseHTML(element, document) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
-                        let view = glitter.elementCallback[id].getView();
-                        if (typeof view === 'string') {
-                            const html = glitter.renderView.replaceGlobalValue(view);
-                            try {
-                                $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
-                            }
-                            catch (e) {
-                                $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
-                            }
+                        if (typeof glitter.elementCallback[id].initial_view === 'string') {
+                            glitter.elementCallback[id].initial_view = undefined;
                             notifyLifeCycle();
                         }
                         else {
-                            view.then((data) => {
-                                const html = glitter.renderView.replaceGlobalValue(data);
-                                try {
-                                    $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
+                            let view = glitter.elementCallback[id].getView();
+                            function _start() {
+                                if (typeof view === 'string') {
+                                    const html = glitter.renderView.replaceGlobalValue(view);
+                                    try {
+                                        $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
+                                    }
+                                    catch (e) {
+                                        $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                                    }
+                                    notifyLifeCycle();
                                 }
-                                catch (e) {
-                                    $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                                else {
+                                    view.then((data) => {
+                                        const html = glitter.renderView.replaceGlobalValue(data);
+                                        try {
+                                            $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
+                                        }
+                                        catch (e) {
+                                            $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                                        }
+                                        notifyLifeCycle();
+                                    });
                                 }
-                                notifyLifeCycle();
-                            });
+                            }
+                            _start();
                         }
                     }
                     else if (document.querySelector(`[gvc-id="${id}"]`).onResumeEvent) {

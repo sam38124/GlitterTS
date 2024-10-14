@@ -13,6 +13,7 @@ import { GlobalData } from "../event.js";
 const html = String.raw;
 class ChangePage {
     static changePage(link, type, subData) {
+        $('.new_page_loading').removeClass('d-none');
         const glitter = window.glitter;
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const url = new URL('./', location.href);

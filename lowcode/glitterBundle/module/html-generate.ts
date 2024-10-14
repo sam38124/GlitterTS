@@ -352,18 +352,19 @@ export class HtmlGenerate {
                                     ${data.style}
                                 })()`);
                             } else if (data.dataType === 'triggerEvent') {
-                                return glitter.promiseValue(
-                                    new Promise(async (resolve, reject) => {
-                                        resolve(
-                                            await TriggerEvent.trigger({
-                                                gvc: gvc!,
-                                                widget: widget as any,
-                                                clickEvent: data.triggerStyle,
-                                                subData: subData,
-                                            })
-                                        );
-                                    })
-                                );
+                                return  ``
+                                // return glitter.promiseValue(
+                                //     new Promise(async (resolve, reject) => {
+                                //         resolve(
+                                //             await TriggerEvent.trigger({
+                                //                 gvc: gvc!,
+                                //                 widget: widget as any,
+                                //                 clickEvent: data.triggerStyle,
+                                //                 subData: subData,
+                                //             })
+                                //         );
+                                //     })
+                                // );
                             } else {
                                 style = eval(data.style);
                             }

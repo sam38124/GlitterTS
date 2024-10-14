@@ -1173,14 +1173,7 @@ ${e.line}
                                 })()`);
                             }
                             else if (data.dataType === 'triggerEvent') {
-                                return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                    resolve(yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: data.triggerStyle,
-                                        subData: subData,
-                                    }));
-                                })));
+                                return ``;
                             }
                             else {
                                 style = eval(data.style);

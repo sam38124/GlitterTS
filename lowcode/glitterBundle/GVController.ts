@@ -267,14 +267,15 @@ export class GVC {
             })
         }
         gvc.parameter.bindViewList[map.bind] = map
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (map as any).onInitial ?? (() => {
+        const bind_id=gvc.id(map.bind)
+        gvc.glitter.elementCallback[bind_id].onInitial = (map as any).onInitial ?? (() => {
         })
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (map as any).onCreate ?? (() => {
+        gvc.glitter.elementCallback[bind_id].onCreate = (map as any).onCreate ?? (() => {
         })
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (map as any).onDestroy ?? (() => {
+        gvc.glitter.elementCallback[bind_id].onDestroy = (map as any).onDestroy ?? (() => {
         })
-        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = (map as any).view;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
+        gvc.glitter.elementCallback[bind_id].getView = (map as any).view;
+        gvc.glitter.elementCallback[bind_id].updateAttribute = (() => {
             try {
                 const id = gvc.id(map.bind as string)
                 const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
@@ -294,15 +295,22 @@ export class GVC {
                 console.log(e)
             }
 
-        })
-
+        });
+        // gvc.glitter.elementCallback[bind_id].initial_view=map.view()
+        if( (typeof gvc.glitter.elementCallback[bind_id].initial_view==='string')){
+            //             // console.log(`initial_view`,gvc.glitter.elementCallback[bind_id].initial_view)
+        }
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
         return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')} ${this.getStyleCheckSum(divCreate.style || '')}" 
- glem="bindView"  gvc-id="${gvc.id(map.bind)}"
+ glem="bindView"  gvc-id="${bind_id}"
  ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             return ` ${dd.key}="${dd.value}"`
         }))}
-></${divCreate.elem ?? 'div'}>`
+>
+${
+            (typeof gvc.glitter.elementCallback[bind_id].initial_view==='string') ? gvc.glitter.elementCallback[bind_id].initial_view:``
+        }
+</${divCreate.elem ?? 'div'}>`
 
     }
 
