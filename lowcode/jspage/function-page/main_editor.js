@@ -67,12 +67,12 @@ export class Main_editor {
                                         style="cursor: pointer;color:#393939;"
                                 >
                                     <span>${viewModel.data.name}</span>
-<div class="flex-fill"></div>
-                                   <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-custom-class="custom-tooltip"
-                                        data-bs-title="全站預設背景色">
-                                     ${EditorElem.colorBtn({
+                                    <div class="flex-fill"></div>
+                                    <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
+                                         data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="全站預設背景色">
+                                        ${EditorElem.colorBtn({
                                 gvc: gvc,
                                 def: glitter.share.editorViewModel.appConfig._background || (glitter.share.editorViewModel.appConfig.color_theme[0] && glitter.share.editorViewModel.appConfig.color_theme[0].background) || '#FFFFFF',
                                 style: `width:24px;height:24px;`,
@@ -81,7 +81,7 @@ export class Main_editor {
                                     document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = text;
                                 }
                             })}
-                                   </div>
+                                    </div>
                                 </div>
                             `,
                             `    ${(() => {
@@ -434,7 +434,9 @@ export class Main_editor {
                                             });
                                         }
                                         return html `
-                                            <div class="p-2 root-left-container">${renderItems(list, pageConfig, true)}</div>`;
+                                            <div class="p-2 root-left-container">
+                                                ${renderItems(list, pageConfig, true)}
+                                            </div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -492,7 +494,10 @@ export class Main_editor {
                         `;
                     }
                 },
-                divCreate: { class: `swiper-slide h-100 position-relative design-guide-1` },
+                divCreate: {
+                    class: `swiper-slide h-100 position-relative design-guide-1`,
+                    style: `${(glitter.share.top_inset) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`
+                },
                 onCreate: () => {
                     $('.tooltip').remove();
                     $('[data-bs-toggle="tooltip"]').tooltip();
@@ -829,7 +834,7 @@ export class Main_editor {
             html `
                 <div
                         class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0 + parseInt(glitter.share.top_inset, 10)}` : `- 56`}px)` : `height:calc(100vh - 150px);`}"
                         onscroll="${gvc.event(() => {
                 if (document.querySelector('.right_scroll').scrollTop > 0) {
                     glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
@@ -889,8 +894,8 @@ export class Main_editor {
                 };
             })}
                     <div style="height: 60px;"></div>
-                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
-                         style="height: 60px;">
+                    <div class="${(document.body.clientWidth < 800) ? `position-fixed` : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
+                         style="height: 60px;${(document.body.clientWidth < 800) ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;` : ``}">
                         ${(() => {
                 const view = [];
                 if ((viewModel.selectItem.deletable !== 'false')) {
@@ -985,18 +990,30 @@ export class Main_editor {
             return {
                 bind: 'iframe_center',
                 view: () => {
-                    return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
-                    <iframe class="w-100 h-100  bg-white iframe_view"
-                    sandbox="allow-same-origin allow-scripts"
-                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
-                </div>`;
+                    if (gvc.glitter.getUrlParameter('function') === 'backend-manger') {
+                        return html `
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+                                 id="editerCenter">
+                            </div>`;
+                    }
+                    else {
+                        return html `
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;` : ``}"
+                                 id="editerCenter">
+                                <iframe class="w-100 h-100  bg-white iframe_view"
+                                        sandbox="allow-same-origin allow-scripts"
+                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                            </div>`;
+                    }
                 },
                 divCreate: () => {
                     return {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
                     };
                 }
             };

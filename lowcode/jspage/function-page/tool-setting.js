@@ -30,6 +30,7 @@ export class ToolSetting {
                 {
                     title: '商品卡片樣式',
                     tag: '商品卡片',
+                    hint: `全館 (首頁,隱形賣場,一頁式網頁) 的商品卡片將預設為以下樣式`,
                 },
             ],
             loading: true,
@@ -44,7 +45,7 @@ export class ToolSetting {
                         return html `
                             <div class="px-2 pt-3">${vm.edit_view}</div>`;
                     }
-                    return BgWidget.container(html `
+                    return html `
                             <div class="d-none px-3 align-items-start flex-column">
                                 ${BgWidget.title('設計元件', 'font-size: 16px;')}
                             </div>
@@ -234,7 +235,7 @@ export class ToolSetting {
                                                                                                             </div>
                                                                                                         </div>
                                                                                                         <h3 class="my-auto tx_title text-center w-100 pt-2"
-                                                                                                            style="white-space: nowrap;font-size: 15px;font-weight: 400;">
+                                                                                                            style="white-space: normal;font-size: 15px;font-weight: 400;">
                                                                                                             <i class="fa-sharp fa-solid fa-circle-dot"></i>
                                                                                                             ${refer_widget.template_config.name}
                                                                                                         </h3>
@@ -368,10 +369,10 @@ export class ToolSetting {
                             },
                         };
                     })())}
-                        `, undefined, "padding:8px 0;");
+                        `;
                 },
                 divCreate: {
-                    class: `p-2 mt-n3 mx-n2`,
+                    class: `p-2 mx-n2`,
                 },
             };
         });

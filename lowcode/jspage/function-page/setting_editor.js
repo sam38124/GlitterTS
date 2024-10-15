@@ -18,7 +18,7 @@ export class Setting_editor {
                 view: () => {
                     Storage.select_bg_btn = 'custom';
                     return html `
-                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none">
+                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none" style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}">
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg"/>
                             <span class="ms-1"
                                   style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
@@ -27,6 +27,7 @@ export class Setting_editor {
                              style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
+                        let initial = false;
                         let loading = true;
                         let permissionTitle = '';
                         let permissionData = {};
@@ -138,7 +139,8 @@ export class Setting_editor {
                                                 });
                                             }
                                         }
-                                        if (Storage.select_item === `${index}`) {
+                                        if (Storage.select_item === `${index}` && !initial) {
+                                            initial = true;
                                             if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
                                                 Storage.select_item = `5`;
                                                 click_item(Storage.select_item);

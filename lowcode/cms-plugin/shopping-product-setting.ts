@@ -2054,7 +2054,7 @@ export class ShoppingProductSetting {
                 )}
                 ${BgWidget.save(
                     obj.gvc.event(() => {
-                        function checkEmpty(variant:any , alert?:boolean){
+                        function checkEmpty(variant:any , alert: boolean = false){
                             const checkList = ["sale_price"];
                             for (const checkItem of checkList){
                                 

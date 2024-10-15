@@ -256,7 +256,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     setTimeout(() => {
                         $('.new_page_loading').addClass('d-none');
                         document.querySelector(`[gvc-id='${gvc.id(mainId)}']`).classList.remove('d-none');
-                    }, 20);
+                    }, 50);
                 },
             }));
             return map.join('');

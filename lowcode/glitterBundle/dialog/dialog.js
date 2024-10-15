@@ -138,7 +138,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 case 'warningMessage':
                     return html `
                         <div class="dialog-box">
-                            <div class="dialog-content position-relative" style="width: 494px;padding:36px 64px 26px !important">
+                            <div class="dialog-content position-relative" style="width: 494px;${(document.body.clientWidth < 800) ? `padding:36px 64px 26px !important;` : `padding:25px !important;`}max-width: calc(100% - 40px);">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
                                     <g clip-path="url(#clip0_11947_110999)">
                                         <path

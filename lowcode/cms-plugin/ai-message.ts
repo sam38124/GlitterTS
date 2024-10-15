@@ -506,7 +506,7 @@ export class AiMessage {
                                                         },
                                                         divCreate: {
                                                             class: `chatContainer p-3 d-flex flex-column position-relative`,
-                                                            style: `overflow-y: auto;height: calc(${cf.containerHeight} - 240px);background: white;padding-top:60px;`,
+                                                            style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${240+(parseInt(gvc.glitter.share.top_inset,10)+parseInt(gvc.glitter.share.bottom_inset,10))}px);background: white;padding-top:60px;`,
                                                         },
                                                         onCreate: () => {
                                                             vm.close = false;
@@ -713,7 +713,7 @@ export class AiMessage {
                                                         },
                                                         divCreate: {
                                                             class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
-                                                            style: `gap:8px;`,
+                                                            style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset,10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset,10) + 10}px !important;`:``}`,
                                                         },
                                                         onCreate: () => {},
                                                     };

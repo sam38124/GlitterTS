@@ -2168,6 +2168,12 @@ ${e.line}
                                                                 {
                                                                     key: 'onmouseover',
                                                                     value: gvc.event((e, event) => {
+                                                                      // if(document.body.clientWidth<800){
+                                                                      //     if(!(window.parent as any).drawer.opened){
+                                                                      //         $(e).click();
+                                                                      //     }
+                                                                      //     return
+                                                                      // };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).show();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).show();
 
@@ -2192,6 +2198,11 @@ ${e.line}
                                                                 {
                                                                     key: 'onmouseout',
                                                                     value: gvc.event((e, event) => {
+                                                                        // if(document.body.clientWidth<800){
+                                                                        //     if((window.parent as any).drawer.opened){
+                                                                        //         return
+                                                                        //     }
+                                                                        // };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).hide();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).hide();
                                                                         function loop(item: any) {
@@ -2318,7 +2329,7 @@ ${e.line}
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
-                (glitter.pageConfig[gvc.glitter.pageConfig.length - 1] as any).gvc.notifyDataChange('left_sm_bar');
+                (glitter.pageConfig[gvc.glitter.pageConfig.length - 1] as any).gvc.notifyDataChange(['top_sm_bar','left_sm_bar']);
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
                 glitter.share.editorViewModel.selectItem = dd;
@@ -2570,7 +2581,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;top:${Storage.view_type === 'mobile'
+                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile' || document.body.clientWidth<800)
                                                 ? `-30px`
                                                 : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2578,7 +2589,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${Storage.view_type === 'mobile'
+                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile' || document.body.clientWidth<800)
                                                 ? `10px`
                                                 : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >

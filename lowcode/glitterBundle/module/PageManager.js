@@ -119,7 +119,11 @@ export class PageManager {
                     function switchFunction() {
                         var _a, _b, _c;
                         glitter.page = tag;
-                        window.history.replaceState({}, document.title, original.href);
+                        try {
+                            window.history.replaceState({}, document.title, original.href);
+                        }
+                        catch (e) {
+                        }
                         const pageConfig = new PageConfig({
                             id: glitter.getUUID(),
                             obj: obj,
