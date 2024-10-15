@@ -11,6 +11,7 @@ import { Tool } from '../modules/tool.js';
 import { FileItem, FileSystem } from '../modules/file-system.js';
 import { FileSystemGet } from '../modules/file-system-get.js';
 import {CheckInput} from "../modules/checkInput.js";
+import {imageLibrary} from "../modules/image-library.js";
 
 interface variant {
     save_stock?: string;
@@ -2039,23 +2040,77 @@ export class ShoppingProductSetting {
                                 ? obj.goBackEvent.cancel
                                 : () => {
                                       variant = orignData;
-                                      obj.vm.type = 'replace';
+                                      
+                                      // if (obj.vm.from){
+                                      //     obj.vm.type = 'add';
+                                      // }else{
+                                      //     obj.vm.type = 'replace';
+                                      // }
+                                        obj.vm.type = 'replace';
+                                      
                                   }
                         );
                     })
                 )}
                 ${BgWidget.save(
                     obj.gvc.event(() => {
+                        function checkEmpty(variant:any , alert ?: boolean = false){
+                            const checkList = ["sale_price"];
+                            for (const checkItem of checkList){
+                                
+                                if (!variant[checkItem] ) {
+                                    dialog.infoMessage({
+                                        text:"價格輸入錯誤"
+                                    })
+                                    return false;
+                                }
+                            }
+                            if (variant.shipment_type == "weight"){
+                                if (!variant.weight){
+                                    dialog.infoMessage({
+                                        text:"商品重量未填"
+                                    })
+                                    return false;
+                                }
+                            }
+                            if (variant.shipment_type == "volume"){
+                                if (!variant.v_height || !variant.v_length || !variant.v_width ){
+                                    dialog.infoMessage({
+                                        text:"商品材積未填"
+                                    })
+                                    return false;
+                                }
+                            }
+                            
+                            return true;
+                            
+                        }
+                        const dialog = new ShareDialog(gvc.glitter);
+                        let checkPass = true;
                         postMD.variants.map((data: any, index: number) => {
                             if (data.editable) {
                                 postMD.variants[index] = variant;
+                                if (!checkEmpty(data , true)){
+                                    checkPass = false;
+                                    
+                                }
+                            }else{
+                                if (!checkEmpty(data)){
+                                    checkPass = false;
+                                    dialog.infoMessage({
+                                        text:`規格 ${data.spec.join('')} 的欄位輸入錯誤`
+                                    })
+                                }
                             }
                         });
-                        if (obj && obj.goBackEvent) {
-                            obj.goBackEvent.save(postMD);
-                        } else {
-                            obj.vm.type = 'replace';
+                        if (checkPass){
+                            if (obj && obj.goBackEvent) {
+                                obj.goBackEvent.save(postMD);
+                            } else {
+                                obj.vm.type = 'replace';
+                            }
                         }
+                        
                     })
                 )}
             </div>
@@ -2490,15 +2545,20 @@ export class ShoppingProductSetting {
                                                                         <div
                                                                             style="cursor:pointer;display: flex;width: 136px;height: 136px;padding: 0px 35px 0px 34px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;margin-left: 14px;"
                                                                             onclick="${obj.gvc.event(() => {
-                                                                                EditorElem.uploadFileFunction({
-                                                                                    gvc: obj.gvc,
-                                                                                    callback: (text) => {
-                                                                                        postMD.preview_image.push(text);
-                                                                                        obj.gvc.notifyDataChange(id);
-                                                                                    },
-                                                                                    type: `image/*, video/*`,
-                                                                                    multiple: true,
-                                                                                });
+                                                                                imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                                                                            if (urlArray.length > 0){
+                                                                                                postMD.preview_image.push(...urlArray.map((data:any)=>{return data.data}));
+                                                                                                obj.gvc.notifyDataChange(id);
+                                                                                            }else{
+                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                dialog.errorMessage({text:'請選擇至少一張圖片'});
+                                                                                            }
+
+                                                                                            // postMD.content_array = id
+                                                                                            // obj.gvc.notifyDataChange(bi)
+                                                                                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`
+                                                                                        ,{mul:true})
+                                                                              
                                                                             })}"
                                                                         >
                                                                             <div
@@ -3704,6 +3764,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                                       dd.editable = false;
                                                                                                                                                   });
                                                                                                                                                   (data as any).editable = true;
+                                                                                                                                                  obj.vm.from = 'add'
                                                                                                                                                   obj.vm.type = 'editSpec';
                                                                                                                                               })}"
                                                                                                                                           >
@@ -3840,7 +3901,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                   },
                                                                   divCreate: {
                                                                       class: '',
-                                                                      style: 'overflow: auto',
+                                                                      style: 'overflow: visible;',
                                                                   },
                                                               };
                                                           })
@@ -4186,11 +4247,68 @@ ${postMD.seo.content ?? ''}</textarea
                             ${BgWidget.save(
                                 obj.gvc.event(() => {
                                     setTimeout(() => {
-                                        if (postMD.id) {
-                                            ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
-                                        } else {
-                                            ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
+                                  
+                                        function checkEmpty(){
+                                            const checkList = ["title","content"]
+                                            const variantsCheckList = ["sale_price"]
+                                            const dialog = new ShareDialog(gvc.glitter)
+                                            
+                                            const obj=checkList.find((checkItem)=>{
+                                                return (postMD as any)[checkItem] == undefined || (postMD as any)[checkItem].length == 0
+                                            })
+                                            for (const checkItem of checkList){
+                                                if ((postMD as any)[checkItem] == undefined || (postMD as any)[checkItem].length == 0){
+                                                    dialog.infoMessage({
+                                                        text : "商品名稱 商品內容未填"
+                                                    })
+                                                    return false;
+                                                }
+                                            }
+                                            for (const checkItem of variantsCheckList){
+                                                if((postMD["variants"][0] as any)[checkItem] == undefined || (postMD["variants"][0] as any)[checkItem] == 0){
+                                                    dialog.infoMessage({
+                                                        text : "售價未填"
+                                                    })
+                                                    return false;
+                                                }
+                                            }
+                                            if(postMD["variants"][0]["shipment_type"]!="none"){
+                                                if (postMD["variants"][0]["shipment_type"] == "weight"){
+                                                    if (postMD["variants"][0]["weight"]==undefined || postMD["variants"][0]["weight"] == 0){
+                                                        dialog.infoMessage({
+                                                            text : "商品重量未填"
+                                                        })
+                                                        return false
+                                                    }
+                                                }
+                                                if (postMD["variants"][0]["shipment_type"] == "volume"){
+                                                    if (postMD["variants"][0]["v_height"]==undefined || postMD["variants"][0]["v_height"] == 0 ||
+                                                            postMD["variants"][0]["v_width"]==undefined || postMD["variants"][0]["v_width"] == 0 ||
+                                                            postMD["variants"][0]["v_length"]==undefined || postMD["variants"][0]["v_length"] == 0
+                                                    ){
+                                                        dialog.infoMessage({
+                                                            text : "商品材積資訊未填"
+                                                        })
+                                                        return false
+                                                    }
+
+                                                }
+                                            }
+                                            return true;
                                         }
+
+                                        console.log(checkEmpty())
+                                        if(checkEmpty()){
+                                            if (postMD.id) {
+                                                ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
+                                            } else {
+                                                ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
+                                            }
+                                        }else{
+                                            // const dialog = new ShareDialog(gvc.glitter)
+                                            
+                                        }
+                                        
                                     }, 500);
                                 }),
                                 '儲存',

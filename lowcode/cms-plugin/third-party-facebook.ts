@@ -43,6 +43,7 @@ export class ThirdPartyLine {
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
                 dd.response.value && (vm.data = dd.response.value);
+                console.log("vm.data -- " , vm.data)
                 gvc.notifyDataChange(id);
             });
 
@@ -92,32 +93,11 @@ export class ThirdPartyLine {
                                 BgWidget.card([
                                     `<div class="tx_700">臉書訊息綁定</div>`,
                                     `<div class="d-flex align-items-center" style="gap:10px;">
-啟用臉書訊息綁定${BgWidget.switchButton(gvc, vm.data.message_toggle, () => {
+                                        啟用臉書訊息綁定${BgWidget.switchButton(gvc, vm.data.message_toggle, () => {
                                         vm.data.message_toggle = !vm.data.message_toggle
                                         gvc.notifyDataChange(id)
                                     })}</div>`,
-                                    BgWidget.editeInput({
-                                        gvc: gvc,
-                                        title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式編號
-</div>`,
-                                        default: vm.data.id_message,
-                                        placeHolder: '請前往META開發者後台取得應用程式編號',
-                                        callback: (text) => {
-                                            vm.data.id_message = text
-                                        }
-                                    }),
-                                    BgWidget.editeInput({
-                                        gvc: gvc,
-                                        title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式密鑰
-</div>`,
-                                        default: vm.data.secret_message,
-                                        placeHolder: '請前往META開發者後台取得應用程式密鑰',
-                                        callback: (text) => {
-                                            vm.data.secret_message = text
-                                        }
-                                    }),
+                                    
                                     BgWidget.editeInput({
                                         gvc: gvc,
                                         title: `<div class="d-flex align-items-center" style="gap:10px;">

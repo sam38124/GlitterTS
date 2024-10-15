@@ -7,6 +7,7 @@ export interface ChatRoom {
 }
 export declare class LineMessage {
     app: string;
+    token: IToken | undefined;
     constructor(app: string, token?: IToken);
     chunkSendLine(userList: any, content: any, id: number, date?: string): Promise<void>;
     sendLine(obj: {

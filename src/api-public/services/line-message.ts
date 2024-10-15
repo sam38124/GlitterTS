@@ -9,6 +9,7 @@ import {Mail} from "./mail";
 import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
+import {User} from "./user";
 
 
 interface LineResponse {
@@ -46,9 +47,11 @@ interface LineData{
 
 export class LineMessage {
     public app;
+    public token:IToken|undefined;
 
     constructor(app: string, token?: IToken) {
         this.app = app;
+        this.token = token??undefined;
     }
 
     async chunkSendLine(userList:any , content: any, id: number , date?:string) {
@@ -74,6 +77,8 @@ export class LineMessage {
     }
     async sendLine(obj:{data: string, lineID: string  } , callback: (data:any)=>void) {
         try {
+            const post = new User(this.app, this.token);
+
             let postData = {
                 "to": obj.lineID,
                 "messages":
@@ -286,7 +291,6 @@ export class LineMessage {
 
     async listenMessage(data: any): Promise<{ result: boolean; message: string }> {
         try {
-            // console.log("here --" ,data);
             let message:{
                 type:string,
                 id:string,

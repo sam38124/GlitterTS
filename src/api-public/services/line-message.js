@@ -12,9 +12,11 @@ const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
+const user_1 = require("./user");
 class LineMessage {
     constructor(app, token) {
         this.app = app;
+        this.token = token !== null && token !== void 0 ? token : undefined;
     }
     async chunkSendLine(userList, content, id, date) {
         try {
@@ -37,6 +39,7 @@ class LineMessage {
     }
     async sendLine(obj, callback) {
         try {
+            const post = new user_1.User(this.app, this.token);
             let postData = {
                 "to": obj.lineID,
                 "messages": [

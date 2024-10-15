@@ -124,9 +124,7 @@ class Chat {
                 }, () => {
                 });
             }
-            console.log("room -- ", room);
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
-                console.log('chat_id 的前綴是 fb');
                 const newChatId = room.chat_id.slice(3).split("-")[0];
                 console.log(room.message.text, newChatId);
                 await new fb_message_1.FbMessage(this.app).sendMessage({
