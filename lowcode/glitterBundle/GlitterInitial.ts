@@ -1,8 +1,8 @@
 'use strict';
-import { Entry } from '../Entry.js';
-import { Glitter } from './Glitter.js';
-import { GVC } from './GVController.js';
-import { GVCType } from './module/PageManager.js';
+import {Entry} from '../Entry.js';
+import {Glitter} from './Glitter.js';
+import {GVC} from './GVController.js';
+import {GVCType} from './module/PageManager.js';
 
 const glitter = new Glitter(window); // glitter變數
 (window as any).glitter = glitter;
@@ -32,7 +32,7 @@ function listenElementChange(query: string) {
         }
     });
     // 開始觀察目標元素的變化
-    observer.observe(targetElement, { childList: true, subtree: true });
+    observer.observe(targetElement, {childList: true, subtree: true});
 }
 
 function traverseHTML(element: any, document: any) {
@@ -56,11 +56,12 @@ function traverseHTML(element: any, document: any) {
             (window as any).glitter.share.to_menu = false;
             if (pageConfig && pageConfig.initial) {
                 const scroll_top = pageConfig.scrollTop;
-                [0,100,200,300,400,500,600,700].map((dd)=>{
-                   setTimeout(() => {
+                [0, 100, 200, 300, 400, 500, 600, 700].map((dd) => {
+                    setTimeout(() => {
                         (document.querySelector('html') as any).scrollTop = scroll_top;
-                    },dd);
+                    }, dd);
                 })
+
                 function loop(element: any) {
                     if (element && element.onResumeEvent) {
                         element && element.onResumeEvent && element.onResumeEvent();
@@ -80,7 +81,8 @@ function traverseHTML(element: any, document: any) {
             }
             pageConfig && (pageConfig.initial = true);
         }
-    } catch (e) {}
+    } catch (e) {
+    }
     // 取得元素的子元素
     let children = element.children;
     if (children && children.length > 0) {
@@ -93,8 +95,10 @@ function traverseHTML(element: any, document: any) {
         const id = element.getAttribute('gvc-id') as string;
         glitter.elementCallback[id].element = element;
         (glitter.elementCallback[id] as any).first_paint = (glitter.elementCallback[id] as any).first_paint ?? true;
+
         function renderBindView() {
             glitter.consoleLog(`renderBindView`);
+
             function notifyLifeCycle() {
                 try {
                     setTimeout(() => {
@@ -120,26 +124,48 @@ function traverseHTML(element: any, document: any) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
-                        let view = glitter.elementCallback[id].getView();
-                        if (typeof view === 'string') {
-                            const html = glitter.renderView.replaceGlobalValue(view);
-                            try {
-                                $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
-                            } catch (e: any) {
-                                $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
-                            }
+                        if (typeof glitter.elementCallback[id].initial_view === 'string') {
+                            glitter.elementCallback[id].initial_view = undefined
                             notifyLifeCycle();
                         } else {
-                            view.then((data) => {
-                                const html = glitter.renderView.replaceGlobalValue(data);
-                                try {
-                                    $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
-                                } catch (e: any) {
-                                    $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                            let view = glitter.elementCallback[id].getView();
+
+                            function _start() {
+                                if (typeof view === 'string') {
+                                    const html = glitter.renderView.replaceGlobalValue(view);
+                                    try {
+                                        $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
+                                    } catch (e: any) {
+                                        $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                                    }
+                                    notifyLifeCycle();
+                                } else {
+                                    view.then((data) => {
+                                        const html = glitter.renderView.replaceGlobalValue(data);
+                                        try {
+                                            $(document.querySelector(`[gvc-id="${id}"]`)).html(html);
+                                        } catch (e: any) {
+                                            $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
+                                        }
+                                        notifyLifeCycle();
+                                    });
                                 }
-                                notifyLifeCycle();
-                            });
+                            }
+
+                            _start()
                         }
+
+                        // glitter.share.render_stack=glitter.share.render_stack ?? []
+                        // glitter.share.render_stack.push(_start)
+                        // if(!glitter.share._render_stack_running){
+                        //     glitter.share._render_stack_running=true
+                        //     setTimeout(()=>{
+                        //         glitter.share.render_stack.map((fun:any)=>{fun()})
+                        //         glitter.share.render_stack=[]
+                        //         glitter.share._render_stack_running=false
+                        //     },100)
+                        // }
+
                     } else if (document.querySelector(`[gvc-id="${id}"]`).onResumeEvent) {
                         setTimeout(() => {
                             document.querySelector(`[gvc-id="${id}"]`).onResumeEvent();
@@ -169,6 +195,7 @@ function traverseHTML(element: any, document: any) {
                 glitter.deBugMessage(e);
             }
         }
+
         let wasRecreate = false;
         for (const b of $(element).parents()) {
             if (b.getAttribute('glem') === 'bindView') {
@@ -230,6 +257,7 @@ function glitterInitial() {
         document.getElementsByTagName('head')[0].appendChild(css);
     }
 }
+
 glitterInitial();
 
 (window as any).glitter.share.postMessageCallback = [];
@@ -246,7 +274,7 @@ window.addEventListener('message', (event: any) => {
 class GlitterWebComponent extends HTMLElement {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
+        this.attachShadow({mode: 'open'});
         (this.shadowRoot! as any).isCompoment = true;
         (this.shadowRoot! as any).innerHTML = `<div id="cp-container"></div>`;
     }
@@ -305,7 +333,7 @@ class GlitterWebComponent extends HTMLElement {
             }
         });
         // 開始觀察目標元素的變化
-        observer.observe(this.shadowRoot!, { childList: true, subtree: true });
+        observer.observe(this.shadowRoot!, {childList: true, subtree: true});
     }
 }
 

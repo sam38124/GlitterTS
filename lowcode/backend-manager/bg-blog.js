@@ -980,6 +980,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                     </div>
                     ${BgWidget.container(BgWidget.mainCard(gvc.bindView(() => {
         var _a;
+        console.log(`vm.data.content.template=>`, vm.data.content.template);
         const id = gvc.glitter.getUUID();
         vm.data.status = (_a = vm.data.status) !== null && _a !== void 0 ? _a : '1';
         return {

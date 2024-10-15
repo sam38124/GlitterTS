@@ -2074,7 +2074,8 @@ export class ShoppingProductSetting {
                                     <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
                                     <div class="flex-fill"></div>
                                     ${BgWidget.grayButton(document.body.clientWidth > 768 ? '預覽商品' : '預覽', gvc.event(() => {
-                                window.parent.open(`https://${window.parent.glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
+                                const href = `https://${window.parent.glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
+                                window.parent.open(href, '_blank');
                             }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined })}
                                 </div>
                                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="${document.body.clientWidth < 768 ? '' : 'gap: 24px'}">
@@ -3596,7 +3597,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                     html ` <div class="mt-2 mb-1">
                                                                 <span class="tx_normal me-1">網址預覽</span>
                                                                 ${BgWidget.greenNote(href + `/${postMD.seo.domain}`, gvc.event(() => {
-                                                        window.parent.open(href, '_blank');
+                                                        window.parent.open(href + `/${postMD.seo.domain}`, '_blank');
                                                     }))}
                                                             </div>`,
                                                 ].join('')}

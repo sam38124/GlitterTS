@@ -259,7 +259,8 @@ export class ApiShop {
         id_list?: string;
         with_hide_index?: string;
         productType?: string;
-        filter_visible?:string
+        filter_visible?:string,
+        app_name?:string
     }) {
         return BaseApi.create({
             url:
@@ -289,7 +290,7 @@ export class ApiShop {
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': (window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName),
+                'g-app': json.app_name || ((window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName)),
                 Authorization: ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
             },
         });

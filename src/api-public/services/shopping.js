@@ -979,15 +979,14 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
-                    console.log(" data.customer_info --- ", data.customer_info);
-                    if (data.customer_info.phone) {
+                    if (carData.customer_info.phone) {
                         let sns = new sms_js_1.SMS(this.app);
-                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, data.customer_info.phone);
+                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
                         console.log("訂單簡訊寄送成功");
                     }
-                    if (data.customer_info.lineID) {
+                    if (carData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
-                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, data.customer_info.lineID);
+                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                         console.log("訂單line訊息寄送成功");
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);

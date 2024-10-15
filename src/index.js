@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -117,42 +119,6 @@ async function initial(serverPort) {
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
-}
-exports.initial = initial;
-function openLineWebhook() {
-    const app = (0, express_1.default)();
-    const PORT = process.env.PORT || 3000;
-    const VERIFY_TOKEN = 'Ee7DWSoCMu8Fc/D0DbDyeWJYSgTp6kyx4JjKmN+6UnCFaBz7zZkzMLWCfJgbTwdPquynA5mLTYHv2DPYYL7Bf5VhHGyN70bi/Q5nx+/gz4fc1KakDEWXKpJpJsT+OVjZknTTdvI42ooj67rjY4RmMAdB04t89/1O/w1cDnyilFU=';
-    app.use(body_parser_1.default.json());
-    app.get('/webhook', (req, res) => {
-        const mode = req.query['hub.mode'];
-        const token = req.query['hub.verify_token'];
-        const challenge = req.query['hub.challenge'];
-        if (mode && token && mode === 'subscribe' && token === VERIFY_TOKEN) {
-            console.log('Webhook verified');
-            res.status(200).send(challenge);
-        }
-        else {
-            res.sendStatus(403);
-        }
-    });
-    app.post('/webhook', (req, res) => {
-        const body = req.body;
-        if (body.object === 'page') {
-            body.entry.forEach((entry) => {
-                const webhookEvent = entry.messaging[0];
-                const senderId = webhookEvent.sender.id;
-                if (webhookEvent.message) {
-                    console.log(`Received message: ${webhookEvent.message.text}`);
-                    sendMessage(senderId, `You said: ${webhookEvent.message.text}`);
-                }
-            });
-            res.status(200).send('EVENT_RECEIVED');
-        }
-        else {
-            res.sendStatus(404);
-        }
-    });
 }
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
@@ -559,7 +525,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

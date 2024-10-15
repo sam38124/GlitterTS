@@ -2,7 +2,7 @@ import { AddComponent } from "./add-component.js";
 const html = String.raw;
 export class BasicComponent {
     static main(gvc) {
-        return html `<div class="row m-0 pt-3 w-100 border-top" style="max-height: calc(100vh - 125px);overflow-y: auto;">
+        return html `<div class="row m-0 pt-3 w-100 border-top pb-5" style="max-height: calc(100vh - 125px);overflow-y: auto;">
            
                                     <div class="fw-500 fs-6 col-12 mt-0 pt-0 pb-3" style="color:dimgray;">
                                         <div class="alert bg-secondary w-100 fs-6 mb-3 p-3" style="color: dimgray;white-space: normal;">統合了所有電商網站常使用到的基本元件，透過基礎設計元件，即可達成基本設計需求。</div>
@@ -45,6 +45,40 @@ export class BasicComponent {
         }).join('')}
                                     <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">商品顯示方式</div>
             ${BasicComponent.productList.map((dd) => {
+            return `<div class="col-6  mb-3 ">
+                                        <div class="d-flex flex-column  justify-content-center w-100"
+                                             style="gap:5px;cursor:pointer;">
+                                            <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
+                                                 style="padding-bottom: 58%;overflow: hidden;">
+                                                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                                                     style="overflow: hidden;">
+                                                    <img class="w-100 "
+                                                         src="${dd.image}">
+                                                </div>
+
+                                                <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                     style="background: rgba(0,0,0,0.5);gap:5px;">
+                                                    <button class="btn btn-primary-c  d-flex align-items-center"
+                                                            style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(() => {
+                dd.config.label = dd.title;
+                AddComponent.addWidget(gvc, dd.config);
+            })}">
+                                                        <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <h3 class="fs-6 mb-0">
+                                                ${dd.title}</h3>
+                                            <div class="d-flex flex-wrap">
+
+
+                                            </div>
+
+                                        </div>
+                                    </div>`;
+        }).join('')}
+            <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">更多插件</div>
+            ${BasicComponent.moreComponent.map((dd) => {
             return `<div class="col-6  mb-3 ">
                                         <div class="d-flex flex-column  justify-content-center w-100"
                                              style="gap:5px;cursor:pointer;">
@@ -152,5 +186,12 @@ BasicComponent.productList = [
         title: '商品類別',
         config: { "id": "s2s0s7sas6s1sas7", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style", "tag": "SY02_page_product", "list": [], "carryData": {}, "_style_refer_global": { "index": "0" }, "_style_refer": "custom", "elem": "div", "inner": "", "attr": [], "_padding": { "top": "0", "right": "10", "bottom": "0", "left": "10" }, "_margin": {}, "_border": {}, "_max_width": "1200", "_gap": "", "_background": "", "_other": {}, "_radius": "", "_reverse": "false", "_hor_position": "center", "_background_setting": { "type": "none" }, "refer_form_data": { "list": [{ "more": "https://tw.yahoo.com/", "index": 0, "title": "全部", "c_v_id": "sdsfs8sbs8s0s1sa", "toggle": false, "product_list": { "value": [], "select": "all" } }, { "more": "www.google.com", "index": 1, "title": "外套", "c_v_id": "sbs7sbseses8scs3", "toggle": false, "product_list": { "value": [], "select": "all" } }, { "more": "www.google.com", "index": 2, "title": "上衣", "c_v_id": "s4s9sds8s0scsfs7", "toggle": false, "product_list": { "value": [], "select": "all" } }, { "more": "www.google.com", "index": 3, "title": "下身", "c_v_id": "sbs2s0s8s1s3s7s0", "toggle": false, "product_list": { "value": [], "select": "all" } }], "more": { "bg": "#000000", "size": "20", "color": "#ffffff", "toggle": false, "border_color": "#ed1d1d", "border_width": "0" }, "count": "8", "title": "所有商品", "distance": { "toggle": false, "margin_pc": {}, "padding_pc": { "toggle": false }, "margin_phone": {}, "padding_phone": {} }, "margin_pc": {}, "padding_pc": {}, "theme_color": { "id": "0", "title": "@{{theme_color.0.title}}", "content": "@{{theme_color.0.content}}", "sec-title": "@{{theme_color.0.sec-title}}", "background": "@{{theme_color.0.background}}", "sec-background": "@{{theme_color.0.sec-background}}", "solid-button-bg": "@{{theme_color.0.solid-button-bg}}", "border-button-bg": "@{{theme_color.0.border-button-bg}}", "solid-button-text": "@{{theme_color.0.solid-button-text}}", "border-button-text": "@{{theme_color.0.border-button-text}}" }, "card_setting": { "sp": { "size": "16", "color": "#ff0000", "toggle": false }, "name": { "size": "16", "color": "#8f4242", "toggle": false }, "price": { "size": "16", "color": "#333333", "toggle": false }, "toggle": false }, "margin_phone": {}, "page_setting": { "toggle": false, "selected": { "bg": "#554233", "color": "#ffffff", "toggle": false, "border_color": "#0000ff", "border_width": "0" }, "unselected": { "bg": "#e51010", "color": "#000000", "toggle": false, "border_color": "#ad9c8f", "border_width": "2" } }, "padding_phone": {}, "title_setting": { "size": "40", "color": "#000000", "title": "所有商品", "toggle": false, "size_sm": "24" } } }, "type": "component", "class": "w-100", "index": 0, "label": "商品類別", "style": "", "bundle": {}, "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "share": {}, "formData": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "storage": {}, "mobile": { "id": "s2s0s7sas6s1sas7", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "商品類別", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "container_fonts": 0, "refer": "custom" }, "mobile_editable": [], "desktop": { "id": "s2s0s7sas6s1sas7", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "商品類別", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "container_fonts": 0, "refer": "custom" }, "desktop_editable": [], "container_fonts": 0 },
         image: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716545938837-截圖2024-05-24下午6.18.19.jpg`
+    }
+];
+BasicComponent.moreComponent = [
+    {
+        title: '自定義HTML代碼',
+        config: { "id": "s3sfs5s2sbscsds4", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style", "tag": "custom-code", "list": [], "carryData": {}, "_style_refer_global": { "index": "0" }, "_style_refer": "custom", "elem": "div", "inner": "", "attr": [], "_padding": {}, "_margin": {}, "_border": {}, "_max_width": "", "_gap": "", "_background": "", "_other": {}, "_radius": "", "_reverse": "false", "_hor_position": "center", "_background_setting": { "type": "none" }, "refer_form_data": { "code": "<h3>Hello World</h3>", "width": { "unit": "px", "value": "0px", "number": "0" }, "height": { "unit": "px", "value": "50px", "number": "50" }, "with_bg": "false", "background": { "id": "custom-background", "title": "#030303", "content": "#000000", "sec-title": "#000000", "background": "#ffffff", "sec-background": "#FFFFFF", "solid-button-bg": "#000000", "border-button-bg": "#000000", "solid-button-text": "#ffffff", "border-button-text": "#000000" } } }, "type": "component", "class": "w-100", "index": 0, "label": "自訂代碼", "style": "", "bundle": {}, "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "share": {}, "formData": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "storage": {}, "mobile": { "id": "sbs8s0s1s7sfsds4", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "自訂代碼", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "refer": "custom" }, "mobile_editable": [], "desktop": { "id": "sbs8s0s1s7sfsds4", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "自訂代碼", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "refer": "custom" }, "desktop_editable": [], "container_fonts": 0 },
+        image: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg`
     }
 ];

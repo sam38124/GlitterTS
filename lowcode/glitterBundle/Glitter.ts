@@ -48,7 +48,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean, recreateView: () => void, element: any, doc: any } } = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean, recreateView: () => void, element: any, doc: any,initial_view?:string | Promise<string> } } = {}
     public html = String.raw
     public promiseValueMap: any = {}
 

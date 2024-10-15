@@ -1076,6 +1076,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                     ${BgWidget.container(
                         BgWidget.mainCard(
                             gvc.bindView(() => {
+                                console.log(`vm.data.content.template=>`,vm.data.content.template)
                                 const id = gvc.glitter.getUUID();
                                 vm.data.status = vm.data.status ?? '1';
                                 return {
