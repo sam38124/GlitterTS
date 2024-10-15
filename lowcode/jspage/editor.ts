@@ -81,6 +81,46 @@ export class Editor {
             }
         }
 
+        function preView(){
+            if (glitter.getUrlParameter('tab') === 'page_manager') {
+                const content = JSON.parse(localStorage.getItem('preview_data') as string);
+                const href = (() => {
+                    return `${gvc.glitter.root_path}${
+                        (() => {
+                            switch (content.page_type) {
+                                case 'shopping':
+                                    return 'shop';
+                                case 'hidden':
+                                    return 'hidden';
+                                case 'page':
+                                    return 'pages';
+                            }
+                            return ``;
+                        })()
+                    }/${content.tag}?preview=true&appName=${(window.parent as any).appName}`;
+                })();
+                content.config = glitter.share.editorViewModel.data.config;
+                localStorage.setItem('preview_data', JSON.stringify(content));
+                (window.parent as any).glitter.openNewTab(href);
+            } else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
+                if(document.body.clientWidth<800){
+                    glitter.openNewTab(`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`);
+                }else{
+                    BgWidget.appPreview({
+                        gvc: gvc,
+                        title: "預覽頁面",
+                        src:`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`,
+                        style: `max-height: calc(100vh - 100px);`
+                    })
+                }
+            } else {
+                const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                url.searchParams.delete('type');
+                url.searchParams.set('page', glitter.getUrlParameter('page'));
+                glitter.openNewTab(url.href);
+            }
+        }
+
         this.create = (left: string, right: string) => {
             function getEditorTitle() {
                 let click = 0;
@@ -261,7 +301,7 @@ color: transparent;"
                                 })}
                                 <div class="flex-fill"></div>
                                 <div class="d-flex align-items-center"
-                                     style="position: absolute;transform: translateX(-50%);left: calc(50% + 15px);">
+                                     style="position: absolute;transform: translateX(-50%);${(document.body.clientWidth>800) ? `left: calc(50% + 15px);`:`left: calc(50%);`}">
                                     <div
                                             class="d-flex align-items-center justify-content-center hoverBtn  border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -299,8 +339,7 @@ color: transparent;"
                                             return html`
                                                 <div
                                                         class="btn-group "
-                                                        style="max-width: ${document.body.clientWidth < 768 ? 150 : 350}px; 
-  min-width: ${document.body.clientWidth < 768 ? 150 : 200}px; 
+                                                        style="${(document.body.clientWidth < 768) ? ``:`max-width:350px;min-width:200px;`}
                                                 ${gvc.glitter.getUrlParameter('function') === 'page-editor' ? `` : ``}
                                                "
                                                 >
@@ -323,6 +362,11 @@ color: transparent;"
                                                                         src: `fa-regular fa-grid-2 design-guide-1-icon`,
                                                                         index: 'widget',
                                                                         hint: '設計元件'
+                                                                    },
+                                                                    {
+                                                                        src: `fa-regular fa-eye`,
+                                                                        index: 'preview',
+                                                                        hint: '預覽頁面'
                                                                     }
                                                                 ]
                                                                         .filter((dd) => {
@@ -343,13 +387,17 @@ color: transparent;"
 ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
                                                                             onclick="${gvc.event(() => {
-                                                                                gvc.glitter.share.editorViewModel.waitCopy = undefined;
-                                                                                gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                Storage.page_setting_item = da.index;
-                                                                                if(document.body.clientWidth<800){
-                                                                                    glitter.openDrawer()
+                                                                                if(da.index==='preview'){
+                                                                                    preView()
+                                                                                }else{
+                                                                                    gvc.glitter.share.editorViewModel.waitCopy = undefined;
+                                                                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                    Storage.page_setting_item = da.index;
+                                                                                    if(document.body.clientWidth<800){
+                                                                                        glitter.openDrawer()
+                                                                                    }
+                                                                                    gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
                                                                                 }
-                                                                                gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
                                                                             })}"
                                                                     ></i>`;
                                                                         })
@@ -359,7 +407,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                 style: `gap:5px;height:50px;`,
                                                                 class: `${
                                                                         Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`
-                                                                }  d-flex  align-items-center`,
+                                                                }  d-flex  align-items-center justify-content-center`,
                                                             },
                                                             onCreate: () => {
                                                                 $('.tooltip').remove();
@@ -730,40 +778,7 @@ border: 1px solid ${EditorConfig.editor_layout.main_color};
 color:${EditorConfig.editor_layout.main_color};
 "
                                                     onclick="${gvc.event(() => {
-                                                        if (glitter.getUrlParameter('tab') === 'page_manager') {
-                                                            const content = JSON.parse(localStorage.getItem('preview_data') as string);
-                                                            const href = (() => {
-                                                                return `${gvc.glitter.root_path}${
-                                                                        (() => {
-                                                                            switch (content.page_type) {
-                                                                                case 'shopping':
-                                                                                    return 'shop';
-                                                                                case 'hidden':
-                                                                                    return 'hidden';
-                                                                                case 'page':
-                                                                                    return 'pages';
-                                                                            }
-                                                                            return ``;
-                                                                        })()
-                                                                }/${content.tag}?preview=true&appName=${(window.parent as any).appName}`;
-                                                            })();
-                                                            content.config = glitter.share.editorViewModel.data.config;
-                                                            localStorage.setItem('preview_data', JSON.stringify(content));
-                                                            (window.parent as any).glitter.openNewTab(href);
-                                                        } else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
-                                                            BgWidget.appPreview({
-                                                                gvc: gvc,
-                                                                title: "預覽頁面",
-                                                              src:`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`,
-                                                                style: `max-height: calc(100vh - 100px);`
-                                                            })
-                                                        } else {
-                                                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                                                            url.searchParams.delete('type');
-                                                            url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                                            glitter.openNewTab(url.href);
-                                                        }
-
+                                                        preView()
                                                     })}"
                                             >
                                                 <div style="background: ${EditorConfig.editor_layout.btn_background};
@@ -887,7 +902,7 @@ color:white;
                                                                                     ></div>
                                                                                     <div
                                                                                             class="card rounded-3 shadow position-absolute "
-                                                                                            style="max-width:100vw;width:450px;height: 600px;right: 0px;top:42px;z-index: 9999;"
+                                                                                            style="max-width:100vw;width:450px;height: 600px;right: 0px;top:${(parseInt(glitter.share.top_inset,10))+42}px;z-index: 9999;"
                                                                                     >
                                                                                         <iframe
                                                                                                 class="card rounded-3 shadow position-absolute"
@@ -910,7 +925,7 @@ color:white;
                                                                                 ></div>
                                                                                 <div
                                                                                         class="card  shadow position-fixed "
-                                                                                        style="max-width:100vw;width:100vw;height:calc(100vh - 50px);right: 0px;top:50px;z-index: 999;"
+                                                                                        style="max-width:100vw;width:100vw;height:calc(100vh - ${(parseInt(glitter.share.top_inset,10))+50}px);right: 0px;top:${(parseInt(glitter.share.top_inset,10))+50}px;z-index: 999;"
                                                                                 >
                                                                                     <iframe class="card  shadow position-absolute"
                                                                                             src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>

@@ -40,6 +40,7 @@ const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.ai_message = AiMessage
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
+
     const css = String.raw;
     gvc.addStyle(css`
         .hoverHidden div {
@@ -229,16 +230,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }
             `)
         }
-        //推播訂閱
-        gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
-            if (response.token) {
-                // ApiUser.registerFCM(userID as string,response.token)
-            }
-        }, {
-            webFunction(data: any, callback: (data: any) => void): any {
-                callback({})
-            }
-        })
+
         glitter.share.bottom_inset = await new Promise((resolve, reject) => {
             glitter.runJsInterFace(
                 'getBottomInset',
@@ -253,6 +245,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }
             )
         })
+
 
 
         const waitGetData = [
@@ -402,6 +395,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }))
                     }
                     if (count === waitGetData.length) {
+
                         resolve(true);
                     }
                 });
@@ -413,10 +407,22 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
         swal.close();
         viewModel.loading = false;
+        //推播訂閱
+        gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+            if (response.token) {
+                ApiUser.registerFCM(viewModel.app_config_original.user,response.token,(window as any).glitterBase)
+            }
+        }, {
+            webFunction(data: any, callback: (data: any) => void): any {
+                callback({})
+            }
+        })
         gvc.notifyDataChange(editorContainerID);
     }
 
     lod().then(() => {
+        const dialog=new ShareDialog(gvc.glitter)
+        dialog.dataLoading({visible:false})
         //設定儲存事件
         glitter.htmlGenerate.saveEvent = (refresh: boolean = true, callback?: () => void) => {
             glitter.closeDiaLog();

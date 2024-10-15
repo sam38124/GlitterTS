@@ -46,7 +46,6 @@ export class SaasViewModel {
                                 </div>
                             </div>
                             <div class="dropdown-menu position-absolute" style="top:50px; ${document.body.clientWidth > 768 ? 'right: 0 !important;' : 'left: -110px;'}">
-                              
                                 <a
                                         class="dropdown-item cursor_pointer d-flex align-items-center"
                                         onclick="${gvc.event(() => {
@@ -124,8 +123,7 @@ export class SaasViewModel {
                                 callback: (bool) => {
                                     if (bool) {
                                         GlobalUser.saas_token = '';
-                                        const url = new URL(location.href);
-                                        location.href = url.href.replace(url.search, '');
+                                        location.href = `${gvc.glitter.root_path}login`;
                                     }
                                 },
                                 text: '確定要登出嗎？',

@@ -198,14 +198,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }
             `);
             }
-            gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
-                if (response.token) {
-                }
-            }, {
-                webFunction(data, callback) {
-                    callback({});
-                }
-            });
             glitter.share.bottom_inset = yield new Promise((resolve, reject) => {
                 glitter.runJsInterFace('getBottomInset', {}, (response) => {
                     resolve(response.data);
@@ -362,10 +354,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             swal.close();
             viewModel.loading = false;
+            gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+                if (response.token) {
+                    ApiUser.registerFCM(viewModel.app_config_original.user, response.token, window.glitterBase);
+                }
+            }, {
+                webFunction(data, callback) {
+                    callback({});
+                }
+            });
             gvc.notifyDataChange(editorContainerID);
         });
     }
     lod().then(() => {
+        const dialog = new ShareDialog(gvc.glitter);
+        dialog.dataLoading({ visible: false });
         glitter.htmlGenerate.saveEvent = (refresh = true, callback) => {
             glitter.closeDiaLog();
             glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());

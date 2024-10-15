@@ -37,7 +37,7 @@ export class EditorConfig {
         else {
             return ``;
         }
-        return `<div class="position-fixed vw-100 p-2" style="z-index:999;margin-top:56px;width: 100%; min-height: 42px; background: #FEAD20; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); ">
+        return `<div class="position-fixed vw-100 p-2" style="z-index:999;margin-top:${56 + (parseInt(gvc.glitter.share.top_inset, 10) ? (parseInt(gvc.glitter.share.top_inset, 10) + 10) : 0)}px;width: 100%; min-height: 42px; background: #FEAD20; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); ">
   <div style="text-align: center;white-space:normal;" class="w-100">
     <i class="fa-sharp fa-solid fa-bullhorn" style="color: white;"></i>
     ${text}

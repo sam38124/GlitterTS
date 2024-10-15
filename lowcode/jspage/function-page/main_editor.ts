@@ -25,7 +25,7 @@ export class Main_editor {
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
-        const color_pick=gvc.glitter.getUUID()
+        const color_pick = gvc.glitter.getUUID()
         return gvc.bindView(() => {
             const vid = glitter.getUUID();
             return {
@@ -74,21 +74,21 @@ export class Main_editor {
                                         style="cursor: pointer;color:#393939;"
                                 >
                                     <span>${viewModel.data.name}</span>
-<div class="flex-fill"></div>
-                                   <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-custom-class="custom-tooltip"
-                                        data-bs-title="全站預設背景色">
-                                     ${EditorElem.colorBtn({
-                                         gvc:gvc,
-                                         def:glitter.share.editorViewModel.appConfig._background || (glitter.share.editorViewModel.appConfig.color_theme[0] && glitter.share.editorViewModel.appConfig.color_theme[0].background) || '#FFFFFF',
-                                         style:`width:24px;height:24px;`,
-                                         callback:(text)=>{
-                                             glitter.share.editorViewModel.appConfig._background=text;
-                                             (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = text;
-                                         }
-                                     })}
-                                   </div>
+                                    <div class="flex-fill"></div>
+                                    <div id="" class="rounded-3 border p-1" style="" data-bs-toggle="tooltip"
+                                         data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="全站預設背景色">
+                                        ${EditorElem.colorBtn({
+                                            gvc: gvc,
+                                            def: glitter.share.editorViewModel.appConfig._background || (glitter.share.editorViewModel.appConfig.color_theme[0] && glitter.share.editorViewModel.appConfig.color_theme[0].background) || '#FFFFFF',
+                                            style: `width:24px;height:24px;`,
+                                            callback: (text) => {
+                                                glitter.share.editorViewModel.appConfig._background = text;
+                                                (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = text;
+                                            }
+                                        })}
+                                    </div>
                                 </div>
                             `,
                             `    ${(() => {
@@ -403,22 +403,24 @@ export class Main_editor {
                                                                     }
 
                                                                     let startIndex = 0;
-                                                                    let interVal:any=0;
-                                                                    function swapElements(element:any,target:number) {
+                                                                    let interVal: any = 0;
+
+                                                                    function swapElements(element: any, target: number) {
                                                                         // const secondElement = children[start];
                                                                         // const sixthElement = children[end];
-                                                                        const container=element.parentNode;
-                                                                       
+                                                                        const container = element.parentNode;
+
                                                                         if (container.children.length !== target) {
                                                                             console.log(`index==>${Array.from(container.children).indexOf(element)}length===>${container.children.length}===target===>${target}`)
-                                                                            if(!(Array.from(container.children).indexOf(element)>target)){
+                                                                            if (!(Array.from(container.children).indexOf(element) > target)) {
                                                                                 target++
                                                                             }
                                                                             container.insertBefore(element, container.children[target]);
-                                                                        }else{
+                                                                        } else {
                                                                             container.appendChild(element);
                                                                         }
                                                                     }
+
                                                                     //@ts-ignore
                                                                     Sortable.create(document.getElementById(id), {
                                                                         group: gvc.glitter.getUUID(),
@@ -427,8 +429,8 @@ export class Main_editor {
                                                                         // Called when dragging element changes position
                                                                         onChange: function (evt2: any) {
                                                                             clearInterval(interval)
-                                                                            const newIndex=evt2.newIndex
-                                                                            interVal=setTimeout(()=>{
+                                                                            const newIndex = evt2.newIndex
+                                                                            interVal = setTimeout(() => {
                                                                                 swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
                                                                                 swapArr(og_array, startIndex, newIndex);
                                                                                 startIndex = newIndex;
@@ -436,10 +438,10 @@ export class Main_editor {
                                                                                     const dd = og_array[newIndex]
                                                                                     dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
                                                                                 })
-                                                                            },200)
+                                                                            }, 200)
                                                                         },
                                                                         onEnd: (evt2: any) => {
-                                                                            const newIndex=evt2.newIndex
+                                                                            const newIndex = evt2.newIndex
                                                                             clearInterval(interval)
                                                                             swapElements(og_array[startIndex].editor_bridge.element().parentNode, newIndex);
                                                                             swapArr(og_array, startIndex, newIndex);
@@ -452,7 +454,7 @@ export class Main_editor {
                                                                             setTimeout(() => {
                                                                                 const dd = og_array[newIndex]
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
-                                                                            },300)
+                                                                            }, 300)
                                                                         },
                                                                         onStart: function (evt: any) {
                                                                             startIndex = evt.oldIndex;
@@ -472,7 +474,9 @@ export class Main_editor {
                                         }
 
                                         return html`
-                                            <div class="p-2 root-left-container">${renderItems(list, pageConfig, true)}</div>`;
+                                            <div class="p-2 root-left-container">
+                                                ${renderItems(list, pageConfig, true)}
+                                            </div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -533,7 +537,10 @@ export class Main_editor {
                         `;
                     }
                 },
-                divCreate: {class: `swiper-slide h-100 position-relative design-guide-1`,style:`${(glitter.share.top_inset) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;`:``}`},
+                divCreate: {
+                    class: `swiper-slide h-100 position-relative design-guide-1`,
+                    style: `${(glitter.share.top_inset) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`
+                },
                 onCreate: () => {
                     $('.tooltip')!.remove();
                     ($('[data-bs-toggle="tooltip"]') as any).tooltip();
@@ -908,7 +915,7 @@ export class Main_editor {
             html`
                 <div
                         class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0+parseInt(glitter.share.top_inset,10)}` : `- 56`}px)` : `height:calc(100vh - 150px);`}"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0 + parseInt(glitter.share.top_inset, 10)}` : `- 56`}px)` : `height:calc(100vh - 150px);`}"
                         onscroll="${gvc.event(() => {
                             if (document.querySelector('.right_scroll')!.scrollTop > 0) {
                                 glitter.share.lastRightScrollTop = document.querySelector('.right_scroll')!.scrollTop;
@@ -970,17 +977,19 @@ export class Main_editor {
                         };
                     })}
                     <div style="height: 60px;"></div>
-                    <div class="${(document.body.clientWidth<800) ? `position-fixed`:`position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
-                         style="height: 60px;${(document.body.clientWidth<800) ? `padding-bottom:${parseInt(glitter.share.bottom_inset,10)}px !important;`:``}">
+                    <div class="${(document.body.clientWidth < 800) ? `position-fixed` : `position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
+                         style="height: 60px;${(document.body.clientWidth < 800) ? `padding-bottom:${parseInt(glitter.share.bottom_inset, 10)}px !important;` : ``}">
                         ${(() => {
-                           
+
                             const view: any = [];
                             if ((viewModel.selectItem.deletable !== 'false')) {
-                                setTimeout(()=>{  $('.tooltip').remove();
-                                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();},100)
+                                setTimeout(() => {
+                                    $('.tooltip').remove();
+                                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                                }, 100)
                                 view.push(`<button class="btn btn-snow" type="button" style="width:30px;" data-bs-toggle="tooltip" data-bs-placement="top"
                                                 data-bs-custom-class="custom-tooltip"
-                                                data-bs-title="返回列表" onclick="${gvc.event(()=>{
+                                                data-bs-title="返回列表" onclick="${gvc.event(() => {
                                     Storage.lastSelect = '';
                                     gvc.glitter.share.editorViewModel.selectItem = undefined;
                                     gvc.glitter.share.selectEditorItem();
@@ -1071,24 +1080,29 @@ export class Main_editor {
             return {
                 bind: 'iframe_center',
                 view: () => {
-                    if(gvc.glitter.getUrlParameter('function')==='backend-manger'){
-                        return  `<div class="position-relative" style="width:100%;height: calc(100%);padding-top:${parseInt(gvc.glitter.share.top_inset,10)}px;" id="editerCenter">
-                      </div>`
-                    }else{
-                        return `<div class="position-relative" style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset,10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset,10)}px;`:``}" id="editerCenter">
-                    <iframe class="w-100 h-100  bg-white iframe_view"
-                    sandbox="allow-same-origin allow-scripts"
-                src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
-                </div>`
+                    if (gvc.glitter.getUrlParameter('function') === 'backend-manger') {
+                        return html`
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+                                 id="editerCenter">
+                            </div>`
+                    } else {
+                        return html`
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;` : ``}"
+                                 id="editerCenter">
+                                <iframe class="w-100 h-100  bg-white iframe_view"
+                                        sandbox="allow-same-origin allow-scripts"
+                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                            </div>`
                     }
-
                 },
                 divCreate: () => {
                     return {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth<800) ? `${document.body.clientWidth}px`:`100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(${(document.body.clientWidth<800) ? `${document.body.clientWidth}px`:`100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
                     }
                 }
             }

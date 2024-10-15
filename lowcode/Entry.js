@@ -14,6 +14,7 @@ import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
+import { ShareDialog } from "./glitterBundle/dialog/ShareDialog.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
@@ -54,7 +55,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_12.7.7";
+        glitter.share.editerVersion = "V_12.8.0";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -154,6 +155,8 @@ export class Entry {
             `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
+                const dialog = new ShareDialog(glitter);
+                dialog.dataLoading({ visible: true, text: '後台載入中' });
                 Entry.toBackendEditor(glitter, () => {
                 });
             }
@@ -238,8 +241,10 @@ export class Entry {
         window.root = document.getElementsByTagName('html')[0];
         window.root.classList.add('light-mode');
         function toNext() {
+            console.log(`to-next-time:`, window.renderClock.stop());
             running().then(() => __awaiter(this, void 0, void 0, function* () {
                 {
+                    console.log(`to-page-time:`, window.renderClock.stop());
                     let data = yield ApiPageConfig.getPage({
                         appName: config.appName,
                         tag: glitter.getUrlParameter('page'),

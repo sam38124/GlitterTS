@@ -197,12 +197,12 @@ export class ApiUser {
             }),
         });
     }
-    static registerFCM(userID, deviceToken) {
+    static registerFCM(userID, deviceToken, app_name) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/fcm`,
             type: 'POST',
             headers: {
-                'g-app': getConfig().config.appName,
+                'g-app': app_name || getConfig().config.appName,
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
