@@ -82,7 +82,7 @@ export class Swal {
             this.init(() => {
                 const toast = sw.mixin({
                     toast: true,
-                    position: 'left',
+                    position: data.position || 'bottom',
                     showConfirmButton: false,
                     timer: 1000,
                     timerProgressBar: true,

@@ -46,6 +46,7 @@ export class NormalPageEditor {
                                 .map((dd: any, index: number) => {
                                     return html`<li
                                         class="breadcrumb-item ${index === NormalPageEditor.viewArray.length - 1 ? `active` : ``}"
+                                        style="margin-top: ${gvc.glitter.share.top_inset}px;"
                                         onclick="${gvc.event(() => {
                                             NormalPageEditor.viewArray = NormalPageEditor.viewArray.filter((dd: any, index2: number) => {
                                                 return index2 <= index;
@@ -58,7 +59,7 @@ export class NormalPageEditor {
                                 })
                                 .join('')}
                         </ol>`,
-                        html` <div style="height:calc(100vh - 65px); overflow-y: auto; ">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}</div>`,
+                        html` <div style="height:calc(100vh - ${(65 + gvc.glitter.share.top_inset)}px); overflow-y: auto; ">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}</div>`,
                     ].join('');
                 },
             };
@@ -77,7 +78,7 @@ export class NormalPageEditor {
                     });
                 })}"
             ></div>
-            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;max-width: 100vw;">${NormalPageEditor.view(gvc)}</div>`;
+            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;max-width: 100vw;display: none;">${NormalPageEditor.view(gvc)}</div>`;
     }
 
     public static viewArray: any = [];
@@ -86,6 +87,7 @@ export class NormalPageEditor {
     public static closeEvent = () => {};
     public static toggle(cf: { visible: boolean; title?: string; view?: string; width?: number; right?: boolean }) {
         try {
+            $('#norViewHover').css('display', '');
             NormalPageEditor.visible = cf.visible;
             if (cf.visible) {
                 NormalPageEditor.isRight = cf.right;

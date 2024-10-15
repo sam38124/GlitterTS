@@ -14,7 +14,7 @@ export class Swal {
     public isVisible: () => void;
     public close: () => void;
     public loading: (text: string) => void;
-    public toast: (data: { icon: icons; title: string }) => void;
+    public toast: (data: { icon: icons; title: string,position?:'top'|'bottom'|'center' }) => void;
     public isConfirm: (text: string, icon: string, callback: () => void) => void;
     public deleteAlertDetail: (text: string, callback: () => void) => void;
     public deleteAlert: (text: string, callback: () => void) => void;
@@ -111,11 +111,11 @@ export class Swal {
 
         };
 
-        this.toast = (data: { icon: icons; title: string }) => {
+        this.toast = (data: { icon?: icons; title: string,position?:'top'|'bottom'|'center' }) => {
             this.init(() => {
                 const toast = sw.mixin({
                     toast: true,
-                    position: 'left',
+                    position: data.position || 'bottom',
                     showConfirmButton: false,
                     timer: 1000,
                     timerProgressBar: true,

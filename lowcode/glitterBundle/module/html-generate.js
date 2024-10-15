@@ -1815,7 +1815,7 @@ ${obj.gvc.bindView({
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
-                glitter.pageConfig[gvc.glitter.pageConfig.length - 1].gvc.notifyDataChange('left_sm_bar');
+                glitter.pageConfig[gvc.glitter.pageConfig.length - 1].gvc.notifyDataChange(['top_sm_bar', 'left_sm_bar']);
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
                 glitter.share.editorViewModel.selectItem = dd;
@@ -2055,7 +2055,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;top:${Storage.view_type === 'mobile'
+                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile' || document.body.clientWidth < 800)
                                 ? `-30px`
                                 : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2063,7 +2063,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${Storage.view_type === 'mobile'
+                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile' || document.body.clientWidth < 800)
                                 ? `10px`
                                 : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >

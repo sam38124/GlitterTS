@@ -53,13 +53,7 @@ export class EditorConfig {
     }
     static getPaymentStatus() {
         const config = window.parent.glitter.share.editorViewModel.app_config_original;
-        let planText = 'free';
-        if (config.plan === 'basic') {
-            planText = 'basic';
-        }
-        else if (config.plan === 'web+app') {
-            planText = 'web+app';
-        }
+        let planText = config.plan || 'free';
         return {
             plan: planText,
             dead_line: config.dead_line,

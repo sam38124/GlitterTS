@@ -533,12 +533,10 @@ export class Main_editor {
                         `;
                     }
                 },
-                divCreate: {class: `swiper-slide h-100 position-relative design-guide-1`},
+                divCreate: {class: `swiper-slide h-100 position-relative design-guide-1`,style:`${(glitter.share.top_inset) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;`:``}`},
                 onCreate: () => {
                     $('.tooltip')!.remove();
                     ($('[data-bs-toggle="tooltip"]') as any).tooltip();
-
-
                 },
             };
         });
@@ -910,7 +908,7 @@ export class Main_editor {
             html`
                 <div
                         class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh ${document.body.clientWidth < 800 ? `- ${0+parseInt(glitter.share.top_inset,10)}` : `- 56`}px)` : `height:calc(100vh - 150px);`}"
                         onscroll="${gvc.event(() => {
                             if (document.querySelector('.right_scroll')!.scrollTop > 0) {
                                 glitter.share.lastRightScrollTop = document.querySelector('.right_scroll')!.scrollTop;
@@ -972,8 +970,8 @@ export class Main_editor {
                         };
                     })}
                     <div style="height: 60px;"></div>
-                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
-                         style="height: 60px;">
+                    <div class="${(document.body.clientWidth<800) ? `position-fixed`:`position-absolute`} w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
+                         style="height: 60px;${(document.body.clientWidth<800) ? `padding-bottom:${parseInt(glitter.share.bottom_inset,10)}px !important;`:``}">
                         ${(() => {
                            
                             const view: any = [];
@@ -1073,11 +1071,17 @@ export class Main_editor {
             return {
                 bind: 'iframe_center',
                 view: () => {
-                    return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
+                    if(gvc.glitter.getUrlParameter('function')==='backend-manger'){
+                        return  `<div class="position-relative" style="width:100%;height: calc(100%);padding-top:${parseInt(gvc.glitter.share.top_inset,10)}px;" id="editerCenter">
+                      </div>`
+                    }else{
+                        return `<div class="position-relative" style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset,10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset,10)}px;`:``}" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white iframe_view"
                     sandbox="allow-same-origin allow-scripts"
-                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
                 </div>`
+                    }
+
                 },
                 divCreate: () => {
                     return {

@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_12.7.5";
+        glitter.share.editerVersion = "V_12.7.7";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -67,6 +67,12 @@ export class Entry {
         config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
+            ${(parseInt(window.parent.glitter.share.bottom_inset, 10)) ? `
+             .update-bar-container {
+        padding-bottom:${window.parent.glitter.share.bottom_inset}px !important;
+        }
+            ` : ``}
+            
                 .editorParent .editorChild {
                     display: none;
                 }

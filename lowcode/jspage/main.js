@@ -57,7 +57,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
 
         .scroll-in {
-            left: -120%; /* 將元素移到畫面外 */
             animation: slideInFromLeft 0.5s ease-out forwards;
         }
 
@@ -105,7 +104,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
 
         .scroll-right-in {
-
             right: -120%; /* 將元素移到畫面外 */
             animation: slideInRight 0.5s ease-out forwards;
         }
@@ -180,6 +178,43 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             else {
                 yield swal.loading('載入中...');
             }
+            glitter.share.top_inset = yield new Promise((resolve, reject) => {
+                glitter.runJsInterFace('getTopInset', {}, (response) => {
+                    resolve(response.data);
+                }, {
+                    webFunction: () => {
+                        return { data: 0 };
+                    },
+                });
+            });
+            if (parseInt(glitter.share.top_inset, 10)) {
+                gvc.addStyle(css `
+                .scroll-in {
+                    padding-top: ${glitter.share.top_inset}px;
+                }
+
+                .scroll-right-in {
+                    padding-top: ${glitter.share.top_inset}px;
+                }
+            `);
+            }
+            gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+                if (response.token) {
+                }
+            }, {
+                webFunction(data, callback) {
+                    callback({});
+                }
+            });
+            glitter.share.bottom_inset = yield new Promise((resolve, reject) => {
+                glitter.runJsInterFace('getBottomInset', {}, (response) => {
+                    resolve(response.data);
+                }, {
+                    webFunction: () => {
+                        return { data: 0 };
+                    },
+                });
+            });
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -412,6 +447,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     }
                     swal.close();
+                    swal.toast({
+                        icon: 'success',
+                        title: '儲存成功',
+                        position: 'center'
+                    });
                     if (refresh) {
                         viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                         window.preloadData = {};
@@ -421,10 +461,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     if (glitter.share.editor_vm) {
                         glitter.share.editor_vm.callback(viewModel.data);
                         swal.close();
-                        swal.toast({
-                            icon: 'success',
-                            title: '儲存成功',
-                        });
                     }
                     else if (refresh) {
                         window.preloadData = {};
@@ -463,13 +499,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
+                            view.push(PageSettingView.leftNav(gvc));
+                            view.push(AddPage.leftNav(gvc));
+                            view.push(PageCodeSetting.leftNav(gvc));
                         }
                         else {
                             view.push(BgCustomerMessage.leftNav(gvc));
                         }
-                        view.push(PageSettingView.leftNav(gvc));
-                        view.push(AddPage.leftNav(gvc));
-                        view.push(PageCodeSetting.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);
@@ -795,6 +831,7 @@ function initialEditor(gvc, viewModel) {
                         vm.customer_info = {
                             "payment_select": "ecPay"
                         };
+                        vm.user_info.appName = window.parent.appName;
                         BaseApi.create({
                             url: window.parent.saasConfig.config.url + `/api-public/v1/ec/checkout`,
                             type: 'POST',
@@ -836,6 +873,7 @@ function initialEditor(gvc, viewModel) {
     glitter.share.editorViewModel = viewModel;
     localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');
     const swal = new Swal(gvc);
+    glitter.share.swal = swal;
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
             swal.nextStep(`請先複製元件`, () => {

@@ -1979,18 +1979,19 @@ ${obj.gvc.bindView(() => {
     }){
         const gvc=obj.gvc
         const css=String.raw
-        gvc.addStyle(css`.pcr-button{
+        gvc.addStyle(css`.pcr-button {
         width:18px !important;
             height:18px !important;
             margin:0px !important;
-            transform: translateY(-1px);
+            transform: translateY(${(gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Ios) ? `-10px`:`-1px`});
             padding:0px !important;
             border:1px solid #e2e5f1;
+            
         }
-            .pcr-app{
+            .pcr-app {
                 z-index:99999;
             }
-        .pickr{
+        .pickr {
             width:19px !important;
             height:19px !important;
             margin:0px !important;

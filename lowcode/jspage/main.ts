@@ -55,7 +55,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
 
         .scroll-in {
-            left: -120%; /* 將元素移到畫面外 */
             animation: slideInFromLeft 0.5s ease-out forwards;
         }
 
@@ -103,7 +102,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
 
         .scroll-right-in {
-
             right: -120%; /* 將元素移到畫面外 */
             animation: slideInRight 0.5s ease-out forwards;
         }
@@ -206,6 +204,57 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         } else {
             await swal.loading('載入中...');
         }
+        glitter.share.top_inset = await new Promise((resolve, reject) => {
+            glitter.runJsInterFace(
+                'getTopInset',
+                {},
+                (response: any) => {
+                    resolve(response.data);
+                },
+                {
+                    webFunction: () => {
+                        return {data: 0};
+                    },
+                }
+            )
+        })
+        if (parseInt(glitter.share.top_inset, 10)) {
+            gvc.addStyle(css`
+                .scroll-in {
+                    padding-top: ${glitter.share.top_inset}px;
+                }
+
+                .scroll-right-in {
+                    padding-top: ${glitter.share.top_inset}px;
+                }
+            `)
+        }
+        //推播訂閱
+        gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+            if (response.token) {
+                // ApiUser.registerFCM(userID as string,response.token)
+            }
+        }, {
+            webFunction(data: any, callback: (data: any) => void): any {
+                callback({})
+            }
+        })
+        glitter.share.bottom_inset = await new Promise((resolve, reject) => {
+            glitter.runJsInterFace(
+                'getBottomInset',
+                {},
+                (response: any) => {
+                    resolve(response.data);
+                },
+                {
+                    webFunction: () => {
+                        return {data: 0};
+                    },
+                }
+            )
+        })
+
+
         const waitGetData = [
             async () => {
                 return await new Promise(async (resolve, reject) => {
@@ -452,7 +501,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                 }
                 swal.close();
-
+                swal.toast({
+                    icon: 'success',
+                    title: '儲存成功',
+                    position: 'center'
+                });
                 if (refresh) {
                     viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     (window as any).preloadData = {};
@@ -462,10 +515,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 if (glitter.share.editor_vm) {
                     glitter.share.editor_vm.callback(viewModel.data);
                     swal.close();
-                    swal.toast({
-                        icon: 'success',
-                        title: '儲存成功',
-                    });
                 } else if (refresh) {
                     (window as any).preloadData = {};
                     (window as any).glitterInitialHelper.share = {};
@@ -505,12 +554,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
+                            view.push(PageSettingView.leftNav(gvc));
+                            view.push(AddPage.leftNav(gvc));
+                            view.push(PageCodeSetting.leftNav(gvc));
                         } else {
                             view.push(BgCustomerMessage.leftNav(gvc));
                         }
-                        view.push(PageSettingView.leftNav(gvc));
-                        view.push(AddPage.leftNav(gvc));
-                        view.push(PageCodeSetting.leftNav(gvc));
+
                         view.push(NormalPageEditor.leftNav(gvc));
 
                         try {
@@ -749,7 +799,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         if (dd.response.value) {
             vm.user_info = dd.response.value
         }
-        const sku = (()=>{
+        const sku = (() => {
             switch (title) {
                 case '輕便電商方案':
                     return 'light-year'
@@ -862,7 +912,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
                     };
                     vm.customer_info = {
                         "payment_select": "ecPay"
-                    }
+                    };
+                    (vm.user_info as any).appName = (window.parent as any).appName;
                     BaseApi.create({
                         url: (window.parent as any).saasConfig.config.url + `/api-public/v1/ec/checkout`,
                         type: 'POST',
@@ -885,7 +936,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                                 (window.parent as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                 (window.parent as any).document.querySelector(`#${id} #submit`).click();
                             }
-gvc.closeDialog()
+                            gvc.closeDialog()
                         } else {
                             dialog.errorMessage({text: '發生錯誤'})
                         }
@@ -906,6 +957,7 @@ gvc.closeDialog()
     localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');
     //Swal載入動畫
     const swal = new Swal(gvc);
+    glitter.share.swal = swal;
     //貼上事件
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
@@ -975,7 +1027,6 @@ gvc.closeDialog()
         loop(glitter.share.editorViewModel.data.config, undefined);
         return find;
     };
-
     //找到ID索引位置
     glitter.share.findWidget = (where: (data: any) => boolean) => {
         let find: {
@@ -1125,6 +1176,7 @@ gvc.closeDialog()
     }
     //快捷鍵設定
     shortCutKey(gvc);
+
 }
 
 function shortCutKey(gvc: GVC) {

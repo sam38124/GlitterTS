@@ -121,7 +121,7 @@ export class Editor {
                 <div class="position-relative vh-100 vw-100 overflow-auto"
                      style="word-break: break-word;white-space: nowrap;background:whitesmoke;">
                     <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top"
-                            data-scroll-header style="height: 56px;">
+                            data-scroll-header style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;` : `height:56px;`}">
                         <div class="container-fluid pe-lg-4" style="position: relative">
                             <div
                                     class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
@@ -161,10 +161,16 @@ color: transparent;"
                                     class="border-end d-flex align-items-center justify-content-center ms-n2 fs-3 d-sm-none"
                                     style="width:56px;height: 56px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
-                glitter.openDrawer();
+                if ((gvc.glitter.getUrlParameter('function') === 'backend-manger')) {
+                    glitter.openDrawer();
+                }
+                else {
+                    goBack();
+                }
             })}"
                             >
-                                <i class="fa-solid fa-bars"></i>
+                                ${(glitter.getUrlParameter('function') === 'backend-manger') ? `   <i class="fa-solid fa-bars"></i>` : ` <i class="fa-solid fa-arrow-left-from-arc"></i>`}
+                             
                             </div>
                             <div class="border-end d-none d-sm-block"
                                  style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `37px`};height: 56px; "></div>
@@ -245,6 +251,9 @@ color: transparent;"
                                                     </div>`
                         ].join('');
                     },
+                    divCreate: {
+                        class: `d-flex align-items-center`
+                    },
                     onCreate: () => {
                         $('.tooltip').remove();
                         $('[data-bs-toggle="tooltip"]').tooltip();
@@ -293,10 +302,71 @@ color: transparent;"
                                                         class="btn-group "
                                                         style="max-width: ${document.body.clientWidth < 768 ? 150 : 350}px; 
   min-width: ${document.body.clientWidth < 768 ? 150 : 200}px; 
-                                                ${gvc.glitter.getUrlParameter('function') === 'page-editor' ? `` : `transform: translateX(-15px);`}
+                                                ${gvc.glitter.getUrlParameter('function') === 'page-editor' ? `` : ``}
                                                "
                                                 >
-                                                    <button
+                                                    ${(document.body.clientWidth < 800) ? gvc.bindView(() => {
+                        return {
+                            bind: 'top_sm_bar',
+                            view: () => {
+                                return `      ${[
+                                    {
+                                        src: `fa-duotone fa-window guide-user-editor-1-icon`,
+                                        index: 'layout',
+                                        hint: '頁面編輯',
+                                    },
+                                    {
+                                        src: `fa-sharp fa-regular fa-globe guide-user-editor-11-icon`,
+                                        index: 'color',
+                                        hint: '全站樣式'
+                                    },
+                                    {
+                                        src: `fa-regular fa-grid-2 design-guide-1-icon`,
+                                        index: 'widget',
+                                        hint: '設計元件'
+                                    }
+                                ]
+                                    .filter((dd) => {
+                                    if (gvc.glitter.getUrlParameter('device') === 'mobile') {
+                                        return dd.index !== 'widget';
+                                    }
+                                    else {
+                                        return true;
+                                    }
+                                })
+                                    .map((da) => {
+                                    return html `<i
+                                                                            class=" ${da.src} fs-5 fw-bold   p-2 rounded"
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="top"
+                                                                            data-bs-custom-class="custom-tooltip"
+                                                                            data-bs-title="${da.hint}"
+                                                                            style="cursor:pointer;
+${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+"
+                                                                            onclick="${gvc.event(() => {
+                                        gvc.glitter.share.editorViewModel.waitCopy = undefined;
+                                        gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                        Storage.page_setting_item = da.index;
+                                        if (document.body.clientWidth < 800) {
+                                            glitter.openDrawer();
+                                        }
+                                        gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
+                                    })}"
+                                                                    ></i>`;
+                                })
+                                    .join('')}`;
+                            },
+                            divCreate: {
+                                style: `gap:5px;height:50px;`,
+                                class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`}  d-flex  align-items-center`,
+                            },
+                            onCreate: () => {
+                                $('.tooltip').remove();
+                                $('[data-bs-toggle="tooltip"]').tooltip();
+                            }
+                        };
+                    }) : ` <button
                                                             type="button"
                                                             class="btn btn-outline-secondary rounded px-2 "
                                                             onclick="${gvc.event(() => {
@@ -308,7 +378,7 @@ color: transparent;"
                                                         <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${data.data.name}</span>
                                                         <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y ${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none` : ``}"
                                                            style="top: 50%;right: 20px;"></i>
-                                                    </button>
+                                                    </button>`}
                                                     ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
