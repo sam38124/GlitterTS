@@ -1778,7 +1778,7 @@ export class ShoppingProductSetting {
                 });
         }))}
                 ${BgWidget.save(obj.gvc.event(() => {
-            function checkEmpty(variant, alert = false) {
+            function checkEmpty(variant, alert) {
                 const checkList = ["sale_price"];
                 for (const checkItem of checkList) {
                     if (!variant[checkItem]) {

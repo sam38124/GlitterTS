@@ -32,10 +32,17 @@ router.get('/', async (req, resp) => {
 });
 router.post('/listenMessage', async (req, resp) => {
     try {
-        await new line_message_1.LineMessage(req.get('g-app'), req.body.token).listenMessage(req.body);
-        return response_1.default.succ(resp, {
-            "result": "OK"
-        });
+        if (Object.keys(req.body.events).length == 0) {
+            return response_1.default.succ(resp, {
+                "result": "OK"
+            });
+        }
+        else {
+            await new line_message_1.LineMessage(req.get('g-app'), req.body.token).listenMessage(req.body);
+            return response_1.default.succ(resp, {
+                "result": "OK"
+            });
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);

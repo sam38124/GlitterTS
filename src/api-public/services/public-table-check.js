@@ -404,7 +404,7 @@ class ApiPublic {
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`user_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`chat_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`chat_id\` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`last_read\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`user_id\`,\`chat_id\`)

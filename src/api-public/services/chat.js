@@ -14,12 +14,11 @@ const web_socket_js_1 = require("../../services/web-socket.js");
 const firebase_js_1 = require("../../modules/firebase.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const ai_robot_js_1 = require("./ai-robot.js");
-const line_message_1 = require("./line-message");
-const fb_message_1 = require("./fb-message");
+const fb_message_js_1 = require("./fb-message.js");
+const line_message_js_1 = require("./line-message.js");
 class Chat {
     async addChatRoom(room) {
         try {
-            console.log(`room.participant==>`, room.participant);
             if (room.type === 'user') {
                 room.chat_id = room.participant.sort().join('-');
             }
@@ -29,8 +28,9 @@ class Chat {
             if ((await database_1.default.query(`select count(1)
                                   from \`${this.app}\`.t_chat_list
                                   where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 0) {
-                const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
-                                             SET ?`, [
+                const participant = room.participant.find((str) => str.startsWith("line"));
+                let data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
+                         SET ?`, [
                     {
                         chat_id: room.chat_id,
                         type: room.type,
@@ -59,7 +59,16 @@ class Chat {
                         },
                     ]);
                 }
-                return data;
+                return {
+                    result: "OK",
+                    create: true
+                };
+            }
+            else {
+                return {
+                    result: "OK",
+                    create: false
+                };
             }
         }
         catch (e) {
@@ -115,10 +124,9 @@ class Chat {
             if (!chatRoom) {
                 throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
-            if (room.chat_id.startsWith('line')) {
-                console.log('chat_id 的前綴是 line');
+            if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
-                await new line_message_1.LineMessage(this.app).sendLine({
+                await new line_message_js_1.LineMessage(this.app).sendLine({
                     data: room.message.text,
                     lineID: newChatId
                 }, () => {
@@ -127,7 +135,7 @@ class Chat {
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
                 const newChatId = room.chat_id.slice(3).split("-")[0];
                 console.log(room.message.text, newChatId);
-                await new fb_message_1.FbMessage(this.app).sendMessage({
+                await new fb_message_js_1.FbMessage(this.app).sendMessage({
                     data: room.message.text,
                     fbID: newChatId
                 }, () => {

@@ -310,8 +310,9 @@ export class CustomerMessageUser {
         hideBar?:boolean}) {
         const gvc = cf.gvc;
         const document = cf.document;
-        const css = String.raw
-
+        const css = String.raw;
+        const viewId = gvc.glitter.getUUID();
+        let chatRoomInf:any = {}
 
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
@@ -361,6 +362,15 @@ export class CustomerMessageUser {
                                             if (chatRoom.who === 'manager') {
                                                 chatRoom.user_data = CustomerMessageUser.config;
                                             }
+
+                                            if (chatRoom.who.startsWith('line')){
+                                                chatRoom.user_data.head = chatRoom.info.line.head;
+                                                chatRoom.user_data.name = chatRoom.info.line.name;
+                                                chatRoomInf = chatRoom;
+                                                gvc.notifyDataChange(viewId)
+                                            }
+
+
                                             resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${
                                                 CustomerMessageUser.config.hideBar ? `d-none` : ``
                                             }" style="background: ${CustomerMessageUser.config.color};">
@@ -385,7 +395,7 @@ export class CustomerMessageUser {
                                 };
                             }),
                             gvc.bindView(() => {
-                                const viewId = gvc.glitter.getUUID();
+
                                 const messageID = gvc.glitter.getUUID();
                                 const vm: {
                                     data: any;
@@ -500,10 +510,16 @@ export class CustomerMessageUser {
                                                 <div class="my-auto flex-fill"></div>
                                                 ${vm.data
                                                             .map((dd: any, index: number) => {
+                                                                
                                                                 if (dd.user_id == 'manager') {
                                                                     dd.user_data = CustomerMessageUser.config;
                                                                 }
                                                                 if (cf.user_id !== dd.user_id) {
+                                                                    console.log(" dd-- " , chatRoomInf)
+                                                                    if (chatRoomInf.who.startsWith('line')){
+                                                                        dd.user_data.head = chatRoomInf.info.line.head;
+                                                                        dd.user_data.name = chatRoomInf.info.line.name;
+                                                                    }
                                                                     return html`
                                                                         <div
                                                                                 class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"

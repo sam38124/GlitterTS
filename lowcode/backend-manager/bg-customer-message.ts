@@ -87,6 +87,8 @@ export class BgCustomerMessage {
             return {
                 bind: BgCustomerMessage.id,
                 view: () => {
+
+
                     if (!BgCustomerMessage.visible) {
                         return html`
                             <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
@@ -711,13 +713,20 @@ export class BgCustomerMessage {
                                                 const unReadCount = unRead.filter((d2: any) => {
                                                     return dd.chat_id === d2.chat_id;
                                                 }).length;
-                                                if (dd.chat_id)
+                                                if (dd.chat_id){
+                                                    if (dd.chat_id.startsWith('line')){
+                                                        dd.user_data.head = dd.info.line.head;
+                                                        dd.user_data.name = dd.info.line.name;
+                                                    }
+                                                    let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
+                                                    let name = (dd.user_data && dd.user_data.name) || `訪客`
+                                                    
                                                     return html`<a
                                                             class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
                                                             style="cursor: pointer;"
                                                             onclick="${gvc.event(() => {
-                                                                callback(dd);
-                                                            })}"
+                                                        callback(dd);
+                                                    })}"
                                                     >
                                                         <div class="rounded-circle position-relative "
                                                              style="width: 40px;height: 40px;">
@@ -728,37 +737,39 @@ export class BgCustomerMessage {
                                                                 ${unReadCount}
                                                             </div>
                                                             <img
-                                                                    src="${(dd.userData && dd.userData.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                    class="rounded-circle border"
-                                                                    style="border-radius: 50%;"
+                                                                    src="${head}"
+                                                                    class="rounded-circle ${dd.chat_id.startsWith('line')?'':'border'}"
+                                                                    style="border-radius: 50%;${dd.chat_id.startsWith('line')?'border:1px solid green':''}"
                                                                     width="40"
                                                                     alt="Devon Lane"
                                                             />
                                                             ${(()=>{
-                                                                let id:string = dd.chat_id
-                                                                if (id.startsWith('line')){
-                                                                    return `<i class="fa-brands fa-line" style="position:absolute;right:0;bottom:0;"></i>`
-                                                                }
-                                                                return ``
-                                                            })()}
+                                                        let id:string = dd.chat_id
+                                                        if (id.startsWith('line')){
+                                                            return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
+                                                        }
+                                                        return ``
+                                                    })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">
                                                             <div class="d-flex align-items-center justify-content-between mb-1">
                                                                 <h6 class="mb-0 me-2">
-                                                                    ${(dd.user_data && dd.user_data.name) || `訪客`}</h6>
+                                                                    ${name}</h6>
                                                                 <span class="fs-xs  fw-500 text-muted">${gvc.glitter.ut.dateFormat(new Date(dd.topMessage.created_time), 'MM-dd hh:mm')}</span>
                                                             </div>
                                                             <p class="fs-sm  mb-0 "
                                                                style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
                                                                 ${(dd.topMessage ? dd.topMessage.text : ``).length > 50
-                                                                        ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
-                                                                        : dd.topMessage
-                                                                                ? dd.topMessage.text
-                                                                                : ``}
+                                                            ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
+                                                            : dd.topMessage
+                                                                    ? dd.topMessage.text
+                                                                    : ``}
                                                             </p>
                                                         </div>
                                                     </a>`;
+                                                }
+                                                    
                                             } else {
                                                 return ``;
                                             }
@@ -917,6 +928,7 @@ export class BgCustomerMessage {
         const html = String.raw;
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
+
             return {
                 bind: id,
                 view: () => {
@@ -937,6 +949,11 @@ export class BgCustomerMessage {
                                         ).response.data[0];
                                         if (chatRoom.who === 'manager') {
                                             chatRoom.user_data = BgCustomerMessage.config;
+                                        }
+
+                                        if (chatRoom.chat_id.startsWith('line')){
+                                            chatRoom.user_data.head = chatRoom.info.line?.head;
+                                            chatRoom.user_data.name = chatRoom.info.line?.name;
                                         }
                                         resolve(html`
                                             <div
@@ -1236,6 +1253,7 @@ export class BgCustomerMessage {
         if (dd.user_id == 'manager') {
             dd.user_data = BgCustomerMessage.config;
         }
+
         if (cf.user_id !== dd.user_id) {
             return html`
                 <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">

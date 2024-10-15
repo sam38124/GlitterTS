@@ -1,16 +1,17 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import { IToken } from '../models/Auth.js';
-import { UtDatabase } from '../utils/ut-database.js';
-import { User } from './user.js';
-import { sendmail } from '../../services/ses.js';
-import { App } from '../../services/app.js';
-import { WebSocket } from '../../services/web-socket.js';
-import { Firebase } from '../../modules/firebase.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { AiRobot } from './ai-robot.js';
-import {LineMessage} from "./line-message";
-import {FbMessage} from "./fb-message";
+import {IToken} from '../models/Auth.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {User} from './user.js';
+import {sendmail} from '../../services/ses.js';
+import {App} from '../../services/app.js';
+import {WebSocket} from '../../services/web-socket.js';
+import {Firebase} from '../../modules/firebase.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {AiRobot} from './ai-robot.js';
+import {FbMessage} from "./fb-message.js";
+import {LineMessage} from "./line-message.js";
+import {query} from "express";
 
 export interface ChatRoom {
     chat_id: string;
@@ -34,12 +35,12 @@ export class Chat {
 
     public async addChatRoom(room: ChatRoom) {
         try {
-            console.log(`room.participant==>`, room.participant);
             if (room.type === 'user') {
                 room.chat_id = room.participant.sort().join('-');
             } else {
                 room.chat_id = generateChatID();
             }
+
             if (
                 (
                     await db.query(
@@ -50,9 +51,10 @@ export class Chat {
                     )
                 )[0]['count(1)'] === 0
             ) {
-                const data = await db.query(
+                const participant = room.participant.find((str) => str.startsWith("line"));
+                let data = await db.query(
                     `INSERT INTO \`${this.app}\`.\`t_chat_list\`
-                                             SET ?`,
+                         SET ?`,
                     [
                         {
                             chat_id: room.chat_id,
@@ -61,6 +63,8 @@ export class Chat {
                         },
                     ]
                 );
+
+
                 for (const b of room.participant) {
                     await db.query(
                         `
@@ -89,7 +93,15 @@ export class Chat {
                         ]
                     );
                 }
-                return data;
+                return {
+                    result : "OK",
+                    create:true
+                };
+            }else {
+                return {
+                    result : "OK",
+                    create:false
+                }
             }
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'AddChatRoom Error:' + e, null);
@@ -163,8 +175,7 @@ export class Chat {
                 throw exception.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
             //檢查是不是要回傳給line
-            if (room.chat_id.startsWith('line')) {
-                console.log('chat_id 的前綴是 line');
+            if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
                 await new LineMessage(this.app).sendLine({
                     data: room.message.text,

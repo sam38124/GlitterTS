@@ -16,7 +16,10 @@ export interface ChatMessage {
 export declare class Chat {
     app: string;
     token?: IToken;
-    addChatRoom(room: ChatRoom): Promise<any>;
+    addChatRoom(room: ChatRoom): Promise<{
+        result: string;
+        create: boolean;
+    }>;
     getChatRoom(qu: any, userID: string): Promise<{
         data: any;
         result: boolean;

@@ -10,6 +10,9 @@ export declare class LineMessage {
     token: IToken | undefined;
     constructor(app: string, token?: IToken);
     chunkSendLine(userList: any, content: any, id: number, date?: string): Promise<void>;
+    getLineInf(obj: {
+        lineID: string;
+    }, callback: (data: any) => void): Promise<boolean>;
     sendLine(obj: {
         data: string;
         lineID: string;

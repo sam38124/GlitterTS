@@ -37,6 +37,39 @@ class LineMessage {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
         }
     }
+    async getLineInf(obj, callback) {
+        try {
+            const post = new user_1.User(this.app, this.token);
+            let tokenData = await post.getConfig({
+                key: "login_line_setting",
+                user_id: "manager",
+            });
+            let token = `Bearer ${tokenData[0].value.message_token}`;
+            const urlConfig = {
+                method: 'get',
+                url: `https://api.line.me/v2/bot/profile/${obj.lineID}`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token
+                },
+                data: {}
+            };
+            return new Promise((resolve, reject) => {
+                axios_1.default.request(urlConfig)
+                    .then((response) => {
+                    callback(response.data);
+                    resolve(response.data);
+                })
+                    .catch((error) => {
+                    console.log("error -- ", error.data);
+                    resolve(false);
+                });
+            });
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
+        }
+    }
     async sendLine(obj, callback) {
         try {
             const post = new user_1.User(this.app, this.token);
@@ -49,7 +82,11 @@ class LineMessage {
                     }
                 ]
             };
-            let token = "Bearer XBcCOSLLaQuVIQ8O6BR/KV8MSqHlOs5lqdu/fWkJGwRuEUItbWtfkt920OX49wtNzD9GP1dl0LqgqnT2GmGRinnk3Z7stN84gCSrDTnUAtgxfmd8Lsd/QfwfdIGwTg4cTicgQ88DVEJDZK5FKi6rZwdB04t89/1O/w1cDnyilFU=";
+            let tokenData = await post.getConfig({
+                key: "login_line_setting",
+                user_id: "manager",
+            });
+            let token = `Bearer ${tokenData[0].value.message_token}`;
             const urlConfig = {
                 method: 'post',
                 url: "https://api.line.me/v2/bot/message/push",
@@ -211,10 +248,35 @@ class LineMessage {
             let chatData = {
                 chat_id: [userID, "manager"].sort().join(''),
                 type: "user",
+                info: "",
                 user_id: userID,
                 participant: [userID, "manager"]
             };
-            await new chat_1.Chat(this.app).addChatRoom(chatData);
+            await this.getLineInf({ lineID: data.events[0].source.userId }, (data) => {
+                chatData.info = {
+                    line: {
+                        name: data.displayName,
+                        head: data.pictureUrl
+                    }
+                };
+                console.log("line data -- ", data);
+                chatData.info = JSON.stringify(chatData.info);
+            });
+            let result = await new chat_1.Chat(this.app).addChatRoom(chatData);
+            if (!result.create) {
+                await database_js_1.default.query(`
+                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                        SET ?
+                        WHERE ?
+                    `, [
+                    {
+                        info: chatData.info,
+                    },
+                    {
+                        chat_id: chatData.chat_id,
+                    }
+                ]);
+            }
             chatData.message = {
                 "text": message.text
             };

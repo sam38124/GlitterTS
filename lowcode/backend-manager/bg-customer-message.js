@@ -674,7 +674,13 @@ export class BgCustomerMessage {
                                 const unReadCount = unRead.filter((d2) => {
                                     return dd.chat_id === d2.chat_id;
                                 }).length;
-                                if (dd.chat_id)
+                                if (dd.chat_id) {
+                                    if (dd.chat_id.startsWith('line')) {
+                                        dd.user_data.head = dd.info.line.head;
+                                        dd.user_data.name = dd.info.line.name;
+                                    }
+                                    let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
+                                    let name = (dd.user_data && dd.user_data.name) || `訪客`;
                                     return html `<a
                                                             class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
                                                             style="cursor: pointer;"
@@ -691,16 +697,16 @@ export class BgCustomerMessage {
                                                                 ${unReadCount}
                                                             </div>
                                                             <img
-                                                                    src="${(dd.userData && dd.userData.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                    class="rounded-circle border"
-                                                                    style="border-radius: 50%;"
+                                                                    src="${head}"
+                                                                    class="rounded-circle ${dd.chat_id.startsWith('line') ? '' : 'border'}"
+                                                                    style="border-radius: 50%;${dd.chat_id.startsWith('line') ? 'border:1px solid green' : ''}"
                                                                     width="40"
                                                                     alt="Devon Lane"
                                                             />
                                                             ${(() => {
                                         let id = dd.chat_id;
                                         if (id.startsWith('line')) {
-                                            return `<i class="fa-brands fa-line" style="position:absolute;right:0;bottom:0;"></i>`;
+                                            return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
                                         }
                                         return ``;
                                     })()}
@@ -709,7 +715,7 @@ export class BgCustomerMessage {
                                                         <div class="w-100 ps-2 ms-1">
                                                             <div class="d-flex align-items-center justify-content-between mb-1">
                                                                 <h6 class="mb-0 me-2">
-                                                                    ${(dd.user_data && dd.user_data.name) || `訪客`}</h6>
+                                                                    ${name}</h6>
                                                                 <span class="fs-xs  fw-500 text-muted">${gvc.glitter.ut.dateFormat(new Date(dd.topMessage.created_time), 'MM-dd hh:mm')}</span>
                                                             </div>
                                                             <p class="fs-sm  mb-0 "
@@ -722,6 +728,7 @@ export class BgCustomerMessage {
                                                             </p>
                                                         </div>
                                                     </a>`;
+                                }
                             }
                             else {
                                 return ``;
@@ -870,6 +877,7 @@ export class BgCustomerMessage {
                                 bind: id,
                                 view: () => {
                                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                        var _a, _b;
                                         const chatRoom = (yield Chat.getChatRoom({
                                             page: 0,
                                             limit: 1000,
@@ -878,6 +886,10 @@ export class BgCustomerMessage {
                                         })).response.data[0];
                                         if (chatRoom.who === 'manager') {
                                             chatRoom.user_data = BgCustomerMessage.config;
+                                        }
+                                        if (chatRoom.chat_id.startsWith('line')) {
+                                            chatRoom.user_data.head = (_a = chatRoom.info.line) === null || _a === void 0 ? void 0 : _a.head;
+                                            chatRoom.user_data.name = (_b = chatRoom.info.line) === null || _b === void 0 ? void 0 : _b.name;
                                         }
                                         resolve(html `
                                             <div
