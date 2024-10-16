@@ -40,49 +40,11 @@ export class BgBlog {
             dataList: undefined,
             query: '',
         };
-        const filterID = gvc.glitter.getUUID();
         let vmi: any = undefined;
 
         function getDatalist() {
             return vm.dataList.map((dd: any) => {
                 return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
                     {
                         key: `${is_page ? `頁面` : `網誌`}連結`,
                         value: html`<span class="fs-7">${dd.content.tag}</span>`,
@@ -90,6 +52,7 @@ export class BgBlog {
                     {
                         key: `${is_page ? `頁面` : `網誌`}標題`,
                         value: html`<span class="fs-7">${(dd.content.name ?? '尚未設定標題').substring(0, 15)}</span>`,
+                        width: 40,
                     },
                     {
                         key: '發布時間',
@@ -104,28 +67,28 @@ export class BgBlog {
                                 onclick="${gvc.event((e, event) => {
                                     const href = (() => {
                                         return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${
-                                                is_page
-                                                        ? (() => {
-                                                            switch (page_tab) {
-                                                                case 'shopping':
-                                                                    return 'shop';
-                                                                case 'hidden':
-                                                                    return 'hidden';
-                                                                case 'page':
-                                                                    return 'pages';
-                                                            }
-                                                            return ``;
-                                                        })()
-                                                        : `blogs`
+                                            is_page
+                                                ? (() => {
+                                                      switch (page_tab) {
+                                                          case 'shopping':
+                                                              return 'shop';
+                                                          case 'hidden':
+                                                              return 'hidden';
+                                                          case 'page':
+                                                              return 'pages';
+                                                      }
+                                                  })()
+                                                : `blogs`
                                         }/${dd.content.tag}`;
                                     })();
                                     (window.parent as any).glitter.openNewTab(href);
-                                    event.stopPropagation()
+                                    event.stopPropagation();
                                 })}"
                             >
                                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
                             </div>
                         `,
+                        width: 10,
                     },
                 ];
             });
@@ -192,120 +155,87 @@ export class BgBlog {
                                     </div>
                                 </div>
                                 ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vd) => {
-                                            vmi = vd;
-                                            Article.get({
-                                                page: vmi.page - 1,
-                                                limit: 20,
-                                                search: vm.query || undefined,
-                                                for_index: is_page ? `false` : `true`,
-                                                status: '0,1',
-                                                page_type: page_tab,
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                vm.dataList = data.response.data;
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            if (type === 'select') {
-                                                vm.dataList[index].checked = !vm.dataList[index].checked;
-                                                vmi.data = getDatalist();
-                                                vmi.callback();
-                                                callback(
-                                                    vm.dataList.filter((dd: any) => {
-                                                        return dd.checked;
-                                                    })
-                                                );
-                                            } else {
-                                                vm.data = vm.dataList[index];
-                                                vm.type = 'replace';
-                                            }
-                                        },
-                                        filter: html`
+                                    [
+                                        html`<div class="mb-3 px-2">
                                             ${BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
+                                                gvc.event((e) => {
                                                     vm.query = e.value;
                                                     gvc.notifyDataChange(id);
                                                 }),
                                                 vm.query || '',
                                                 '搜尋所有文章'
                                             )}
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        if (
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            }) ||
-                                                            type === 'select'
-                                                        ) {
-                                                            return ``;
-                                                        } else {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                            return BgWidget.selNavbar({
-                                                                count: selCount,
-                                                                buttonList: [
-                                                                    BgWidget.selEventButton(
-                                                                        '批量移除',
-                                                                        gvc.event(() => {
-                                                                            dialog.checkYesOrNot({
-                                                                                text: '是否確認刪除所選項目？',
-                                                                                callback: (response) => {
-                                                                                    if (response) {
-                                                                                        dialog.dataLoading({ visible: true });
-                                                                                        Article.deleteV2({
-                                                                                            id: vm.dataList
-                                                                                                .filter((dd: any) => {
-                                                                                                    return dd.checked;
-                                                                                                })
-                                                                                                .map((dd: any) => {
-                                                                                                    return dd.id;
-                                                                                                })
-                                                                                                .join(`,`),
-                                                                                        }).then((res) => {
-                                                                                            dialog.dataLoading({ visible: false });
-                                                                                            if (res.result) {
-                                                                                                vm.dataList = undefined;
-                                                                                                gvc.notifyDataChange(id);
-                                                                                            } else {
-                                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                                            }
-                                                                                        });
-                                                                                    }
-                                                                                },
-                                                                            });
-                                                                        })
-                                                                    ),
-                                                                ],
-                                                            });
-                                                        }
+                                        </div>`,
+                                        BgWidget.tableV3({
+                                            gvc: gvc,
+                                            getData: (vd) => {
+                                                vmi = vd;
+                                                const limit = 20;
+                                                Article.get({
+                                                    page: vmi.page - 1,
+                                                    limit: limit,
+                                                    search: vm.query || undefined,
+                                                    for_index: is_page ? `false` : `true`,
+                                                    status: '0,1',
+                                                    page_type: page_tab,
+                                                }).then((data) => {
+                                                    vm.dataList = data.response.data;
+                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                    vmi.originalData = vm.dataList;
+                                                    vmi.tableData = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                if (type === 'select') {
+                                                    vm.dataList[index].checked = !vm.dataList[index].checked;
+                                                    vmi.data = getDatalist();
+                                                    vmi.callback();
+                                                    callback(
+                                                        vm.dataList.filter((dd: any) => {
+                                                            return dd.checked;
+                                                        })
+                                                    );
+                                                } else {
+                                                    vm.data = vm.dataList[index];
+                                                    vm.type = 'replace';
+                                                }
+                                            },
+                                            filter: [
+                                                {
+                                                    name: '批量移除',
+                                                    event: (checkedData) => {
+                                                        const dialog = new ShareDialog(glitter);
+                                                        dialog.checkYesOrNot({
+                                                            text: '是否確認刪除所選項目？',
+                                                            callback: (response) => {
+                                                                if (response) {
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    Article.deleteV2({
+                                                                        id: checkedData
+                                                                            .map((dd: any) => {
+                                                                                return dd.id;
+                                                                            })
+                                                                            .join(`,`),
+                                                                    }).then((res) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        if (res.result) {
+                                                                            vm.dataList = undefined;
+                                                                            gvc.notifyDataChange(id);
+                                                                        } else {
+                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                        }
+                                                                    });
+                                                                }
+                                                            },
+                                                        });
                                                     },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex mt-2 align-items-center p-2 py-3 ${
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                }) ||
-                                                                type === 'select'
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: ``,
-                                                        };
-                                                    },
-                                                };
-                                            })}
-                                        `,
-                                    })
+                                                    option: false,
+                                                },
+                                            ],
+                                        }),
+                                    ].join('')
                                 )}
                             `,
                             BgWidget.getContainerWidth()
@@ -376,7 +306,7 @@ export class BgBlog {
                                 return gvc.bindView(() => {
                                     let data: any = undefined;
                                     const id = gvc.glitter.getUUID();
-                                    if(page_tab!=='page'){
+                                    if (page_tab !== 'page') {
                                         ApiPageConfig.getPageTemplate({
                                             template_from: 'all',
                                             page: '0',
@@ -419,7 +349,7 @@ export class BgBlog {
                                             ].concat(data.response.result.data);
                                             gvc.notifyDataChange(id);
                                         });
-                                    }else{
+                                    } else {
                                         Article.get({
                                             page: 0,
                                             limit: 20,
@@ -427,12 +357,12 @@ export class BgBlog {
                                             for_index: `false`,
                                             status: '0,1',
                                             page_type: page_tab,
-                                            app_name:'t_1726217714800'
+                                            app_name: 't_1726217714800',
                                         }).then((dd) => {
-                                            data= {
-                                                response:{
-                                                    result:{
-                                                        data:[
+                                            data = {
+                                                response: {
+                                                    result: {
+                                                        data: [
                                                             {
                                                                 id: 20739,
                                                                 userID: '234285319',
@@ -454,38 +384,40 @@ export class BgBlog {
                                                                     preview_img: '',
                                                                 },
                                                             },
-                                                        ].concat(dd.response.data.map((dd:any)=>{
-                                                            return   {
-                                                                id: 20739,
-                                                                userID: '234285319',
-                                                                tag: dd.content.tag,
-                                                                name: dd.content.name,
-                                                                page_type: 'page',
-                                                                preview_image: null,
-                                                                _config:dd.content.config,
-                                                                appName: 't_1726217714800',
-                                                                template_type: 2,
-                                                                template_config: {
-                                                                    tag: [],
-                                                                    desc: '',
+                                                        ].concat(
+                                                            dd.response.data.map((dd: any) => {
+                                                                return {
+                                                                    id: 20739,
+                                                                    userID: '234285319',
+                                                                    tag: dd.content.tag,
                                                                     name: dd.content.name,
-                                                                    image: [dd.content.seo.image],
-                                                                    status: 'wait',
-                                                                    post_to: 'all',
-                                                                    version: '1.0',
-                                                                    created_by: 'liondesign.io',
-                                                                    preview_img: '',
-                                                                },
-                                                            }
-                                                        }))
-                                                    }
-                                                }
+                                                                    page_type: 'page',
+                                                                    preview_image: null,
+                                                                    _config: dd.content.config,
+                                                                    appName: 't_1726217714800',
+                                                                    template_type: 2,
+                                                                    template_config: {
+                                                                        tag: [],
+                                                                        desc: '',
+                                                                        name: dd.content.name,
+                                                                        image: [dd.content.seo.image],
+                                                                        status: 'wait',
+                                                                        post_to: 'all',
+                                                                        version: '1.0',
+                                                                        created_by: 'liondesign.io',
+                                                                        preview_img: '',
+                                                                    },
+                                                                };
+                                                            })
+                                                        ),
+                                                    },
+                                                },
                                             };
-                                            
+
                                             gvc.notifyDataChange(id);
-                                        })
+                                        });
                                     }
-                                   
+
                                     return {
                                         bind: id,
                                         view: () => {
@@ -522,7 +454,10 @@ export class BgBlog {
                                                                         .map((dd: any, index: number) => {
                                                                             return html`<div class="col-6 col-sm-3 mb-3 rounded-3">
                                                                                 <div class="d-flex flex-column justify-content-center w-100 " style="gap:5px;cursor:pointer;">
-                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: ${800/600*100}%;">
+                                                                                    <div
+                                                                                        class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
+                                                                                        style="padding-bottom: ${(800 / 600) * 100}%;"
+                                                                                    >
                                                                                         <div
                                                                                             class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
                                                                                             style="overflow: hidden;"
@@ -547,21 +482,20 @@ export class BgBlog {
                                                                                                         (a as any).name = '空白頁面';
                                                                                                         callback(a);
                                                                                                     } else {
-                                                                                                        if(dd._config){
-                                                                                                            dd._config.name=dd.template_config.name;
+                                                                                                        if (dd._config) {
+                                                                                                            dd._config.name = dd.template_config.name;
                                                                                                             callback(dd._config);
-                                                                                                        }else{
+                                                                                                        } else {
                                                                                                             BaseApi.create({
                                                                                                                 url: `${(window as any).glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${
-                                                                                                                        dd.tag
+                                                                                                                    dd.tag
                                                                                                                 }`,
                                                                                                                 type: 'get',
                                                                                                             }).then((res) => {
                                                                                                                 res.response.result[0].config.name = dd.template_config.name;
                                                                                                                 callback(res.response.result[0].config);
-                                                                                                            }); 
+                                                                                                            });
                                                                                                         }
-                                                                                                       
                                                                                                     }
                                                                                                 })}"
                                                                                             >
@@ -719,7 +653,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                 ${BgWidget.grayButton(
                     '前往設計',
                     gvc.event(() => {
-                        localStorage.setItem('preview_data',JSON.stringify(vm.data.content));
+                        localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                         (window.parent as any).glitter.innerDialog(
                             (gvc: GVC) => {
                                 return gvc.bindView(() => {
@@ -1076,7 +1010,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                     ${BgWidget.container(
                         BgWidget.mainCard(
                             gvc.bindView(() => {
-                                console.log(`vm.data.content.template=>`,vm.data.content.template)
+                                console.log(`vm.data.content.template=>`, vm.data.content.template);
                                 const id = gvc.glitter.getUUID();
                                 vm.data.status = vm.data.status ?? '1';
                                 return {
@@ -1292,7 +1226,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                     : `blogs`
                             }/${vm.data.content.tag}?preview=true&appName=${(window.parent as any).appName}`;
                         })();
-                        localStorage.setItem('preview_data',JSON.stringify(vm.data.content));
+                        localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                         (window.parent as any).glitter.openNewTab(href);
                     }
                 }),

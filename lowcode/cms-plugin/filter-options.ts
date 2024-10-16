@@ -70,6 +70,8 @@ export class FilterOptions {
         { key: 'name', value: '顧客名稱' },
         { key: 'created_time_desc', value: '註冊時間新 > 舊' },
         { key: 'created_time_asc', value: '註冊時間舊 > 新' },
+        { key: 'online_time_desc', value: '上次登入時間新 > 舊' },
+        { key: 'online_time_asc', value: '上次登入時間舊 > 新' },
         { key: 'order_total_desc', value: '消費金額高 > 低' },
         { key: 'order_total_asc', value: '消費金額低 > 高' },
         { key: 'order_count_desc', value: '訂單數量多 > 少' },

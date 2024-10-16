@@ -176,16 +176,18 @@ function traverseHTML(element: any, document: any) {
                             if (document.querySelector(`[gvc-id="${id}"]`) !== null) {
                                 document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
                                 document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                                const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
-                                if (height) {
-                                    document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
+                                if(!document.querySelector(`[gvc-id="${id}"]`).style.height){
+                                    const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
+                                    if (height) {
+                                        document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
+                                    }
+                                    setTimeout(() => {
+                                        if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
+                                            document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
+                                        }
+                                    }, 10);
                                 }
                                 renderBindView();
-                                setTimeout(() => {
-                                    if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
-                                        document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
-                                    }
-                                }, 10);
                             }
                         };
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;

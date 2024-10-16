@@ -704,22 +704,22 @@ export class MemberTypeList {
                                 ${BgWidget.save(
                                     gvc.event(() => {
                                         vm.original_data.levels[vm.index] = vm.data;
-                                        cf.widget.event('loading', {
-                                            title: '設定中...',
-                                        });
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ text: '設定中...', visible: true });
                                         ApiUser.setPublicConfig({
                                             key: 'member_level_config',
                                             user_id: 'manager',
                                             value: vm.original_data,
-                                        }).then(() => {
-                                            setTimeout(() => {
-                                                cf.widget.event('loading', {
-                                                    visible: false,
-                                                });
-                                                cf.widget.event('success', {
-                                                    title: '設定成功',
-                                                });
-                                            }, 500);
+                                        }).then((result) => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (result.response.result) {
+                                                dialog.successMessage({ text: '設定成功' });
+                                                setTimeout(() => {
+                                                    cf.callback();
+                                                }, 200);
+                                            } else {
+                                                dialog.errorMessage({ text: '設定失敗' });
+                                            }
                                         });
                                     })
                                 )}

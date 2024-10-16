@@ -77,7 +77,7 @@ exports.app.use((0, express_session_1.default)({
     secret: config_1.config.SECRET_KEY,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 }
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 },
 }));
 exports.app.use((0, cookie_parser_1.default)());
 exports.app.use((0, cors_1.default)());
@@ -116,7 +116,10 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
+<<<<<<< HEAD
+=======
 exports.initial = initial;
+>>>>>>> 72ebb40c (update: table v3 ui)
 function openLineWebhook() {
     const app = (0, express_1.default)();
     const PORT = process.env.PORT || 3000;
@@ -191,7 +194,7 @@ async function createAPP(dd) {
                     req.headers['g-app'] = appName;
                     await monitor_js_1.Monitor.insertHistory({
                         req_type: 'file',
-                        req: req
+                        req: req,
                     });
                     await public_table_check_js_1.ApiPublic.createScheme(appName);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
@@ -205,15 +208,17 @@ async function createAPP(dd) {
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
                             const product_domain = req.query.page.split('/')[1];
-                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct((product_domain) ? {
-                                page: 0,
-                                limit: 1,
-                                domain: decodeURIComponent(product_domain),
-                            } : {
-                                page: 0,
-                                limit: 1,
-                                id: req.query.product_id,
-                            });
+                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct(product_domain
+                                ? {
+                                    page: 0,
+                                    limit: 1,
+                                    domain: decodeURIComponent(product_domain),
+                                }
+                                : {
+                                    page: 0,
+                                    limit: 1,
+                                    id: req.query.product_id,
+                                });
                             if (pd.data.content) {
                                 const productSeo = (_c = pd.data.content.seo) !== null && _c !== void 0 ? _c : {};
                                 data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
@@ -285,42 +290,41 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e, _f, _g, _h;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                            <link rel="canonical" href="/index"/>
-                                            <meta name="keywords" content="SHOPNEX,電商平台"/>
-                                            <link
+                                                <link rel="canonical" href="/index" />
+                                                <meta name="keywords" content="SHOPNEX,電商平台" />
+                                                <link
                                                     id="appImage"
                                                     rel="shortcut icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
-                                            />
-                                            <link rel="icon"
-                                                  href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                  type="image/png" sizes="128x128"/>
-                                            <meta property="og:image"
-                                                  content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
-                                            <meta property="og:title" content="SHOPNEX後台系統"/>
-                                            <meta
+                                                />
+                                                <link
+                                                    rel="icon"
+                                                    href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                    type="image/png"
+                                                    sizes="128x128"
+                                                />
+                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+                                                <meta property="og:title" content="SHOPNEX後台系統" />
+                                                <meta
                                                     name="description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                            />
-                                            <meta
+                                                />
+                                                <meta
                                                     name="og:description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                            />`;
+                                                />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                            <link rel="canonical"
-                                                  href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
-                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}"
-                                                  type="image/x-icon"/>
-                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
-                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
-                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
-                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
-                                            <meta name="og:description"
-                                                  content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
+                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
+                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                                <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
+                                                <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
+                                                <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
+                                                <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
+                                                <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
+                                                <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />`;
                                 }
                             })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -334,14 +338,13 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html `
-                                                                    <link
-                                                                            type="text/css"
-                                                                            rel="stylesheet"
-                                                                            href="${dd.data.attr.find((dd) => {
+                                                return html ` <link
+                                                                type="text/css"
+                                                                rel="stylesheet"
+                                                                href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                                    />`;
+                                                            />`;
                                             }
                                         }
                                         catch (e) {
@@ -375,9 +378,7 @@ async function createAPP(dd) {
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html `
-                                        <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
-                                                type="${dd.type}"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
                         ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
@@ -389,9 +390,7 @@ async function createAPP(dd) {
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html `
-                                        <script src="/${link_prefix && `${link_prefix}/`}${dd}"
-                                                type="module"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                         })
                             .join('')}
                         </head>
@@ -404,8 +403,7 @@ async function createAPP(dd) {
                                     ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                <script async
-                                                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                 <script>
                                                     window.dataLayer = window.dataLayer || [];
 
@@ -426,10 +424,10 @@ async function createAPP(dd) {
                                                 <script>
                                                     (function (w, d, s, l, i) {
                                                         w[l] = w[l] || [];
-                                                        w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
+                                                        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
                                                         var f = d.getElementsByTagName(s)[0],
-                                                                j = d.createElement(s),
-                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                            j = d.createElement(s),
+                                                            dl = l != 'dataLayer' ? '&l=' + l : '';
                                                         j.async = true;
                                                         j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                         f.parentNode.insertBefore(j, f);
