@@ -961,6 +961,10 @@ export class User {
                         return 'u.created_time DESC';
                     case 'created_time_asc':
                         return 'u.created_time';
+                    case 'online_time_desc':
+                        return 'u.online_time DESC';
+                    case 'online_time_asc':
+                        return 'u.online_time';
                     default:
                         return 'u.id DESC';
                 }

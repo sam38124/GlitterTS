@@ -11,7 +11,7 @@ export class EditorElem {
     static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 
     public static uploadImage(obj: { title: string; gvc: GVC; def: string; callback: (data: string) => void }) {
-        const glitter = (obj.gvc).glitter;
+        const glitter = obj.gvc.glitter;
         const $ = glitter.$;
         return html`${EditorElem.h3(obj.title)}
         ${obj.gvc.bindView(() => {
@@ -1087,28 +1087,30 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
 <div class="fw-normal mt-2 fs-6" style="color: black;
 margin-bottom: 5px;
 white-space: normal;" >${obj.title}</div>
-<div class="w-100" style=" padding: 10px 12px;border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(()=>{
-            EditorElem.openEditorDialog(
-                obj.gvc,
-                () => {
-                    return html` <div class="p-3" style="overflow: hidden;">
+<div class="w-100" style=" padding: 10px 12px;border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(
+            () => {
+                EditorElem.openEditorDialog(
+                    obj.gvc,
+                    () => {
+                        return html` <div class="p-3" style="overflow: hidden;">
                             ${EditorElem.richText({
-                        gvc: obj.gvc,
-                        def: obj.def,
-                        callback: (text) => {
-                            obj.def = text;
-                            obj.callback(text);
-                        },
-                    })}
+                                gvc: obj.gvc,
+                                def: obj.def,
+                                callback: (text) => {
+                                    obj.def = text;
+                                    obj.callback(text);
+                                },
+                            })}
                         </div>`;
-                },
-                () => {},
-                800,
-                obj.title
-            )
-        })}">
+                    },
+                    () => {},
+                    800,
+                    obj.title
+                );
+            }
+        )}">
   ${(obj.def ?? '').replace(/<[^>]*>/g, '') || '尚未輸入內容'}
-</div>`
+</div>`;
     }
 
     public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void, filter?: (data: any) => boolean) {
@@ -1260,7 +1262,7 @@ ${obj.gvc.bindView(() => {
           `;
     }
 
-    public static uploadFileFunction(obj: { gvc: GVC; callback: (text: string) => void; type?: string; file?: File; multiple?: boolean,return_array?:boolean }) {
+    public static uploadFileFunction(obj: { gvc: GVC; callback: (text: string) => void; type?: string; file?: File; multiple?: boolean; return_array?: boolean }) {
         const glitter = (window as any).glitter;
         const saasConfig: { config: any; api: any } = (window as any).saasConfig;
 
@@ -1270,14 +1272,13 @@ ${obj.gvc.bindView(() => {
             saasConfig.api.uploadFileAll(file).then((res: { result: boolean; links: string[] }) => {
                 dialog.dataLoading({ visible: false });
                 if (res.result) {
-                    if(obj.return_array){
+                    if (obj.return_array) {
                         obj.callback(res.links as any);
-                    }else{
+                    } else {
                         res.links.map((dd) => {
                             obj.callback(dd);
                         });
                     }
-
                 } else {
                     dialog.errorMessage({ text: '上傳失敗' });
                 }
@@ -1954,13 +1955,17 @@ ${obj.gvc.bindView(() => {
                 bind: id,
                 view: () => {
                     return `
-   ${EditorElem.colorBtn({gvc:obj.gvc,def:obj.def,callback:(value)=>{
-                            obj.callback(value)
-                            obj.gvc.notifyDataChange(id)
-                        }})}
+   ${EditorElem.colorBtn({
+       gvc: obj.gvc,
+       def: obj.def,
+       callback: (value) => {
+           obj.callback(value);
+           obj.gvc.notifyDataChange(id);
+       },
+   })}
 
             <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onclick="${obj.gvc.event((e, event) => {
-                        (document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`) as any).click()
+                        (document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`) as any).click();
                     })}">`;
                 },
                 divCreate: {
@@ -1971,49 +1976,43 @@ ${obj.gvc.bindView(() => {
         })} `;
     }
 
-    public static colorBtn(obj:{
-        gvc:GVC,
-        def:string,
-        style?:string,
-        callback:(text:string)=>void
-    }){
-        const gvc=obj.gvc
-        const css=String.raw
-        gvc.addStyle(css`.pcr-button {
-        width:18px !important;
-            height:18px !important;
-            margin:0px !important;
-            transform: translateY(${(gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Ios) ? `-10px`:`-1px`});
-            padding:0px !important;
-            border:1px solid #e2e5f1;
-            
-        }
-            .pcr-app {
-                z-index:99999;
+    public static colorBtn(obj: { gvc: GVC; def: string; style?: string; callback: (text: string) => void }) {
+        const gvc = obj.gvc;
+        const css = String.raw;
+        gvc.addStyle(css`
+            .pcr-button {
+                width: 18px !important;
+                height: 18px !important;
+                margin: 0px !important;
+                transform: translateY(${gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios ? `-10px` : `-1px`});
+                padding: 0px !important;
+                border: 1px solid #e2e5f1;
             }
-        .pickr {
-            width:19px !important;
-            height:19px !important;
-            margin:0px !important;
-            padding:0px !important;
-        }
-        `)
-        return gvc.bindView(()=>{
-            const classic=gvc.glitter.getUUID()
+            .pcr-app {
+                z-index: 99999;
+            }
+            .pickr {
+                width: 19px !important;
+                height: 19px !important;
+                margin: 0px !important;
+                padding: 0px !important;
+            }
+        `);
+        return gvc.bindView(() => {
+            const classic = gvc.glitter.getUUID();
             return {
-                bind:gvc.glitter.getUUID(),
-                view:()=>{
-                    return ``
+                bind: gvc.glitter.getUUID(),
+                view: () => {
+                    return ``;
                 },
-                divCreate:{
-                    option:[
-                        {key:'id',value:classic}
-                    ],style:obj.style || ''
+                divCreate: {
+                    option: [{ key: 'id', value: classic }],
+                    style: obj.style || '',
                 },
-                onCreate:()=>{
-                    const pickr=(window as any).Pickr.create({
-                        el: '#'+classic,
-                        default:obj.def,
+                onCreate: () => {
+                    const pickr = (window as any).Pickr.create({
+                        el: '#' + classic,
+                        default: obj.def,
                         theme: 'classic', // or 'monolith', or 'nano'
                         swatches: [
                             'rgba(244, 67, 54, 1)',
@@ -2029,7 +2028,7 @@ ${obj.gvc.bindView(() => {
                             'rgba(139, 195, 74, 0.85)',
                             'rgba(205, 220, 57, 0.9)',
                             'rgba(255, 235, 59, 0.95)',
-                            'rgba(255, 193, 7, 1)'
+                            'rgba(255, 193, 7, 1)',
                         ],
                         components: {
                             // Main components
@@ -2041,19 +2040,19 @@ ${obj.gvc.bindView(() => {
                                 hex: true,
                                 rgba: true,
                                 input: true,
-                                save: true
-                            }
-                        }
-                    })
+                                save: true,
+                            },
+                        },
+                    });
 
                     //@ts-ignore
                     pickr.on('save', (color, instance) => {
                         obj.callback(color.toHEXA().toString());
-                        pickr.hide()
+                        pickr.hide();
                     });
-                }
-            }
-        })
+                },
+            };
+        });
     }
 
     public static select(obj: {
@@ -2170,7 +2169,7 @@ ${obj.gvc.bindView(() => {
         `;
     }
 
-    public static checkBoxOnly(obj: { gvc: GVC; def: boolean; callback: (result: boolean) => void; style?: string }) {
+    public static checkBoxOnly(obj: { gvc: GVC; def: boolean; callback: (result: boolean) => void; style?: string; stopChangeView?: boolean }) {
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
@@ -2183,8 +2182,11 @@ ${obj.gvc.bindView(() => {
                         {
                             key: 'onclick',
                             value: obj.gvc.event((e, event) => {
-                                obj.def = !obj.def;
-                                obj.callback(obj.def);
+                                const bool = !obj.def;
+                                if (!obj.stopChangeView) {
+                                    obj.def = !obj.def;
+                                }
+                                obj.callback(bool);
                                 event.stopPropagation();
                                 obj.gvc.notifyDataChange(id);
                             }),
@@ -2813,7 +2815,6 @@ ${obj.gvc.bindView(() => {
         );
     }
 
-
     public static fileFolder(obj: {
         gvc: GVC;
         title: string;
@@ -2890,21 +2891,21 @@ ${obj.gvc.bindView(() => {
                                                 class="h-auto align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
                                                 style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
                                                 onclick="${gvc.event(() => {
-                                        if (!dd.innerHtml) {
-                                            return;
-                                        }
-                                        if (obj.customEditor) {
-                                            dd.innerHtml(gvc);
-                                        } else if (original[index]) {
-                                            const originalData = JSON.parse(JSON.stringify(original[index]));
-                                            gvc.glitter.innerDialog((gvc: GVC) => {
-                                                return html` <div
+                                                    if (!dd.innerHtml) {
+                                                        return;
+                                                    }
+                                                    if (obj.customEditor) {
+                                                        dd.innerHtml(gvc);
+                                                    } else if (original[index]) {
+                                                        const originalData = JSON.parse(JSON.stringify(original[index]));
+                                                        gvc.glitter.innerDialog((gvc: GVC) => {
+                                                            return html` <div
                                                                 class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
                                                                 style="z-index:999999;${dd.width ? `width:${dd.width + ';'}` : ``}"
                                                                 onclick="${gvc.event((e: any, event: any) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                })}"
+                                                                    event.preventDefault();
+                                                                    event.stopPropagation();
+                                                                })}"
                                                             >
                                                                 <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
                                                                     <h3 style="font-size:15px;font-weight:500;" class="m-0">${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
@@ -2916,10 +2917,10 @@ ${obj.gvc.bindView(() => {
                                                                         aria-expanded="false"
                                                                         style="color:black;font-size:20px;"
                                                                         onclick="${gvc.event((e: any, event: any) => {
-                                                    original[index] = originalData;
-                                                    gvc.closeDialog();
-                                                    obj.refreshComponent();
-                                                })}"
+                                                                            original[index] = originalData;
+                                                                            gvc.closeDialog();
+                                                                            obj.refreshComponent();
+                                                                        })}"
                                                                     >
                                                                         <i class="fa-sharp fa-regular fa-circle-xmark"></i>
                                                                     </div>
@@ -2931,10 +2932,10 @@ ${obj.gvc.bindView(() => {
                                                                         class="btn btn-secondary"
                                                                         style="height:40px;width:80px;"
                                                                         onclick="${gvc.event(() => {
-                                                    original[index] = originalData;
-                                                    gvc.closeDialog();
-                                                    obj.refreshComponent();
-                                                })}"
+                                                                            original[index] = originalData;
+                                                                            gvc.closeDialog();
+                                                                            obj.refreshComponent();
+                                                                        })}"
                                                                     >
                                                                         取消
                                                                     </div>
@@ -2942,30 +2943,30 @@ ${obj.gvc.bindView(() => {
                                                                         class="btn btn-primary-c ms-2"
                                                                         style="height:40px;width:80px;"
                                                                         onclick="${gvc.event(() => {
-                                                    gvc.closeDialog();
-                                                    (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
-                                                })}"
+                                                                            gvc.closeDialog();
+                                                                            (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                                                        })}"
                                                                     >
                                                                         <i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                                     </div>
                                                                 </div>
                                                             </div>`;
-                                            }, glitter.getUUID());
-                                        }
-                                    })}"
+                                                        }, glitter.getUUID());
+                                                    }
+                                                })}"
                                             >
                                                 <div
                                                     class="subBt ms-n2 ${obj.minus === false ? `d-none` : ``}"
                                                     onclick="${gvc.event((e: any, event: any) => {
-                                        if (obj.minusEvent) {
-                                            obj.minusEvent(obj.originalArray, index);
-                                        } else {
-                                            obj.originalArray.splice(index, 1);
-                                            obj.refreshComponent();
-                                        }
-                                        gvc.notifyDataChange(viewId);
-                                        event.stopPropagation();
-                                    })}"
+                                                        if (obj.minusEvent) {
+                                                            obj.minusEvent(obj.originalArray, index);
+                                                        } else {
+                                                            obj.originalArray.splice(index, 1);
+                                                            obj.refreshComponent();
+                                                        }
+                                                        gvc.notifyDataChange(viewId);
+                                                        event.stopPropagation();
+                                                    })}"
                                                 >
                                                     <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt " style="width:15px;height:15px;color:red;"></i>
                                                 </div>
@@ -2978,33 +2979,33 @@ ${obj.gvc.bindView(() => {
                                                 ${dd.title}
                                                 <div class="flex-fill"></div>
                                                 ${(() => {
-                                        let interval: any = undefined;
-                                        if (obj.copyable === false) {
-                                            return ``;
-                                        }
+                                                    let interval: any = undefined;
+                                                    if (obj.copyable === false) {
+                                                        return ``;
+                                                    }
 
-                                        function addIt(ind: number, event: any) {
-                                            const copy = JSON.parse(JSON.stringify(original[index]));
-                                            obj.originalArray.splice(index + ind, 0, copy);
-                                            event.stopPropagation();
-                                            gvc.notifyDataChange(viewId);
-                                            obj.refreshComponent();
-                                        }
+                                                    function addIt(ind: number, event: any) {
+                                                        const copy = JSON.parse(JSON.stringify(original[index]));
+                                                        obj.originalArray.splice(index + ind, 0, copy);
+                                                        event.stopPropagation();
+                                                        gvc.notifyDataChange(viewId);
+                                                        obj.refreshComponent();
+                                                    }
 
-                                        let toggle = false;
-                                        return html` <div
+                                                    let toggle = false;
+                                                    return html` <div
                                                         class="btn-group dropend subBt"
                                                         style="position: relative;"
                                                         onclick="${gvc.event((e, event) => {
-                                            toggle = !toggle;
-                                            if (toggle) {
-                                                ($(e).children('.bt') as any).dropdown('show');
-                                                $(e).children('.dropdown-menu').css('top', `${0}px`);
-                                            } else {
-                                                ($(e).children('.bt') as any).dropdown('hide');
-                                            }
-                                            event.stopPropagation();
-                                        })}"
+                                                            toggle = !toggle;
+                                                            if (toggle) {
+                                                                ($(e).children('.bt') as any).dropdown('show');
+                                                                $(e).children('.dropdown-menu').css('top', `${0}px`);
+                                                            } else {
+                                                                ($(e).children('.bt') as any).dropdown('hide');
+                                                            }
+                                                            event.stopPropagation();
+                                                        })}"
                                                     >
                                                         <div type="button" class="bt" style="background:none;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                             <i class="fa-sharp fa-regular fa-scissors"></i>
@@ -3013,38 +3014,38 @@ ${obj.gvc.bindView(() => {
                                                             class="dropdown-menu mx-1 "
                                                             style="height: 135px;"
                                                             onclick="${gvc.event((e, event) => {
-                                            toggle = false;
-                                            event.stopPropagation();
-                                        })}"
+                                                                toggle = false;
+                                                                event.stopPropagation();
+                                                            })}"
                                                         >
                                                             <a
                                                                 class="dropdown-item"
                                                                 onclick="${gvc.event((e, event) => {
-                                            addIt(0, event);
-                                        })}"
+                                                                    addIt(0, event);
+                                                                })}"
                                                                 >向上複製</a
                                                             >
                                                             <hr class="dropdown-divider" />
                                                             <a
                                                                 class="dropdown-item"
                                                                 onclick="${gvc.event((e, event) => {
-                                            ($(e).parent().parent().children('.bt') as any).dropdown('hide');
-                                            navigator.clipboard.writeText(JSON.stringify(original[index]));
-                                        })}"
+                                                                    ($(e).parent().parent().children('.bt') as any).dropdown('hide');
+                                                                    navigator.clipboard.writeText(JSON.stringify(original[index]));
+                                                                })}"
                                                                 >複製到剪貼簿</a
                                                             >
                                                             <hr class="dropdown-divider" />
                                                             <a
                                                                 class="dropdown-item"
                                                                 onclick="${gvc.event((e, event) => {
-                                            ($(e).parent().parent().children('.bt') as any).dropdown('hide');
-                                            addIt(1, event);
-                                        })}"
+                                                                    ($(e).parent().parent().children('.bt') as any).dropdown('hide');
+                                                                    addIt(1, event);
+                                                                })}"
                                                                 >向下複製</a
                                                             >
                                                         </div>
                                                     </div>`;
-                                    })()}
+                                                })()}
                                                 <div class="dragItem subBt ${obj.draggable === false || dd.draggable === false ? `d-none` : ``} ${obj.position ? `d-none` : ``}">
                                                     <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;"></i>
                                                 </div>
@@ -3105,11 +3106,11 @@ ${obj.gvc.bindView(() => {
                     ? html` <div class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2 align-items-center">
                           <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus!.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus!.title}</div>
                           ${(() => {
-                        if (obj.copyable === false) {
-                            return ``;
-                        }
-                        let interval: any = undefined;
-                        return html` <div
+                              if (obj.copyable === false) {
+                                  return ``;
+                              }
+                              let interval: any = undefined;
+                              return html` <div
                                   type="button"
                                   class="bt ms-1"
                                   style="background:none;"
@@ -3118,37 +3119,37 @@ ${obj.gvc.bindView(() => {
                                   data-placement="right"
                                   aria-expanded="false"
                                   onclick="${gvc.event(() => {
-                            async function readClipboardContent() {
-                                try {
-                                    // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
-                                    const clipboardText: any = await navigator.clipboard.readText();
-                                    try {
-                                        const data = JSON.parse(clipboardText);
-                                        if (Array.isArray(data)) {
-                                            data.map((dd) => {
-                                                obj.originalArray.push(dd);
-                                            });
-                                        } else {
-                                            obj.originalArray.push(data);
-                                        }
+                                      async function readClipboardContent() {
+                                          try {
+                                              // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
+                                              const clipboardText: any = await navigator.clipboard.readText();
+                                              try {
+                                                  const data = JSON.parse(clipboardText);
+                                                  if (Array.isArray(data)) {
+                                                      data.map((dd) => {
+                                                          obj.originalArray.push(dd);
+                                                      });
+                                                  } else {
+                                                      obj.originalArray.push(data);
+                                                  }
 
-                                        gvc.notifyDataChange(viewId);
-                                        obj.refreshComponent();
-                                    } catch (e) {
-                                        alert('請貼上JSON格式');
-                                    }
-                                } catch (error) {
-                                    // 處理錯誤，例如未授權或不支援
-                                    console.error('無法取得剪貼簿內容:', error);
-                                }
-                            }
+                                                  gvc.notifyDataChange(viewId);
+                                                  obj.refreshComponent();
+                                              } catch (e) {
+                                                  alert('請貼上JSON格式');
+                                              }
+                                          } catch (error) {
+                                              // 處理錯誤，例如未授權或不支援
+                                              console.error('無法取得剪貼簿內容:', error);
+                                          }
+                                      }
 
-                            readClipboardContent();
-                        })}"
+                                      readClipboardContent();
+                                  })}"
                               >
                                   <i class="fa-regular fa-paste"></i>
                               </div>`;
-                    })()}
+                          })()}
                       </div>`
                     : ``)
             );
@@ -3160,20 +3161,20 @@ ${obj.gvc.bindView(() => {
                       ${obj.title}
                       <div class="flex-fill"></div>
                       ${obj.copyable !== false
-                    ? html`
+                          ? html`
                                 <div
                                     class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                     style="height:30px;width:30px;border-radius:6px;cursor:pointer;color:#151515;"
                                     onclick="${gvc.event(() => {
-                        navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
-                        const dialog = new ShareDialog(gvc.glitter);
-                        dialog.successMessage({ text: '已複製至剪貼簿!' });
-                    })}"
+                                        navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.successMessage({ text: '已複製至剪貼簿!' });
+                                    })}"
                                 >
                                     <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>
                                 </div>
                             `
-                    : ``}
+                          : ``}
                   </div>`
                 : ``) +
             gvc.bindView(() => {

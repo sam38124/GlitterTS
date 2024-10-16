@@ -54,155 +54,98 @@ export class BgGraphApi {
                                         )}
                                     </div>
                                     ${BgWidget.container(
-                                        BgWidget.mainCard(
-                                            BgWidget.tableV2({
-                                                gvc: gvc,
-                                                getData: (vmi) => {
-                                                    GraphApi.get({
-                                                        page: vmi.page - 1,
-                                                        limit: 20,
-                                                        search: vm.query || undefined,
-                                                    }).then((data) => {
-                                                        vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                        vm.dataList = data.response.data;
-                                                        function getDatalist() {
-                                                            return data.response.data.map((dd: any) => {
-                                                                return [
-                                                                    {
-                                                                        key: EditorElem.checkBoxOnly({
-                                                                            gvc: gvc,
-                                                                            def: !data.response.data.find((dd: any) => {
-                                                                                return !dd.checked;
-                                                                            }),
-                                                                            callback: (result) => {
-                                                                                data.response.data.map((dd: any) => {
-                                                                                    dd.checked = result;
-                                                                                });
-                                                                                vmi.data = getDatalist();
-                                                                                vmi.callback();
-                                                                                gvc.notifyDataChange(filterID);
-                                                                            },
-                                                                        }),
-                                                                        value: EditorElem.checkBoxOnly({
-                                                                            gvc: gvc,
-                                                                            def: dd.checked,
-                                                                            callback: (result) => {
-                                                                                dd.checked = result;
-                                                                                vmi.data = getDatalist();
-                                                                                vmi.callback();
-                                                                                gvc.notifyDataChange(filterID);
-                                                                            },
-                                                                            style: 'height:40px;',
-                                                                        }),
-                                                                    },
-                                                                    {
-                                                                        key: 'method',
-                                                                        value: dd.method,
-                                                                    },
-                                                                    {
-                                                                        key: 'route',
-                                                                        value: dd.route,
-                                                                    },
-                                                                    {
-                                                                        key: 'API名稱',
-                                                                        value: dd.info.title,
-                                                                    },
-                                                                    {
-                                                                        key: '建立時間',
-                                                                        value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm'),
-                                                                    },
-                                                                ].map((dd: any) => {
-                                                                    dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                                    return dd;
-                                                                });
-                                                            });
-                                                        }
-                                                        vmi.data = getDatalist();
-                                                        vmi.loading = false;
-                                                        vmi.callback();
-                                                    });
-                                                },
-                                                rowClick: (data, index) => {
-                                                    vm.data = vm.dataList[index];
-                                                    vm.status = 'replace';
-                                                },
-                                                filter: html` ${BgWidget.searchPlace(
-                                                    gvc.event((e, event) => {
-                                                        vm.query = e.value;
-                                                        gvc.notifyDataChange(id);
-                                                    }),
-                                                    vm.query || '',
-                                                    '搜尋所有訂單'
-                                                )}
-                                                ${gvc.bindView(() => {
-                                                    return {
-                                                        bind: filterID,
-                                                        view: () => {
-                                                            if (
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                })
-                                                            ) {
-                                                                return ``;
-                                                            } else {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                                return BgWidget.selNavbar({
-                                                                    count: selCount,
-                                                                    buttonList: [
-                                                                        BgWidget.selEventButton(
-                                                                            '批量移除',
-                                                                            gvc.event(() => {
-                                                                                dialog.checkYesOrNot({
-                                                                                    text: '是否確認刪除所選項目？',
-                                                                                    callback: (response) => {
-                                                                                        if (response) {
-                                                                                            dialog.dataLoading({ visible: true });
-                                                                                            GraphApi.delete({
-                                                                                                id: vm.dataList
-                                                                                                    .filter((dd: any) => {
-                                                                                                        return dd.checked;
-                                                                                                    })
-                                                                                                    .map((dd: any) => {
-                                                                                                        return dd.id;
-                                                                                                    })
-                                                                                                    .join(`,`),
-                                                                                            }).then((res) => {
-                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                if (res.result) {
-                                                                                                    vm.dataList = undefined;
-                                                                                                    gvc.notifyDataChange(id);
-                                                                                                } else {
-                                                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                                                }
-                                                                                            });
-                                                                                        }
-                                                                                    },
-                                                                                });
-                                                                            })
-                                                                        ),
-                                                                    ],
+                                        [
+                                            BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋所有訂單'
+                                            ),
+                                            BgWidget.mainCard(
+                                                BgWidget.tableV3({
+                                                    gvc: gvc,
+                                                    getData: (vmi) => {
+                                                        const limit = 20;
+                                                        GraphApi.get({
+                                                            page: vmi.page - 1,
+                                                            limit: limit,
+                                                            search: vm.query || undefined,
+                                                        }).then((data) => {
+                                                            function getDatalist() {
+                                                                return data.response.data.map((dd: any) => {
+                                                                    return [
+                                                                        {
+                                                                            key: 'method',
+                                                                            value: dd.method,
+                                                                        },
+                                                                        {
+                                                                            key: 'route',
+                                                                            value: dd.route,
+                                                                        },
+                                                                        {
+                                                                            key: 'API名稱',
+                                                                            value: dd.info.title,
+                                                                        },
+                                                                        {
+                                                                            key: '建立時間',
+                                                                            value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm'),
+                                                                        },
+                                                                    ].map((dd: any) => {
+                                                                        dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                                        return dd;
+                                                                    });
                                                                 });
                                                             }
+
+                                                            vm.dataList = data.response.data;
+                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                            vmi.originalData = vm.dataList;
+                                                            vmi.tableData = getDatalist();
+                                                            vmi.loading = false;
+                                                            vmi.callback();
+                                                        });
+                                                    },
+                                                    rowClick: (data, index) => {
+                                                        vm.data = vm.dataList[index];
+                                                        vm.status = 'replace';
+                                                    },
+                                                    filter: [
+                                                        {
+                                                            name: '批量移除',
+                                                            event: (checkedData) => {
+                                                                const dialog = new ShareDialog(glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除所選項目？',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            GraphApi.delete({
+                                                                                id: checkedData
+                                                                                    .map((dd: any) => {
+                                                                                        return dd.id;
+                                                                                    })
+                                                                                    .join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                } else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            },
+                                                            option: false,
                                                         },
-                                                        divCreate: () => {
-                                                            return {
-                                                                class: `d-flex align-items-center p-2 py-3 ${
-                                                                    !vm.dataList ||
-                                                                    !vm.dataList.find((dd: any) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        ? `d-none`
-                                                                        : ``
-                                                                }`,
-                                                                style: ``,
-                                                            };
-                                                        },
-                                                    };
-                                                })}`,
-                                            })
-                                        )
+                                                    ],
+                                                })
+                                            ),
+                                        ].join('')
                                     )}
                                 `,
                                 BgWidget.getContainerWidth()

@@ -61,35 +61,9 @@ export class UserList {
         let vmi: any = undefined;
 
         function getDatalist() {
+            // ok
             return vm.dataList.map((dd: any) => {
                 return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
                     {
                         key: '顧客名稱',
                         value: `<span class="fs-7">${dd.userData.name}</span>`,
@@ -97,10 +71,12 @@ export class UserList {
                     {
                         key: '電子信箱',
                         value: `<span class="fs-7">${dd.userData.email}</span>`,
+                        width: 25,
                     },
                     {
                         key: '訂單',
                         value: `<span class="fs-7">${dd.checkout_count} 筆</span>`,
+                        width: 7,
                     },
                     {
                         key: '會員等級',
@@ -111,8 +87,9 @@ export class UserList {
                         value: `<span class="fs-7">$ ${parseInt(`${dd.checkout_total}`, 10).toLocaleString()}</span>`,
                     },
                     {
-                        key: '建立時間',
-                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        key: '上次登入時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        width: 15,
                     },
                     {
                         key: '用戶狀態',
@@ -123,6 +100,8 @@ export class UserList {
                                 return html`<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
                             }
                         })(),
+                        width: 8,
+                        position: 'text-center',
                     },
                 ];
             });
@@ -271,7 +250,7 @@ export class UserList {
                                             gvc.bindView({
                                                 bind: vm.tableId,
                                                 view: () => {
-                                                    return BgWidget.tableV2({
+                                                    return BgWidget.tableV3({
                                                         gvc: gvc,
                                                         getData: (vd) => {
                                                             vmi = vd;
@@ -286,9 +265,11 @@ export class UserList {
                                                                 filter_type: vm.filter_type,
                                                                 group: obj && obj.group ? obj.group : {},
                                                             }).then((data) => {
-                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
                                                                 vm.dataList = data.response.data;
-                                                                vmi.data = getDatalist();
+                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                vmi.originalData = vm.dataList;
+                                                                vmi.tableData = getDatalist();
+                                                                vmi.loading = false;
                                                                 vmi.callback();
                                                             });
                                                         },
@@ -296,58 +277,38 @@ export class UserList {
                                                             vm.data = vm.dataList[index];
                                                             vm.type = 'replace';
                                                         },
-                                                        filter: gvc.bindView(() => {
-                                                            return {
-                                                                bind: vm.filterId,
-                                                                view: () => {
+                                                        filter: [
+                                                            {
+                                                                name: '批量刪除',
+                                                                event: (checkedData) => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
-                                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                                    return BgWidget.selNavbar({
-                                                                        count: selCount,
-                                                                        buttonList: [
-                                                                            BgWidget.selEventButton(
-                                                                                '批量刪除',
-                                                                                gvc.event(() => {
-                                                                                    dialog.warningMessage({
-                                                                                        text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                                                                        callback: (response) => {
-                                                                                            if (response) {
-                                                                                                dialog.dataLoading({ visible: true });
-                                                                                                ApiUser.deleteUser({
-                                                                                                    id: vm.dataList
-                                                                                                        .filter((dd: any) => {
-                                                                                                            return dd.checked;
-                                                                                                        })
-                                                                                                        .map((dd: any) => {
-                                                                                                            return dd.id;
-                                                                                                        })
-                                                                                                        .join(`,`),
-                                                                                                }).then((res) => {
-                                                                                                    dialog.dataLoading({ visible: false });
-                                                                                                    if (res.result) {
-                                                                                                        vm.dataList = undefined;
-                                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                                    } else {
-                                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                                    }
-                                                                                                });
-                                                                                            }
-                                                                                        },
-                                                                                    });
-                                                                                })
-                                                                            ),
-                                                                        ],
+                                                                    dialog.warningMessage({
+                                                                        text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ApiUser.deleteUser({
+                                                                                    id: checkedData
+                                                                                        .map((dd: any) => {
+                                                                                            return dd.id;
+                                                                                        })
+                                                                                        .join(`,`),
+                                                                                }).then((res) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (res.result) {
+                                                                                        vm.dataList = undefined;
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    } else {
+                                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        },
                                                                     });
                                                                 },
-                                                                divCreate: () => {
-                                                                    const display = !vm.dataList || !vm.dataList.find((dd: any) => dd.checked) ? 'd-none' : '';
-                                                                    return {
-                                                                        class: `d-flex align-items-center p-2 ${display}`,
-                                                                        style: ``,
-                                                                    };
-                                                                },
-                                                            };
-                                                        }),
+                                                                option: false,
+                                                            },
+                                                        ],
                                                     });
                                                 },
                                             }),
@@ -405,35 +366,9 @@ export class UserList {
         let vmi: any = undefined;
 
         function getDatalist() {
+            // ok
             return vm.dataList.map((dd: any) => {
                 return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
                     {
                         key: '顧客名稱',
                         value: `<span class="fs-7">${dd.userData.name}</span>`,
@@ -441,10 +376,12 @@ export class UserList {
                     {
                         key: '電子信箱',
                         value: `<span class="fs-7">${dd.userData.email}</span>`,
+                        width: 25,
                     },
                     {
                         key: '訂單',
                         value: `<span class="fs-7">${dd.checkout_count} 筆</span>`,
+                        width: 7,
                     },
                     {
                         key: '會員等級',
@@ -455,8 +392,9 @@ export class UserList {
                         value: `<span class="fs-7">$ ${parseInt(`${dd.checkout_total}`, 10).toLocaleString()}</span>`,
                     },
                     {
-                        key: '建立時間',
-                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        key: '上次登入時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        width: 15,
                     },
                     {
                         key: '用戶狀態',
@@ -467,6 +405,8 @@ export class UserList {
                                 return html`<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
                             }
                         })(),
+                        width: 8,
+                        position: 'text-center',
                     },
                 ];
             });
@@ -543,7 +483,7 @@ export class UserList {
                         gvc.bindView({
                             bind: vm.tableId,
                             view: () => {
-                                return BgWidget.tableV2({
+                                return BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vd) => {
                                         vmi = vd;
@@ -558,9 +498,11 @@ export class UserList {
                                             filter_type: vm.filter_type,
                                             group: obj && obj.group ? obj.group : {},
                                         }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
                                             vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
+                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
+                                            vmi.loading = false;
                                             vmi.callback();
                                         });
                                     },
@@ -568,58 +510,38 @@ export class UserList {
                                         vm.data = vm.dataList[index];
                                         vm.type = 'replace';
                                     },
-                                    filter: gvc.bindView(() => {
-                                        return {
-                                            bind: vm.filterId,
-                                            view: () => {
+                                    filter: [
+                                        {
+                                            name: '批量移除',
+                                            event: (checkedData) => {
                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                return BgWidget.selNavbar({
-                                                    count: selCount,
-                                                    buttonList: [
-                                                        BgWidget.selEventButton(
-                                                            '批量移除',
-                                                            gvc.event(() => {
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認刪除所選項目？',
-                                                                    callback: (response) => {
-                                                                        if (response) {
-                                                                            dialog.dataLoading({ visible: true });
-                                                                            ApiUser.deleteUser({
-                                                                                id: vm.dataList
-                                                                                    .filter((dd: any) => {
-                                                                                        return dd.checked;
-                                                                                    })
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                    .join(`,`),
-                                                                            }).then((res) => {
-                                                                                dialog.dataLoading({ visible: false });
-                                                                                if (res.result) {
-                                                                                    vm.dataList = undefined;
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                } else {
-                                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            })
-                                                        ),
-                                                    ],
+                                                dialog.checkYesOrNot({
+                                                    text: '是否確認刪除所選項目？',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiUser.deleteUser({
+                                                                id: checkedData
+                                                                    .map((dd: any) => {
+                                                                        return dd.id;
+                                                                    })
+                                                                    .join(`,`),
+                                                            }).then((res) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (res.result) {
+                                                                    vm.dataList = undefined;
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                } else {
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                }
+                                                            });
+                                                        }
+                                                    },
                                                 });
                                             },
-                                            divCreate: () => {
-                                                const display = !vm.dataList || !vm.dataList.find((dd: any) => dd.checked) ? 'd-none' : '';
-                                                return {
-                                                    class: `d-flex align-items-center p-2 ${display}`,
-                                                    style: ``,
-                                                };
-                                            },
-                                        };
-                                    }),
+                                            option: false,
+                                        },
+                                    ],
                                 });
                             },
                         }),
@@ -761,10 +683,12 @@ export class UserList {
                     {
                         key: '訂單編號',
                         value: html` <div style="overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>`,
+                        width: 25,
                     },
                     {
                         key: '訂單日期',
                         value: html` <div style="overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</div>`,
+                        width: 25,
                     },
                     {
                         key: '總金額',
@@ -793,6 +717,7 @@ export class UserList {
                                 gvc.notifyDataChange(vm.id);
                             })
                         ),
+                        width: 10,
                     },
                 ];
             });
@@ -801,7 +726,7 @@ export class UserList {
         function getRebatelist(data: any) {
             return data.map((dd: any) => {
                 return [
-                    { key: '建立日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm') },
+                    { key: '建立日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm'), width: 20 },
                     {
                         key: '到期日期',
                         value: (() => {
@@ -813,6 +738,7 @@ export class UserList {
                             }
                             return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
                         })(),
+                        width: 20,
                     },
                     { key: '購物金項目', value: dd.note ?? '' },
                     {
@@ -823,6 +749,7 @@ export class UserList {
                             }
                             return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
                         })(),
+                        width: 10,
                     },
                     {
                         key: '此筆可使用餘額',
@@ -920,7 +847,7 @@ export class UserList {
                                             )}
                                             <div class="d-flex ${document.body.clientWidth > 768 ? 'flex-column' : ''}">
                                                 <div class="me-3">${BgWidget.title(vm.data.userData.name ?? '匿名用戶')}</div>
-                                                <div style="margin-top: 4px">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>
+                                                <div style="margin-top: 4px">${BgWidget.grayNote(`上次登入時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.online_time), 'yyyy-MM-dd hh:mm')}`)}</div>
                                             </div>
                                             ${document.body.clientWidth > 768 ? getButtonList() : ''}
                                         </div>
@@ -1090,11 +1017,11 @@ export class UserList {
                                                                                     BgWidget.infoDialog({
                                                                                         gvc: gvc,
                                                                                         title: '會員規則',
-                                                                                        innerHTML: BgWidget.tableV2({
+                                                                                        innerHTML: BgWidget.tableV3({
                                                                                             gvc: gvc,
                                                                                             getData: (vd) => {
                                                                                                 setTimeout(() => {
-                                                                                                    vd.data = vm.data.member.map((leadData: any, index: number) => {
+                                                                                                    vd.tableData = vm.data.member.map((leadData: any, index: number) => {
                                                                                                         return [
                                                                                                             { key: '會員等級', value: leadData.tag_name },
                                                                                                             {
@@ -1110,6 +1037,7 @@ export class UserList {
                                                                                                                     }
                                                                                                                     return text;
                                                                                                                 })(),
+                                                                                                                width: 55,
                                                                                                             },
                                                                                                             {
                                                                                                                 key: '有效期限',
@@ -1134,10 +1062,13 @@ export class UserList {
                                                                                                             },
                                                                                                         ];
                                                                                                     });
+                                                                                                    vd.originalData = vm.data.member;
                                                                                                     vd.loading = false;
                                                                                                     vd.callback();
                                                                                                 }, 200);
                                                                                             },
+                                                                                            filter: [],
+                                                                                            rowClick: () => {},
                                                                                         }),
                                                                                     });
                                                                                 })}"
@@ -1229,7 +1160,7 @@ export class UserList {
                                                                             view: () => {
                                                                                 const limit = 10;
                                                                                 return new Promise(async (resolve, reject) => {
-                                                                                    const h = BgWidget.tableV2({
+                                                                                    const h = BgWidget.tableV3({
                                                                                         gvc: gvc,
                                                                                         getData: (vd) => {
                                                                                             ApiShop.getOrder({
@@ -1237,22 +1168,19 @@ export class UserList {
                                                                                                 limit: limit,
                                                                                                 data_from: 'manager',
                                                                                                 email: vm.data.userData.email,
-                                                                                                phone:vm.data.userData.phone,
+                                                                                                phone: vm.data.userData.phone,
                                                                                                 status: 1,
                                                                                             }).then((data) => {
-                                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
                                                                                                 vm.dataList = data.response.data;
-                                                                                                vd.data = getOrderlist(vm.dataList);
+                                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                                vd.originalData = vm.dataList;
+                                                                                                vd.tableData = getOrderlist(vm.dataList);
                                                                                                 vd.loading = false;
                                                                                                 vd.callback();
                                                                                             });
                                                                                         },
-                                                                                        rowClick: (data, index) => {},
-                                                                                        filter: '',
-                                                                                        style: new Array(5).fill('').map(() => {
-                                                                                            return 'min-width: 100px; text-wrap: nowrap; align-content: center;';
-                                                                                        }),
-                                                                                        tableHeader: ['訂單編號', '訂單日期', '總金額', '訂單狀態', ''],
+                                                                                        rowClick: () => {},
+                                                                                        filter: [],
                                                                                     });
                                                                                     resolve(html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
                                                                                 });
@@ -1352,7 +1280,7 @@ export class UserList {
                                                                             view: () => {
                                                                                 const limit = 10;
                                                                                 return new Promise(async (resolve) => {
-                                                                                    const h = BgWidget.tableV2({
+                                                                                    const h = BgWidget.tableV3({
                                                                                         gvc: gvc,
                                                                                         getData: (vd) => {
                                                                                             ApiWallet.getRebate({
@@ -1360,18 +1288,16 @@ export class UserList {
                                                                                                 limit: limit,
                                                                                                 search: vm.data.userData.email,
                                                                                             }).then((data) => {
-                                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
                                                                                                 vm.dataList = data.response.data;
-                                                                                                vd.data = getRebatelist(vm.dataList);
+                                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                                vd.originalData = vm.dataList;
+                                                                                                vd.tableData = getRebatelist(vm.dataList);
                                                                                                 vd.loading = false;
                                                                                                 vd.callback();
                                                                                             });
                                                                                         },
-                                                                                        rowClick: (data, index) => {},
-                                                                                        filter: '',
-                                                                                        style: new Array(5).fill('').map(() => {
-                                                                                            return 'text-wrap: nowrap; align-content: center;';
-                                                                                        }),
+                                                                                        rowClick: () => {},
+                                                                                        filter: [],
                                                                                     });
                                                                                     resolve(html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
                                                                                 });
@@ -1426,7 +1352,7 @@ export class UserList {
                                                                                                     limit: 99999,
                                                                                                     data_from: 'manager',
                                                                                                     email: vm.data.userData.email,
-                                                                                                    phone:vm.data.userData.phone,
+                                                                                                    phone: vm.data.userData.phone,
                                                                                                     status: 1,
                                                                                                 }).then((data) => {
                                                                                                     let total_price = 0;
@@ -1719,49 +1645,11 @@ export class UserList {
             dataList: undefined,
             query: '',
         };
-        const filterID = gvc.glitter.getUUID();
         let vmi: any = undefined;
 
         function getDatalist() {
             return vm.dataList.map((dd: any) => {
                 return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
                     {
                         key: '用戶名稱',
                         value: `<span class="fs-7">${dd.userData.name}</span>`,
@@ -1769,10 +1657,12 @@ export class UserList {
                     {
                         key: '用戶信箱',
                         value: `<span class="fs-7">${dd.userData.email}</span>`,
+                        width: 40,
                     },
                     {
-                        key: '建立時間',
-                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        key: '上次登入時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        width: 25,
                     },
                     {
                         key: '用戶狀態',
@@ -1814,18 +1704,28 @@ export class UserList {
                                         自訂資料
                                     </button>
                                 </div>
-                                ${BgWidget.tableV2({
+                                ${BgWidget.searchPlace(
+                                    gvc.event((e, event) => {
+                                        vm.query = e.value;
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                    vm.query || '',
+                                    '搜尋所有用戶'
+                                )}
+                                ${BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vd) => {
                                         vmi = vd;
+                                        const limit = 20;
                                         ApiUser.getUserList({
                                             page: vmi.page - 1,
-                                            limit: 20,
+                                            limit: limit,
                                             search: vm.query || undefined,
                                         }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 20);
                                             vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
+                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
                                             vmi.loading = false;
                                             vmi.callback();
                                         });
@@ -1845,85 +1745,38 @@ export class UserList {
                                             vm.type = 'replace';
                                         }
                                     },
-                                    filter: html`
-                                        ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋所有用戶'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        }) ||
-                                                        type === 'select'
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                        return BgWidget.selNavbar({
-                                                            count: selCount,
-                                                            buttonList: [
-                                                                BgWidget.selEventButton(
-                                                                    '批量移除',
-                                                                    gvc.event(() => {
-                                                                        dialog.checkYesOrNot({
-                                                                            text: '是否確認刪除所選項目？',
-                                                                            callback: (response) => {
-                                                                                if (response) {
-                                                                                    dialog.dataLoading({ visible: true });
-                                                                                    ApiUser.deleteUser({
-                                                                                        id: vm.dataList
-                                                                                            .filter((dd: any) => {
-                                                                                                return dd.checked;
-                                                                                            })
-                                                                                            .map((dd: any) => {
-                                                                                                return dd.id;
-                                                                                            })
-                                                                                            .join(`,`),
-                                                                                    }).then((res) => {
-                                                                                        dialog.dataLoading({ visible: false });
-                                                                                        if (res.result) {
-                                                                                            vm.dataList = undefined;
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        } else {
-                                                                                            dialog.errorMessage({ text: '刪除失敗' });
-                                                                                        }
-                                                                                    });
-                                                                                }
-                                                                            },
-                                                                        });
+                                    filter: [
+                                        {
+                                            name: '批量移除',
+                                            event: (checkedData) => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: '是否確認刪除所選項目？',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiUser.deleteUser({
+                                                                id: checkedData
+                                                                    .map((dd: any) => {
+                                                                        return dd.id;
                                                                     })
-                                                                ),
-                                                            ],
-                                                        });
-                                                    }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            }) ||
-                                                            type === 'select'
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: ``,
-                                                    };
-                                                },
-                                            };
-                                        })}
-                                    `,
+                                                                    .join(`,`),
+                                                            }).then((res) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (res.result) {
+                                                                    vm.dataList = undefined;
+                                                                    gvc.notifyDataChange(id);
+                                                                } else {
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                }
+                                                            });
+                                                        }
+                                                    },
+                                                });
+                                            },
+                                            option: false,
+                                        },
+                                    ],
                                 })}
                             `,
                             undefined,

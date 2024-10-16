@@ -14,7 +14,7 @@ import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 const html = String.raw;
 export class EditorElem {
     static uploadImage(obj) {
-        const glitter = (obj.gvc).glitter;
+        const glitter = obj.gvc.glitter;
         const $ = glitter.$;
         return html `${EditorElem.h3(obj.title)}
         ${obj.gvc.bindView(() => {
@@ -1807,10 +1807,14 @@ ${obj.gvc.bindView(() => {
                 bind: id,
                 view: () => {
                     return `
-   ${EditorElem.colorBtn({ gvc: obj.gvc, def: obj.def, callback: (value) => {
+   ${EditorElem.colorBtn({
+                        gvc: obj.gvc,
+                        def: obj.def,
+                        callback: (value) => {
                             obj.callback(value);
                             obj.gvc.notifyDataChange(id);
-                        } })}
+                        },
+                    })}
 
             <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onclick="${obj.gvc.event((e, event) => {
                         document.querySelector(`[gvc-id='${obj.gvc.id(id)}'] .pcr-button`).click();
@@ -1826,24 +1830,24 @@ ${obj.gvc.bindView(() => {
     static colorBtn(obj) {
         const gvc = obj.gvc;
         const css = String.raw;
-        gvc.addStyle(css `.pcr-button {
-        width:18px !important;
-            height:18px !important;
-            margin:0px !important;
-            transform: translateY(${(gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) ? `-10px` : `-1px`});
-            padding:0px !important;
-            border:1px solid #e2e5f1;
-            
-        }
-            .pcr-app {
-                z-index:99999;
+        gvc.addStyle(css `
+            .pcr-button {
+                width: 18px !important;
+                height: 18px !important;
+                margin: 0px !important;
+                transform: translateY(${gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios ? `-10px` : `-1px`});
+                padding: 0px !important;
+                border: 1px solid #e2e5f1;
             }
-        .pickr {
-            width:19px !important;
-            height:19px !important;
-            margin:0px !important;
-            padding:0px !important;
-        }
+            .pcr-app {
+                z-index: 99999;
+            }
+            .pickr {
+                width: 19px !important;
+                height: 19px !important;
+                margin: 0px !important;
+                padding: 0px !important;
+            }
         `);
         return gvc.bindView(() => {
             const classic = gvc.glitter.getUUID();
@@ -1853,9 +1857,8 @@ ${obj.gvc.bindView(() => {
                     return ``;
                 },
                 divCreate: {
-                    option: [
-                        { key: 'id', value: classic }
-                    ], style: obj.style || ''
+                    option: [{ key: 'id', value: classic }],
+                    style: obj.style || '',
                 },
                 onCreate: () => {
                     const pickr = window.Pickr.create({
@@ -1876,7 +1879,7 @@ ${obj.gvc.bindView(() => {
                             'rgba(139, 195, 74, 0.85)',
                             'rgba(205, 220, 57, 0.9)',
                             'rgba(255, 235, 59, 0.95)',
-                            'rgba(255, 193, 7, 1)'
+                            'rgba(255, 193, 7, 1)',
                         ],
                         components: {
                             preview: true,
@@ -1886,15 +1889,15 @@ ${obj.gvc.bindView(() => {
                                 hex: true,
                                 rgba: true,
                                 input: true,
-                                save: true
-                            }
-                        }
+                                save: true,
+                            },
+                        },
                     });
                     pickr.on('save', (color, instance) => {
                         obj.callback(color.toHEXA().toString());
                         pickr.hide();
                     });
-                }
+                },
             };
         });
     }
@@ -2010,8 +2013,11 @@ ${obj.gvc.bindView(() => {
                         {
                             key: 'onclick',
                             value: obj.gvc.event((e, event) => {
-                                obj.def = !obj.def;
-                                obj.callback(obj.def);
+                                const bool = !obj.def;
+                                if (!obj.stopChangeView) {
+                                    obj.def = !obj.def;
+                                }
+                                obj.callback(bool);
                                 event.stopPropagation();
                                 obj.gvc.notifyDataChange(id);
                             }),

@@ -150,7 +150,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'order_list',
                 group: '訂單管理',
-                title: '訂單',
+                title: '訂單列表',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
                 moduleName: '訂單列表',

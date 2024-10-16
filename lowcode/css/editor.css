@@ -108,8 +108,8 @@ h6 {
     color: var(--item-primary);
     background: var(--background-1);
 }
-.active_F2F2F2{
-    background: #F2F2F2;
+.active_F2F2F2 {
+    background: #f2f2f2;
 }
 .editor_item .primary {
     color: var(--item-primary);
@@ -908,15 +908,9 @@ h6 {
     top: 24px;
 }
 
-.sel_navbar {
-    display: flex;
-    width: 100%;
-    border-radius: 10px;
-    padding: 0 18px;
-    background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-}
-
 .sel_normal {
+    display: flex;
+    align-items: center;
     cursor: pointer;
     border-radius: 7px;
     border: 1px solid var(--background-4);
