@@ -63,6 +63,7 @@ class Firebase {
         }
     }
     async sendMessage(cf) {
+        cf.body = cf.body.replace(/<br\s*\/?>/gi, '\n');
         return new Promise(async (resolve, reject) => {
             var _a;
             if (cf.userID) {

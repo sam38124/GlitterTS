@@ -852,11 +852,12 @@ function initialEditor(gvc, viewModel) {
                                     gvc.glitter.runJsInterFace("toCheckout", {
                                         form: res.response.form
                                     }, () => {
+                                        window.parent.location.reload();
                                     });
                                 }
                                 else {
-                                    window.parent.$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                    window.parent.document.querySelector(`#${id} #submit`).click();
+                                    window.$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    window.document.querySelector(`#${id} #submit`).click();
                                 }
                                 gvc.closeDialog();
                             }

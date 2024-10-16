@@ -307,6 +307,7 @@ export class SmsPoints {
                                 gvc.glitter.runJsInterFace("toCheckout", {
                                     form: res.response.form
                                 }, () => {
+                                    (window.parent).location.reload()
                                 })
                             } else {
                                 (window.parent as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);

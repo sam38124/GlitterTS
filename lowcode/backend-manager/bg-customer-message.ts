@@ -655,7 +655,7 @@ export class BgCustomerMessage {
                                             return view.join('')
                                         },
                                         divCreate: {
-                                            class: `p-2`,style:`height: calc(100vh - 132px);overflow-y:auto;`
+                                            class: `p-2`,style:`height: calc(100vh - 132px);overflow-y:auto;${(parseInt(gvc.glitter.share.top_inset,10)) ? `padding-bottom:${parseInt(gvc.glitter.share.top_inset,10)+parseInt(gvc.glitter.share.bottom_inset,10)}px !important;`:``}`
                                         },
                                     };
                                 })
@@ -1204,7 +1204,7 @@ export class BgCustomerMessage {
                                                         style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
                                                         class: `form-control`,
                                                         option: [
-                                                            {key: 'placeholder', value: '輸入訊息內容22'},
+                                                            {key: 'placeholder', value: '輸入訊息內容'},
                                                             {
                                                                 key: 'onchange',
                                                                 value: gvc.event((e) => {

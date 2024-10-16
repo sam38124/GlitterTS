@@ -1013,7 +1013,7 @@ export class Main_editor {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
                     };
                 }
             };

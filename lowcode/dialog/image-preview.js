@@ -8,7 +8,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             const hd = glitter.getUUID();
             const html = String.raw;
             return html `<div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);">
-                <div id="${hd}" style="height:50px;right:0;top:0;" class="m-2 position-absolute d-flex align-items-center justify-content-center gap-2">
+                <div id="${hd}" style="height:50px;right:0;top:${gvc.glitter.share.top_inset}px;" class="m-2 position-absolute d-flex align-items-center justify-content-center gap-2">
                     ${BgWidget.grayButton('列印', gvc.event(() => {
                 $('#' + hd).addClass('d-none');
                 window.print();

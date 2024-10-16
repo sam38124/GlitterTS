@@ -530,7 +530,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                         try {
                             window.webkit.messageHandlers.addJsInterFace.postMessage(
                                 JSON.stringify({
-                                    functionName: 'closeWebView',
+                                    functionName: 'check_out_finish',
                                     callBackId: 0,
                                     data: {
                                         redirect: '${return_url.href}',

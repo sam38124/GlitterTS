@@ -234,7 +234,6 @@ export class AutoSendEmail {
             return dd.tag === tag;
         })!;
         if (b) {
-
             if (keyData) {
                 b.title = keyData.title || b.title;
                 b.toggle = keyData.toggle ?? true;

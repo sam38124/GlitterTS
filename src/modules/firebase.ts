@@ -78,6 +78,7 @@ export class Firebase {
         body: string,
         app?: string
     }) {
+        cf.body=cf.body.replace(/<br\s*\/?>/gi, '\n');
         return new Promise(async (resolve, reject) => {
             if (cf.userID) {
                 cf.token = (await db.query(`SELECT deviceToken

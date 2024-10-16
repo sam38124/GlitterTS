@@ -937,10 +937,11 @@ function initialEditor(gvc: GVC, viewModel: any) {
                                 gvc.glitter.runJsInterFace("toCheckout", {
                                     form: res.response.form
                                 }, () => {
+                                    window.parent.location.reload()
                                 })
                             } else {
-                                (window.parent as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                (window.parent as any).document.querySelector(`#${id} #submit`).click();
+                                (window  as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                (window as any).document.querySelector(`#${id} #submit`).click();
                             }
                             gvc.closeDialog()
                         } else {

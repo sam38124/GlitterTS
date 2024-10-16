@@ -300,6 +300,7 @@ export class AiPoints {
                                         gvc.glitter.runJsInterFace("toCheckout", {
                                             form: res.response.form
                                         }, () => {
+                                            (window.parent).location.reload();
                                         });
                                     }
                                     else {
