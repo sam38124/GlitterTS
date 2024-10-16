@@ -39,6 +39,7 @@ export class ThirdPartyLine {
             return {
                 bind: id,
                 view: () => {
+                    const html = String.raw;
                     if (vm.loading) {
                         return BgWidget.spinner();
                     }
@@ -106,7 +107,24 @@ export class ThirdPartyLine {
                                     callback: (text) => {
                                         vm.data.fans_token = text;
                                     }
-                                })
+                                }),
+                                html `<div  onclick="${gvc.event(() => {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    navigator.clipboard.writeText(`${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`);
+                                    dialog.successMessage({ text: '已複製至剪貼簿' });
+                                })}">
+${BgWidget.editeInput({
+                                    readonly: true,
+                                    gvc: gvc,
+                                    title: `<div class="d-flex flex-column" style="gap:5px;">
+Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Messaging API 中的設定 Webhooks -> 編輯 -> 回呼網址，並將"my_secret_token"填入驗證權杖欄位中')}
+</div>`,
+                                    default: `${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`,
+                                    placeHolder: '',
+                                    callback: (text) => {
+                                    }
+                                })}
+</div>`,
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700">臉書像素(Pixel)</div>`,

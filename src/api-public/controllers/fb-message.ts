@@ -37,6 +37,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 
 router.get('/listenMessage', async (req: express.Request, resp: express.Response) => {
     try {
+        //FB webhook 驗證，記得網頁上的
         if (req.query['hub.verify_token'] === 'my_secret_token') {
             console.log(req.query)
             let challenge = req.query["hub.challenge"];

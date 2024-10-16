@@ -9,6 +9,7 @@ import {Mail} from "./mail";
 import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
+import {User} from "./user";
 
 
 interface FbResponse {
@@ -30,7 +31,7 @@ export interface ChatRoom {
 }
 
 interface Config {
-    method: 'post';
+    method: 'post' | 'get';
     url: string;
     headers: Record<string, string>;
     data: any;
@@ -46,9 +47,10 @@ interface FbData{
 
 export class FbMessage {
     public app;
-
+    public token ?:IToken;
     constructor(app: string, token?: IToken) {
         this.app = app;
+        this.token = token;
     }
 
     async chunkSendMessage(userList:any , content: any, id: number , date?:string) {
@@ -309,8 +311,14 @@ export class FbMessage {
 
     async listenMessage(body: any): Promise<{ result: boolean; message: string }> {
         let that = this;
+        const post = new User(this.app, this.token);
+        let tokenData = await post.getConfig({
+            key: "login_fb_setting",
+            user_id: "manager",
+        })
+
         try {
-            // console.log("here --" ,data);
+
             if (body.object === 'page') {
                 for (const entry of body.entry) {
                     const messagingEvents = entry.messaging;
@@ -325,9 +333,38 @@ export class FbMessage {
                                 chat_id:[senderId , "manager"].sort().join(''),
                                 type:"user",
                                 user_id:senderId,
+                                info:{},
                                 participant:[senderId , "manager"]
                             }
-                            await new Chat(this.app).addChatRoom(chatData);
+                            await this.getFBInf({fbID:event.sender.id},(data)=>{
+                                chatData.info = {
+                                    fb:{
+                                        name : data.last_name + data.first_name,
+                                        head : data.profile_pic
+                                    }
+                                }
+
+                            })
+                            chatData.info = JSON.stringify(chatData.info);
+
+                            const result = await new Chat(this.app).addChatRoom(chatData);
+                            if (!result.create){
+                                await db.query(
+                                    `
+                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                        SET ?
+                        WHERE ?
+                    `,
+                                    [
+                                        {
+                                            info: chatData.info,
+                                        },
+                                        {
+                                            chat_id:chatData.chat_id,
+                                        }
+                                    ]
+                                );
+                            }
                             chatData.message = {
                                 "text" : messageText
                             };
@@ -356,6 +393,45 @@ export class FbMessage {
         }
     }
 
+    async getFBInf(obj:{fbID: string  } , callback: (data:any)=>void) {
+        try {
+            const post = new User(this.app, this.token);
+
+
+            let tokenData = await post.getConfig({
+                key: "login_fb_setting",
+                user_id: "manager",
+            })
+
+            let token = `Bearer ${tokenData[0].value.fans_token}`;
+            const urlConfig: Config = {
+                method: 'get',
+                url: `https://graph.facebook.com/v16.0/${obj.fbID}?fields=first_name,last_name,profile_pic`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization":token
+                },
+                data: {}
+            };
+
+            return new Promise<boolean>((resolve, reject) => {
+                axios.request(urlConfig)
+                    .then((response) => {
+                        // let result = response.data.split('\r\n')
+
+                        callback(response.data)
+                        resolve(response.data)
+                    })
+                    .catch((error) => {
+                        console.log("error -- " , error)
+                        resolve(false)
+                    });
+            })
+
+        }catch (e:any){
+            throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
+        }
+    }
     //判斷餘額是否足夠
     public async checkPoints(message:string,user_count:number) {
         const brandAndMemberType = await App.checkBrandAndMemberType(this.app);

@@ -13,6 +13,9 @@ const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
 const user_1 = require("./user");
+const logger_1 = __importDefault(require("../../modules/logger"));
+const mime_1 = __importDefault(require("mime"));
+const AWSLib_1 = __importDefault(require("../../modules/AWSLib"));
 class LineMessage {
     constructor(app, token) {
         this.app = app;
@@ -248,7 +251,7 @@ class LineMessage {
             let chatData = {
                 chat_id: [userID, "manager"].sort().join(''),
                 type: "user",
-                info: "",
+                info: {},
                 user_id: userID,
                 participant: [userID, "manager"]
             };
@@ -259,7 +262,6 @@ class LineMessage {
                         head: data.pictureUrl
                     }
                 };
-                console.log("line data -- ", data);
                 chatData.info = JSON.stringify(chatData.info);
             });
             let result = await new chat_1.Chat(this.app).addChatRoom(chatData);
@@ -277,9 +279,23 @@ class LineMessage {
                     }
                 ]);
             }
-            chatData.message = {
-                "text": message.text
-            };
+            if (message.type == 'image') {
+                const post = new user_1.User(this.app, this.token);
+                let tokenData = await post.getConfig({
+                    key: "login_line_setting",
+                    user_id: "manager",
+                });
+                let token = `${tokenData[0].value.message_token}`;
+                let imageUrl = await this.getImageContent(message.id, token);
+                chatData.message = {
+                    "image": imageUrl
+                };
+            }
+            else {
+                chatData.message = {
+                    "text": message.text
+                };
+            }
             await new chat_1.Chat(this.app).addMessage(chatData);
             return { result: true, message: 'accept message' };
         }
@@ -294,6 +310,66 @@ class LineMessage {
                 resolve(await this.sendLine({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), lineID: lineID }, (res) => {
                 }));
             });
+        }
+    }
+    async getImageContent(messageId, accessToken) {
+        try {
+            const response = await axios_1.default.get(`https://api-data.line.me/v2/bot/message/${messageId}/content`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                responseType: 'arraybuffer',
+            });
+            console.log("response.data -- ", response.data);
+            async function uploadFile(fileData) {
+                const TAG = `[AWS-S3][Upload]`;
+                const logger = new logger_1.default();
+                const s3bucketName = config_1.default.AWS_S3_NAME;
+                const s3path = `line/${messageId}/${new Date().getTime()}.png`;
+                const fullUrl = config_1.default.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+                const params = {
+                    Bucket: s3bucketName,
+                    Key: s3path,
+                    Expires: 300,
+                    ContentType: (() => {
+                        if (config_1.default.SINGLE_TYPE) {
+                            return `application/x-www-form-urlencoded; charset=UTF-8`;
+                        }
+                        else {
+                            return mime_1.default.getType(fullUrl.split('.').pop());
+                        }
+                    })()
+                };
+                return new Promise((resolve, reject) => {
+                    AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {
+                        if (err) {
+                            logger.error(TAG, String(err));
+                            console.log(err, err.stack);
+                            reject(false);
+                        }
+                        else {
+                            (0, axios_1.default)({
+                                method: 'PUT',
+                                url: url,
+                                data: fileData,
+                                headers: {
+                                    "Content-Type": params.ContentType
+                                }
+                            }).then(() => {
+                                console.log(fullUrl);
+                                resolve(fullUrl);
+                            }).catch(() => {
+                                console.log(`convertError:${fullUrl}`);
+                            });
+                        }
+                    });
+                });
+            }
+            return await uploadFile(response.data);
+        }
+        catch (error) {
+            console.error('Failed to get image content:', error);
+            throw error;
         }
     }
     async checkPoints(message, user_count) {

@@ -26,9 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = void 0;
-exports.initial = initial;
-exports.createAPP = createAPP;
+exports.createAPP = exports.initial = exports.app = void 0;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -67,7 +65,6 @@ const ai_js_1 = require("./services/ai.js");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
-const update_script_js_1 = require("./update-script.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -110,7 +107,6 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
-        await update_script_js_1.UpdateScript.run();
         if (config_1.ConfigSetting.runSchedule) {
             new schedule_js_1.Schedule().main();
             new system_schedule_1.SystemSchedule().start();
@@ -120,6 +116,7 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
+exports.initial = initial;
 function openLineWebhook() {
     const app = (0, express_1.default)();
     const PORT = process.env.PORT || 3000;
@@ -560,6 +557,7 @@ async function createAPP(dd) {
         },
     ]);
 }
+exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

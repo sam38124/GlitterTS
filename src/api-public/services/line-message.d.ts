@@ -46,6 +46,7 @@ export declare class LineMessage {
         message: string;
     }>;
     sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
+    getImageContent(messageId: string, accessToken: string): Promise<string>;
     checkPoints(message: string, user_count: number): Promise<boolean>;
     usePoints(obj: {
         message: string;

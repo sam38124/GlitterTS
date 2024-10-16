@@ -10,6 +10,9 @@ import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
 import {User} from "./user";
+import Logger from "../../modules/logger";
+import mime from "mime";
+import s3bucket from "../../modules/AWSLib";
 
 
 interface LineResponse {
@@ -343,10 +346,11 @@ export class LineMessage {
             let chatData:any = {
                 chat_id:[userID , "manager"].sort().join(''),
                 type:"user",
-                info:"",
+                info:{},
                 user_id:userID,
                 participant:[userID , "manager"]
             }
+
             await this.getLineInf({lineID: data.events[0].source.userId}, (data: any) => {
                 chatData.info = {
                     line:{
@@ -354,7 +358,6 @@ export class LineMessage {
                         head : data.pictureUrl
                     }
                 }
-                console.log("line data -- " , data)
 
                 chatData.info = JSON.stringify(chatData.info);
             })
@@ -379,9 +382,23 @@ export class LineMessage {
                 );
             }
 
-            chatData.message ={
-                "text":message.text
-            };
+
+            if (message.type == 'image'){
+                const post = new User(this.app, this.token);
+                let tokenData = await post.getConfig({
+                    key: "login_line_setting",
+                    user_id: "manager",
+                })
+                let token = `${tokenData[0].value.message_token}`
+                let imageUrl = await this.getImageContent(message.id , token)
+                chatData.message ={
+                    "image":imageUrl
+                };
+            }else{
+                chatData.message ={
+                    "text":message.text
+                };
+            }
 
             await new Chat(this.app).addMessage(chatData);
 
@@ -400,7 +417,68 @@ export class LineMessage {
             })
         }
     }
+    async getImageContent(messageId: string, accessToken: string): Promise<string> {
+        try {
+            const response = await axios.get(`https://api-data.line.me/v2/bot/message/${messageId}/content`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                responseType: 'arraybuffer', // 指定回應的資料格式為二進位 (Buffer)
+            });
+            console.log("response.data -- " , response.data)
+            // 上传文件到云端（以Google Cloud Storage为例）
+            async function uploadFile(fileData:string) {
+                const TAG = `[AWS-S3][Upload]`
+                const logger = new Logger();
+                const s3bucketName = config.AWS_S3_NAME;
+                const s3path = `line/${messageId}/${new Date().getTime()}.png`;
+                const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+                const params = {
+                    Bucket: s3bucketName,
+                    Key: s3path,
+                    Expires: 300,
+                    //If you use other contentType will response 403 error
+                    ContentType: (() => {
+                        if (config.SINGLE_TYPE) {
+                            return `application/x-www-form-urlencoded; charset=UTF-8`
+                        } else {
+                            return mime.getType(<string>fullUrl.split('.').pop())
+                        }
+                    })()
+                };
+                return new Promise<string>((resolve, reject)=>{
+                    s3bucket.getSignedUrl('putObject', params,async (err: any, url: any) => {
+                        if (err) {
+                            logger.error(TAG, String(err));
+                            // use console.log here because logger.info cannot log err.stack correctly
+                            console.log(err, err.stack);
+                            reject(false)
+                        } else {
+                            axios({
+                                method: 'PUT',
+                                url: url,
+                                data: fileData,
+                                headers: {
+                                    "Content-Type": params.ContentType
+                                }
+                            }).then(()=>{
+                                console.log(fullUrl);
+                                resolve(fullUrl)
+                            }).catch(()=>{
+                                console.log(`convertError:${fullUrl}`)
+                            });
 
+                        }
+                    })
+                });
+            }
+
+            return await uploadFile(response.data); // 回傳圖片的 Buffer
+        } catch (error) {
+            console.error('Failed to get image content:', error);
+            throw error;
+        }
+    }
     //判斷餘額是否足夠
     public async checkPoints(message:string,user_count:number) {
         const brandAndMemberType = await App.checkBrandAndMemberType(this.app);

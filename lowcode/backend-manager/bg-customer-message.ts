@@ -687,6 +687,7 @@ export class BgCustomerMessage {
                 user_id: 'manager',
             }).then(async (data) => {
                 chatData = data.response.data;
+
                 Chat.getUnRead({user_id: 'manager'}).then((data) => {
                     unRead = data.response;
                     gvc.notifyDataChange(listId);
@@ -709,6 +710,8 @@ export class BgCustomerMessage {
                                         .filter((dd: any) => {
                                             return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id)
                                         }).map((dd: any) => {
+                                            dd.topMessage.text = dd.topMessage?.text??"圖片內容";
+                                           
                                             if (dd.topMessage && dd.chat_id !== 'manager-preview') {
                                                 const unReadCount = unRead.filter((d2: any) => {
                                                     return dd.chat_id === d2.chat_id;
@@ -717,6 +720,10 @@ export class BgCustomerMessage {
                                                     if (dd.chat_id.startsWith('line')){
                                                         dd.user_data.head = dd.info.line.head;
                                                         dd.user_data.name = dd.info.line.name;
+                                                    }
+                                                    if (dd.chat_id.startsWith('fb')){
+                                                        dd.user_data.head = dd.info.fb.head;
+                                                        dd.user_data.name = dd.info.fb.name;
                                                     }
                                                     let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
                                                     let name = (dd.user_data && dd.user_data.name) || `訪客`
@@ -747,6 +754,10 @@ export class BgCustomerMessage {
                                                         let id:string = dd.chat_id
                                                         if (id.startsWith('line')){
                                                             return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
+                                                        }
+                                                        if (id.startsWith('fb')){
+                                                            
+                                                            return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`
                                                         }
                                                         return ``
                                                     })()}
@@ -955,6 +966,10 @@ export class BgCustomerMessage {
                                             chatRoom.user_data.head = chatRoom.info.line?.head;
                                             chatRoom.user_data.name = chatRoom.info.line?.name;
                                         }
+                                        if (chatRoom.chat_id.startsWith('fb')){
+                                            chatRoom.user_data.head = chatRoom.fb.line?.head;
+                                            chatRoom.user_data.name = chatRoom.fb.line?.name;
+                                        }
                                         resolve(html`
                                             <div
                                                     class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${BgCustomerMessage.config.hideBar ? `d-none` : ``}"
@@ -1029,6 +1044,7 @@ export class BgCustomerMessage {
                                 chat_id: cf.chat.chat_id,
                                 user_id: cf.user_id,
                             }).then((res) => {
+
                                 vm.data = res.response.data.reverse();
                                 vm.last_read = res.response.lastRead;
                                 vm.loading = false;
@@ -1092,6 +1108,7 @@ export class BgCustomerMessage {
                             }
 
                             connect();
+
                             const textAreaId = gvc.glitter.getUUID();
                             const html = String.raw;
                             return {
@@ -1253,8 +1270,16 @@ export class BgCustomerMessage {
         if (dd.user_id == 'manager') {
             dd.user_data = BgCustomerMessage.config;
         }
+        function drawChatContent(){
+            if (dd.message.image){
+                return html`<img src="${dd.message.image}">`
+            }else{
+                return dd.message.text.replace(/\n/g, '<br>')
+            }
+        }
 
         if (cf.user_id !== dd.user_id) {
+
             return html`
                 <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                     <img
@@ -1266,7 +1291,8 @@ export class BgCustomerMessage {
                     <div class="ps-2 ms-1" style="max-width: 348px;">
                         <div class="p-3 mb-1"
                              style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
-                            ${dd.message.text.replace(/\n/g, '<br>')}
+                            
+                            ${drawChatContent()}
                         </div>
                         <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
                             ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
@@ -1281,7 +1307,7 @@ export class BgCustomerMessage {
                                 class=" text-light p-3 mb-1"
                                 style="background:${BgCustomerMessage.config.color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                         >
-                            ${dd.message.text.replace(/\n/g, '<br>')}
+                            ${drawChatContent()}
                         </div>
                         <div
                                 class="time-mute fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}"

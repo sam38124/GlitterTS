@@ -86,7 +86,7 @@ export async function initial(serverPort: number) {
         if (process.env.firebase) {
             await Firebase.initial();
         }
-        await UpdateScript.run()
+        // await UpdateScript.run()
         if (ConfigSetting.runSchedule) {
             new Schedule().main();
             new SystemSchedule().start();

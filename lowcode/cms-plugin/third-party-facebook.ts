@@ -14,46 +14,48 @@ export class ThirdPartyLine {
                 loading: boolean;
                 data: {
                     facebook_toggle: boolean,
-                    message_toggle:boolean
+                    message_toggle: boolean
                     id: string;
                     secret: string;
                     pixel: string;
-                    api_token:string;
+                    api_token: string;
                     secret_message: string;
                     id_message: string;
-                    fans_id:string;
-                    fans_token:string;
+                    fans_id: string;
+                    fans_token: string;
                 };
             } = {
                 loading: true,
                 data: {
-                    message_toggle:false,
+                    message_toggle: false,
                     facebook_toggle: false,
                     id: '',
                     secret: '',
                     pixel: '',
-                    api_token:'',
+                    api_token: '',
                     secret_message: '',
-                    id_message:'',
-                    fans_id:'',
-                    fans_token:''
+                    id_message: '',
+                    fans_id: '',
+                    fans_token: ''
                 },
             };
 
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
                 dd.response.value && (vm.data = dd.response.value);
-                console.log("vm.data -- " , vm.data)
+                console.log("vm.data -- ", vm.data)
                 gvc.notifyDataChange(id);
             });
 
             return {
                 bind: id,
                 view: () => {
+                    const html = String.raw;
                     if (vm.loading) {
                         return BgWidget.spinner()
                     }
                     return [
+
                         BgWidget.title('臉書串接設定'),
                         BgWidget.mbContainer(18),
                         `<div class="d-flex justify-content-center mx-sm-n3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
@@ -97,7 +99,7 @@ export class ThirdPartyLine {
                                         vm.data.message_toggle = !vm.data.message_toggle
                                         gvc.notifyDataChange(id)
                                     })}</div>`,
-                                    
+
                                     BgWidget.editeInput({
                                         gvc: gvc,
                                         title: `<div class="d-flex align-items-center" style="gap:10px;">
@@ -119,7 +121,27 @@ export class ThirdPartyLine {
                                         callback: (text) => {
                                             vm.data.fans_token = text
                                         }
-                                    })
+                                    }),
+                                    html`<div  onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter)
+                                        navigator.clipboard.writeText(`${(window.parent as any).config.url}/api-public/v1/fb_message/listenMessage?g-app=${(window.parent as any).appName}`);
+                                        dialog.successMessage({text: '已複製至剪貼簿'})
+                                    })}">
+${BgWidget.editeInput({
+                                        readonly: true,
+                                        gvc: gvc,
+                                        title: `<div class="d-flex flex-column" style="gap:5px;">
+Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Messaging API 中的設定 Webhooks -> 編輯 -> 回呼網址，並將"my_secret_token"填入驗證權杖欄位中')}
+</div>`,
+                                        default: `${(window.parent as any).config.url}/api-public/v1/fb_message/listenMessage?g-app=${(window.parent as any).appName}`,
+                                        placeHolder: '',
+                                        callback: (text) => {
+
+                                        }
+                                    })}
+</div>`,
+
+
                                 ].join(BgWidget.mbContainer(12))),
                                 BgWidget.card([
                                     `<div class="tx_700">臉書像素(Pixel)</div>`,
@@ -171,7 +193,7 @@ export class ThirdPartyLine {
                                 value: cf,
                                 user_id: 'manager',
                             })
-                            
+
                             ApiUser.setPublicConfig({
                                 key: key,
                                 value: vm.data,
@@ -188,7 +210,7 @@ export class ThirdPartyLine {
                     ].join('')
                 }
             }
-        }), BgWidget.getContainerWidth())+BgWidget.mbContainer(120)
+        }), BgWidget.getContainerWidth()) + BgWidget.mbContainer(120)
     }
 }
 

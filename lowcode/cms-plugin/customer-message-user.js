@@ -44,29 +44,29 @@ export class CustomerMessageUser {
                         const chatView = () => {
                             return `<div class="${(cf.type === 'preview') ? `w-100 h-100 shadow-lg` : `position-fixed  rounded-3 shadow-lg`}" style="${gvc.glitter.ut.frSize({
                                 sm: (cf.type === 'preview') ? css `
-                                      width: 100%;
-                                      height: 100%;
-                                      z-index: 99999;
-                                      overflow: hidden;
-                                      background: white;
-                                      padding-bottom: 70px;
+                                        width: 100%;
+                                        height: 100%;
+                                        z-index: 99999;
+                                        overflow: hidden;
+                                        background: white;
+                                        padding-bottom: 70px;
                                     ` : css `
-                                      width: 376px;
-                                      height: 756px;
-                                      bottom: 90px;
-                                      left: 20px;
-                                      z-index: 99999;
-                                      overflow-y: hidden;
-                                      background: white;
+                                        width: 376px;
+                                        height: 756px;
+                                        bottom: 90px;
+                                        left: 20px;
+                                        z-index: 99999;
+                                        overflow-y: hidden;
+                                        background: white;
                                     `,
                             }, css `
-                                  width: 100%;
-                                  height: 100%;
-                                  bottom: 0px;
-                                  left: 0px;
-                                  z-index: 99999;
-                                  overflow-y: auto;
-                                  background: white;
+                                    width: 100%;
+                                    height: 100%;
+                                    bottom: 0px;
+                                    left: 0px;
+                                    z-index: 99999;
+                                    overflow-y: auto;
+                                    background: white;
                                 `)}">${CustomerMessageUser.detail({
                                 gvc: gvc,
                                 chat: {
@@ -93,28 +93,28 @@ export class CustomerMessageUser {
                         const roBotView = () => {
                             return `<div class="${(cf.type === 'preview') ? `position-relative` : `position-fixed `} rounded-3 shadow-lg " style="${gvc.glitter.ut.frSize({
                                 sm: (cf.type === 'preview') ? css `
-                                      width: 100%;
-                                      height: 100%;
-                                      z-index: 99999;
-                                      overflow: hidden;
-                                      background: white;
+                                        width: 100%;
+                                        height: 100%;
+                                        z-index: 99999;
+                                        overflow: hidden;
+                                        background: white;
                                     ` : css `
-                                      width: 376px;
-                                      height: 756px;
-                                      bottom: 90px;
-                                      left: 20px;
-                                      z-index: 99999;
-                                      overflow-y: auto;
-                                      background: white;
+                                        width: 376px;
+                                        height: 756px;
+                                        bottom: 90px;
+                                        left: 20px;
+                                        z-index: 99999;
+                                        overflow-y: auto;
+                                        background: white;
                                     `,
                             }, css `
-                                  width: 100%;
-                                  height: ${window.innerHeight}px;
-                                  top: 0px;
-                                  left: 0px;
-                                  z-index: 99999;
-                                  overflow-y: auto;
-                                  background: white;
+                                    width: 100%;
+                                    height: ${window.innerHeight}px;
+                                    top: 0px;
+                                    left: 0px;
+                                    z-index: 99999;
+                                    overflow-y: auto;
+                                    background: white;
 
                                 `)}">${CustomerMessageUser.robotMessage(gvc, (text) => __awaiter(this, void 0, void 0, function* () {
                                 vm.viewType = 'message';
@@ -134,19 +134,19 @@ export class CustomerMessageUser {
                         const baseUrl = new URL('../', import.meta.url);
                         const chatBtID = id;
                         gvc.addStyle(css `
-                          .btn-white-primary {
-                            border: 2px solid ${CustomerMessageUser.config.color};
-                            justify-content: space-between;
-                            align-items: center;
-                            cursor: pointer;
-                            color: ${CustomerMessageUser.config.color};
-                            gap: 10px;
-                          }
+                            .btn-white-primary {
+                                border: 2px solid ${CustomerMessageUser.config.color};
+                                justify-content: space-between;
+                                align-items: center;
+                                cursor: pointer;
+                                color: ${CustomerMessageUser.config.color};
+                                gap: 10px;
+                            }
 
-                          .btn-white-primary:hover {
-                            background: ${CustomerMessageUser.config.color};
-                            color: white !important;
-                          }
+                            .btn-white-primary:hover {
+                                background: ${CustomerMessageUser.config.color};
+                                color: white !important;
+                            }
                         `);
                         resolve(gvc.bindView(() => {
                             return {
@@ -292,19 +292,19 @@ export class CustomerMessageUser {
                         };
                         CustomerMessageUser.config = config;
                         gvc.addStyle(css `
-                          .btn-white-primary {
-                            border: 2px solid ${CustomerMessageUser.config.color};
-                            justify-content: space-between;
-                            align-items: center;
-                            cursor: pointer;
-                            color: ${CustomerMessageUser.config.color};
-                            gap: 10px;
-                          }
+                            .btn-white-primary {
+                                border: 2px solid ${CustomerMessageUser.config.color};
+                                justify-content: space-between;
+                                align-items: center;
+                                cursor: pointer;
+                                color: ${CustomerMessageUser.config.color};
+                                gap: 10px;
+                            }
 
-                          .btn-white-primary:hover {
-                            background: ${CustomerMessageUser.config.color};
-                            color: white !important;
-                          }
+                            .btn-white-primary:hover {
+                                background: ${CustomerMessageUser.config.color};
+                                color: white !important;
+                            }
                         `);
                         resolve([
                             gvc.bindView(() => {
@@ -328,6 +328,12 @@ export class CustomerMessageUser {
                                             if (chatRoom.who.startsWith('line')) {
                                                 chatRoom.user_data.head = chatRoom.info.line.head;
                                                 chatRoom.user_data.name = chatRoom.info.line.name;
+                                                chatRoomInf = chatRoom;
+                                                gvc.notifyDataChange(viewId);
+                                            }
+                                            if (chatRoom.who.startsWith('fb')) {
+                                                chatRoom.user_data.head = chatRoom.info.fb.head;
+                                                chatRoom.user_data.name = chatRoom.info.fb.name;
                                                 chatRoomInf = chatRoom;
                                                 gvc.notifyDataChange(viewId);
                                             }
@@ -446,91 +452,115 @@ export class CustomerMessageUser {
                                             return {
                                                 bind: messageID,
                                                 view: () => {
-                                                    return ` 
+                                                    try {
+                                                        return ` 
                                                 <div class="my-auto flex-fill"></div>
                                                 ${vm.data
-                                                        .map((dd, index) => {
-                                                        if (dd.user_id == 'manager') {
-                                                            dd.user_data = CustomerMessageUser.config;
-                                                        }
-                                                        if (cf.user_id !== dd.user_id) {
-                                                            console.log(" dd-- ", chatRoomInf);
-                                                            if (chatRoomInf.who.startsWith('line')) {
-                                                                dd.user_data.head = chatRoomInf.info.line.head;
-                                                                dd.user_data.name = chatRoomInf.info.line.name;
+                                                            .map((dd, index) => {
+                                                            function drawChatContent() {
+                                                                if (dd.message.image) {
+                                                                    return html `<img style="cursor: pointer;"
+                                                                                             src="${dd.message.image}"
+                                                                                             alt="image"
+                                                                                             onclick="${gvc.event(() => {
+                                                                        gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                                                                    })}">`;
+                                                                }
+                                                                else {
+                                                                    return dd.message.text.replace(/\n/g, '<br>');
+                                                                }
                                                             }
-                                                            return html `
-                                                                        <div
-                                                                                class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
-                                                                        >
-                                                                            <img
-                                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                    class="rounded-circle border"
-                                                                                    width="40"
-                                                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                                    alt="Albert Flores"
-                                                                            />
-                                                                            <div class="ps-2 ms-1"
-                                                                                 style="max-width: 348px;">
-                                                                                <div
-                                                                                        class="p-3 mb-1"
-                                                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                                >
-                                                                                    ${dd.message.text.replace(/\n/g, '<br>')}
+                                                            dd.message.text = dd.message.text || "";
+                                                            if (dd.user_id == 'manager') {
+                                                                dd.user_data = CustomerMessageUser.config;
+                                                            }
+                                                            if (cf.user_id !== dd.user_id) {
+                                                                console.log("chatRoomInf.who -- ", chatRoomInf);
+                                                                if (chatRoomInf.who && (chatRoomInf.who.startsWith('line'))) {
+                                                                    dd.user_data.head = chatRoomInf.info.line.head;
+                                                                    dd.user_data.name = chatRoomInf.info.line.name;
+                                                                }
+                                                                if (chatRoomInf.who && (chatRoomInf.who.startsWith('fb'))) {
+                                                                    dd.user_data.head = chatRoomInf.info.fb.head;
+                                                                    dd.user_data.name = chatRoomInf.info.fb.name;
+                                                                }
+                                                                return html `
+                                                                            <div
+                                                                                    class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
+                                                                            >
+                                                                                <img
+                                                                                        src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                                        class="rounded-circle border"
+                                                                                        width="40"
+                                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                                                        alt="Albert Flores"
+                                                                                />
+                                                                                <div class="ps-2 ms-1 pe-3"
+                                                                                     style="max-width: 348px;">
+                                                                                    <div
+                                                                                            class="p-3 mb-1"
+                                                                                            style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                                                    >
+                                                                                        ${drawChatContent()}
+                                                                                    </div>
+                                                                                    <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                                                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                                                    ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                                                                            </div>`;
+                                                            }
+                                                            else {
+                                                                return html `
+                                                                            <div
+                                                                                    class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
+                                                                    ? `mb-1`
+                                                                    : `mb-3`}"
+                                                                            >
+                                                                                <div class="pe-2 me-1 ps-3"
+                                                                                     style="max-width: 348px;">
+                                                                                    <div
+                                                                                            class=" text-light p-3 mb-1"
+                                                                                            style="background:${CustomerMessageUser.config
+                                                                    .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                                                    >
+                                                                                        ${drawChatContent()}
+                                                                                    </div>
+                                                                                    <div
+                                                                                            class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
+                                                                    vm.data[index + 1].user_id === dd.user_id
+                                                                    ? `d-none`
+                                                                    : ``}"
+                                                                                            style="gap:5px;"
+                                                                                    >
+                                                                                        <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                                                                                        ${vm.last_read.find((d2) => {
+                                                                    return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+                                                                })
+                                                                    ? `已讀`
+                                                                    : ``}
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        </div>`;
-                                                        }
-                                                        else {
-                                                            return html `
-                                                                        <div
-                                                                                class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
-                                                                ? `mb-1`
-                                                                : `mb-3`}"
-                                                                        >
-                                                                            <div class="pe-2 me-1"
-                                                                                 style="max-width: 348px;">
-                                                                                <div
-                                                                                        class=" text-light p-3 mb-1"
-                                                                                        style="background:${CustomerMessageUser.config
-                                                                .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                                >
-                                                                                    ${dd.message.text.replace(/\n/g, '<br>')}
-                                                                                </div>
-                                                                                <div
-                                                                                        class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
-                                                                vm.data[index + 1].user_id === dd.user_id
-                                                                ? `d-none`
-                                                                : ``}"
-                                                                                        style="gap:5px;"
-                                                                                >
-                                                                                    <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                                                    ${vm.last_read.find((d2) => {
-                                                                return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
-                                                            })
-                                                                ? `已讀`
-                                                                : ``}
-                                                                                </div>
-                                                                            </div>
-                                                                            <img
-                                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                    class="rounded-circle border"
-                                                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                                    width="40"
-                                                                                    alt="Albert Flores"
-                                                                            />
-                                                                        </div>`;
-                                                        }
-                                                    })
-                                                        .join('')}
+                                                                                <img
+                                                                                        src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                                        class="rounded-circle border"
+                                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                                                        width="40"
+                                                                                        alt="Albert Flores"
+                                                                                />
+                                                                            </div>`;
+                                                            }
+                                                        })
+                                                            .join('')}
                                             ${vm.data.length === 0
-                                                        ? `
+                                                            ? `
                                             <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
                                             `
-                                                        : ``}`;
+                                                            : ``}`;
+                                                    }
+                                                    catch (e) {
+                                                        console.log(e);
+                                                        return `${e}`;
+                                                    }
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column`,

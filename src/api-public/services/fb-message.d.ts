@@ -7,6 +7,7 @@ export interface ChatRoom {
 }
 export declare class FbMessage {
     app: string;
+    token?: IToken;
     constructor(app: string, token?: IToken);
     chunkSendMessage(userList: any, content: any, id: number, date?: string): Promise<void>;
     sendMessage(obj: {
@@ -43,6 +44,9 @@ export declare class FbMessage {
         message: string;
     }>;
     sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
+    getFBInf(obj: {
+        fbID: string;
+    }, callback: (data: any) => void): Promise<boolean>;
     checkPoints(message: string, user_count: number): Promise<boolean>;
     usePoints(obj: {
         message: string;

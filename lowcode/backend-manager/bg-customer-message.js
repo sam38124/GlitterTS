@@ -670,6 +670,8 @@ export class BgCustomerMessage {
                             .filter((dd) => {
                             return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id);
                         }).map((dd) => {
+                            var _a, _b;
+                            dd.topMessage.text = (_b = (_a = dd.topMessage) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : "圖片內容";
                             if (dd.topMessage && dd.chat_id !== 'manager-preview') {
                                 const unReadCount = unRead.filter((d2) => {
                                     return dd.chat_id === d2.chat_id;
@@ -678,6 +680,10 @@ export class BgCustomerMessage {
                                     if (dd.chat_id.startsWith('line')) {
                                         dd.user_data.head = dd.info.line.head;
                                         dd.user_data.name = dd.info.line.name;
+                                    }
+                                    if (dd.chat_id.startsWith('fb')) {
+                                        dd.user_data.head = dd.info.fb.head;
+                                        dd.user_data.name = dd.info.fb.name;
                                     }
                                     let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
                                     let name = (dd.user_data && dd.user_data.name) || `訪客`;
@@ -707,6 +713,9 @@ export class BgCustomerMessage {
                                         let id = dd.chat_id;
                                         if (id.startsWith('line')) {
                                             return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
+                                        }
+                                        if (id.startsWith('fb')) {
+                                            return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`;
                                         }
                                         return ``;
                                     })()}
@@ -877,7 +886,7 @@ export class BgCustomerMessage {
                                 bind: id,
                                 view: () => {
                                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                        var _a, _b;
+                                        var _a, _b, _c, _d;
                                         const chatRoom = (yield Chat.getChatRoom({
                                             page: 0,
                                             limit: 1000,
@@ -890,6 +899,10 @@ export class BgCustomerMessage {
                                         if (chatRoom.chat_id.startsWith('line')) {
                                             chatRoom.user_data.head = (_a = chatRoom.info.line) === null || _a === void 0 ? void 0 : _a.head;
                                             chatRoom.user_data.name = (_b = chatRoom.info.line) === null || _b === void 0 ? void 0 : _b.name;
+                                        }
+                                        if (chatRoom.chat_id.startsWith('fb')) {
+                                            chatRoom.user_data.head = (_c = chatRoom.fb.line) === null || _c === void 0 ? void 0 : _c.head;
+                                            chatRoom.user_data.name = (_d = chatRoom.fb.line) === null || _d === void 0 ? void 0 : _d.name;
                                         }
                                         resolve(html `
                                             <div
@@ -1174,6 +1187,14 @@ export class BgCustomerMessage {
         if (dd.user_id == 'manager') {
             dd.user_data = BgCustomerMessage.config;
         }
+        function drawChatContent() {
+            if (dd.message.image) {
+                return html `<img src="${dd.message.image}">`;
+            }
+            else {
+                return dd.message.text.replace(/\n/g, '<br>');
+            }
+        }
         if (cf.user_id !== dd.user_id) {
             return html `
                 <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
@@ -1186,7 +1207,8 @@ export class BgCustomerMessage {
                     <div class="ps-2 ms-1" style="max-width: 348px;">
                         <div class="p-3 mb-1"
                              style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
-                            ${dd.message.text.replace(/\n/g, '<br>')}
+                            
+                            ${drawChatContent()}
                         </div>
                         <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
                             ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
@@ -1202,7 +1224,7 @@ export class BgCustomerMessage {
                                 class=" text-light p-3 mb-1"
                                 style="background:${BgCustomerMessage.config.color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                         >
-                            ${dd.message.text.replace(/\n/g, '<br>')}
+                            ${drawChatContent()}
                         </div>
                         <div
                                 class="time-mute fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}"

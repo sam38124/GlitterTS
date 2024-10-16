@@ -12,9 +12,11 @@ const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
+const user_1 = require("./user");
 class FbMessage {
     constructor(app, token) {
         this.app = app;
+        this.token = token;
     }
     async chunkSendMessage(userList, content, id, date) {
         try {
@@ -227,6 +229,11 @@ class FbMessage {
     }
     async listenMessage(body) {
         let that = this;
+        const post = new user_1.User(this.app, this.token);
+        let tokenData = await post.getConfig({
+            key: "login_fb_setting",
+            user_id: "manager",
+        });
         try {
             if (body.object === 'page') {
                 for (const entry of body.entry) {
@@ -239,9 +246,33 @@ class FbMessage {
                                 chat_id: [senderId, "manager"].sort().join(''),
                                 type: "user",
                                 user_id: senderId,
+                                info: {},
                                 participant: [senderId, "manager"]
                             };
-                            await new chat_1.Chat(this.app).addChatRoom(chatData);
+                            await this.getFBInf({ fbID: event.sender.id }, (data) => {
+                                chatData.info = {
+                                    fb: {
+                                        name: data.last_name + data.first_name,
+                                        head: data.profile_pic
+                                    }
+                                };
+                            });
+                            chatData.info = JSON.stringify(chatData.info);
+                            const result = await new chat_1.Chat(this.app).addChatRoom(chatData);
+                            if (!result.create) {
+                                await database_js_1.default.query(`
+                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                        SET ?
+                        WHERE ?
+                    `, [
+                                    {
+                                        info: chatData.info,
+                                    },
+                                    {
+                                        chat_id: chatData.chat_id,
+                                    }
+                                ]);
+                            }
                             chatData.message = {
                                 "text": messageText
                             };
@@ -266,6 +297,39 @@ class FbMessage {
                 resolve(await this.sendMessage({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), fbID: lineID }, (res) => {
                 }));
             });
+        }
+    }
+    async getFBInf(obj, callback) {
+        try {
+            const post = new user_1.User(this.app, this.token);
+            let tokenData = await post.getConfig({
+                key: "login_fb_setting",
+                user_id: "manager",
+            });
+            let token = `Bearer ${tokenData[0].value.fans_token}`;
+            const urlConfig = {
+                method: 'get',
+                url: `https://graph.facebook.com/v16.0/${obj.fbID}?fields=first_name,last_name,profile_pic`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token
+                },
+                data: {}
+            };
+            return new Promise((resolve, reject) => {
+                axios_1.default.request(urlConfig)
+                    .then((response) => {
+                    callback(response.data);
+                    resolve(response.data);
+                })
+                    .catch((error) => {
+                    console.log("error -- ", error);
+                    resolve(false);
+                });
+            });
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
     }
     async checkPoints(message, user_count) {
