@@ -718,6 +718,17 @@ ${obj.gvc.bindView({
                 dd.formData = dd.formData ?? formData;
                 dd.event = (key: string, subData: any) => {
                     return new Promise(async (resolve, reject) => {
+                        if((window as any).glitter.getUrlParameter('cms') === 'true'){
+                            const dialog=new ShareDialog((window.parent as any).glitter)
+                            if(key==='success'){
+                                dialog.successMessage({text:subData.title})
+                            }else if (key==='error'){
+                                dialog.errorMessage({text:subData.title})
+                            }else if (key==='loading'){
+                                dialog.dataLoading({visible:(subData.visible) ?? true,text:subData.title})
+                            }
+                            return
+                        }
                         GlobalEvent.getGlobalEvent({
                             tag: key,
                         }).then(async (d2) => {

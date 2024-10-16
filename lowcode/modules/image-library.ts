@@ -208,23 +208,26 @@ export class imageLibrary {
                                                            gvc.notifyDataChange(vm.id)
                                                            event.stopPropagation();
                                                        })}"
+                                                             ${document.body.clientWidth>800 ? `
                                                              onmouseenter="${gvc.event(() => {
-                                                           if (opt?.onlyRead || cf.key == "album") {
-                                                               return
-                                                           }
-                                                           if (!editArray[index]) {
-                                                               editArray[index] = true;
-                                                               gvc.notifyDataChange(viewID);
-                                                           }
+                                                                 if (opt?.onlyRead || cf.key == "album") {
+                                                                     return
+                                                                 }
+                                                                 if (!editArray[index]) {
+                                                                     editArray[index] = true;
+                                                                     gvc.notifyDataChange(viewID);
+                                                                 }
 
-                                                       })}"
+                                                             })}"
                                                              onmouseleave="${gvc.event(() => {
-                                                           if (opt?.onlyRead) {
-                                                               return
-                                                           }
-                                                           editArray[index] = false;
-                                                           gvc.notifyDataChange(viewID);
-                                                       })}">
+                                                                 if (opt?.onlyRead) {
+                                                                     return
+                                                                 }
+                                                                 editArray[index] = false;
+                                                                 gvc.notifyDataChange(viewID);
+                                                             })}"
+                                                             `:``}
+                                                        >
                                                             <div class="${(editArray[index] && !(dd as any).selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
                                                                  style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                                  onclick="${gvc.event((e, event) => {

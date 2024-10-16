@@ -328,9 +328,10 @@ export class EditorElem {
                                         style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${dd}');"
                                     >
                                         <div
-                                            class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image position-relative"
                                             style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
                                         >
+                                            <i class="fa-solid fa-grip-dots dragItem position-absolute" style="top:5px;left:5px;"></i>
                                             <i
                                                 class="fa-regular fa-eye"
                                                 onclick="${obj.gvc.event(() => {
@@ -351,7 +352,7 @@ export class EditorElem {
                         </ul>
                     `;
                 },
-                divCreate: { class: ``, style: `gap:10px;overflow-x: auto;display: flex;white-space: nowrap; ` },
+                divCreate: { class: `w-100`, style: `gap:10px;overflow-x: auto;display: flex;white-space: nowrap; ` },
                 onCreate: () => {
                     if (loading) {
                         let n = 0;
@@ -394,6 +395,7 @@ export class EditorElem {
                                 Sortable.create(document.getElementById(bid), {
                                     group: 'foo',
                                     animation: 100,
+                                    handle: '.dragItem',
                                     onChange: function (evt) {
                                         swapArr(data, startIndex, evt.newIndex);
                                         startIndex = evt.newIndex;

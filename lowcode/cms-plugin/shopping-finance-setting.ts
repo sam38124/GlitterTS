@@ -83,225 +83,235 @@ export class ShoppingFinanceSetting {
                                 if (loading) {
                                     return BgWidget.spinner();
                                 }
-
-                                return [
-                                    BgWidget.mainCard(
-                                            html`
+try {
+    keyData.off_line_support=keyData.off_line_support?? {
+        line:false,
+        atm:false,
+        cash_on_delivery:false
+    }
+    return [
+        BgWidget.mainCard(
+                html`
                                                 <div class="tx_700">線上金流</div>
                                                 ${BgWidget.grayNote('透過藍新或綠界服務商串接線上付款功能')} ${BgWidget.mbContainer(12)}
                                                 ${BgWidget.multiCheckboxContainer(
-                                                        gvc,
-                                                        onlinePayArray,
-                                                        keyData.TYPE ? [keyData.TYPE] : [],
-                                                        (data) => {
-                                                            switch (data[0]) {
-                                                                case 'newWebPay':
-                                                                    keyData.TYPE = data[0];
-                                                                    keyData.ActionURL = 'https://ccore.newebpay.com/MPG/mpg_gateway';
-                                                                    break;
-                                                                case 'ecPay':
-                                                                    keyData.TYPE = data[0];
-                                                                    keyData.ActionURL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5';
-                                                                    break;
-                                                                case undefined:
-                                                                    keyData.TYPE = undefined;
-                                                                    keyData.ActionURL = '';
-                                                                    break;
-                                                            }
-                                                            gvc.notifyDataChange(vm.onBoxId);
-                                                        },
-                                                        {single: true, zeroOption: true}
-                                                )}
+                        gvc,
+                        onlinePayArray,
+                        keyData.TYPE ? [keyData.TYPE] : [],
+                        (data) => {
+                            switch (data[0]) {
+                                case 'newWebPay':
+                                    keyData.TYPE = data[0];
+                                    keyData.ActionURL = 'https://ccore.newebpay.com/MPG/mpg_gateway';
+                                    break;
+                                case 'ecPay':
+                                    keyData.TYPE = data[0];
+                                    keyData.ActionURL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5';
+                                    break;
+                                case undefined:
+                                    keyData.TYPE = undefined;
+                                    keyData.ActionURL = '';
+                                    break;
+                            }
+                            gvc.notifyDataChange(vm.onBoxId);
+                        },
+                        {single: true, zeroOption: true}
+                )}
                                                 ${gvc.bindView({
-                                                    bind: vm.onBoxId,
-                                                    view: () => {
-                                                        const payData = onlinePayArray.find((item) => item.key === keyData.TYPE);
+                    bind: vm.onBoxId,
+                    view: () => {
+                        const payData = onlinePayArray.find((item) => item.key === keyData.TYPE);
 
-                                                        if (payData === undefined) {
-                                                            return '';
-                                                        }
+                        if (payData === undefined) {
+                            return '';
+                        }
 
-                                                        return html` ${BgWidget.mbContainer(12)}
+                        return html` ${BgWidget.mbContainer(12)}
                                                         <div class="tx_700">設定</div>
                                                         ${BgWidget.mbContainer(12)}
                                                         ${BgWidget.openBoxContainer({
-                                                            gvc,
-                                                            tag: 'detail',
-                                                            title: payData.name + redDot,
-                                                            insideHTML: [
-                                                                BgWidget.inlineCheckBox({
-                                                                    title: '串接路徑',
-                                                                    gvc: gvc,
-                                                                    def: keyData.ActionURL,
-                                                                    array: (() => {
-                                                                        if (keyData.TYPE === 'newWebPay') {
-                                                                            return [
-                                                                                {
-                                                                                    title: '正式站',
-                                                                                    value: 'https://core.newebpay.com/MPG/mpg_gateway',
-                                                                                },
-                                                                                {
-                                                                                    title: '測試站',
-                                                                                    value: 'https://ccore.newebpay.com/MPG/mpg_gateway',
-                                                                                },
-                                                                            ];
-                                                                        } else {
-                                                                            return [
-                                                                                {
-                                                                                    title: '正式站',
-                                                                                    value: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
-                                                                                },
-                                                                                {
-                                                                                    title: '測試站',
-                                                                                    value: 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
-                                                                                },
-                                                                            ];
-                                                                        }
-                                                                    })(),
-                                                                    callback: (text: any) => {
-                                                                        keyData.ActionURL = text;
-                                                                    },
-                                                                }),
-                                                                BgWidget.inlineCheckBox({
-                                                                    title: '開通付款方式',
-                                                                    gvc: gvc,
-                                                                    def: ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].filter((dd) => {
-                                                                        return (keyData as any)[dd];
-                                                                    }),
-                                                                    array: [
-                                                                        {
-                                                                            title: '信用卡',
-                                                                            value: 'credit',
-                                                                        },
-                                                                        {
-                                                                            title: '一般 ATM',
-                                                                            value: 'atm',
-                                                                        },
-                                                                        {
-                                                                            title: '網路 ATM',
-                                                                            value: 'web_atm',
-                                                                        },
-                                                                        {
-                                                                            title: '超商代碼',
-                                                                            value: 'c_code',
-                                                                        },
-                                                                        {
-                                                                            title: '超商條碼',
-                                                                            value: 'c_bar_code',
-                                                                        },
-                                                                    ],
-                                                                    callback: (array: any) => {
-                                                                        ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].map((dd) => {
-                                                                            (keyData as any)[dd] = !!array.find((d1: string) => {
-                                                                                return d1 === dd;
-                                                                            });
-                                                                        });
-                                                                    },
-                                                                    type: 'multiple',
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: '特店編號',
-                                                                    default: keyData.MERCHANT_ID,
-                                                                    callback: (text) => {
-                                                                        keyData.MERCHANT_ID = text;
-                                                                    },
-                                                                    placeHolder: '請輸入特店編號',
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: 'HASH_KEY',
-                                                                    default: keyData.HASH_KEY,
-                                                                    callback: (text) => {
-                                                                        keyData.HASH_KEY = text;
-                                                                    },
-                                                                    placeHolder: '請輸入HASH_KEY',
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: 'HASH_IV',
-                                                                    default: keyData.HASH_IV,
-                                                                    callback: (text) => {
-                                                                        keyData.HASH_IV = text;
-                                                                    },
-                                                                    placeHolder: '請輸入HASH_IV',
-                                                                }),
-                                                            ].join(''),
-                                                            openHeight: 485,
-                                                        })}`;
-                                                    },
-                                                })}`
-                                    ),
-                                    BgWidget.mainCard(
-                                            html`
+                            gvc,
+                            tag: 'detail',
+                            title: payData.name + redDot,
+                            insideHTML: [
+                                BgWidget.inlineCheckBox({
+                                    title: '串接路徑',
+                                    gvc: gvc,
+                                    def: keyData.ActionURL,
+                                    array: (() => {
+                                        if (keyData.TYPE === 'newWebPay') {
+                                            return [
+                                                {
+                                                    title: '正式站',
+                                                    value: 'https://core.newebpay.com/MPG/mpg_gateway',
+                                                },
+                                                {
+                                                    title: '測試站',
+                                                    value: 'https://ccore.newebpay.com/MPG/mpg_gateway',
+                                                },
+                                            ];
+                                        } else {
+                                            return [
+                                                {
+                                                    title: '正式站',
+                                                    value: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
+                                                },
+                                                {
+                                                    title: '測試站',
+                                                    value: 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
+                                                },
+                                            ];
+                                        }
+                                    })(),
+                                    callback: (text: any) => {
+                                        keyData.ActionURL = text;
+                                    },
+                                }),
+                                BgWidget.inlineCheckBox({
+                                    title: '開通付款方式',
+                                    gvc: gvc,
+                                    def: ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].filter((dd) => {
+                                        return (keyData as any)[dd];
+                                    }),
+                                    array: [
+                                        {
+                                            title: '信用卡',
+                                            value: 'credit',
+                                        },
+                                        {
+                                            title: '一般 ATM',
+                                            value: 'atm',
+                                        },
+                                        {
+                                            title: '網路 ATM',
+                                            value: 'web_atm',
+                                        },
+                                        {
+                                            title: '超商代碼',
+                                            value: 'c_code',
+                                        },
+                                        {
+                                            title: '超商條碼',
+                                            value: 'c_bar_code',
+                                        },
+                                    ],
+                                    callback: (array: any) => {
+                                        ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].map((dd) => {
+                                            (keyData as any)[dd] = !!array.find((d1: string) => {
+                                                return d1 === dd;
+                                            });
+                                        });
+                                    },
+                                    type: 'multiple',
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '特店編號',
+                                    default: keyData.MERCHANT_ID,
+                                    callback: (text) => {
+                                        keyData.MERCHANT_ID = text;
+                                    },
+                                    placeHolder: '請輸入特店編號',
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: 'HASH_KEY',
+                                    default: keyData.HASH_KEY,
+                                    callback: (text) => {
+                                        keyData.HASH_KEY = text;
+                                    },
+                                    placeHolder: '請輸入HASH_KEY',
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: 'HASH_IV',
+                                    default: keyData.HASH_IV,
+                                    callback: (text) => {
+                                        keyData.HASH_IV = text;
+                                    },
+                                    placeHolder: '請輸入HASH_IV',
+                                }),
+                            ].join(''),
+                            openHeight: 485,
+                        })}`;
+                    },
+                })}`
+        ),
+        BgWidget.mainCard(
+                html`
                                                 <div class="tx_700">線下金流</div>
                                                 ${BgWidget.grayNote('不執行線上付款，由店家自行與消費者商議付款方式')} ${BgWidget.mbContainer(12)}
                                                 ${BgWidget.multiCheckboxContainer(
-                                                        gvc,
-                                                        offlinePayArray,
-                                                        offlinePayArray
-                                                                .slice()
-                                                                .filter((item) => {
-                                                                    return (keyData.off_line_support as any)[item.key];
-                                                                })
-                                                                .map((item) => {
-                                                                    return item.key;
-                                                                }),
-                                                        (data) => {
-                                                            offlinePayArray.map((item) => {
-                                                                (keyData.off_line_support as any)[item.key] = data.some((d: string) => {
-                                                                    return d === item.key;
-                                                                });
-                                                            });
-                                                            gvc.notifyDataChange(vm.offBoxId);
-                                                        },
-                                                        {single: false}
-                                                )}
+                        gvc,
+                        offlinePayArray,
+                        offlinePayArray
+                                .slice()
+                                .filter((item) => {
+                                    return (keyData.off_line_support as any)[item.key];
+                                })
+                                .map((item) => {
+                                    return item.key;
+                                }),
+                        (data) => {
+                            offlinePayArray.map((item) => {
+                                (keyData.off_line_support as any)[item.key] = data.some((d: string) => {
+                                    return d === item.key;
+                                });
+                            });
+                            gvc.notifyDataChange(vm.offBoxId);
+                        },
+                        {single: false}
+                )}
                                                 ${gvc.bindView({
-                                                    bind: vm.offBoxId,
-                                                    view: () => {
-                                                        const payData = ['atm', 'line'].filter((key) => {
-                                                            return (keyData.off_line_support as any)[key];
-                                                        });
+                    bind: vm.offBoxId,
+                    view: () => {
+                        const payData = ['atm', 'line'].filter((key) => {
+                            return (keyData.off_line_support as any)[key];
+                        });
 
-                                                        if (payData.length == 0) {
-                                                            return '';
-                                                        }
+                        if (payData.length == 0) {
+                            return '';
+                        }
 
-                                                        return html`
+                        return html`
                                                             ${BgWidget.mbContainer(12)}
                                                             <div class="tx_700">付款資訊</div>
                                                             ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')} ${BgWidget.mbContainer(12)}
                                                             ${payData
-                                                                    .map((key) => {
-                                                                        if (key === 'atm') {
-                                                                            return BgWidget.openBoxContainer({
-                                                                                gvc,
-                                                                                tag: 'detail',
-                                                                                title: 'ATM銀行轉帳' + redDot,
-                                                                                insideHTML: ShoppingFinanceSetting.atm(gvc, keyData),
-                                                                                openHeight: 1100,
-                                                                                guideClass: 'guide2-4',
-                                                                            });
-                                                                        }
-                                                                        if (key === 'line') {
-                                                                            return BgWidget.openBoxContainer({
-                                                                                gvc,
-                                                                                tag: 'detail',
-                                                                                title: 'LINE Pay' + redDot,
-                                                                                insideHTML: ShoppingFinanceSetting.line_pay(gvc, keyData),
-                                                                                openHeight: 1100,
-                                                                            });
-                                                                        }
-                                                                        return '';
-                                                                    })
-                                                                    .filter((str) => str.length > 0)
-                                                                    .join(BgWidget.mbContainer(12))}
+                                .map((key) => {
+                                    if (key === 'atm') {
+                                        return BgWidget.openBoxContainer({
+                                            gvc,
+                                            tag: 'detail',
+                                            title: 'ATM銀行轉帳' + redDot,
+                                            insideHTML: ShoppingFinanceSetting.atm(gvc, keyData),
+                                            openHeight: 1100,
+                                            guideClass: 'guide2-4',
+                                        });
+                                    }
+                                    if (key === 'line') {
+                                        return BgWidget.openBoxContainer({
+                                            gvc,
+                                            tag: 'detail',
+                                            title: 'LINE Pay' + redDot,
+                                            insideHTML: ShoppingFinanceSetting.line_pay(gvc, keyData),
+                                            openHeight: 1100,
+                                        });
+                                    }
+                                    return '';
+                                })
+                                .filter((str) => str.length > 0)
+                                .join(BgWidget.mbContainer(12))}
                                                         `;
-                                                    },
-                                                })} `
-                                    ),
-                                ].join(BgWidget.mbContainer(24));
+                    },
+                })} `
+        ),
+    ].join(BgWidget.mbContainer(24));
+}catch (e) {
+                                    console.log(e)
+    return  `${e}`
+}
+                            
                             },
                             onCreate: () => {
                                 if (loading) {
@@ -1298,7 +1308,8 @@ export class ShoppingFinanceSetting {
                                             ${BgWidget.save(
                                                     gvc.event(() => {
                                                         save(() => {
-                                                            widget.event('success', {title: '設定成功'});
+                                                            const dialog=new ShareDialog(gvc.glitter)
+                                                            dialog.successMessage({text:'設定成功'})
                                                         });
                                                     })
                                             )}

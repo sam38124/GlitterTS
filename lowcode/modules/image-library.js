@@ -164,6 +164,7 @@ export class imageLibrary {
                                                         gvc.notifyDataChange(vm.id);
                                                         event.stopPropagation();
                                                     })}"
+                                                             ${document.body.clientWidth > 800 ? `
                                                              onmouseenter="${gvc.event(() => {
                                                         if ((opt === null || opt === void 0 ? void 0 : opt.onlyRead) || cf.key == "album") {
                                                             return;
@@ -179,7 +180,9 @@ export class imageLibrary {
                                                         }
                                                         editArray[index] = false;
                                                         gvc.notifyDataChange(viewID);
-                                                    })}">
+                                                    })}"
+                                                             ` : ``}
+                                                        >
                                                             <div class="${(editArray[index] && !dd.selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
                                                                  style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                                  onclick="${gvc.event((e, event) => {

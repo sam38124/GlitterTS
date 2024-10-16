@@ -2552,21 +2552,23 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html ` <div
-                class="bg-white shadow rounded-3"
-                style="height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}"
-            >
-                ${gvc.bindView({
+            return html `
+                <div class="bg-white shadow rounded-3"
+                     style="max-height:calc(${(window.parent).innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                    ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
                     if (vm.loading) {
-                        return html ` <div class="my-4">${this.spinner()}</div>`;
+                        return html `
+                                    <div class="my-4">${this.spinner()}</div>`;
                     }
-                    return html ` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
-                                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
-                                <div class="flex-fill"></div>
+                    return html `
+                                <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
+                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                                         style="background: #F2F2F2;">
+                                        <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                        <div class="flex-fill"></div>
 
                                 <i
                                     class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"

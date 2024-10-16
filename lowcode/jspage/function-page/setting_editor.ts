@@ -624,7 +624,8 @@ export class Setting_editor {
                 view: () => {
                     Storage.select_bg_btn = 'custom';
                     return html`
-                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none" style="${(parseInt(glitter.share.top_inset,10)) ? `padding-top:${glitter.share.top_inset}px !important;`:``}">
+                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none"
+                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}">
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg"/>
                             <span class="ms-1"
                                   style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
@@ -633,7 +634,7 @@ export class Setting_editor {
                              style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
                             ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
-                                let initial=false
+                                let initial = false
                                 let loading = true;
                                 let permissionTitle: string = '';
                                 let permissionData: any = {};
@@ -702,6 +703,25 @@ export class Setting_editor {
                                                     url.searchParams.set('appName', items[parseInt(index)].appName);
                                                     url.searchParams.set('cms', 'true');
                                                     url.searchParams.set('page', page);
+
+                                                    // ((window as any).glitterInitialHelper).getPageData({
+                                                    //     tag: page,
+                                                    //     appName: items[parseInt(index)].appName
+                                                    // }, (d2: any) => {
+                                                    //     $('#editerCenter').html(html`
+                                                    //     <div 
+                                                    //             style="border: none;">${
+                                                    //             new glitter.htmlGenerate(d2.response.result[0].config, [], {}, true).render(gvc, {
+                                                    //                 class: ``,
+                                                    //                 style: ``,
+                                                    //                 app_config: gBundle.app_config,
+                                                    //                 page_config: gBundle.page_config,
+                                                    //                 is_page:true
+                                                    //             })
+                                                    //     }</div>`);
+                                                    //     // resolve(d2.response.result[0])
+                                                    // })
+                                                    
                                                     $('#editerCenter').html(html`
                                                         <iframe src="${url.href}"
                                                                 style="border: none;height: calc(100%);"></iframe>`);
@@ -752,14 +772,14 @@ export class Setting_editor {
                                                             }
                                                         }
                                                         if (Storage.select_item === `${index}` && !initial) {
-                                                            initial=true
+                                                            initial = true
                                                             if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
                                                                 Storage.select_item = `5`;
                                                                 click_item(Storage.select_item);
                                                             } else {
                                                                 click_item(index);
                                                             }
-                                                            
+
                                                         }
                                                         container.push({
                                                             title: dd.title,

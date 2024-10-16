@@ -32,7 +32,7 @@ router.get('/', async (req, resp) => {
 });
 router.post('/listenMessage', async (req, resp) => {
     try {
-        if (Object.keys(req.body.events).length == 0) {
+        if (Object.keys(req.body.events || {}).length == 0) {
             return response_1.default.succ(resp, {
                 "result": "OK"
             });

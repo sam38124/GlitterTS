@@ -69,6 +69,20 @@ export class HtmlGenerate {
                 dd.formData = (_f = dd.formData) !== null && _f !== void 0 ? _f : formData;
                 dd.event = (key, subData) => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        if (window.glitter.getUrlParameter('cms') === 'true') {
+                            const dialog = new ShareDialog(window.parent.glitter);
+                            if (key === 'success') {
+                                dialog.successMessage({ text: subData.title });
+                            }
+                            else if (key === 'error') {
+                                dialog.errorMessage({ text: subData.title });
+                            }
+                            else if (key === 'loading') {
+                                dialog.dataLoading({ visible: (_a = (subData.visible)) !== null && _a !== void 0 ? _a : true, text: subData.title });
+                            }
+                            return;
+                        }
                         GlobalEvent.getGlobalEvent({
                             tag: key,
                         }).then((d2) => __awaiter(this, void 0, void 0, function* () {

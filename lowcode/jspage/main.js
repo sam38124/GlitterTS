@@ -133,7 +133,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
     `);
     Storage.lastSelect = '';
-    const swal = new Swal(gvc);
     const viewModel = {
         saveArray: {},
         appName: gBundle.appName,
@@ -170,13 +169,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     window.parent.glitter.share.refreshMainRightEditor = () => {
         gvc.notifyDataChange('MainEditorRight');
     };
+    const dialog = new ShareDialog(glitter);
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
             if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
                 glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
             }
             else {
-                yield swal.loading('載入中...');
+                dialog.dataLoading({ visible: true });
             }
             glitter.share.top_inset = yield new Promise((resolve, reject) => {
                 glitter.runJsInterFace('getTopInset', {}, (response) => {
@@ -210,7 +210,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
                             viewModel.app_config_original = res.response.result[0];
                             if (gvc.glitter.getUrlParameter('function') === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
@@ -226,18 +225,22 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }),
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                        viewModel.data = yield new Promise((resolve, reject) => {
+                            (window.glitterInitialHelper).getPageData({
+                                tag: glitter.getUrlParameter('page'),
+                                appName: gBundle.appName
+                            }, (d2) => {
+                                resolve(d2.response.result[0]);
+                            });
+                        });
                         if (!glitter.share.editor_vm) {
+                            if (glitter.getUrlParameter('function') === 'backend-manger') {
+                                resolve(true);
+                                return;
+                            }
                             const data = yield ApiPageConfig.getPage({
                                 appName: gBundle.appName,
                                 type: 'template',
-                            });
-                            viewModel.data = yield new Promise((resolve, reject) => {
-                                (window.glitterInitialHelper).getPageData({
-                                    tag: glitter.getUrlParameter('page'),
-                                    appName: gBundle.appName
-                                }, (d2) => {
-                                    resolve(d2.response.result[0]);
-                                });
                             });
                             Storage.select_page_type = viewModel.data.page_type;
                             if (data.result) {
@@ -352,7 +355,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 yield lod();
                 return;
             }
-            swal.close();
+            dialog.dataLoading({ visible: false });
             viewModel.loading = false;
             gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
                 if (response.token) {
@@ -366,13 +369,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             gvc.notifyDataChange(editorContainerID);
         });
     }
+    console.log(`start-load:==>load`);
     lod().then(() => {
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: false });
         glitter.htmlGenerate.saveEvent = (refresh = true, callback) => {
             glitter.closeDiaLog();
             glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
-            swal.loading('更新中...');
+            dialog.dataLoading({ visible: true, text: '更新中..' });
             function saveEvent() {
                 return __awaiter(this, void 0, void 0, function* () {
                     for (const b of Object.keys(glitter.share.editorViewModel.saveArray)) {
@@ -444,17 +448,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     ];
                     for (const a of waitSave) {
                         if (!(yield a())) {
-                            swal.nextStep(`伺服器錯誤`, () => {
-                            }, 'error');
+                            dialog.dataLoading({ visible: false });
+                            dialog.errorMessage({ text: '伺服器錯誤' });
                             return;
                         }
                     }
-                    swal.close();
-                    swal.toast({
-                        icon: 'success',
-                        title: '儲存成功',
-                        position: 'center'
-                    });
+                    dialog.dataLoading({ visible: false });
+                    dialog.successMessage({ text: '儲存成功' });
                     if (refresh) {
                         viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                         window.preloadData = {};
@@ -463,7 +463,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     if (glitter.share.editor_vm) {
                         glitter.share.editor_vm.callback(viewModel.data);
-                        swal.close();
                     }
                     else if (refresh) {
                         window.preloadData = {};
@@ -495,7 +494,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 bind: editorContainerID,
                 view: () => {
                     if (viewModel.loading) {
-                        return ``;
+                        return `<div class="vw-100 vh-100 d-flex align-items-center justify-content-center">
+<div class="spinner-border"></div>
+</div>`;
                     }
                     else {
                         let view = [];

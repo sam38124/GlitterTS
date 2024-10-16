@@ -18,7 +18,8 @@ export class Setting_editor {
                 view: () => {
                     Storage.select_bg_btn = 'custom';
                     return html `
-                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none" style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}">
+                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none"
+                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}">
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg"/>
                             <span class="ms-1"
                                   style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>

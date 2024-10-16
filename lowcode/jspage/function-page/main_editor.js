@@ -993,7 +993,7 @@ export class Main_editor {
                     if (gvc.glitter.getUrlParameter('function') === 'backend-manger') {
                         return html `
                             <div class="position-relative"
-                                 style="width:100%;height: calc(100%);padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+                                 style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
                                  id="editerCenter">
                             </div>`;
                     }
@@ -1013,7 +1013,7 @@ export class Main_editor {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     };
                 }
             };

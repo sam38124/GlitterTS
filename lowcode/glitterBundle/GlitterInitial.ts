@@ -183,7 +183,7 @@ function traverseHTML(element: any, document: any) {
                                     }
                                     setTimeout(() => {
                                         if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
-                                            document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
+                                            document.querySelector(`[gvc-id="${id}"]`).style.removeProperty('height');
                                         }
                                     }, 10);
                                 }

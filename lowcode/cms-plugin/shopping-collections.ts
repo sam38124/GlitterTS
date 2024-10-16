@@ -567,17 +567,18 @@ export class ShoppingCollections {
                                                                     : 'flex-direction: column; gap: 0px; '}"
                                                                 class="w-100"
                                                             >
-                                                                <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                <div class="${document.body.clientWidth<800 ? `w-100`:``} justify-content-start justify-content-lg-center" style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
                                                                     <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
                                                                         ${prefixURL}
                                                                     </div>
                                                                 </div>
                                                                 <input
-                                                                    class="flex-fill"
+                                                                    class="flex-fill ${document.body.clientWidth<800 ? `w-100`:``}"
                                                                     style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
                                                                         .body.clientWidth > 768
                                                                         ? ''
                                                                         : 'padding: 9px 18px;'}"
+                                                                    placeholder="請輸入連結網址"
                                                                     value="${vm.data.code || ''}"
                                                                     onchange="${gvc.event((e) => {
                                                                         let text = e.value;
@@ -603,7 +604,11 @@ export class ShoppingCollections {
                                                         ].join('')
                                                     );
                                                 },
-                                                divCreate: {},
+                                                divCreate: {
+                                                    class:`${gvc.glitter.ut.frSize({
+                                                        sm:``
+                                                    },`p-0`)}`
+                                                },
                                             };
                                         }),
                                         BgWidget.mainCard(html` <div class="tx_700" style="margin-bottom: 18px">商品</div>

@@ -2103,42 +2103,38 @@ export class ShoppingProductSetting {
                                     }),
                                 ].join('<div class="my-2"></div>')),
                                 BgWidget.mainCard(html `
-                                                    <div style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">圖片</div>
+                                                    <div class="d-flex align-items-center justify-content-between" style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">圖片
+                                                    ${BgWidget.customButton({
+                                    button: {
+                                        color: 'black',
+                                        size: "sm"
+                                    },
+                                    text: {
+                                        name: '新增圖片'
+                                    },
+                                    event: gvc.event(() => {
+                                        imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                            if (urlArray.length > 0) {
+                                                postMD.preview_image.push(...urlArray.map((data) => { return data.data; }));
+                                                obj.gvc.notifyDataChange('image_view');
+                                            }
+                                            else {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                            }
+                                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: true });
+                                    })
+                                })}
+                                                    </div>
                                                     ${obj.gvc.bindView(() => {
-                                    const id = obj.gvc.glitter.getUUID();
                                     return {
-                                        bind: id,
+                                        bind: 'image_view',
                                         view: () => {
                                             return (html ` <div class="my-2"></div>` +
                                                 EditorElem.flexMediaManagerV2({
                                                     gvc: obj.gvc,
                                                     data: postMD.preview_image,
-                                                }) +
-                                                html `
-                                                                        <div
-                                                                            style="cursor:pointer;display: flex;width: 136px;height: 136px;padding: 0px 35px 0px 34px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;margin-left: 14px;"
-                                                                            onclick="${obj.gvc.event(() => {
-                                                    imageLibrary.selectImageLibrary(gvc, (urlArray) => {
-                                                        if (urlArray.length > 0) {
-                                                            postMD.preview_image.push(...urlArray.map((data) => {
-                                                                return data.data;
-                                                            }));
-                                                            obj.gvc.notifyDataChange(id);
-                                                        }
-                                                        else {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                                        }
-                                                    }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: true });
-                                                })}"
-                                                                        >
-                                                                            <div
-                                                                                style="display: flex;width: 67px;height: 40px;justify-content: center;align-items: center;gap: 10px;flex-shrink: 0;border-radius: 10px;border: 1px solid #393939;box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.10);"
-                                                                            >
-                                                                                新增
-                                                                            </div>
-                                                                        </div>
-                                                                    `);
+                                                }));
                                         },
                                         divCreate: {
                                             class: `d-flex w-100`,
@@ -3492,30 +3488,30 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                 postMD.seo.domain = postMD.seo.domain || postMD.title;
                                                 const href = `https://${window.parent.glitter.share.editorViewModel.domain}/products`;
                                                 return html ` <div style="font-weight: 700;" class="mb-3">搜尋引擎列表</div>
-                                                                    ${[
-                                                    html ` <div class="tx_normal fw-normal mb-2">商品網址</div>`,
+         ${[
+                                                    html ` <div class="tx_normal fw-normal mb-2" style="">商品網址</div>`,
                                                     html ` <div
                                                                             style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                                         .body.clientWidth > 768
                                                         ? 'gap: 18px; '
                                                         : 'flex-direction: column; gap: 0px; '}"
-                                                                            class="w-100"
-                                                                        >
-                                                                            <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
-                                                                                <div
-                                                                                    style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
-                                                                                >
-                                                                                    ${href}/
-                                                                                </div>
-                                                                            </div>
-                                                                            <input
-                                                                                class="flex-fill"
-                                                                                style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                     class="w-100"
+                                                            >
+                                                                <div style="padding: 9px 18px;background: #EAEAEA;  align-items: center; gap: 5px; display: flex;${(document.body.clientWidth < 800) ? `font-size:14px;width:100%;justify-content: start;` : `font-size: 16px;justify-content: center;`}">
+                                                                    <div style="text-align: right; color: #393939;  font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                        ${href}/
+                                                                    </div>
+                                                                </div>
+                                                                <input
+                                                                    class="flex-fill"
+                                                                    style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;
+${document
                                                         .body.clientWidth > 768
                                                         ? ''
-                                                        : 'padding: 9px 18px;'}"
-                                                                                value="${postMD.seo.domain || ''}"
-                                                                                onchange="${gvc.event((e) => {
+                                                        : 'padding: 9px 18px;width:100%;'}"
+                                                                    placeholder="請輸入商品連結"
+                                                                    value="${postMD.seo.domain || ''}"
+                                                                    onchange="${gvc.event((e) => {
                                                         let text = e.value;
                                                         if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
                                                             const dialog = new ShareDialog(gvc.glitter);
@@ -3526,8 +3522,8 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                         }
                                                         gvc.notifyDataChange('seo');
                                                     })}"
-                                                                            />
-                                                                        </div>`,
+                                                                />
+                                                            </div>`,
                                                     html ` <div class="mt-2 mb-1">
                                                                             <span class="tx_normal me-1">網址預覽</span>
                                                                             ${BgWidget.greenNote(href + `/${postMD.seo.domain}`, gvc.event(() => {

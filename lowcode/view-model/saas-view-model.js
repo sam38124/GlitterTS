@@ -49,6 +49,11 @@ export class SaasViewModel {
                                 <a
                                         class="dropdown-item cursor_pointer d-flex align-items-center"
                                         onclick="${gvc.event(() => {
+                            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.infoMessage({ text: '請使用網站進行點數加值' });
+                                return;
+                            }
                             gvc.glitter.setUrlParameter('tab', 'ai-point');
                             gvc.recreateView();
                         })}"
@@ -81,6 +86,11 @@ export class SaasViewModel {
                                 >
                                 <a class="dropdown-item cursor_pointer d-flex align-items-center"
                                    onclick="${gvc.event(() => {
+                            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.infoMessage({ text: '請使用網站進行點數加值' });
+                                return;
+                            }
                             gvc.glitter.setUrlParameter('tab', 'sms-points');
                             gvc.recreateView();
                         })}"

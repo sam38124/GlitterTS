@@ -35,7 +35,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 
 router.post('/listenMessage', async (req: express.Request, resp: express.Response) => {
     try {
-        if (Object.keys(req.body.events).length == 0){
+        if (Object.keys(req.body.events || {}).length == 0){
             return response.succ(
                 resp,
                 {
