@@ -16,6 +16,7 @@ const user_js_1 = require("../services/user.js");
 const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
+const axios_1 = __importDefault(require("axios"));
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -290,7 +291,8 @@ router.get('/order/payment-method', async (req, resp) => {
         });
         return response_1.default.succ(resp, keyData);
     }
-    catch (e) { }
+    catch (e) {
+    }
 });
 router.get('/payment/method', async (req, resp) => {
     try {
@@ -464,28 +466,29 @@ async function redirect_link(req, resp) {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+        <script>
+            try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                        JSON.stringify({
+                            functionName: 'check_out_finish',
+                            callBackId: 0,
+                            data: {
+                                redirect: '${return_url.href}',
+                            },
+                        })
+                );
+            } catch (e) {
+            }
+            location.href = '${return_url.href}';
+        </script>
+        </body>
+        </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -893,6 +896,75 @@ router.post('/pos/checkout', async (req, resp) => {
 router.post('/pos/linePay', async (req, resp) => {
     try {
         return response_1.default.succ(resp, { result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/apple-webhook', async (req, resp) => {
+    try {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://sandbox.itunes.apple.com/verifyReceipt',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: req.body.base64
+        };
+        const receipt = await new Promise((resolve, reject) => {
+            axios_1.default.request(config)
+                .then((response) => {
+                console.log(JSON.stringify(response.data));
+                resolve(response.data);
+            })
+                .catch((error) => {
+                console.log(error);
+                resolve(false);
+            });
+        });
+        if (!receipt) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No Receipt.Cant find receipt.', null);
+        }
+        for (const b of receipt.receipt.in_app.filter((dd) => {
+            return (`${dd.product_id}`).includes('ai_points_') && dd.in_app_ownership_type === "PURCHASED";
+        })) {
+            const count = (await database_js_1.default.query(`select count(1)
+                                          from \`${req.get('g-app')}\`.t_ai_points
+                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+            if (!count) {
+                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points set ?`, [{
+                        orderID: b.transaction_id,
+                        userID: req.body.token.userID,
+                        money: parseInt(b.product_id.replace('ai_points_', ''), 10) * 10,
+                        status: 1,
+                        note: JSON.stringify({
+                            "text": "apple內購加值",
+                            "receipt": receipt
+                        })
+                    }]);
+            }
+        }
+        for (const b of receipt.receipt.in_app.filter((dd) => {
+            return (`${dd.product_id}`).includes('sms_points_') && dd.in_app_ownership_type === "PURCHASED";
+        })) {
+            const count = (await database_js_1.default.query(`select count(1)
+                                          from \`${req.get('g-app')}\`.t_sms_points
+                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+            if (!count) {
+                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points set ?`, [{
+                        orderID: b.transaction_id,
+                        userID: req.body.token.userID,
+                        money: parseInt(b.product_id.replace('sms_points_', ''), 10) * 10,
+                        status: 1,
+                        note: JSON.stringify({
+                            "text": "apple內購加值",
+                            "receipt": receipt
+                        })
+                    }]);
+            }
+        }
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

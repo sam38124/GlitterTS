@@ -14,8 +14,8 @@ const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
 const user_1 = require("./user");
 const logger_1 = __importDefault(require("../../modules/logger"));
-const mime_1 = __importDefault(require("mime"));
 const AWSLib_1 = __importDefault(require("../../modules/AWSLib"));
+const mime = require('mime');
 class LineMessage {
     constructor(app, token) {
         this.app = app;
@@ -336,7 +336,7 @@ class LineMessage {
                             return `application/x-www-form-urlencoded; charset=UTF-8`;
                         }
                         else {
-                            return mime_1.default.getType(fullUrl.split('.').pop());
+                            return mime.getType(fullUrl.split('.').pop());
                         }
                     })()
                 };

@@ -11,10 +11,10 @@ import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
 import {User} from "./user";
 import Logger from "../../modules/logger";
-import mime from "mime";
+
 import s3bucket from "../../modules/AWSLib";
 
-
+const mime = require('mime');
 interface LineResponse {
     // 定義 response 物件的結構，根據實際 API 回應的格式進行調整
     clientid?:string,

@@ -15,6 +15,22 @@ export class AiPointsApi {
         });
     }
 
+    public static apple_webhook(receipt:string){
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': (window.parent as any).glitterBase,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                base64:{
+                    "receipt-data": receipt }
+            }),
+        });
+    }
+
     public static withdraw(json: { total: number; note: any }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ai/points/withdraw`,

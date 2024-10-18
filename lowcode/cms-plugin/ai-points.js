@@ -185,20 +185,19 @@ export class AiPoints {
                 title: '設定儲值金額',
                 innerHTML: (gvc) => {
                     return `<div class="mt-n2">${[
-                        BgWidget.editeInput({
+                        `<div class="d-flex flex-column">${[`儲值點數`].join('')}</div>`,
+                        BgWidget.select({
                             gvc: gvc,
-                            title: `<div class="d-flex flex-column">${[`儲值金額`, BgWidget.grayNote('*最低儲值金額500元')].join('')}</div>`,
-                            placeHolder: '請輸入儲值金額',
                             callback: (text) => {
-                                if (parseInt(text, 10) < 500) {
-                                    dialog.errorMessage({ text: '最低儲值金額500元' });
-                                }
-                                else {
-                                    vm.total = parseInt(text);
-                                }
+                                vm.total = parseInt(text);
                                 gvc.recreateView();
                             },
-                            type: 'number',
+                            options: [
+                                { key: '500', value: '5,000點 ( NT.500 )' },
+                                { key: '1000', value: '10,000點 ( NT.1,000 )' },
+                                { key: '1500', value: '15,000點 ( NT.1,500 )' },
+                                { key: '2000', value: '20,000點 ( NT.2,000 )' }
+                            ],
                             default: `${vm.total}`
                         }),
                         ...(() => {
@@ -209,45 +208,52 @@ export class AiPoints {
                                 return [];
                             }
                         })(),
-                        BgWidget.editeInput({
-                            gvc: gvc,
-                            title: `發票寄送電子信箱`,
-                            placeHolder: '請輸入發票寄送電子信箱',
-                            callback: (text) => {
-                                vm.user_info.email = text;
-                            },
-                            type: 'email',
-                            default: vm.user_info.email
-                        }),
-                        `<div class="tx_normal fw-normal" >發票開立方式</div>`,
-                        BgWidget.select({
-                            gvc: gvc, callback: (text) => {
-                                vm.user_info.invoice_type = text;
-                                gvc.recreateView();
-                            }, options: [
-                                { key: 'me', value: '個人單位' },
-                                { key: 'company', value: '公司行號' }
-                            ], default: vm.user_info.invoice_type
-                        }),
                         ...(() => {
-                            if (vm.user_info.invoice_type === 'company') {
-                                return [
-                                    BgWidget.editeInput({
-                                        gvc: gvc, title: `發票抬頭`, placeHolder: '請輸入發票抬頭', callback: (text) => {
-                                            vm.user_info.company = text;
-                                        }, type: 'text', default: `${vm.user_info.company}`
-                                    }),
-                                    BgWidget.editeInput({
+                            if (gvc.glitter.deviceType !== gvc.glitter.deviceTypeEnum.Ios) {
+                                return [BgWidget.editeInput({
                                         gvc: gvc,
-                                        title: `公司統一編號`,
-                                        placeHolder: '請輸入統一編號',
+                                        title: `發票寄送電子信箱`,
+                                        placeHolder: '請輸入發票寄送電子信箱',
                                         callback: (text) => {
-                                            vm.user_info.gui_number = text;
+                                            vm.user_info.email = text;
                                         },
-                                        type: 'number',
-                                        default: `${vm.user_info.gui_number}`
-                                    })
-                                ];
+                                        type: 'email',
+                                        default: vm.user_info.email
+                                    }),
+                                    `<div class="tx_normal fw-normal" >發票開立方式</div>`,
+                                    BgWidget.select({
+                                        gvc: gvc, callback: (text) => {
+                                            vm.user_info.invoice_type = text;
+                                            gvc.recreateView();
+                                        }, options: [
+                                            { key: 'me', value: '個人單位' },
+                                            { key: 'company', value: '公司行號' }
+                                        ], default: vm.user_info.invoice_type
+                                    }),
+                                    ...(() => {
+                                        if (vm.user_info.invoice_type === 'company') {
+                                            return [
+                                                BgWidget.editeInput({
+                                                    gvc: gvc, title: `發票抬頭`, placeHolder: '請輸入發票抬頭', callback: (text) => {
+                                                        vm.user_info.company = text;
+                                                    }, type: 'text', default: `${vm.user_info.company}`
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: `公司統一編號`,
+                                                    placeHolder: '請輸入統一編號',
+                                                    callback: (text) => {
+                                                        vm.user_info.gui_number = text;
+                                                    },
+                                                    type: 'number',
+                                                    default: `${vm.user_info.gui_number}`
+                                                })
+                                            ];
+                                        }
+                                        else {
+                                            return [];
+                                        }
+                                    })()];
                             }
                             else {
                                 return [];
@@ -283,7 +289,6 @@ export class AiPoints {
                                 dialog.errorMessage({ text: '請輸入有效統一編號' });
                                 return;
                             }
-                            dialog.dataLoading({ visible: true });
                             yield ApiUser.setPublicConfig({
                                 key: 'ai-points-store',
                                 value: vm.user_info,
@@ -292,26 +297,35 @@ export class AiPoints {
                             vm.note = {
                                 invoice_data: vm.user_info
                             };
-                            AiPointsApi.store(vm).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                dialog.dataLoading({ visible: false });
-                                if (res.response.form) {
-                                    const id = gvc.glitter.getUUID();
-                                    if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                                        gvc.glitter.runJsInterFace("toCheckout", {
-                                            form: res.response.form
-                                        }, () => {
-                                            (window.parent).location.reload();
-                                        });
+                            dialog.dataLoading({ visible: true });
+                            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                gvc.glitter.runJsInterFace("in_app_product", {
+                                    total: `ai_points_${vm.total}`
+                                }, (res) => __awaiter(this, void 0, void 0, function* () {
+                                    console.log(`res.receipt_data=>`, res.receipt_data);
+                                    if (res.receipt_data) {
+                                        yield AiPointsApi.apple_webhook(res.receipt_data);
+                                        window.parent.location.reload();
                                     }
                                     else {
+                                        dialog.dataLoading({ visible: false });
+                                        dialog.errorMessage({ text: '儲值失敗' });
+                                    }
+                                }));
+                            }
+                            else {
+                                AiPointsApi.store(vm).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                    dialog.dataLoading({ visible: false });
+                                    if (res.response.form) {
+                                        const id = gvc.glitter.getUUID();
                                         window.parent.$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                         window.parent.document.querySelector(`#${id} #submit`).click();
                                     }
-                                }
-                                else {
-                                    dialog.errorMessage({ text: '發生錯誤' });
-                                }
-                            }));
+                                    else {
+                                        dialog.errorMessage({ text: '發生錯誤' });
+                                    }
+                                }));
+                            }
                         })))].join('');
                 }
             });
