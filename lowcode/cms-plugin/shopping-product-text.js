@@ -113,6 +113,8 @@ export class ProductText {
                                     option: false,
                                 },
                             ],
+                            tableMinWidth: 400,
+                            tableMaxWidth: 470,
                             hiddenPageSplit: true,
                         }),
                         html ` <div

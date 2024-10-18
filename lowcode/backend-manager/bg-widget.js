@@ -1227,8 +1227,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static container(htmlString, width, style) {
         return html ` <div
-            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
-            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
+            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
+            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
         >
             ${htmlString}
         </div>`;
@@ -1453,7 +1453,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div class="${classStyle}">${htmlString}</div>`;
     }
     static mainCard(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
         return html ` <div
@@ -1587,18 +1587,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static openBoxContainer(obj) {
         var _a, _b;
         const text = Tool.randomString(5);
+        const height = (_a = obj.height) !== null && _a !== void 0 ? _a : 500;
+        const closeHeight = 56;
         obj.gvc.addStyle(`
             .box-container-${text} {
                 position: relative;
-                height: 56px;
+                height: ${closeHeight}px;
                 border: 1px solid #ddd;
                 border-radius: 10px;
                 overflow-y: hidden;
                 transition: height 0.3s ease-out;
             }
             .box-container-${text}.open-box {
-                max-height: ${(_a = obj.openHeight) !== null && _a !== void 0 ? _a : 500}px;
-                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
+                max-height: ${height}px;
+                height: ${height}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1636,7 +1638,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
 
             @media (max-width: 768px) {
                 .box-inside-${text} {
-                    padding: 0.5rem 1.25rem 1.25rem;
+                    padding: 1rem;
                 }
             }
         `);
@@ -1651,12 +1653,34 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
                     if (isOpening && !isSelf) {
                         box.classList.remove('open-box');
+                        if (box.tagName === 'DIV') {
+                            box.style.height = `${closeHeight}px`;
+                        }
                     }
                 });
             }
             setTimeout(() => {
                 e.parentElement.classList.toggle('open-box');
                 e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+                const container = window.document.querySelector(`.box-container-${text}`);
+                if (e.parentElement.classList.contains('open-box')) {
+                    const si = setInterval(() => {
+                        const inside = window.document.querySelector(`.box-inside-${text}`);
+                        if (inside) {
+                            const insideHeight = inside.clientHeight;
+                            if (insideHeight + closeHeight < height) {
+                                container.style.height = `${insideHeight + closeHeight}px`;
+                            }
+                            else {
+                                container.style.height = `${height}px`;
+                            }
+                            clearInterval(si);
+                        }
+                    }, 100);
+                }
+                else {
+                    container.style.height = `${closeHeight}px`;
+                }
             }, 50);
         })}"
             >

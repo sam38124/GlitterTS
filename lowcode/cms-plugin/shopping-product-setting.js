@@ -17,7 +17,6 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { FileSystemGet } from '../modules/file-system-get.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
 class Excel {
@@ -2044,166 +2043,154 @@ export class ShoppingProductSetting {
                                                 if (vm.loading) {
                                                     return BgWidget.spinner();
                                                 }
-                                                const text_array = yield FileSystemGet.getFile({
-                                                    id: postMD.content_array,
-                                                    key: 'text-manager',
-                                                });
-                                                const view = [
-                                                    html ` <div class="d-flex align-items-center justify-content-end mb-3">
-                                                                        ${BgWidget.tab([
-                                                        {
-                                                            title: '商品說明',
-                                                            key: 'product-detail',
-                                                        },
-                                                        ...(() => {
-                                                            return text_array.map((dd, index) => {
-                                                                return {
-                                                                    title: dd.title,
-                                                                    key: `${index}`,
-                                                                };
-                                                            });
-                                                        })(),
-                                                    ], gvc, vm.type, (text) => {
-                                                        vm.type = text;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }, 'margin: 0; font-size: 16px;')}
+                                                return html ` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="flex-fill"></div>
                                                                         <div
                                                                             class="cursor_pointer"
                                                                             onclick="${gvc.event(() => {
-                                                        BgWidget.dialog({
-                                                            gvc: gvc,
-                                                            title: '設定',
-                                                            xmark: () => {
-                                                                return new Promise((resolve) => {
-                                                                    gvc.notifyDataChange(vm.id);
-                                                                    resolve(true);
-                                                                });
-                                                            },
-                                                            innerHTML: (gvc) => {
-                                                                const id = gvc.glitter.getUUID();
-                                                                return gvc.bindView(() => {
-                                                                    return {
-                                                                        bind: id,
-                                                                        view: () => {
-                                                                            return vm.documents
-                                                                                .map((dd) => {
-                                                                                return html `<li class="w-100 px-2">
+                                                    BgWidget.dialog({
+                                                        gvc: gvc,
+                                                        title: '設定',
+                                                        xmark: () => {
+                                                            return new Promise((resolve) => {
+                                                                gvc.notifyDataChange(vm.id);
+                                                                resolve(true);
+                                                            });
+                                                        },
+                                                        innerHTML: (gvc) => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return gvc.bindView(() => {
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        return vm.documents
+                                                                            .map((dd) => {
+                                                                            return html `<li class="w-100 px-2">
                                                                                                                 <div class="w-100 d-flex justify-content-between">
                                                                                                                     <div class="d-flex justify-content-start align-items-center gap-3">
                                                                                                                         <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
                                                                                                                         <div class="tx_normal">${dd.title}</div>
                                                                                                                     </div>
                                                                                                                     ${gvc.bindView((() => {
-                                                                                    const iconId = gvc.glitter.getUUID();
-                                                                                    return {
-                                                                                        bind: iconId,
-                                                                                        view: () => {
-                                                                                            return html `<i
+                                                                                const iconId = gvc.glitter.getUUID();
+                                                                                return {
+                                                                                    bind: iconId,
+                                                                                    view: () => {
+                                                                                        return html `<i
                                                                                                                                         class="${postMD.content_array.includes(dd.id)
-                                                                                                ? 'fa-solid fa-eye'
-                                                                                                : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
+                                                                                            ? 'fa-solid fa-eye'
+                                                                                            : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
                                                                                                                                         onclick="${gvc.event(() => {
-                                                                                                if (postMD.content_array.includes(dd.id)) {
-                                                                                                    postMD.content_array = postMD.content_array.filter((d) => d !== dd.id);
-                                                                                                }
-                                                                                                else {
-                                                                                                    postMD.content_array.push(dd.id);
-                                                                                                }
-                                                                                                gvc.notifyDataChange(iconId);
-                                                                                            })}"
+                                                                                            if (postMD.content_array.includes(dd.id)) {
+                                                                                                postMD.content_array = postMD.content_array.filter((d) => d !== dd.id);
+                                                                                            }
+                                                                                            else {
+                                                                                                postMD.content_array.push(dd.id);
+                                                                                            }
+                                                                                            gvc.notifyDataChange(iconId);
+                                                                                        })}"
                                                                                                                                     ></i>`;
-                                                                                        },
-                                                                                        divCreate: {
-                                                                                            class: 'd-flex',
-                                                                                        },
-                                                                                    };
-                                                                                })())}
+                                                                                    },
+                                                                                    divCreate: {
+                                                                                        class: 'd-flex',
+                                                                                    },
+                                                                                };
+                                                                            })())}
                                                                                                                 </div>
                                                                                                             </li>`;
-                                                                            })
-                                                                                .join('');
-                                                                        },
-                                                                        divCreate: {
-                                                                            elem: 'ul',
-                                                                            class: 'w-100 my-2 d-flex flex-column gap-4',
-                                                                        },
-                                                                        onCreate: () => {
-                                                                            if (!vm.loading) {
-                                                                                gvc.glitter.addMtScript([
-                                                                                    {
-                                                                                        src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-                                                                                    },
-                                                                                ], () => { }, () => { });
-                                                                                const interval = setInterval(() => {
-                                                                                    if (window.Sortable) {
-                                                                                        try {
-                                                                                            gvc.addStyle(`
+                                                                        })
+                                                                            .join('');
+                                                                    },
+                                                                    divCreate: {
+                                                                        elem: 'ul',
+                                                                        class: 'w-100 my-2 d-flex flex-column gap-4',
+                                                                    },
+                                                                    onCreate: () => {
+                                                                        if (!vm.loading) {
+                                                                            gvc.glitter.addMtScript([
+                                                                                {
+                                                                                    src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                                                                },
+                                                                            ], () => { }, () => { });
+                                                                            const interval = setInterval(() => {
+                                                                                if (window.Sortable) {
+                                                                                    try {
+                                                                                        gvc.addStyle(`
                                                                                                                         ul {
                                                                                                                             list-style: none;
                                                                                                                             padding: 0;
                                                                                                                         }
                                                                                                                     `);
-                                                                                            function swapArr(arr, t1, t2) {
-                                                                                                const data = arr[t1];
-                                                                                                arr.splice(t1, 1);
-                                                                                                arr.splice(t2, 0, data);
-                                                                                            }
-                                                                                            let startIndex = 0;
-                                                                                            Sortable.create(gvc.getBindViewElem(id).get(0), {
-                                                                                                group: id,
-                                                                                                animation: 100,
-                                                                                                handle: '.dragItem',
-                                                                                                onEnd: (evt) => {
-                                                                                                    swapArr(vm.documents, startIndex, evt.newIndex);
-                                                                                                    ApiUser.setPublicConfig({
-                                                                                                        key: 'text-manager',
-                                                                                                        user_id: 'manager',
-                                                                                                        value: vm.documents,
-                                                                                                    }).then((result) => {
-                                                                                                        if (!result.response.result) {
-                                                                                                            dialog.errorMessage({ text: '設定失敗' });
-                                                                                                        }
-                                                                                                    });
-                                                                                                },
-                                                                                                onStart: (evt) => {
-                                                                                                    startIndex = evt.oldIndex;
-                                                                                                },
-                                                                                            });
+                                                                                        function swapArr(arr, t1, t2) {
+                                                                                            const data = arr[t1];
+                                                                                            arr.splice(t1, 1);
+                                                                                            arr.splice(t2, 0, data);
                                                                                         }
-                                                                                        catch (e) { }
-                                                                                        clearInterval(interval);
+                                                                                        let startIndex = 0;
+                                                                                        Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                                                            group: id,
+                                                                                            animation: 100,
+                                                                                            handle: '.dragItem',
+                                                                                            onEnd: (evt) => {
+                                                                                                swapArr(vm.documents, startIndex, evt.newIndex);
+                                                                                                ApiUser.setPublicConfig({
+                                                                                                    key: 'text-manager',
+                                                                                                    user_id: 'manager',
+                                                                                                    value: vm.documents,
+                                                                                                }).then((result) => {
+                                                                                                    if (!result.response.result) {
+                                                                                                        dialog.errorMessage({ text: '設定失敗' });
+                                                                                                    }
+                                                                                                });
+                                                                                            },
+                                                                                            onStart: (evt) => {
+                                                                                                startIndex = evt.oldIndex;
+                                                                                            },
+                                                                                        });
                                                                                     }
-                                                                                }, 100);
-                                                                            }
-                                                                        },
-                                                                    };
-                                                                });
-                                                            },
-                                                        });
-                                                    })}"
+                                                                                    catch (e) { }
+                                                                                    clearInterval(interval);
+                                                                                }
+                                                                            }, 100);
+                                                                        }
+                                                                    },
+                                                                };
+                                                            });
+                                                        },
+                                                    });
+                                                })}"
                                                                         >
                                                                             設定<i class="fa-regular fa-gear ms-1"></i>
                                                                         </div>
-                                                                    </div>`,
-                                                ];
-                                                if (vm.type === 'product-detail') {
-                                                    view.push(EditorElem.richText({
+                                                                    </div>
+                                                                    ${BgWidget.openBoxContainer({
+                                                    gvc,
+                                                    tag: 'content_array',
+                                                    title: '商品描述',
+                                                    insideHTML: EditorElem.richText({
                                                         gvc: obj.gvc,
                                                         def: postMD.content,
                                                         callback: (text) => {
                                                             postMD.content = text;
                                                         },
-                                                        style: 'overflow-y: auto;max-height:80vh;',
-                                                    }));
-                                                }
-                                                else {
-                                                    const index = parseInt(vm.type, 10);
-                                                    view.push(`<div class="w-100" style="max-height:80vh;padding: 10px 12px;border-radius: 7px; overflow-y: auto; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(() => { })}">
-  ${text_array[index].data.content || '尚未編輯內容'}
-</div>`);
-                                                }
-                                                return view.join('');
+                                                    }),
+                                                })}
+                                                                    ${BgWidget.mbContainer(8)}
+                                                                    ${vm.documents
+                                                    .filter((item) => {
+                                                    return postMD.content_array.includes(item.id);
+                                                })
+                                                    .map((item) => {
+                                                    return BgWidget.openBoxContainer({
+                                                        gvc,
+                                                        tag: 'content_array',
+                                                        title: item.title,
+                                                        insideHTML: html `<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                    ${item.data.content || ''}
+                                                                                </div>`,
+                                                    });
+                                                })
+                                                    .join(BgWidget.mbContainer(8))}`;
                                             }),
                                             divCreate: {},
                                             onCreate: () => {
@@ -2220,7 +2207,7 @@ export class ShoppingProductSetting {
                                             },
                                         };
                                     }),
-                                ].join('<div class="my-2"></div>')),
+                                ].join(BgWidget.mbContainer(12))),
                                 BgWidget.mainCard(html `
                                                     <div class="d-flex align-items-center justify-content-between" style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">
                                                         圖片

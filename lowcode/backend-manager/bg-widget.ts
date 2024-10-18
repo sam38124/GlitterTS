@@ -1503,8 +1503,8 @@ ${obj.default ?? ''}</textarea
 
     static container(htmlString: string, width?: number, style?: string) {
         return html` <div
-            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
-            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
+            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
+            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
         >
             ${htmlString}
         </div>`;
@@ -1772,7 +1772,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static mainCard(htmlString: string, classString?: string, styleString?: string) {
-        return html` <div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
+        return html` <div class="main-card ${classString ?? ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
     static tab(
@@ -1924,21 +1924,23 @@ ${obj.default ?? ''}</textarea
             .join(this.horizontalLine());
     }
 
-    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; openHeight?: number; autoClose?: boolean; guideClass?: string }): string {
+    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; height?: number; autoClose?: boolean; guideClass?: string }): string {
         const text = Tool.randomString(5);
+        const height = obj.height ?? 500;
+        const closeHeight = 56;
 
         obj.gvc.addStyle(`
             .box-container-${text} {
                 position: relative;
-                height: 56px;
+                height: ${closeHeight}px;
                 border: 1px solid #ddd;
                 border-radius: 10px;
                 overflow-y: hidden;
                 transition: height 0.3s ease-out;
             }
             .box-container-${text}.open-box {
-                max-height: ${obj.openHeight ?? 500}px;
-                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
+                max-height: ${height}px;
+                height: ${height}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1976,7 +1978,7 @@ ${obj.default ?? ''}</textarea
 
             @media (max-width: 768px) {
                 .box-inside-${text} {
-                    padding: 0.5rem 1.25rem 1.25rem;
+                    padding: 1rem;
                 }
             }
         `);
@@ -1987,17 +1989,39 @@ ${obj.default ?? ''}</textarea
                 onclick="${obj.gvc.event((e) => {
                     if (!obj.autoClose) {
                         const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
-                        boxes.forEach((box) => {
+                        boxes.forEach((box: any) => {
                             const isOpening = box.classList.contains('open-box');
                             const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
                             if (isOpening && !isSelf) {
                                 box.classList.remove('open-box');
+                                if (box.tagName === 'DIV') {
+                                    box.style.height = `${closeHeight}px`;
+                                }
                             }
                         });
                     }
+
                     setTimeout(() => {
                         e.parentElement.classList.toggle('open-box');
                         e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+
+                        const container = window.document.querySelector(`.box-container-${text}`) as any;
+                        if (e.parentElement.classList.contains('open-box')) {
+                            const si = setInterval(() => {
+                                const inside = window.document.querySelector(`.box-inside-${text}`) as any;
+                                if (inside) {
+                                    const insideHeight = inside.clientHeight;
+                                    if (insideHeight + closeHeight < height) {
+                                        container.style.height = `${insideHeight + closeHeight}px`;
+                                    } else {
+                                        container.style.height = `${height}px`;
+                                    }
+                                    clearInterval(si);
+                                }
+                            }, 100);
+                        } else {
+                            container.style.height = `${closeHeight}px`;
+                        }
                     }, 50);
                 })}"
             >

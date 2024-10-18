@@ -2367,35 +2367,8 @@ export class ShoppingProductSetting {
                                                                 if (vm.loading) {
                                                                     return BgWidget.spinner();
                                                                 }
-                                                                const text_array: FileItem[] = await FileSystemGet.getFile({
-                                                                    id: postMD.content_array,
-                                                                    key: 'text-manager',
-                                                                });
-                                                                const view = [
-                                                                    html` <div class="d-flex align-items-center justify-content-end mb-3">
-                                                                        ${BgWidget.tab(
-                                                                            [
-                                                                                {
-                                                                                    title: '商品說明',
-                                                                                    key: 'product-detail',
-                                                                                },
-                                                                                ...(() => {
-                                                                                    return text_array.map((dd, index) => {
-                                                                                        return {
-                                                                                            title: dd.title,
-                                                                                            key: `${index}`,
-                                                                                        };
-                                                                                    });
-                                                                                })(),
-                                                                            ],
-                                                                            gvc,
-                                                                            vm.type,
-                                                                            (text: any) => {
-                                                                                vm.type = text;
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            },
-                                                                            'margin: 0; font-size: 16px;'
-                                                                        )}
+
+                                                                return html` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="flex-fill"></div>
                                                                         <div
                                                                             class="cursor_pointer"
@@ -2521,28 +2494,35 @@ export class ShoppingProductSetting {
                                                                         >
                                                                             設定<i class="fa-regular fa-gear ms-1"></i>
                                                                         </div>
-                                                                    </div>`,
-                                                                ];
-                                                                if (vm.type === 'product-detail') {
-                                                                    view.push(
-                                                                        EditorElem.richText({
+                                                                    </div>
+                                                                    ${BgWidget.openBoxContainer({
+                                                                        gvc,
+                                                                        tag: 'content_array',
+                                                                        title: '商品描述',
+                                                                        insideHTML: EditorElem.richText({
                                                                             gvc: obj.gvc,
                                                                             def: postMD.content,
                                                                             callback: (text) => {
                                                                                 postMD.content = text;
                                                                             },
-                                                                            style: 'overflow-y: auto;max-height:80vh;',
+                                                                        }),
+                                                                    })}
+                                                                    ${BgWidget.mbContainer(8)}
+                                                                    ${vm.documents
+                                                                        .filter((item: any) => {
+                                                                            return postMD.content_array.includes(item.id);
                                                                         })
-                                                                    );
-                                                                } else {
-                                                                    const index = parseInt(vm.type, 10);
-                                                                    view.push(`<div class="w-100" style="max-height:80vh;padding: 10px 12px;border-radius: 7px; overflow-y: auto; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(
-                                                                        () => {}
-                                                                    )}">
-  ${text_array[index].data.content || '尚未編輯內容'}
-</div>`);
-                                                                }
-                                                                return view.join('');
+                                                                        .map((item: any) => {
+                                                                            return BgWidget.openBoxContainer({
+                                                                                gvc,
+                                                                                tag: 'content_array',
+                                                                                title: item.title,
+                                                                                insideHTML: html`<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                    ${item.data.content || ''}
+                                                                                </div>`,
+                                                                            });
+                                                                        })
+                                                                        .join(BgWidget.mbContainer(8))}`;
                                                             },
                                                             divCreate: {},
                                                             onCreate: () => {
@@ -2559,7 +2539,7 @@ export class ShoppingProductSetting {
                                                             },
                                                         };
                                                     }),
-                                                ].join('<div class="my-2"></div>')
+                                                ].join(BgWidget.mbContainer(12))
                                             ),
                                             BgWidget.mainCard(
                                                 html`
