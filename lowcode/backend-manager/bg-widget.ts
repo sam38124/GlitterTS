@@ -230,6 +230,15 @@ export class BgWidget {
         `;
     }
 
+    static questionButton(
+        event: string,
+        obj?: {
+            size?: number;
+        }
+    ) {
+        return html`<i class="fa-regular fa-circle-question cursor_pointer" style="font-size: ${obj?.size ?? 18}px" onclick="${event}"></i>`;
+    }
+
     static switchButton(gvc: GVC, def: boolean, callback: (value: boolean) => void) {
         return html` <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px;">
             <input
@@ -1784,14 +1793,14 @@ ${obj.default ?? ''}</textarea
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                                 onclick="${gvc.event(() => {
                                     callback(dd.key);
                                 })}"
                             >
                                 ${dd.title}
                             </div>
-                            <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+                            <div style="align-self: stretch; height: 0px; border: 1px #393939 solid"></div>
                         </div>`;
                     } else {
                         return html` <div
@@ -1801,7 +1810,7 @@ ${obj.default ?? ''}</textarea
                             })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -2516,6 +2525,7 @@ ${obj.default ?? ''}</textarea
             text?: string;
             event?: (gvc: GVC) => Promise<boolean>;
         };
+        xmark?: (gvc: GVC) => Promise<boolean>;
         style?: string;
     }) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
@@ -2533,8 +2543,8 @@ ${obj.default ?? ''}</textarea
                         <i
                             class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                             onclick="${gvc.event(() => {
-                                if (obj.cancel?.event) {
-                                    obj.cancel?.event(gvc).then((response) => {
+                                if (obj.xmark) {
+                                    obj.xmark(gvc).then((response) => {
                                         response && gvc.closeDialog();
                                     });
                                 } else {
@@ -2980,22 +2990,22 @@ ${obj.default ?? ''}</textarea
                 loading: false,
             };
 
-            return html`
-                <div class="bg-white shadow rounded-3"
-                     style="max-height:calc(${(window.parent).innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
-                    ${gvc.bindView({
-                        bind: vm.id,
-                        view: () => {
-                            if (vm.loading) {
-                                return html`
-                                    <div class="my-4">${this.spinner()}</div>`;
-                            }
-                            return html`
-                                <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                         style="background: #F2F2F2;">
-                                        <div class="tx_700">${obj.title ?? '產品列表'}</div>
-                                        <div class="flex-fill"></div>
+            return html` <div
+                class="bg-white shadow rounded-3"
+                style="max-height:calc(${window.parent.innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768
+                    ? 'min-width: 800px; width: 1080px;'
+                    : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                ${gvc.bindView({
+                    bind: vm.id,
+                    view: () => {
+                        if (vm.loading) {
+                            return html` <div class="my-4">${this.spinner()}</div>`;
+                        }
+                        return html` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
+                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="flex-fill"></div>
 
                                 <i
                                     class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"

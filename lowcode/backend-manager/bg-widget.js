@@ -152,6 +152,10 @@ export class BgWidget {
             </div>
         `;
     }
+    static questionButton(event, obj) {
+        var _a;
+        return html `<i class="fa-regular fa-circle-question cursor_pointer" style="font-size: ${(_a = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _a !== void 0 ? _a : 18}px" onclick="${event}"></i>`;
+    }
     static switchButton(gvc, def, callback) {
         return html ` <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px;">
             <input
@@ -1460,14 +1464,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                                 onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
                             >
                                 ${dd.title}
                             </div>
-                            <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+                            <div style="align-self: stretch; height: 0px; border: 1px #393939 solid"></div>
                         </div>`;
             }
             else {
@@ -1478,7 +1482,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -2133,9 +2137,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <i
                             class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                             onclick="${gvc.event(() => {
-                var _a, _b;
-                if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                    (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then((response) => {
+                if (obj.xmark) {
+                    obj.xmark(gvc).then((response) => {
                         response && gvc.closeDialog();
                     });
                 }
@@ -2552,23 +2555,23 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html `
-                <div class="bg-white shadow rounded-3"
-                     style="max-height:calc(${(window.parent).innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
-                    ${gvc.bindView({
+            return html ` <div
+                class="bg-white shadow rounded-3"
+                style="max-height:calc(${window.parent.innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768
+                ? 'min-width: 800px; width: 1080px;'
+                : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
                     if (vm.loading) {
-                        return html `
-                                    <div class="my-4">${this.spinner()}</div>`;
+                        return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
-                    return html `
-                                <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                         style="background: #F2F2F2;">
-                                        <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
-                                        <div class="flex-fill"></div>
+                    return html ` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
+                                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                <div class="flex-fill"></div>
 
                                 <i
                                     class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"

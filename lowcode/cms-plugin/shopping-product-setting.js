@@ -12,11 +12,11 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { FileSystem } from '../modules/file-system.js';
 import { FileSystemGet } from '../modules/file-system-get.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
@@ -2030,43 +2030,31 @@ export class ShoppingProductSetting {
                                 BgWidget.mainCard([
                                     obj.gvc.bindView(() => {
                                         var _a;
-                                        const bi = obj.gvc.glitter.getUUID();
+                                        const dialog = new ShareDialog(gvc.glitter);
                                         const vm = {
+                                            id: obj.gvc.glitter.getUUID(),
                                             type: 'product-detail',
+                                            loading: true,
+                                            documents: [],
                                         };
                                         postMD.content_array = (_a = postMD.content_array) !== null && _a !== void 0 ? _a : [];
                                         return {
-                                            bind: bi,
+                                            bind: vm.id,
                                             view: () => __awaiter(this, void 0, void 0, function* () {
+                                                if (vm.loading) {
+                                                    return BgWidget.spinner();
+                                                }
                                                 const text_array = yield FileSystemGet.getFile({
                                                     id: postMD.content_array,
                                                     key: 'text-manager',
                                                 });
                                                 const view = [
-                                                    html ` <div class="d-flex align-items-center justify-content-end mb-2" style="cursor: pointer;">
-                                                                        <div style="font-weight: 700;">商品說明</div>
-                                                                        <div class="flex-fill"></div>
-                                                                        ${BgWidget.grayButton(`<i class="fa-regular fa-gear me-2"></i>設定顯示文本`, gvc.event(() => {
-                                                        FileSystem.selectRichText(gvc, (id) => {
-                                                            postMD.content_array = id;
-                                                            obj.gvc.notifyDataChange(bi);
-                                                        }, `<div class="d-flex flex-column">選擇文本${BgWidget.grayNote('尺寸介紹 / 規格介紹 / 使用教學 / 配送方式 ')}</div>`, postMD.content_array);
-                                                    }))}
-                                                                    </div>`,
-                                                    BgWidget.tab([
-                                                        ...(() => {
-                                                            if (text_array.length > 0) {
-                                                                return [
-                                                                    {
-                                                                        title: '商品介紹',
-                                                                        key: 'product-detail',
-                                                                    },
-                                                                ];
-                                                            }
-                                                            else {
-                                                                return [];
-                                                            }
-                                                        })(),
+                                                    html ` <div class="d-flex align-items-center justify-content-end mb-3">
+                                                                        ${BgWidget.tab([
+                                                        {
+                                                            title: '商品說明',
+                                                            key: 'product-detail',
+                                                        },
                                                         ...(() => {
                                                             return text_array.map((dd, index) => {
                                                                 return {
@@ -2077,8 +2065,127 @@ export class ShoppingProductSetting {
                                                         })(),
                                                     ], gvc, vm.type, (text) => {
                                                         vm.type = text;
-                                                        gvc.notifyDataChange(bi);
-                                                    }, 'margin-bottom: 20px;margin-top:0;font-size:16px;'),
+                                                        gvc.notifyDataChange(vm.id);
+                                                    }, 'margin: 0; font-size: 16px;')}
+                                                                        <div class="flex-fill"></div>
+                                                                        <div
+                                                                            class="cursor_pointer"
+                                                                            onclick="${gvc.event(() => {
+                                                        BgWidget.dialog({
+                                                            gvc: gvc,
+                                                            title: '設定',
+                                                            xmark: () => {
+                                                                return new Promise((resolve) => {
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                    resolve(true);
+                                                                });
+                                                            },
+                                                            innerHTML: (gvc) => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                return gvc.bindView(() => {
+                                                                    return {
+                                                                        bind: id,
+                                                                        view: () => {
+                                                                            return vm.documents
+                                                                                .map((dd) => {
+                                                                                return html `<li class="w-100 px-2">
+                                                                                                                <div class="w-100 d-flex justify-content-between">
+                                                                                                                    <div class="d-flex justify-content-start align-items-center gap-3">
+                                                                                                                        <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
+                                                                                                                        <div class="tx_normal">${dd.title}</div>
+                                                                                                                    </div>
+                                                                                                                    ${gvc.bindView((() => {
+                                                                                    const iconId = gvc.glitter.getUUID();
+                                                                                    return {
+                                                                                        bind: iconId,
+                                                                                        view: () => {
+                                                                                            return html `<i
+                                                                                                                                        class="${postMD.content_array.includes(dd.id)
+                                                                                                ? 'fa-solid fa-eye'
+                                                                                                : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
+                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                if (postMD.content_array.includes(dd.id)) {
+                                                                                                    postMD.content_array = postMD.content_array.filter((d) => d !== dd.id);
+                                                                                                }
+                                                                                                else {
+                                                                                                    postMD.content_array.push(dd.id);
+                                                                                                }
+                                                                                                gvc.notifyDataChange(iconId);
+                                                                                            })}"
+                                                                                                                                    ></i>`;
+                                                                                        },
+                                                                                        divCreate: {
+                                                                                            class: 'd-flex',
+                                                                                        },
+                                                                                    };
+                                                                                })())}
+                                                                                                                </div>
+                                                                                                            </li>`;
+                                                                            })
+                                                                                .join('');
+                                                                        },
+                                                                        divCreate: {
+                                                                            elem: 'ul',
+                                                                            class: 'w-100 my-2 d-flex flex-column gap-4',
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            if (!vm.loading) {
+                                                                                gvc.glitter.addMtScript([
+                                                                                    {
+                                                                                        src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                                                                    },
+                                                                                ], () => { }, () => { });
+                                                                                const interval = setInterval(() => {
+                                                                                    if (window.Sortable) {
+                                                                                        try {
+                                                                                            gvc.addStyle(`
+                                                                                                                        ul {
+                                                                                                                            list-style: none;
+                                                                                                                            padding: 0;
+                                                                                                                        }
+                                                                                                                    `);
+                                                                                            function swapArr(arr, t1, t2) {
+                                                                                                const data = arr[t1];
+                                                                                                arr.splice(t1, 1);
+                                                                                                arr.splice(t2, 0, data);
+                                                                                            }
+                                                                                            let startIndex = 0;
+                                                                                            Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                                                                group: id,
+                                                                                                animation: 100,
+                                                                                                handle: '.dragItem',
+                                                                                                onEnd: (evt) => {
+                                                                                                    swapArr(vm.documents, startIndex, evt.newIndex);
+                                                                                                    ApiUser.setPublicConfig({
+                                                                                                        key: 'text-manager',
+                                                                                                        user_id: 'manager',
+                                                                                                        value: vm.documents,
+                                                                                                    }).then((result) => {
+                                                                                                        if (!result.response.result) {
+                                                                                                            dialog.errorMessage({ text: '設定失敗' });
+                                                                                                        }
+                                                                                                    });
+                                                                                                },
+                                                                                                onStart: (evt) => {
+                                                                                                    startIndex = evt.oldIndex;
+                                                                                                },
+                                                                                            });
+                                                                                        }
+                                                                                        catch (e) { }
+                                                                                        clearInterval(interval);
+                                                                                    }
+                                                                                }, 100);
+                                                                            }
+                                                                        },
+                                                                    };
+                                                                });
+                                                            },
+                                                        });
+                                                    })}"
+                                                                        >
+                                                                            設定<i class="fa-regular fa-gear ms-1"></i>
+                                                                        </div>
+                                                                    </div>`,
                                                 ];
                                                 if (vm.type === 'product-detail') {
                                                     view.push(EditorElem.richText({
@@ -2099,31 +2206,46 @@ export class ShoppingProductSetting {
                                                 return view.join('');
                                             }),
                                             divCreate: {},
+                                            onCreate: () => {
+                                                if (vm.loading) {
+                                                    ApiUser.getPublicConfig('text-manager', 'manager').then((data) => {
+                                                        vm.documents = data.response.value;
+                                                        postMD.content_array = postMD.content_array.filter((id) => {
+                                                            return vm.documents.some((item) => item.id === id);
+                                                        });
+                                                        vm.loading = false;
+                                                        gvc.notifyDataChange(vm.id);
+                                                    });
+                                                }
+                                            },
                                         };
                                     }),
                                 ].join('<div class="my-2"></div>')),
                                 BgWidget.mainCard(html `
-                                                    <div class="d-flex align-items-center justify-content-between" style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">圖片
-                                                    ${BgWidget.customButton({
+                                                    <div class="d-flex align-items-center justify-content-between" style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">
+                                                        圖片
+                                                        ${BgWidget.customButton({
                                     button: {
                                         color: 'black',
-                                        size: "sm"
+                                        size: 'sm',
                                     },
                                     text: {
-                                        name: '新增圖片'
+                                        name: '新增圖片',
                                     },
                                     event: gvc.event(() => {
                                         imageLibrary.selectImageLibrary(gvc, (urlArray) => {
                                             if (urlArray.length > 0) {
-                                                postMD.preview_image.push(...urlArray.map((data) => { return data.data; }));
+                                                postMD.preview_image.push(...urlArray.map((data) => {
+                                                    return data.data;
+                                                }));
                                                 obj.gvc.notifyDataChange('image_view');
                                             }
                                             else {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                             }
-                                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: true });
-                                    })
+                                        }, html `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: true });
+                                    }),
                                 })}
                                                     </div>
                                                     ${obj.gvc.bindView(() => {
@@ -2624,7 +2746,6 @@ export class ShoppingProductSetting {
                                                                                                                       style="margin-bottom:18px;padding: 0px 20px;gap:18px;color:#393939;"
                                                                                                                   >
                                                                                                                       ${(() => {
-                                                                                                let editArray = [];
                                                                                                 let arrayHTML = ``;
                                                                                                 postMD.specs[0].option.map((option) => {
                                                                                                     option.sortQueue.map((data) => {
@@ -3488,30 +3609,34 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                 postMD.seo.domain = postMD.seo.domain || postMD.title;
                                                 const href = `https://${window.parent.glitter.share.editorViewModel.domain}/products`;
                                                 return html ` <div style="font-weight: 700;" class="mb-3">搜尋引擎列表</div>
-         ${[
+                                                                    ${[
                                                     html ` <div class="tx_normal fw-normal mb-2" style="">商品網址</div>`,
                                                     html ` <div
                                                                             style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                                         .body.clientWidth > 768
                                                         ? 'gap: 18px; '
                                                         : 'flex-direction: column; gap: 0px; '}"
-                     class="w-100"
-                                                            >
-                                                                <div style="padding: 9px 18px;background: #EAEAEA;  align-items: center; gap: 5px; display: flex;${(document.body.clientWidth < 800) ? `font-size:14px;width:100%;justify-content: start;` : `font-size: 16px;justify-content: center;`}">
-                                                                    <div style="text-align: right; color: #393939;  font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                        ${href}/
-                                                                    </div>
-                                                                </div>
-                                                                <input
-                                                                    class="flex-fill"
-                                                                    style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;
-${document
+                                                                            class="w-100"
+                                                                        >
+                                                                            <div
+                                                                                style="padding: 9px 18px;background: #EAEAEA;  align-items: center; gap: 5px; display: flex;${document.body
+                                                        .clientWidth < 800
+                                                        ? `font-size:14px;width:100%;justify-content: start;`
+                                                        : `font-size: 16px;justify-content: center;`}"
+                                                                            >
+                                                                                <div style="text-align: right; color: #393939;  font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                    ${href}/
+                                                                                </div>
+                                                                            </div>
+                                                                            <input
+                                                                                class="flex-fill"
+                                                                                style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;${document
                                                         .body.clientWidth > 768
                                                         ? ''
                                                         : 'padding: 9px 18px;width:100%;'}"
-                                                                    placeholder="請輸入商品連結"
-                                                                    value="${postMD.seo.domain || ''}"
-                                                                    onchange="${gvc.event((e) => {
+                                                                                placeholder="請輸入商品連結"
+                                                                                value="${postMD.seo.domain || ''}"
+                                                                                onchange="${gvc.event((e) => {
                                                         let text = e.value;
                                                         if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
                                                             const dialog = new ShareDialog(gvc.glitter);
@@ -3522,8 +3647,8 @@ ${document
                                                         }
                                                         gvc.notifyDataChange('seo');
                                                     })}"
-                                                                />
-                                                            </div>`,
+                                                                            />
+                                                                        </div>`,
                                                     html ` <div class="mt-2 mb-1">
                                                                             <span class="tx_normal me-1">網址預覽</span>
                                                                             ${BgWidget.greenNote(href + `/${postMD.seo.domain}`, gvc.event(() => {

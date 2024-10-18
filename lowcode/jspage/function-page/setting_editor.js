@@ -18,14 +18,14 @@ export class Setting_editor {
                 view: () => {
                     Storage.select_bg_btn = 'custom';
                     return html `
-                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none"
-                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}">
-                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg"/>
-                            <span class="ms-1"
-                                  style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
+                        <div
+                            class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none"
+                            style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
+                        >
+                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>
-                        <div class="w-100 bg-white"
-                             style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
+                        <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         let initial = false;
@@ -91,9 +91,7 @@ export class Setting_editor {
                                             url.searchParams.set('appName', items[parseInt(index)].appName);
                                             url.searchParams.set('cms', 'true');
                                             url.searchParams.set('page', page);
-                                            $('#editerCenter').html(html `
-                                                        <iframe src="${url.href}"
-                                                                style="border: none;height: calc(100%);"></iframe>`);
+                                            $('#editerCenter').html(html ` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                             glitter.closeDrawer();
                                         }
                                         return true;
@@ -192,13 +190,13 @@ export class Setting_editor {
                                                             }
                                                         }
                                                         return html `
-                                                                            ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
-                                                                            <li>
-                                                                                <div
-                                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
+                                                                        ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                        <li>
+                                                                            <div
+                                                                                class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
                                                                                 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                        onclick="${gvc.event(() => {
+                                                                                style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                onclick="${gvc.event(() => {
                                                             if (dd.type === 'container') {
                                                                 list.map((d1) => {
                                                                     d1.toggle = false;
@@ -224,30 +222,21 @@ export class Setting_editor {
                                                                 }
                                                             }
                                                         })}"
-                                                                                >
-                                                                                    ${dd.icon ? html `<img
-                                                                                            src="${dd.icon}"
-                                                                                            style="width:18px;height:18px;"/>` : ``}
-                                                                                    <span>${dd.title}</span>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${dd.type === 'container'
-                                                            ? !dd.toggle
-                                                                ? html ` <i
-                                                                                                            class="fa-regular fa-angle-right hoverBtn me-1"
-                                                                                                            aria-hidden="true"></i> `
-                                                                : html ` <i
-                                                                                                            class="fa-regular fa-angle-down hoverBtn me-1"
-                                                                                                            aria-hidden="true"></i>`
-                                                            : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
-                                                                                </div>
+                                                                            >
+                                                                                ${dd.icon ? html `<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
+                                                                                <span>${dd.title}</span>
+                                                                                <div class="flex-fill"></div>
                                                                                 ${dd.type === 'container'
-                                                            ? html `
-                                                                                            <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">
-                                                                                                ${renderItem(dd.child)}
-                                                                                            </div>`
+                                                            ? !dd.toggle
+                                                                ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                : html ` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                            : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                            </div>
+                                                                            ${dd.type === 'container'
+                                                            ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>`
                                                             : ``}
-                                                                            </li>
-                                                                        `;
+                                                                        </li>
+                                                                    `;
                                                     })
                                                         .join('<div class="my-1"></div>');
                                                 },
@@ -261,13 +250,11 @@ export class Setting_editor {
                                                         },
                                                     ],
                                                 },
-                                                onCreate: () => {
-                                                },
+                                                onCreate: () => { },
                                             };
                                         });
                                     }
-                                    return html `
-                                                <div class="p-2">${renderItem(list)}</div>`;
+                                    return html ` <div class="p-2">${renderItem(list)}</div>`;
                                 }
                                 return renderHTML(items);
                             },
@@ -298,13 +285,13 @@ export class Setting_editor {
                     })}
                         </div>
                         <div
-                                class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
-                                style="z-index: 999;border:none;"
+                            class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
+                            style="z-index: 999;border:none;"
                         >
                             <div
-                                    class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
-                                    style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
-                                    onclick="${gvc.event(() => {
+                                class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
+                                style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
+                                onclick="${gvc.event(() => {
                         Setting_editor.addPlugin(gvc, () => {
                             gvc.notifyDataChange(id);
                         });
@@ -319,8 +306,7 @@ export class Setting_editor {
             };
         });
     }
-    static center(gvc, viewModel, createID) {
-    }
+    static center(gvc, viewModel, createID) { }
     static addPlugin(gvc, callback) {
         const saasConfig = window.saasConfig;
         const html = String.raw;
@@ -343,13 +329,12 @@ export class Setting_editor {
                     view: () => {
                         return html `
                             <div class="position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
-                                <span class="fs-6 fw-bold "
-                                      style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
+                                <span class="fs-6 fw-bold " style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
                                 <div class="flex-fill"></div>
                                 <button
-                                        class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
-                                        style="height: 28px;width:40px;font-size:14px;"
-                                        onclick="${gvc.event(() => {
+                                    class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
+                                    style="height: 28px;width:40px;font-size:14px;"
+                                    onclick="${gvc.event(() => {
                             items.push(postMd);
                             NormalPageEditor.back();
                         })}"
@@ -371,10 +356,9 @@ export class Setting_editor {
                             EditorElem.searchInput({
                                 gvc: gvc,
                                 title: html `群組分類
-                                        <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0"
-                                             style="word-break: break-all;white-space:normal">
-                                            加入 / 進行分類:<br/>例如:頁面/登入/註冊設定
-                                        </div>`,
+                                            <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0" style="word-break: break-all;white-space:normal">
+                                                加入 / 進行分類:<br />例如:頁面/登入/註冊設定
+                                            </div>`,
                                 def: postMd.group,
                                 array: (() => {
                                     let array = [];
@@ -445,12 +429,10 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title, event) => {
-                        return html `
-                            <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
-                                 style="gap:5px;color:#3366BB;" onclick="${event}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>${title}</span>
-                            </div>`;
+                        return html ` <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded" style="gap:5px;color:#3366BB;" onclick="${event}">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>${title}</span>
+                        </div>`;
                     },
                 };
                 return gvc.bindView(() => {
@@ -513,9 +495,9 @@ export class Setting_editor {
                                                 return html `
                                                         <li>
                                                             <div
-                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
-                                                                    style="gap:5px;color:#393939;"
-                                                                    onclick="${gvc.event(() => {
+                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
+                                                                style="gap:5px;color:#393939;"
+                                                                onclick="${gvc.event(() => {
                                                     if (dd.type === 'container') {
                                                         dd.toggle = !dd.toggle;
                                                         gvc.notifyDataChange(id);
@@ -524,12 +506,8 @@ export class Setting_editor {
                                                             >
                                                                 ${dd.type === 'container'
                                                     ? !dd.toggle
-                                                        ? html ` <i
-                                                                                        class="fa-regular fa-angle-right hoverBtn me-1"
-                                                                                        aria-hidden="true"></i> `
-                                                        : html `<i
-                                                                                        class="fa-regular fa-angle-down hoverBtn me-1"
-                                                                                        aria-hidden="true"></i>`
+                                                        ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                        : html `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
                                                     : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
@@ -537,9 +515,9 @@ export class Setting_editor {
                                                                 ${dd.type === 'container'
                                                     ? ``
                                                     : html `
-                                                                            <i
-                                                                                    class="fa-solid fa-pencil text-black hoverBtn me-2 child"
-                                                                                    onclick="${gvc.event(() => {
+                                                                          <i
+                                                                              class="fa-solid fa-pencil text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
                                                         select = dd.info;
                                                         NormalPageEditor.toggle({
                                                             visible: true,
@@ -547,10 +525,10 @@ export class Setting_editor {
                                                             title: dd.title,
                                                         });
                                                     })}"
-                                                                            ></i>
-                                                                            <i
-                                                                                    class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
-                                                                                    onclick="${gvc.event(() => {
+                                                                          ></i>
+                                                                          <i
+                                                                              class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             callback: (response) => {
@@ -570,14 +548,11 @@ export class Setting_editor {
                                                             text: '是否確認刪除插件?',
                                                         });
                                                     })}"
-                                                                            ></i>
-                                                                        `}
+                                                                          ></i>
+                                                                      `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container' ? html `
-                                                                <div class="ps-2 ${dd.toggle ? `` : `d-none`}">
-                                                                    ${renderItems(dd.child)}
-                                                                </div>` : ``}
+                                                            ${dd.type === 'container' ? html ` <div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
                                                         </li>
                                                     `;
                                             })
@@ -602,8 +577,7 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                onChange: function (evt) {
-                                                },
+                                                onChange: function (evt) { },
                                                 onEnd: (evt) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;
@@ -641,9 +615,9 @@ export class Setting_editor {
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button
-                                            class="btn btn-primary-c"
-                                            style="height: 28px;width:40px;font-size:14px;"
-                                            onclick="${gvc.event(() => {
+                                        class="btn btn-primary-c"
+                                        style="height: 28px;width:40px;font-size:14px;"
+                                        onclick="${gvc.event(() => {
                                 dialog.dataLoading({ visible: true });
                                 ApiPageConfig.setPrivateConfigV2({
                                     key: 'backend_list',
@@ -821,6 +795,15 @@ Setting_editor.menuItems = () => {
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
             moduleName: '商品管理',
             guideClass: 'guide5-2',
+        },
+        {
+            icon: '',
+            page: 'text-manager',
+            group: '商品管理',
+            title: '商品顯示',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            moduleName: '商品管理',
         },
         {
             icon: '',
@@ -1208,7 +1191,8 @@ Setting_editor.menuItems = () => {
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
             moduleName: '方案管理',
-        }, {
+        },
+        {
             icon: '',
             page: 'sms-points',
             group: `方案與加值中心`,
@@ -1216,7 +1200,7 @@ Setting_editor.menuItems = () => {
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
             moduleName: '方案管理',
-        }
+        },
     ];
 };
 Setting_editor.noLimitMenuItems = () => {
