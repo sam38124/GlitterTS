@@ -2012,7 +2012,7 @@ ${obj.default ?? ''}</textarea
                                 if (inside) {
                                     const insideHeight = inside.clientHeight;
                                     if (insideHeight + closeHeight < height) {
-                                        container.style.height = `${insideHeight + closeHeight}px`;
+                                        container.style.height = `${insideHeight + closeHeight + 20}px`;
                                     } else {
                                         container.style.height = `${height}px`;
                                     }

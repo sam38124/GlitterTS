@@ -2174,6 +2174,7 @@ export class ShoppingProductSetting {
                                                             postMD.content = text;
                                                         },
                                                     }),
+                                                    height: 800,
                                                 })}
                                                                     ${BgWidget.mbContainer(8)}
                                                                     ${vm.documents

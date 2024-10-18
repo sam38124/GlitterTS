@@ -260,7 +260,7 @@ export class ShoppingFinanceSetting {
                             ].join(BgWidget.mbContainer(24));
                         }
                         catch (e) {
-                            console.log(e);
+                            console.error(e);
                             return `${e}`;
                         }
                     },
