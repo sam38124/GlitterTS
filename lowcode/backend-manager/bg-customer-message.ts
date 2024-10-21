@@ -182,6 +182,7 @@ export class BgCustomerMessage {
                                 </div>`
                         ];
                         if (BgCustomerMessage.vm.select_bt === 'list') {
+
                             view.push(
                                 BgCustomerMessage.list(gvc, (user) => {
                                     vm.type = 'detail';
@@ -714,7 +715,7 @@ export class BgCustomerMessage {
                                 .filter((dd: any) => {
                                     return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id)
                                 }).map((dd: any) => {
-                                            dd.topMessage = dd.topMessage??{}
+                                    dd.topMessage = dd.topMessage??{}
                                     dd.topMessage.text = dd.topMessage?.text??"圖片內容";
                                     if (dd.topMessage && dd.chat_id !== 'manager-preview') {
                                         const unReadCount = unRead.filter((d2: any) => {
@@ -755,16 +756,16 @@ export class BgCustomerMessage {
                                                                     alt="Devon Lane"
                                                             />
                                                             ${(()=>{
-                                                let id:string = dd.chat_id
-                                                if (id.startsWith('line')){
-                                                    return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
-                                                }
-                                                if (id.startsWith('fb')){
+                                                                let id:string = dd.chat_id
+                                                                if (id.startsWith('line')){
+                                                                    return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
+                                                                }
+                                                                if (id.startsWith('fb')){
 
-                                                    return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`
-                                                }
-                                                return ``
-                                            })()}
+                                                                    return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`
+                                                                }
+                                                                return ``
+                                                            })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">

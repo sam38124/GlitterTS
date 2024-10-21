@@ -27,11 +27,11 @@ class Chat {
                 room.chat_id = generateChatID();
             }
             if ((await database_1.default.query(`select count(1)
-                                  from \`${this.app}\`.t_chat_list
-                                  where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 0) {
+                         from \`${this.app}\`.t_chat_list
+                         where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 0) {
                 const participant = room.participant.find((str) => str.startsWith("line"));
                 let data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
-                         SET ?`, [
+                     SET ?`, [
                     {
                         chat_id: room.chat_id,
                         type: room.type,
@@ -40,19 +40,22 @@ class Chat {
                 ]);
                 for (const b of room.participant) {
                     await database_1.default.query(`
-                        insert into \`${this.app}\`.\`t_chat_participants\`
-                        set ?
-                    `, [
+                            insert into \`${this.app}\`.\`t_chat_participants\`
+                            set ?
+                        `, [
                         {
                             chat_id: room.chat_id,
                             user_id: b,
                         },
                     ]);
-                    await database_1.default.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`, [b, room.chat_id]);
+                    await database_1.default.query(`delete
+                                    from \`${this.app}\`.\`t_chat_last_read\`
+                                    where user_id = ?
+                                      and chat_id = ?`, [b, room.chat_id]);
                     await database_1.default.query(`
-                        insert into \`${this.app}\`.\`t_chat_last_read\`
-                        set ?
-                    `, [
+                            insert into \`${this.app}\`.\`t_chat_last_read\`
+                            set ?
+                        `, [
                         {
                             chat_id: room.chat_id,
                             user_id: b,
@@ -77,8 +80,9 @@ class Chat {
         }
     }
     async getChatRoom(qu, userID) {
-        var _a, _b, _c;
+        var _a;
         try {
+            const start = new Date().getTime();
             let query = [];
             qu.befor_id && query.push(`id<${qu.befor_id}`);
             qu.after_id && query.push(`id>${qu.after_id}`);
@@ -86,42 +90,76 @@ class Chat {
             query.push(`chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(userID)})`);
             qu.order_string = `order by updated_time desc`;
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_chat_list`).querySql(query, qu);
-            for (const b of data.data) {
-                if (b.type === 'user') {
-                    const user = b.chat_id.split('-').find((dd) => {
-                        return dd !== userID;
-                    });
-                    b.topMessage = (await database_1.default.query(`SELECT message, created_time
-                                                     FROM \`${this.app}\`.t_chat_detail
-                                                     where chat_id = ${database_1.default.escape(b.chat_id)}
-                                                     order by id desc limit 0,1;`, []))[0];
-                    b.unread = (await database_1.default.query(`SELECT count(1) FROM \`${this.app}\`.t_chat_detail,\`${this.app}\`.t_chat_last_read where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(userID)})
-            and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${database_1.default.escape(userID)} and t_chat_detail.chat_id=${database_1.default.escape(b.chat_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time `, []))[0]['count(1)'];
-                    if (b.topMessage) {
-                        b.topMessage.message.created_time = b.topMessage.created_time;
-                        b.topMessage = b.topMessage && b.topMessage.message;
-                    }
-                    b.who = user;
-                    if (user) {
+            console.log(`查詢Chat-list:${((new Date().getTime()) - start) / 1000}`);
+            await new Promise(async (resolve, reject) => {
+                let pass = 0;
+                for (const b of data.data) {
+                    new Promise(async (resolve, reject) => {
+                        var _a, _b;
                         try {
-                            b.user_data = (_b = ((_a = (await new user_js_1.User(this.app).getUserData(user, 'userID'))) !== null && _a !== void 0 ? _a : {}).userData) !== null && _b !== void 0 ? _b : {};
+                            if (b.type === 'user') {
+                                const user = b.chat_id.split('-').find((dd) => {
+                                    return dd !== userID;
+                                });
+                                b.topMessage = (await database_1.default.query(`SELECT message, created_time
+                                         FROM \`${this.app}\`.t_chat_detail
+                                         where chat_id = ${database_1.default.escape(b.chat_id)}
+                                         order by id desc limit 0,1;`, []))[0];
+                                console.log(`查詢topMessage:${((new Date().getTime()) - start) / 1000}`);
+                                b.unread = (await database_1.default.query(`SELECT count(1)
+                                         FROM \`${this.app}\`.t_chat_detail,
+                                              \`${this.app}\`.t_chat_last_read
+                                         where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(userID)})
+                                           and (t_chat_detail.chat_id != 'manager-preview')
+                                           and t_chat_detail.user_id!=${database_1.default.escape(userID)}
+                                           and t_chat_detail.chat_id=${database_1.default.escape(b.chat_id)}
+                                           and t_chat_detail.chat_id=t_chat_last_read.chat_id
+                                           and t_chat_last_read.last_read
+                                             < created_time `, []))[0]['count(1)'];
+                                console.log(`查詢unread:${((new Date().getTime()) - start) / 1000}`);
+                                if (b.topMessage) {
+                                    b.topMessage.message.created_time = b.topMessage.created_time;
+                                    b.topMessage = b.topMessage && b.topMessage.message;
+                                }
+                                b.who = user;
+                                if (user) {
+                                    try {
+                                        b.user_data = (_b = ((_a = (await new user_js_1.User(this.app).getUserData(user, 'userID'))) !== null && _a !== void 0 ? _a : {}).userData) !== null && _b !== void 0 ? _b : {};
+                                        console.log(`查詢user:${((new Date().getTime()) - start) / 1000}`);
+                                    }
+                                    catch (e) {
+                                    }
+                                }
+                            }
+                            resolve(true);
                         }
-                        catch (e) { }
-                    }
+                        catch (e) {
+                            resolve(false);
+                        }
+                    }).then(() => {
+                        pass++;
+                        if (pass === data.data.length) {
+                            resolve(true);
+                        }
+                    });
                 }
-            }
+                if (pass === data.data.length) {
+                    resolve(true);
+                }
+            });
+            console.log(`查詢Chat-DATA:${((new Date().getTime()) - start) / 1000}`);
             return data;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', 'GetChatRoom Error:' + e.message, null);
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', 'GetChatRoom Error:' + e.message, null);
         }
     }
     async addMessage(room) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
             const chatRoom = (await database_1.default.query(`select *
-                                               from \`${this.app}\`.t_chat_list
-                                               where chat_id = ?`, [room.chat_id]))[0];
+                     from \`${this.app}\`.t_chat_list
+                     where chat_id = ?`, [room.chat_id]))[0];
             if (!chatRoom) {
                 throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
@@ -142,17 +180,19 @@ class Chat {
                 }, () => {
                 });
             }
-            const user = (await database_1.default.query(`SELECT userID,userData
-                                          FROM \`${this.app}\`.t_user
-                                          where userID = ?`, [room.user_id]))[0];
+            const user = (await database_1.default.query(`SELECT userID, userData
+                     FROM \`${this.app}\`.t_user
+                     where userID = ?`, [room.user_id]))[0];
             const particpant = await database_1.default.query(`SELECT *
-                                               FROM \`${this.app}\`.t_chat_participants
-                                               where chat_id = ?`, [room.chat_id]);
-            await database_1.default.query(`update \`${this.app}\`.t_chat_list set updated_time=NOW() where chat_id = ?`, [room.chat_id]);
+                 FROM \`${this.app}\`.t_chat_participants
+                 where chat_id = ?`, [room.chat_id]);
+            await database_1.default.query(`update \`${this.app}\`.t_chat_list
+                            set updated_time=NOW()
+                            where chat_id = ?`, [room.chat_id]);
             const insert = await database_1.default.query(`
-                insert into \`${this.app}\`.\`t_chat_detail\`
-                set ?
-            `, [
+                    insert into \`${this.app}\`.\`t_chat_detail\`
+                    set ?
+                `, [
                 {
                     chat_id: room.chat_id,
                     user_id: room.user_id,
@@ -163,8 +203,8 @@ class Chat {
             for (const dd of (_a = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _a !== void 0 ? _a : []) {
                 await this.updateLastRead(dd.user_id, room.chat_id);
                 const userData = (await database_1.default.query(`select userData
-                                                  from \`${this.app}\`.t_user
-                                                  where userID = ?`, [room.user_id]))[0];
+                         from \`${this.app}\`.t_user
+                         where userID = ?`, [room.user_id]))[0];
                 dd.callback({
                     id: insert.insertId,
                     chat_id: room.chat_id,
@@ -200,9 +240,9 @@ class Chat {
                             }
                         });
                         const insert = await database_1.default.query(`
-                                    insert into \`${this.app}\`.\`t_chat_detail\`
-                                    set ?
-                                `, [
+                                insert into \`${this.app}\`.\`t_chat_detail\`
+                                set ?
+                            `, [
                             {
                                 chat_id: room.chat_id,
                                 user_id: b.user_id,
@@ -212,8 +252,8 @@ class Chat {
                         ]);
                         for (const dd of (_c = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _c !== void 0 ? _c : []) {
                             const userData = (await database_1.default.query(`select userData
-                                                                      from \`${this.app}\`.t_user
-                                                                      where userID = ?`, [b.user_id]))[0];
+                                     from \`${this.app}\`.t_user
+                                     where userID = ?`, [b.user_id]))[0];
                             await this.updateLastRead(dd.user_id, room.chat_id);
                             dd.callback({
                                 id: insert.insertId,
@@ -243,9 +283,9 @@ class Chat {
                             for (const d of robot.question) {
                                 if (d.ask === room.message.text) {
                                     const insert = await database_1.default.query(`
-                                    insert into \`${this.app}\`.\`t_chat_detail\`
-                                    set ?
-                                `, [
+                                            insert into \`${this.app}\`.\`t_chat_detail\`
+                                            set ?
+                                        `, [
                                         {
                                             chat_id: room.chat_id,
                                             user_id: b.user_id,
@@ -257,8 +297,8 @@ class Chat {
                                     ]);
                                     for (const dd of (_g = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _g !== void 0 ? _g : []) {
                                         const userData = (await database_1.default.query(`select userData
-                                                                      from \`${this.app}\`.t_user
-                                                                      where userID = ?`, [b.user_id]))[0];
+                                                 from \`${this.app}\`.t_user
+                                                 where userID = ?`, [b.user_id]))[0];
                                         await this.updateLastRead(dd.user_id, room.chat_id);
                                         dd.callback({
                                             id: insert.insertId,
@@ -293,9 +333,9 @@ class Chat {
                 .map((dd) => {
                 return dd.user_id;
             });
-            const userData = await database_1.default.query(`SELECT userData,userID
-                                             FROM \`${this.app}\`.t_user
-                                             where userID in (${(() => {
+            const userData = await database_1.default.query(`SELECT userData, userID
+                 FROM \`${this.app}\`.t_user
+                 where userID in (${(() => {
                 const id = ['0'].concat(notifyUser);
                 return id.join(',');
             })()});`, []);
@@ -350,12 +390,12 @@ class Chat {
     }
     async updateLastRead(userID, chat_id) {
         await database_1.default.query(`replace
-        into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [userID, chat_id, new Date()]);
+            into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [userID, chat_id, new Date()]);
     }
     async getLastRead(chat_id) {
         return await database_1.default.query(`select *
-                               from \`${this.app}\`.t_chat_last_read
-                               where chat_id = ?;`, [chat_id]);
+             from \`${this.app}\`.t_chat_last_read
+             where chat_id = ?;`, [chat_id]);
     }
     templateWithCustomerMessage(subject, title, message) {
         return `<div id=":14y" class="ii gt adO" jslog="20277; u014N:xr6bB; 1:WyIjdGhyZWFkLWY6MTcyNTcxNjU2NTQ4OTk2MTY3OSJd; 4:WyIjbXNnLWY6MTcyNTcxNjY3NDU2Njc0OTY2MyJd"><div id=":14x" class="a3s aiL "><div id="m_-852875620297719051MailSample1"><div class="adM">
@@ -380,7 +420,7 @@ class Chat {
             qu.befor_id && query.push(`id<${qu.befor_id}`);
             qu.after_id && query.push(`id>${qu.after_id}`);
             await database_1.default.query(`replace
-            into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [qu.user_id, qu.chat_id, new Date()]);
+                into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [qu.user_id, qu.chat_id, new Date()]);
             if (!qu.befor_id) {
                 const lastRead = await this.getLastRead(qu.chat_id);
                 for (const dd of (_a = web_socket_js_1.WebSocket.chatMemory[this.app + qu.chat_id]) !== null && _a !== void 0 ? _a : []) {
@@ -400,8 +440,8 @@ class Chat {
             let userDataStorage = {};
             for (const b of userID) {
                 userDataStorage[b] = (await database_1.default.query(`select userData
-                                                      from \`${this.app}\`.t_user
-                                                      where userID = ?`, [b]))[0];
+                         from \`${this.app}\`.t_user
+                         where userID = ?`, [b]))[0];
                 userDataStorage[b] = userDataStorage[b] && userDataStorage[b].userData;
             }
             res.data.map((dd) => {
@@ -421,12 +461,28 @@ class Chat {
         }
     }
     async unReadMessage(user_id) {
-        return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.* FROM \`${this.app}\`.t_chat_detail,\`${this.app}\`.t_chat_last_read where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(user_id)})
-            and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${database_1.default.escape(user_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time order by id desc`, []);
+        return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.*
+             FROM \`${this.app}\`.t_chat_detail,
+                  \`${this.app}\`.t_chat_last_read
+             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
+               and (t_chat_detail.chat_id != 'manager-preview')
+               and t_chat_detail.user_id!=${database_1.default.escape(user_id)}
+               and t_chat_detail.chat_id=t_chat_last_read.chat_id
+               and t_chat_last_read.last_read
+                 < created_time
+             order by id desc`, []);
     }
     async unReadMessageCount(user_id) {
-        return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.* FROM \`${this.app}\`.t_chat_detail,\`${this.app}\`.t_chat_last_read where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(user_id)})
-            and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${database_1.default.escape(user_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time order by id desc`, []);
+        return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.*
+             FROM \`${this.app}\`.t_chat_detail,
+                  \`${this.app}\`.t_chat_last_read
+             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
+               and (t_chat_detail.chat_id != 'manager-preview')
+               and t_chat_detail.user_id!=${database_1.default.escape(user_id)}
+               and t_chat_detail.chat_id=t_chat_last_read.chat_id
+               and t_chat_last_read.last_read
+                 < created_time
+             order by id desc`, []);
     }
     constructor(app, token) {
         this.app = app;

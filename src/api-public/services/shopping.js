@@ -1949,55 +1949,74 @@ class Shopping {
         try {
             if (tags.length > 0) {
                 const result = {};
-                for (const tag of tags) {
-                    switch (tag) {
-                        case 'recent_active_user':
-                            result[tag] = await this.getRecentActiveUser();
-                            break;
-                        case 'recent_sales':
-                            result[tag] = await this.getSalesInRecentMonth();
-                            break;
-                        case 'recent_orders':
-                            result[tag] = await this.getOrdersInRecentMonth();
-                            break;
-                        case 'hot_products':
-                            result[tag] = await this.getHotProducts('month');
-                            break;
-                        case 'hot_products_today':
-                            result[tag] = await this.getHotProducts('day');
-                            break;
-                        case 'order_avg_sale_price':
-                            result[tag] = await this.getOrderAvgSalePrice();
-                            break;
-                        case 'order_avg_sale_price_year':
-                            result[tag] = await this.getOrderAvgSalePriceYear();
-                            break;
-                        case 'orders_per_month_1_year':
-                            result[tag] = await this.getOrdersPerMonth1Year();
-                            break;
-                        case 'orders_per_month_2_weak':
-                            result[tag] = await this.getOrdersPerMonth2Weak();
-                            break;
-                        case 'sales_per_month_2_weak':
-                            result[tag] = await this.getSalesPerMonth2Weak();
-                            break;
-                        case 'sales_per_month_1_year':
-                            result[tag] = await this.getSalesPerMonth1Year();
-                            break;
-                        case 'order_today':
-                            result[tag] = await this.getOrderToDay();
-                            break;
-                        case 'recent_register':
-                            result[tag] = await this.getRegisterRecent();
-                            break;
-                        case 'active_recent_year':
-                            result[tag] = await this.getActiveRecentYear();
-                            break;
-                        case 'active_recent_2weak':
-                            result[tag] = await this.getActiveRecent2Weak();
-                            break;
+                let pass = 0;
+                await new Promise(async (resolve, reject) => {
+                    for (const tag of tags) {
+                        new Promise(async (resolve, reject) => {
+                            try {
+                                switch (tag) {
+                                    case 'recent_active_user':
+                                        result[tag] = await this.getRecentActiveUser();
+                                        break;
+                                    case 'recent_sales':
+                                        result[tag] = await this.getSalesInRecentMonth();
+                                        break;
+                                    case 'recent_orders':
+                                        result[tag] = await this.getOrdersInRecentMonth();
+                                        break;
+                                    case 'hot_products':
+                                        result[tag] = await this.getHotProducts('month');
+                                        break;
+                                    case 'hot_products_today':
+                                        result[tag] = await this.getHotProducts('day');
+                                        break;
+                                    case 'order_avg_sale_price':
+                                        result[tag] = await this.getOrderAvgSalePrice();
+                                        break;
+                                    case 'order_avg_sale_price_year':
+                                        result[tag] = await this.getOrderAvgSalePriceYear();
+                                        break;
+                                    case 'orders_per_month_1_year':
+                                        result[tag] = await this.getOrdersPerMonth1Year();
+                                        break;
+                                    case 'orders_per_month_2_weak':
+                                        result[tag] = await this.getOrdersPerMonth2Weak();
+                                        break;
+                                    case 'sales_per_month_2_weak':
+                                        result[tag] = await this.getSalesPerMonth2Weak();
+                                        break;
+                                    case 'sales_per_month_1_year':
+                                        result[tag] = await this.getSalesPerMonth1Year();
+                                        break;
+                                    case 'order_today':
+                                        result[tag] = await this.getOrderToDay();
+                                        break;
+                                    case 'recent_register':
+                                        result[tag] = await this.getRegisterRecent();
+                                        break;
+                                    case 'active_recent_year':
+                                        result[tag] = await this.getActiveRecentYear();
+                                        break;
+                                    case 'active_recent_2weak':
+                                        result[tag] = await this.getActiveRecent2Weak();
+                                        break;
+                                }
+                                resolve(true);
+                            }
+                            catch (e) {
+                                resolve(false);
+                            }
+                        }).then((res) => {
+                            pass++;
+                            if (pass === tags.length) {
+                                resolve(true);
+                            }
+                        });
                     }
-                }
+                    if (pass === tags.length) {
+                        resolve(true);
+                    }
+                });
                 return result;
             }
             return { result: false };
