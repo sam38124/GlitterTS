@@ -628,6 +628,7 @@ export class BgCustomerMessage {
                 },
                 divCreate: {
                     style: `position:relative;`,
+                    class: `h-100`
                 },
                 onCreate: () => {
                     $('.tooltip').remove();
@@ -648,6 +649,7 @@ export class BgCustomerMessage {
                 user_id: 'manager',
             }).then((data) => __awaiter(this, void 0, void 0, function* () {
                 chatData = data.response.data;
+                chatData = chatData.filter((data) => data.topMessage !== undefined);
                 Chat.getUnRead({ user_id: 'manager' }).then((data) => {
                     unRead = data.response;
                     gvc.notifyDataChange(listId);
@@ -658,7 +660,8 @@ export class BgCustomerMessage {
                 view: () => {
                     if (chatData) {
                         const view = [];
-                        view.push(html `
+                        try {
+                            view.push(html `
                             <div class="p-2">
                                 <div class="position-relative">
                                     <input type="text" class="form-control pe-5" placeholder="搜尋用戶"/>
@@ -667,32 +670,33 @@ export class BgCustomerMessage {
                             </div>
                             <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
                                 ${chatData
-                            .filter((dd) => {
-                            return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id);
-                        }).map((dd) => {
-                            var _a, _b;
-                            dd.topMessage.text = (_b = (_a = dd.topMessage) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : "圖片內容";
-                            if (dd.topMessage && dd.chat_id !== 'manager-preview') {
-                                const unReadCount = unRead.filter((d2) => {
-                                    return dd.chat_id === d2.chat_id;
-                                }).length;
-                                if (dd.chat_id) {
-                                    if (dd.chat_id.startsWith('line')) {
-                                        dd.user_data.head = dd.info.line.head;
-                                        dd.user_data.name = dd.info.line.name;
-                                    }
-                                    if (dd.chat_id.startsWith('fb')) {
-                                        dd.user_data.head = dd.info.fb.head;
-                                        dd.user_data.name = dd.info.fb.name;
-                                    }
-                                    let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
-                                    let name = (dd.user_data && dd.user_data.name) || `訪客`;
-                                    return html `<a
+                                .filter((dd) => {
+                                return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id);
+                            }).map((dd) => {
+                                var _a, _b, _c;
+                                dd.topMessage = (_a = dd.topMessage) !== null && _a !== void 0 ? _a : {};
+                                dd.topMessage.text = (_c = (_b = dd.topMessage) === null || _b === void 0 ? void 0 : _b.text) !== null && _c !== void 0 ? _c : "圖片內容";
+                                if (dd.topMessage && dd.chat_id !== 'manager-preview') {
+                                    const unReadCount = unRead.filter((d2) => {
+                                        return dd.chat_id === d2.chat_id;
+                                    }).length;
+                                    if (dd.chat_id) {
+                                        if (dd.chat_id.startsWith('line')) {
+                                            dd.user_data.head = dd.info.line.head;
+                                            dd.user_data.name = dd.info.line.name;
+                                        }
+                                        if (dd.chat_id.startsWith('fb')) {
+                                            dd.user_data.head = dd.info.fb.head;
+                                            dd.user_data.name = dd.info.fb.name;
+                                        }
+                                        let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
+                                        let name = (dd.user_data && dd.user_data.name) || `訪客`;
+                                        return html `<a
                                                             class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
                                                             style="cursor: pointer;"
                                                             onclick="${gvc.event(() => {
-                                        callback(dd);
-                                    })}"
+                                            callback(dd);
+                                        })}"
                                                     >
                                                         <div class="rounded-circle position-relative "
                                                              style="width: 40px;height: 40px;">
@@ -710,15 +714,15 @@ export class BgCustomerMessage {
                                                                     alt="Devon Lane"
                                                             />
                                                             ${(() => {
-                                        let id = dd.chat_id;
-                                        if (id.startsWith('line')) {
-                                            return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
-                                        }
-                                        if (id.startsWith('fb')) {
-                                            return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`;
-                                        }
-                                        return ``;
-                                    })()}
+                                            let id = dd.chat_id;
+                                            if (id.startsWith('line')) {
+                                                return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
+                                            }
+                                            if (id.startsWith('fb')) {
+                                                return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`;
+                                            }
+                                            return ``;
+                                        })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">
@@ -730,21 +734,21 @@ export class BgCustomerMessage {
                                                             <p class="fs-sm  mb-0 "
                                                                style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
                                                                 ${(dd.topMessage ? dd.topMessage.text : ``).length > 50
-                                        ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
-                                        : dd.topMessage
-                                            ? dd.topMessage.text
-                                            : ``}
+                                            ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
+                                            : dd.topMessage
+                                                ? dd.topMessage.text
+                                                : ``}
                                                             </p>
                                                         </div>
                                                     </a>`;
+                                    }
                                 }
-                            }
-                            else {
-                                return ``;
-                            }
-                        })
-                            .join('') ||
-                            html `
+                                else {
+                                    return ``;
+                                }
+                            })
+                                .join('') ||
+                                html `
                                     <div class="d-flex align-items-center justify-content-center flex-column w-100"
                                          style="width:700px;">
                                         <lottie-player
@@ -759,7 +763,11 @@ export class BgCustomerMessage {
                                     </div>`}
                             </div>
                         `);
-                        return view.join('');
+                            return view.join('');
+                        }
+                        catch (e) {
+                            return `${e}`;
+                        }
                     }
                     else {
                         return html `
@@ -1109,6 +1117,7 @@ export class BgCustomerMessage {
                                             class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
                                             style="background: white;"
                                     >
+                                        
                                         <div class="position-relative w-100 me-2 ">
                                             ${gvc.bindView(() => {
                                         return {
@@ -1183,6 +1192,7 @@ export class BgCustomerMessage {
         });
     }
     static message_line(dd, cf, index, vm, gvc) {
+        var _a;
         const html = String.raw;
         if (dd.user_id == 'manager') {
             dd.user_data = BgCustomerMessage.config;
@@ -1205,7 +1215,7 @@ export class BgCustomerMessage {
                             alt="Albert Flores"
                     />
                     <div class="ps-2 ms-1" style="max-width: 348px;">
-                        <div class="p-3 mb-1"
+                        <div class="p-3 mb-1 ${dd.message.image ? '' : 'py-2'}"
                              style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
                             
                             ${drawChatContent()}
@@ -1221,7 +1231,7 @@ export class BgCustomerMessage {
                 <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                     <div class="pe-2 me-1" style="max-width: 348px;">
                         <div
-                                class=" text-light p-3 mb-1"
+                                class=" text-light p-3 mb-1 ${((_a = dd === null || dd === void 0 ? void 0 : dd.message) === null || _a === void 0 ? void 0 : _a.image) ? '' : 'py-2'}"
                                 style="background:${BgCustomerMessage.config.color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                         >
                             ${drawChatContent()}

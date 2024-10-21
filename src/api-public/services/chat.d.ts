@@ -9,7 +9,8 @@ export interface ChatMessage {
     chat_id: string;
     user_id: string;
     message: {
-        text: string;
+        text?: string;
+        image?: string;
         attachment: any;
     };
 }

@@ -11,7 +11,11 @@ export declare class FbMessage {
     constructor(app: string, token?: IToken);
     chunkSendMessage(userList: any, content: any, id: number, date?: string): Promise<void>;
     sendMessage(obj: {
-        data: string;
+        data: {
+            text?: string;
+            image?: string;
+            attachment: any;
+        };
         fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
     sendUserInf(fbID: string, callback: (data: any) => void): Promise<boolean>;

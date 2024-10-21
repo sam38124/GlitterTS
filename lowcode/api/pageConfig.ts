@@ -460,7 +460,6 @@ export class ApiPageConfig {
                                    }
                                    resolve(res.result)
                                }, file.type);
-
                            };
                        };
                        reader.readAsDataURL(file);

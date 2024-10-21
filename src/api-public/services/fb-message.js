@@ -41,19 +41,39 @@ class FbMessage {
         try {
             const payload = {
                 recipient: { id: obj.fbID },
-                message: { text: obj.data }
+                message: {}
             };
-            let token = "Bearer EAAjqQPeQMmUBO8TNUS1C9MC1AZAcgZAIEIu6N2YkFa5q7UPR7WPdhzjHXMgfLTCNfOEwyZC6eRLPZALFV6kt90ymdQ7zAr3OP7KNVwdC7rR5VDDazZAO8hpGZBtKqBaAWbOEf1dZC4F7DIMFq4wjmnZBooZCJMCbferrgaxfarMatwGoFNIu0xrYXxZB0J7fyR2KUbSAZDZD";
+            if (obj.data.image) {
+                payload.message = {
+                    attachment: {
+                        type: 'image',
+                        payload: {
+                            url: obj.data.image,
+                            is_reusable: true
+                        }
+                    }
+                };
+            }
+            else {
+                payload.message = {
+                    text: obj.data.text
+                };
+            }
+            const post = new user_1.User(this.app, this.token);
+            let tokenData = await post.getConfig({
+                key: "login_fb_setting",
+                user_id: "manager",
+            });
+            let token = `${tokenData[0].value.fans_token}`;
             const urlConfig = {
                 method: 'post',
                 url: "https://graph.facebook.com/v12.0/me/messages",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": token
+                    "Authorization": `Bearer ${token}`
                 },
                 data: JSON.stringify(payload)
             };
-            console.log("送出訊息 -- ", payload);
             return new Promise((resolve, reject) => {
                 axios_1.default.request(urlConfig)
                     .then((response) => {

@@ -11,7 +11,7 @@ import {AutoSendEmail} from './auto-send-email.js';
 import {AiRobot} from './ai-robot.js';
 import {FbMessage} from "./fb-message.js";
 import {LineMessage} from "./line-message.js";
-import {query} from "express";
+const Jimp = require('jimp');
 
 export interface ChatRoom {
     chat_id: string;
@@ -24,7 +24,8 @@ export interface ChatMessage {
     chat_id: string;
     user_id: string;
     message: {
-        text: string;
+        text?: string;
+        image?:string;
         attachment: any;
     };
 }
@@ -177,8 +178,9 @@ export class Chat {
             //檢查是不是要回傳給line
             if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
+                console.log("room -- " , room)
                 await new LineMessage(this.app).sendLine({
-                    data: room.message.text,
+                    data: room.message,
                     lineID: newChatId
                 }, () => {
                 });
@@ -186,9 +188,9 @@ export class Chat {
             //檢查是不是要回傳給fb
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
                 const newChatId = room.chat_id.slice(3).split("-")[0];
-                console.log(room.message.text , newChatId)
+                console.log(room.message , newChatId)
                 await new FbMessage(this.app).sendMessage({
-                    data: room.message.text,
+                    data: room.message,
                     fbID: newChatId
                 }, () => {
                 });
@@ -262,13 +264,13 @@ export class Chat {
                         const response = await new Promise(async (resolve, reject) => {
                             switch (b.user_id) {
                                 case 'writer':
-                                    resolve(await AiRobot.writer(this.app, room.message.text));
+                                    resolve(await AiRobot.writer(this.app, room.message.text??""));
                                     return;
                                 case 'order_analysis':
-                                    resolve(await AiRobot.orderAnalysis(this.app, room.message.text));
+                                    resolve(await AiRobot.orderAnalysis(this.app, room.message.text??""));
                                     return;
                                 case 'operation_guide':
-                                    resolve(await AiRobot.guide(this.app, room.message.text));
+                                    resolve(await AiRobot.guide(this.app, room.message.text??""));
                                     return;
                             }
                         });

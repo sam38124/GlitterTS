@@ -16,6 +16,7 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const ai_robot_js_1 = require("./ai-robot.js");
 const fb_message_js_1 = require("./fb-message.js");
 const line_message_js_1 = require("./line-message.js");
+const Jimp = require('jimp');
 class Chat {
     async addChatRoom(room) {
         try {
@@ -126,17 +127,18 @@ class Chat {
             }
             if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
+                console.log("room -- ", room);
                 await new line_message_js_1.LineMessage(this.app).sendLine({
-                    data: room.message.text,
+                    data: room.message,
                     lineID: newChatId
                 }, () => {
                 });
             }
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
                 const newChatId = room.chat_id.slice(3).split("-")[0];
-                console.log(room.message.text, newChatId);
+                console.log(room.message, newChatId);
                 await new fb_message_js_1.FbMessage(this.app).sendMessage({
-                    data: room.message.text,
+                    data: room.message,
                     fbID: newChatId
                 }, () => {
                 });
@@ -185,15 +187,16 @@ class Chat {
                 if (b.user_id !== room.user_id) {
                     if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
                         const response = await new Promise(async (resolve, reject) => {
+                            var _a, _b, _c;
                             switch (b.user_id) {
                                 case 'writer':
-                                    resolve(await ai_robot_js_1.AiRobot.writer(this.app, room.message.text));
+                                    resolve(await ai_robot_js_1.AiRobot.writer(this.app, (_a = room.message.text) !== null && _a !== void 0 ? _a : ""));
                                     return;
                                 case 'order_analysis':
-                                    resolve(await ai_robot_js_1.AiRobot.orderAnalysis(this.app, room.message.text));
+                                    resolve(await ai_robot_js_1.AiRobot.orderAnalysis(this.app, (_b = room.message.text) !== null && _b !== void 0 ? _b : ""));
                                     return;
                                 case 'operation_guide':
-                                    resolve(await ai_robot_js_1.AiRobot.guide(this.app, room.message.text));
+                                    resolve(await ai_robot_js_1.AiRobot.guide(this.app, (_c = room.message.text) !== null && _c !== void 0 ? _c : ""));
                                     return;
                             }
                         });

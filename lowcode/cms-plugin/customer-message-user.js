@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ApiUser } from "../glitter-base/route/user.js";
 import { Chat } from "../glitter-base/route/chat.js";
+import { imageLibrary } from "../modules/image-library.js";
+import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 export class CustomerMessageUser {
     static showCustomerMessage(cf) {
         const gvc = cf.gvc;
@@ -42,7 +44,7 @@ export class CustomerMessageUser {
                         const css = String.raw;
                         const viewId = gvc.glitter.getUUID();
                         const chatView = () => {
-                            return `<div class="${(cf.type === 'preview') ? `w-100 h-100 shadow-lg` : `position-fixed  rounded-3 shadow-lg`}" style="${gvc.glitter.ut.frSize({
+                            return `<div class=" ${(cf.type === 'preview') ? `w-100 h-100 shadow-lg` : `position-fixed  rounded-3 shadow-lg `}" style="${gvc.glitter.ut.frSize({
                                 sm: (cf.type === 'preview') ? css `
                                         width: 100%;
                                         height: 100%;
@@ -256,7 +258,7 @@ export class CustomerMessageUser {
                                     }
                                     return view.join('');
                                 },
-                                divCreate: {},
+                                divCreate: { class: `` },
                                 onCreate: () => {
                                 },
                             };
@@ -440,6 +442,7 @@ export class CustomerMessageUser {
                                 return {
                                     bind: viewId,
                                     view: () => {
+                                        let imageArray = [];
                                         if (vm.loading) {
                                             return String.raw `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
                                 <div class="spinner-border" role="status">
@@ -457,6 +460,7 @@ export class CustomerMessageUser {
                                                 <div class="my-auto flex-fill"></div>
                                                 ${vm.data
                                                             .map((dd, index) => {
+                                                            var _a, _b;
                                                             function drawChatContent() {
                                                                 if (dd.message.image) {
                                                                     return html `<img style="cursor: pointer;"
@@ -475,7 +479,6 @@ export class CustomerMessageUser {
                                                                 dd.user_data = CustomerMessageUser.config;
                                                             }
                                                             if (cf.user_id !== dd.user_id) {
-                                                                console.log("chatRoomInf.who -- ", chatRoomInf);
                                                                 if (chatRoomInf.who && (chatRoomInf.who.startsWith('line'))) {
                                                                     dd.user_data.head = chatRoomInf.info.line.head;
                                                                     dd.user_data.name = chatRoomInf.info.line.name;
@@ -498,7 +501,7 @@ export class CustomerMessageUser {
                                                                                 <div class="ps-2 ms-1 pe-3"
                                                                                      style="max-width: 348px;">
                                                                                     <div
-                                                                                            class="p-3 mb-1"
+                                                                                            class="p-3 mb-1 ${((_a = dd === null || dd === void 0 ? void 0 : dd.message) === null || _a === void 0 ? void 0 : _a.image) ? '' : 'py-2'}"
                                                                                             style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                                                     >
                                                                                         ${drawChatContent()}
@@ -519,7 +522,7 @@ export class CustomerMessageUser {
                                                                                 <div class="pe-2 me-1 ps-3"
                                                                                      style="max-width: 348px;">
                                                                                     <div
-                                                                                            class=" text-light p-3 mb-1"
+                                                                                            class=" text-light p-3 mb-1 ${((_b = dd === null || dd === void 0 ? void 0 : dd.message) === null || _b === void 0 ? void 0 : _b.image) ? '' : 'py-2'}"
                                                                                             style="background:${CustomerMessageUser.config
                                                                     .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                                                     >
@@ -603,68 +606,205 @@ export class CustomerMessageUser {
                                                 },
                                             };
                                         })}
-                                        <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
-                                             style="background: white;"
-                                        >
-                                            <div class="position-relative w-100 me-2 ">
-                                                ${gvc.bindView(() => {
-                                            return {
-                                                bind: textAreaId,
-                                                view: () => {
-                                                    var _a;
-                                                    return (_a = vm.message) !== null && _a !== void 0 ? _a : '';
-                                                },
-                                                divCreate: {
-                                                    elem: `textArea`,
-                                                    style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
-                                                    class: `form-control`,
-                                                    option: [
-                                                        { key: 'placeholder', value: '輸入訊息內容' },
-                                                        {
-                                                            key: 'onchange',
-                                                            value: gvc.event((e) => {
-                                                                vm.message = e.value;
-                                                            }),
+                                        ${gvc.bindView({
+                                            bind: "inputRow",
+                                            view: () => {
+                                                return html `
+                                                    ${gvc.bindView({
+                                                    bind: 'imageBox',
+                                                    view: () => {
+                                                        if (imageArray.length == 0) {
+                                                            return ``;
+                                                        }
+                                                        else {
+                                                            return html `
+                                                                    <div class="d-flex align-items-center w-100"
+                                                                         style="overflow-x: scroll;gap: 5px;padding:10px 0;margin-bottom:10px;">
+                                                                        ${(() => {
+                                                                return imageArray.map((url) => {
+                                                                    return html `
+                                                                                    <div class=""
+                                                                                         style="position: relative;flex-shrink: 0;width: 25%;aspect-ratio: 1 / 1;background:50%/cover  url('${url}')">
+                                                                                        <i class="fa-sharp fa-regular fa-circle-xmark bg-white"
+                                                                                           style="position: absolute;right: -6px;top: -6px;cursor:pointer;font-size: 20px"></i>
+                                                                                    </div>
+                                                                                `;
+                                                                });
+                                                            })()}
+
+                                                                    </div>
+                                                                `;
+                                                        }
+                                                    }, divCreate: {
+                                                        class: `d-flex w-100`,
+                                                        style: ``
+                                                    }
+                                                })}
+                                                    <div class="d-flex  w-100">
+                                                        <div class="d-flex align-items-end">
+                                                            <button
+                                                                    type="button"
+                                                                    class="btn btn-icon d-sm-inline-flex text-white"
+                                                                    style="height: 36px;"
+                                                                    onclick="${gvc.event(() => {
+                                                    const queryParams = new URLSearchParams(window.location.search);
+                                                    if (queryParams.get('function') != "backend-manger") {
+                                                        gvc.glitter.ut.chooseMediaCallback({
+                                                            single: true,
+                                                            accept: 'json,image/*',
+                                                            callback(data) {
+                                                                const saasConfig = window.saasConfig;
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.dataLoading({ visible: true });
+                                                                const file = data[0].file;
+                                                                saasConfig.api.uploadFile(file.name).then((data) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    const data1 = data.response;
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    const objP = {
+                                                                        url: data1.url,
+                                                                        type: 'put',
+                                                                        data: file,
+                                                                        headers: {
+                                                                            "Content-Type": data1.type
+                                                                        },
+                                                                        processData: false,
+                                                                        crossDomain: true,
+                                                                        success: () => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            imageArray.push(data1.fullUrl);
+                                                                            gvc.notifyDataChange(`inputRow`);
+                                                                        },
+                                                                        error: () => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            dialog.errorMessage({ text: '上傳失敗' });
+                                                                        },
+                                                                    };
+                                                                    if (file.type.indexOf('svg') !== -1) {
+                                                                        objP["headers"] = {
+                                                                            "Content-Type": file.type
+                                                                        };
+                                                                    }
+                                                                    $.ajax(objP);
+                                                                });
+                                                            },
+                                                        });
+                                                    }
+                                                    else {
+                                                        imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                                            imageArray.push(...urlArray.map((data) => {
+                                                                return data.data;
+                                                            }));
+                                                            gvc.notifyDataChange(`inputRow`);
+                                                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: true });
+                                                    }
+                                                })}"
+                                                            >
+                                                                <i class="fa-sharp fa-solid fa-image"
+                                                                   style="font-size: 23px;color: #393939;"></i>
+                                                            </button>
+                                                        </div>
+
+                                                        <div class="position-relative w-100 me-2 ms-1 d-flex flex-column"
+                                                             style="">
+                                                            ${gvc.bindView(() => {
+                                                    return {
+                                                        bind: textAreaId,
+                                                        view: () => {
+                                                            var _a;
+                                                            return (_a = vm.message) !== null && _a !== void 0 ? _a : '';
                                                         },
-                                                    ],
-                                                },
-                                                onCreate: () => {
-                                                    const input = gvc.getBindViewElem(id).get(0);
-                                                    input.addEventListener('input', function () {
-                                                        console.log(`input.scrollHeight->`, input.scrollHeight);
-                                                        input.style.height = 'auto';
-                                                        input.style.height = input.scrollHeight + 'px';
+                                                        divCreate: {
+                                                            elem: `textArea`,
+                                                            style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;min-height:auto;height:45px;`,
+                                                            class: `form-control`,
+                                                            option: [
+                                                                { key: 'placeholder', value: '輸入訊息內容' },
+                                                                {
+                                                                    key: 'onchange',
+                                                                    value: gvc.event((e) => {
+                                                                        vm.message = e.value;
+                                                                    }),
+                                                                },
+                                                            ],
+                                                        },
+                                                        onCreate: () => {
+                                                            const input = gvc.getBindViewElem(id).get(0);
+                                                            input.addEventListener('input', function () {
+                                                                console.log(`input.scrollHeight->`, input.scrollHeight);
+                                                                input.style.height = 'auto';
+                                                                input.style.height = input.scrollHeight + 'px';
+                                                            });
+                                                        },
+                                                    };
+                                                })}
+                                                        </div>
+                                                        <div class="d-flex align-items-end h-100">
+                                                            <button
+                                                                    type="button"
+                                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 text-white"
+                                                                    style="background: ${CustomerMessageUser.config.color};height:45px;"
+                                                                    onclick="${gvc.event(() => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.dataLoading({
+                                                        visible: true
                                                     });
-                                                },
-                                            };
-                                        })}
-                                            </div>
-                                            <button
-                                                    type="button"
-                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 text-white"
-                                                    style="height: 36px;background: ${CustomerMessageUser.config.color};"
-                                                    onclick="${gvc.event(() => {
-                                            if (vm.message) {
-                                                Chat.postMessage({
-                                                    chat_id: cf.chat.chat_id,
-                                                    user_id: cf.user_id,
-                                                    message: {
-                                                        text: vm.message,
-                                                        attachment: '',
-                                                    },
-                                                }).then(() => {
-                                                    vm.message = '';
-                                                });
-                                                const textArea = gvc.getBindViewElem(textAreaId).get(0);
-                                                textArea.value = '';
+                                                    if (imageArray.length) {
+                                                        dialog.dataLoading({
+                                                            visible: true
+                                                        });
+                                                        for (const image of imageArray) {
+                                                            Chat.postMessage({
+                                                                chat_id: cf.chat.chat_id,
+                                                                user_id: cf.user_id,
+                                                                message: {
+                                                                    image: image,
+                                                                    attachment: '',
+                                                                },
+                                                            }).then(() => {
+                                                                imageArray = [];
+                                                                gvc.notifyDataChange('imageBox');
+                                                                dialog.dataLoading({
+                                                                    visible: false
+                                                                });
+                                                            });
+                                                        }
+                                                    }
+                                                    if (vm.message) {
+                                                        dialog.dataLoading({
+                                                            visible: true
+                                                        });
+                                                        Chat.postMessage({
+                                                            chat_id: cf.chat.chat_id,
+                                                            user_id: cf.user_id,
+                                                            message: {
+                                                                text: vm.message,
+                                                                attachment: '',
+                                                            },
+                                                        }).then(() => {
+                                                            vm.message = '';
+                                                            dialog.dataLoading({
+                                                                visible: false
+                                                            });
+                                                        });
+                                                        const textArea = gvc.getBindViewElem(textAreaId).get(0);
+                                                        textArea.value = '';
+                                                        vm.message = '';
+                                                    }
+                                                })}"
+                                                            >
+                                                                <i class="fa-regular fa-paper-plane-top"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+
+                                                `;
+                                            }, divCreate: {
+                                                class: `card-footer border-top d-flex flex-column align-items-center w-100 border-0 pt-3 pb-3 pe-4 ps-3 position-fixed bottom-0 position-lg-absolute`,
+                                                style: `background: white;min-height:45px;`
                                             }
-                                            else {
-                                            }
-                                        })}"
-                                            >
-                                                <i class="fa-regular fa-paper-plane-top"></i>
-                                            </button>
-                                        </div>`;
+                                        })}`;
                                     },
                                     divCreate: {},
                                     onCreate: () => {
