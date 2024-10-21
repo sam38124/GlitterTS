@@ -8,9 +8,9 @@ import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat.js";
 import {User} from "./user.js";
-import Logger from "../../modules/logger.js";]
+import Logger from "../../modules/logger.js";
 import s3bucket from "../../modules/AWSLib.js";
-import {Jimp} from "jimp";]
+import {Jimp} from "jimp";
 
 const mime = require('mime');
 interface LineResponse {

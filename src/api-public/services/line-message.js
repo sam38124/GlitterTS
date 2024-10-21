@@ -7,14 +7,15 @@ exports.LineMessage = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const auto_send_email_js_1 = require("./auto-send-email.js");
-const config_1 = __importDefault(require("../../config"));
+const config_js_1 = __importDefault(require("../../config.js"));
 const axios_1 = __importDefault(require("axios"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
-const chat_1 = require("./chat");
-const user_1 = require("./user");
-const logger_1 = __importDefault(require("../../modules/logger"));
-const AWSLib_1 = __importDefault(require("../../modules/AWSLib"));
+const chat_js_1 = require("./chat.js");
+const user_js_1 = require("./user.js");
+const logger_js_1 = __importDefault(require("../../modules/logger.js"));
+const AWSLib_js_1 = __importDefault(require("../../modules/AWSLib.js"));
+const jimp_1 = require("jimp");
 const mime = require('mime');
 class LineMessage {
     constructor(app, token) {
@@ -29,7 +30,10 @@ class LineMessage {
                     this.sendLine({ data: content, lineID: d.lineID }, (res) => {
                         check--;
                         if (check === 0) {
-                            database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date ? 0 : 1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [id]);
+                            database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                                      SET status = ${date ? 0 : 1},
+                                          content = JSON_SET(content, '$.name', '${res.msgid}')
+                                      WHERE id = ?;`, [id]);
                             resolve(true);
                         }
                     });
@@ -42,7 +46,7 @@ class LineMessage {
     }
     async getLineInf(obj, callback) {
         try {
-            const post = new user_1.User(this.app, this.token);
+            const post = new user_js_1.User(this.app, this.token);
             let tokenData = await post.getConfig({
                 key: "login_line_setting",
                 user_id: "manager",
@@ -75,41 +79,89 @@ class LineMessage {
     }
     async sendLine(obj, callback) {
         try {
-            const post = new user_1.User(this.app, this.token);
-            let postData = {
-                "to": obj.lineID,
-                "messages": [
-                    {
-                        "type": "text",
-                        "text": obj.data
-                    }
-                ]
-            };
+            const post = new user_js_1.User(this.app, this.token);
             let tokenData = await post.getConfig({
                 key: "login_line_setting",
                 user_id: "manager",
             });
-            let token = `Bearer ${tokenData[0].value.message_token}`;
-            const urlConfig = {
-                method: 'post',
-                url: "https://api.line.me/v2/bot/message/push",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": token
-                },
-                data: JSON.stringify(postData)
-            };
-            return new Promise((resolve, reject) => {
-                axios_1.default.request(urlConfig)
-                    .then((response) => {
-                    callback(response);
-                    resolve(response.data);
+            let token = `${tokenData[0].value.message_token}`;
+            if (obj.data.image) {
+                const imageUrl = obj.data.image;
+                const outputFilePath = 'image_cropped.jpeg';
+                axios_1.default.get(imageUrl, { responseType: 'arraybuffer' })
+                    .then(response => jimp_1.Jimp.read(Buffer.from(response.data)))
+                    .then(async (image) => {
+                    const small = await image.clone().scaleToFit({ w: 240, h: 240 }).getBuffer("image/jpeg");
+                    const large = await image.clone().scaleToFit({ w: 1024, h: 1024 }).getBuffer("image/jpeg");
+                    return [small, large];
                 })
-                    .catch((error) => {
-                    console.log("error -- ", error.data);
-                    resolve(false);
+                    .then((base64) => {
+                    this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[0]).then((smallUrl) => {
+                        this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[1]).then((largeUrl) => {
+                            const message = {
+                                to: obj.lineID,
+                                messages: [
+                                    {
+                                        type: 'image',
+                                        originalContentUrl: largeUrl,
+                                        previewImageUrl: smallUrl
+                                    }
+                                ]
+                            };
+                            return new Promise((resolve, reject) => {
+                                axios_1.default.post('https://api.line.me/v2/bot/message/push', message, {
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                })
+                                    .then(response => {
+                                    console.log('圖片消息已成功發送:', response.data);
+                                    callback(response);
+                                    resolve(response.data);
+                                })
+                                    .catch(error => {
+                                    console.error('發送圖片消息時發生錯誤:', error.response ? error.response.data : error.message);
+                                });
+                            });
+                        });
+                    });
+                })
+                    .catch(err => {
+                    console.error('處理圖片時發生錯誤:', err);
                 });
-            });
+            }
+            else {
+                let postData = {
+                    "to": obj.lineID,
+                    "messages": [
+                        {
+                            "type": "text",
+                            "text": obj.data
+                        }
+                    ]
+                };
+                const urlConfig = {
+                    method: 'post',
+                    url: "https://api.line.me/v2/bot/message/push",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": token
+                    },
+                    data: JSON.stringify(postData)
+                };
+                return new Promise((resolve, reject) => {
+                    axios_1.default.request(urlConfig)
+                        .then((response) => {
+                        callback(response);
+                        resolve(response.data);
+                    })
+                        .catch((error) => {
+                        console.log("error -- ", error.data);
+                        resolve(false);
+                    });
+                });
+            }
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
@@ -119,7 +171,7 @@ class LineMessage {
         try {
             const urlConfig = {
                 method: 'post',
-                url: config_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_1.default.SNSAccount}&password=${config_1.default.SNSPWD}&msgid=${obj.id}`,
+                url: config_js_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_js_1.default.SNSAccount}&password=${config_js_1.default.SNSPWD}&msgid=${obj.id}`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
@@ -168,11 +220,13 @@ class LineMessage {
                 whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
             }
             const whereSQL = `(tag = 'sendLine' OR tag = 'sendLineBySchedule') AND ${whereList.join(' AND ')}`;
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+            const emails = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL}
                  ORDER BY id DESC
-                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
-            const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                     ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_js_1.default.query(`SELECT count(id) as c
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`, []);
             let n = 0;
             await new Promise((resolve) => {
@@ -202,7 +256,8 @@ class LineMessage {
                 if (isLater(data.sendTime)) {
                     return { result: false, message: '排定發送的時間需大於現在時間' };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLineBySchedule',
                         content: JSON.stringify(data),
@@ -212,7 +267,8 @@ class LineMessage {
                 ]);
             }
             else {
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLine',
                         content: JSON.stringify(data),
@@ -230,14 +286,17 @@ class LineMessage {
     }
     async deleteSns(data) {
         try {
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+            const emails = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
             await new Promise((resolve) => {
                 this.deleteSNS({ id: data.id }, (res) => {
                     resolve(true);
                 });
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = 2 WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                            SET status = 2
+                            WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
             return { result: true, message: '取消預約成功' };
         }
         catch (e) {
@@ -264,7 +323,7 @@ class LineMessage {
                 };
                 chatData.info = JSON.stringify(chatData.info);
             });
-            let result = await new chat_1.Chat(this.app).addChatRoom(chatData);
+            let result = await new chat_js_1.Chat(this.app).addChatRoom(chatData);
             if (!result.create) {
                 await database_js_1.default.query(`
                         UPDATE \`${this.app}\`.\`t_chat_list\`
@@ -280,7 +339,7 @@ class LineMessage {
                 ]);
             }
             if (message.type == 'image') {
-                const post = new user_1.User(this.app, this.token);
+                const post = new user_js_1.User(this.app, this.token);
                 let tokenData = await post.getConfig({
                     key: "login_line_setting",
                     user_id: "manager",
@@ -296,7 +355,7 @@ class LineMessage {
                     "text": message.text
                 };
             }
-            await new chat_1.Chat(this.app).addMessage(chatData);
+            await new chat_js_1.Chat(this.app).addMessage(chatData);
             return { result: true, message: 'accept message' };
         }
         catch (e) {
@@ -307,7 +366,10 @@ class LineMessage {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendLine({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), lineID: lineID }, (res) => {
+                resolve(await this.sendLine({
+                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    lineID: lineID
+                }, (res) => {
                 }));
             });
         }
@@ -321,56 +383,56 @@ class LineMessage {
                 responseType: 'arraybuffer',
             });
             console.log("response.data -- ", response.data);
-            async function uploadFile(fileData) {
-                const TAG = `[AWS-S3][Upload]`;
-                const logger = new logger_1.default();
-                const s3bucketName = config_1.default.AWS_S3_NAME;
-                const s3path = `line/${messageId}/${new Date().getTime()}.png`;
-                const fullUrl = config_1.default.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
-                const params = {
-                    Bucket: s3bucketName,
-                    Key: s3path,
-                    Expires: 300,
-                    ContentType: (() => {
-                        if (config_1.default.SINGLE_TYPE) {
-                            return `application/x-www-form-urlencoded; charset=UTF-8`;
-                        }
-                        else {
-                            return mime.getType(fullUrl.split('.').pop());
-                        }
-                    })()
-                };
-                return new Promise((resolve, reject) => {
-                    AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {
-                        if (err) {
-                            logger.error(TAG, String(err));
-                            console.log(err, err.stack);
-                            reject(false);
-                        }
-                        else {
-                            (0, axios_1.default)({
-                                method: 'PUT',
-                                url: url,
-                                data: fileData,
-                                headers: {
-                                    "Content-Type": params.ContentType
-                                }
-                            }).then(() => {
-                                console.log(fullUrl);
-                                resolve(fullUrl);
-                            }).catch(() => {
-                                console.log(`convertError:${fullUrl}`);
-                            });
-                        }
-                    });
-                });
-            }
-            return await uploadFile(response.data);
+            return await this.uploadFile(`line/${messageId}/${new Date().getTime()}.png`, response.data);
         }
         catch (error) {
             console.error('Failed to get image content:', error);
             throw error;
         }
+    }
+    async uploadFile(file_name, fileData) {
+        const TAG = `[AWS-S3][Upload]`;
+        const logger = new logger_js_1.default();
+        const s3bucketName = config_js_1.default.AWS_S3_NAME;
+        const s3path = file_name;
+        const fullUrl = config_js_1.default.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            ContentType: (() => {
+                if (config_js_1.default.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`;
+                }
+                else {
+                    return mime.getType(fullUrl.split('.').pop());
+                }
+            })()
+        };
+        return new Promise((resolve, reject) => {
+            AWSLib_js_1.default.getSignedUrl('putObject', params, async (err, url) => {
+                if (err) {
+                    logger.error(TAG, String(err));
+                    console.log(err, err.stack);
+                    reject(false);
+                }
+                else {
+                    (0, axios_1.default)({
+                        method: 'PUT',
+                        url: url,
+                        data: fileData,
+                        headers: {
+                            "Content-Type": params.ContentType
+                        }
+                    }).then(() => {
+                        console.log(fullUrl);
+                        resolve(fullUrl);
+                    }).catch(() => {
+                        console.log(`convertError:${fullUrl}`);
+                    });
+                }
+            });
+        });
     }
     async checkPoints(message, user_count) {
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);

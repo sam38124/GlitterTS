@@ -127,7 +127,6 @@ class Chat {
             }
             if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
-                console.log("room -- ", room);
                 await new line_message_js_1.LineMessage(this.app).sendLine({
                     data: room.message,
                     lineID: newChatId

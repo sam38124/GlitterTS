@@ -178,7 +178,6 @@ export class Chat {
             //檢查是不是要回傳給line
             if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(5).split("-")[0];
-                console.log("room -- " , room)
                 await new LineMessage(this.app).sendLine({
                     data: room.message,
                     lineID: newChatId

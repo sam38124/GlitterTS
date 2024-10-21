@@ -848,7 +848,7 @@ export class CustomerMessageUser {
                                                                                         image: image,
                                                                                         attachment: '',
                                                                                     },
-                                                                                }).then(() => {
+                                                                                }).then((res) => {
                                                                                     imageArray = [];
                                                                                     gvc.notifyDataChange('imageBox')
                                                                                     dialog.dataLoading({
@@ -868,8 +868,9 @@ export class CustomerMessageUser {
                                                                                     text: vm.message,
                                                                                     attachment: '',
                                                                                 },
-                                                                            }).then(() => {
+                                                                            }).then((res) => {
                                                                                 vm.message = '';
+                                                                                console.log(res)
                                                                                 dialog.dataLoading({
                                                                                     visible:false
                                                                                 })

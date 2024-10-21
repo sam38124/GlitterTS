@@ -126,7 +126,7 @@ export class FbMessage {
                         resolve(response.data)
                     })
                     .catch((error) => {
-                        console.log("error -- " , error.data)
+                        console.log("error -- " , error.response.data.error )
                         resolve(false)
                     });
             })
