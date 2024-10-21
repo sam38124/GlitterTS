@@ -124,6 +124,20 @@ export class ApiUser {
             },
         });
     }
+    static setSaasUserData(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user`,
+            type: 'PUT',
+            headers: {
+                'g-app': window.glitterBase,
+                'Content-Type': 'application/json',
+                Authorization: GlobalUser.saas_token,
+            },
+            data: JSON.stringify({
+                userData: json,
+            }),
+        });
+    }
     static getUsersData(userID) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,
@@ -171,12 +185,12 @@ export class ApiUser {
             }),
         });
     }
-    static emailVerify(email) {
+    static emailVerify(email, app_name) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/email-verify`,
             type: 'POST',
             headers: {
-                'g-app': getConfig().config.appName,
+                'g-app': app_name || getConfig().config.appName,
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
@@ -440,7 +454,7 @@ export class ApiUser {
             type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
+                'g-app': json.app_name || getConfig().config.appName,
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify(json),

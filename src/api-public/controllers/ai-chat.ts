@@ -51,6 +51,7 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                 })
             ).data.map((order: any) => {
                 const orderData = order.orderData;
+                orderData.customer_info=orderData.customer_info??{}
                 exportData.push({
                     訂單編號: order.cart_token,
                     訂單建立時間: moment(order.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
@@ -152,7 +153,11 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
         });
     } catch (err) {
         console.log(err);
-        fs.rmSync(file1);
+        try {
+            fs.rmSync(file1);
+        }catch (e) {
+
+        }
         return response.fail(resp, err);
     }
 });

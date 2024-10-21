@@ -4,14 +4,15 @@ import multer from 'multer';
 import exception from '../../modules/exception';
 import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
-import { UtDatabase } from '../utils/ut-database.js';
-import { UtPermission } from '../utils/ut-permission';
-import { EcPay, EzPay } from '../services/financial-service.js';
-import { Private_config } from '../../services/private_config.js';
-import { User } from '../services/user.js';
-import { Post } from '../services/post.js';
-import { Shopping } from '../services/shopping';
-import { Rebate, IRebateSearch } from '../services/rebate';
+import {UtDatabase} from '../utils/ut-database.js';
+import {UtPermission} from '../utils/ut-permission';
+import {EcPay, EzPay} from '../services/financial-service.js';
+import {Private_config} from '../../services/private_config.js';
+import {User} from '../services/user.js';
+import {Post} from '../services/post.js';
+import {Shopping} from '../services/shopping';
+import {Rebate, IRebateSearch} from '../services/rebate';
+import axios from "axios";
 
 const router: express.Router = express.Router();
 export = router;
@@ -43,25 +44,25 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
 
         const user = await new User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
-            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const historyList = await rebateClass.getCustomerRebateHistory({user_id: req.body.token.userID});
             const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item: any) => {
-                      return {
-                          id: item.id,
-                          orderID: item.content.order_id ?? '',
-                          userID: item.user_id,
-                          money: item.origin,
-                          remain: item.remain,
-                          status: 1,
-                          note: item.note,
-                          created_time: item.created_at,
-                          deadline: item.deadline,
-                          userData: user.userData,
-                      };
-                  })
+                    return {
+                        id: item.id,
+                        orderID: item.content.order_id ?? '',
+                        userID: item.user_id,
+                        money: item.origin,
+                        remain: item.remain,
+                        status: 1,
+                        note: item.note,
+                        created_time: item.created_at,
+                        deadline: item.deadline,
+                        userData: user.userData,
+                    };
+                })
                 : [];
-            return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
+            return response.succ(resp, {data: historyMaps, oldest: oldest?.data});
         }
         return response.fail(resp, '使用者不存在');
     } catch (err) {
@@ -72,9 +73,9 @@ router.get('/rebate/sum', async (req: express.Request, resp: express.Response) =
     try {
         const app = req.get('g-app') as string;
         const rebateClass = new Rebate(app);
-        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        const data = await rebateClass.getOneRebate({user_id: req.query.userID || req.body.token.userID});
         const main = await rebateClass.mainStatus();
-        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
+        return response.succ(resp, {main: main, sum: data ? data.point : 0});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -133,7 +134,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
                 code_array: req.body.code_array,
-                give_away:req.body.give_away
+                give_away: req.body.give_away
             })
         );
     } catch (err) {
@@ -177,7 +178,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
-                    give_away:req.body.give_away
+                    give_away: req.body.give_away
                 },
                 'preview'
             )
@@ -257,7 +258,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     page: (req.query.page ?? 0) as number,
                     limit: (req.query.limit ?? 50) as number,
                     search: req.query.search as string,
-                    phone:req.query.phone as string,
+                    phone: req.query.phone as string,
                     id: req.query.id as string,
                     email: req.query.email as string,
                     status: req.query.status as string,
@@ -282,8 +283,8 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     limit: (req.query.limit ?? 50) as number,
                     search: req.query.search as string,
                     id: req.query.id as string,
-                    email: user_data.userData.email ,
-                    phone:user_data.userData.phone ,
+                    email: user_data.userData.email,
+                    phone: user_data.userData.phone,
                     status: req.query.status as string,
                     searchType: req.query.searchType as string,
                 })
@@ -321,7 +322,8 @@ router.get('/order/payment-method', async (req: express.Request, resp: express.R
             delete keyData[dd];
         });
         return response.succ(resp, keyData);
-    } catch (e) {}
+    } catch (e) {
+    }
 });
 router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
     try {
@@ -505,7 +507,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteVoucher({
                 id: req.query.id as string,
             });
-            return response.succ(resp, { result: true });
+            return response.succ(resp, {result: true});
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -520,38 +522,40 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+        <script>
+            try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                        JSON.stringify({
+                            functionName: 'check_out_finish',
+                            callBackId: 0,
+                            data: {
+                                redirect: '${return_url.href}',
+                            },
+                        })
+                );
+            } catch (e) {
+            }
+            location.href = '${return_url.href}';
+        </script>
+        </body>
+        </html> `);
     } catch (err) {
         return response.fail(resp, err);
     }
 }
+
 router.get('/redirect', redirect_link);
 router.post('/redirect', redirect_link);
 
 // 執行訂單結帳與付款事項
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({storage});
 router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
     try {
         const test = true;
@@ -684,7 +688,7 @@ router.post('/wishlist', async (req: express.Request, resp: express.Response) =>
                 't_post'
             );
         }
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -700,7 +704,7 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
             `,
             [req.body.token.userID]
         );
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -790,7 +794,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             searchType: req.query.searchType as string,
             sku: req.query.sku as string,
             id: req.query.id as string,
-            domain:req.query.domain as string,
+            domain: req.query.domain as string,
             collection: req.query.collection as string,
             accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
@@ -827,7 +831,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
-            filter_visible:req.query.filter_visible as any
+            filter_visible: req.query.filter_visible as any
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -913,7 +917,7 @@ router.delete('/product', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
                 id: req.query.id as string,
             });
-            return response.succ(resp, { result: true });
+            return response.succ(resp, {result: true});
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -972,7 +976,77 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
 // POS機相關
 router.post('/pos/linePay', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, { result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body) });
+        return response.succ(resp, {result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body)});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//點數續費
+router.post('/apple-webhook', async (req: express.Request, resp: express.Response) => {
+    try {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://buy.itunes.apple.com/verifyReceipt',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: req.body.base64
+        };
+        //取得收據
+        const receipt: any = await new Promise((resolve, reject) => {
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                    resolve(response.data)
+                })
+                .catch((error) => {
+                    console.log(error);
+                    resolve(false)
+                });
+        })
+        if (!receipt) {
+            throw exception.BadRequestError('BAD_REQUEST', 'No Receipt.Cant find receipt.', null);
+        }
+        for (const b of receipt.receipt.in_app.filter((dd: any) => {
+            return (`${dd.product_id}`).includes('ai_points_') && dd.in_app_ownership_type === "PURCHASED"
+        })) {
+            const count = (await db.query(`select count(1)
+                                          from \`${req.get('g-app')}\`.t_ai_points
+                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)']
+            if(!count){
+                await db.query(`insert into \`${req.get('g-app')}\`.t_ai_points set ?`,[{
+                    orderID:b.transaction_id,
+                    userID:req.body.token.userID,
+                    money:parseInt(b.product_id.replace('ai_points_',''),10) * 10,
+                    status:1,
+                    note:JSON.stringify({
+                        "text":"apple內購加值",
+                        "receipt":receipt
+                    })
+                }])
+            }
+        }
+        for (const b of receipt.receipt.in_app.filter((dd: any) => {
+            return (`${dd.product_id}`).includes('sms_points_') && dd.in_app_ownership_type === "PURCHASED"
+        })) {
+            const count = (await db.query(`select count(1)
+                                          from \`${req.get('g-app')}\`.t_sms_points
+                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)']
+            if(!count){
+                await db.query(`insert into \`${req.get('g-app')}\`.t_sms_points set ?`,[{
+                    orderID:b.transaction_id,
+                    userID:req.body.token.userID,
+                    money:parseInt(b.product_id.replace('sms_points_',''),10) * 10,
+                    status:1,
+                    note:JSON.stringify({
+                        "text":"apple內購加值",
+                        "receipt":receipt
+                    })
+                }])
+            }
+        }
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }

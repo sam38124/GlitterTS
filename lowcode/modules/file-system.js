@@ -7,10 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
 export class FileSystem {
     static fileSystem(cf) {
@@ -20,9 +20,9 @@ export class FileSystem {
             link: [],
             selected: false,
             loading: true,
-            query: "",
-            orderString: "",
-            type: "file"
+            query: '',
+            orderString: '',
+            type: 'file',
         };
         function selectAll(array) {
             var _a;
@@ -90,30 +90,26 @@ export class FileSystem {
                         bind: vm.id,
                         view: () => __awaiter(this, void 0, void 0, function* () {
                             return html `
-                                    <div
-                                            style=""
-                                    >
-                                        <div style="width: 100%;  position: relative">
-                                            <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
-                                                <div
-                                                        class="w-100  ${getSelectCount({
+                                <div style="">
+                                    <div style="width: 100%;  position: relative">
+                                        <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
+                                            <div
+                                                class="w-100  ${getSelectCount({
                                 items: vm.link,
                             }) > 0
                                 ? ``
                                 : `d-none`}"
-                                                        style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
-                                                >
-                                                    <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                            已選取${getSelectCount({
+                                                style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
+                                            >
+                                                <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                    已選取${getSelectCount({
                                 items: vm.link,
                             })}項
-                                                    </div>
-
                                                 </div>
-                                                <div class="d-flex align-items-center"
-                                                     style="width: 100%; height: 22px; position: relative;gap:29px;">
-                                                    <div
-                                                            class="${allSelect({
+                                            </div>
+                                            <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
+                                                <div
+                                                    class="${allSelect({
                                 items: vm.link,
                                 selected: !vm.link.find((dd) => {
                                     return !dd.selected;
@@ -121,8 +117,8 @@ export class FileSystem {
                             })
                                 ? `fa-solid fa-square-check`
                                 : `fa-regular fa-square`}"
-                                                            style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
-                                                            onclick="${gvc.event((e, event) => {
+                                                    style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
+                                                    onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
                                 if (vm.link.find((dd) => {
                                     return !dd.selected;
@@ -138,52 +134,50 @@ export class FileSystem {
                                 }
                                 gvc.notifyDataChange(vm.id);
                             })}"
-                                                    ></div>
-                                                    <div class=""
-                                                         style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                        選單名稱
-                                                    </div>
-                                                    <div class="flex-fill"></div>
-                                                    <div
-                                                            class="me-2"
-                                                            style="cursor: pointer;"
-                                                            onclick="${gvc.event((e, event) => {
+                                                ></div>
+                                                <div class="" style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                    選單名稱
+                                                </div>
+                                                <div class="flex-fill"></div>
+                                                <div
+                                                    class="me-2"
+                                                    style="cursor: pointer;"
+                                                    onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
                                 cf.plus(gvc, (file) => {
                                     vm.link.push(file);
                                     gvc.notifyDataChange(vm.id);
                                 });
                             })}"
-                                                    >
-                                                        <i class="fa-solid  fa-plus"
-                                                           style="color:#393939;"></i>
-                                                    </div>
+                                                >
+                                                    <i class="fa-solid  fa-plus" style="color:#393939;"></i>
                                                 </div>
-                                                <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
-                                                    ${(() => {
+                                            </div>
+                                            <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
+                                                ${(() => {
                                 function renderItems(array) {
                                     const id = gvc.glitter.getUUID();
-                                    return (gvc.bindView(() => {
+                                    return gvc.bindView(() => {
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return array
                                                     .map((dd, index) => {
                                                     const list = html `
-                                                                                                <div
-                                                                                                        class=" w-100 "
-                                                                                                        style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
-                                                                                                        onclick="${gvc.event(() => {
+                                                                                <div
+                                                                                    class=" w-100 "
+                                                                                    style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
+                                                                                    onclick="${gvc.event(() => {
                                                         if (dd.items && dd.items.length > 0) {
                                                             dd.toggle = !dd.toggle;
                                                             gvc.notifyDataChange(vm.id);
                                                         }
                                                     })}"
-                                                                                                >
-                                                                                                    <div
-                                                                                                            class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                                                            style="color:#393939;width: 16px; height: 16px;"
-                                                                                                            onclick="${gvc.event((e, event) => {
+                                                                                >
+                                                                                    <div
+                                                                                        class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
+                                                                                        style="color:#393939;width: 16px; height: 16px;"
+                                                                                        onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         dd.selected = !dd.selected;
                                                         if (dd.selected) {
@@ -194,36 +188,33 @@ export class FileSystem {
                                                         }
                                                         gvc.notifyDataChange(vm.id);
                                                     })}"
-                                                                                                    ></div>
-                                                                                                    <div
-                                                                                                            class="hoverF2 pe-2 py-2"
-                                                                                                            style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex"
-                                                                                                    >
-                                                                                                        <i
-                                                                                                                class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
-                                                                                                                style="cursor: pointer;width:25px;height: 25px;"
-                                                                                                        ></i>
-                                                                                                        <div
-                                                                                                                style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex;white-space: normal;word-break: break-all;"
-                                                                                                        >
-                                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                                                                <div
-                                                                                                                        style="color: #393939; font-size: 16px;  font-weight: 400; word-break: break-all;"
-                                                                                                                >
-                                                                                                                    ${(dd.type === 'folder') ? `<i class="fa-regular fa-folder-open me-2"></i>` : ``}
-                                                                                                                    ${dd.title}
-                                                                                                                </div>
-                                                                                                                ${dd.items && dd.items.length > 0
+                                                                                    ></div>
+                                                                                    <div
+                                                                                        class="hoverF2 pe-2 py-2"
+                                                                                        style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex"
+                                                                                    >
+                                                                                        <i
+                                                                                            class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                            style="cursor: pointer;width:25px;height: 25px;"
+                                                                                        ></i>
+                                                                                        <div
+                                                                                            style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex;white-space: normal;word-break: break-all;"
+                                                                                        >
+                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                                <div style="color: #393939; font-size: 16px;  font-weight: 400; word-break: break-all;">
+                                                                                                    ${dd.type === 'folder' ? `<i class="fa-regular fa-folder-open me-2"></i>` : ``} ${dd.title}
+                                                                                                </div>
+                                                                                                ${dd.items && dd.items.length > 0
                                                         ? !dd.toggle
                                                             ? `<i class="fa-solid fa-angle-down color39"></i>`
                                                             : `<i class="fa-solid fa-angle-up color39"></i>`
                                                         : ``}
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        <div class="flex-fill"></div>
-                                                                                                        <div
-                                                                                                                class="child me-2"
-                                                                                                                onclick="${gvc.event((e, event) => {
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="flex-fill"></div>
+                                                                                        <div
+                                                                                            class="child me-2"
+                                                                                            onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         cf.plus(gvc, (file) => {
                                                             var _a;
@@ -232,13 +223,12 @@ export class FileSystem {
                                                             gvc.notifyDataChange(vm.id);
                                                         });
                                                     })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid ${dd.type === 'folder' ? `` : `d-none`} fa-plus"
-                                                                                                               style="color:#393939;"></i>
-                                                                                                        </div>
-                                                                                                        <div
-                                                                                                                class="child"
-                                                                                                                onclick="${gvc.event((e, event) => {
+                                                                                        >
+                                                                                            <i class="fa-solid ${dd.type === 'folder' ? `` : `d-none`} fa-plus" style="color:#393939;"></i>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="child"
+                                                                                            onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         cf.edit(dd, (replace) => {
                                                             if (!replace) {
@@ -251,26 +241,20 @@ export class FileSystem {
                                                             }
                                                         });
                                                     })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid fa-pencil"
-                                                                                                               style="color:#393939;"
-                                                                                                            ></i>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                ${dd.items && dd.items.length > 0
+                                                                                        >
+                                                                                            <i class="fa-solid fa-pencil" style="color:#393939;"></i>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                ${dd.items && dd.items.length > 0
                                                         ? html `
-                                                                                                            <div class=" w-100 ${dd.toggle ? `` : `d-none`}"
-                                                                                                                 style="padding-left: 35px;">
-                                                                                                                ${renderItems(dd.items)}
-                                                                                                            </div>
-                                                                                                        `
+                                                                                          <div class=" w-100 ${dd.toggle ? `` : `d-none`}" style="padding-left: 35px;">
+                                                                                              ${renderItems(dd.items)}
+                                                                                          </div>
+                                                                                      `
                                                         : ``}
-                                                                                            `;
-                                                    return html `
-                                                                                                <li class="w-100 ">
-                                                                                                    ${list}
-                                                                                                </li>`;
+                                                                            `;
+                                                    return html ` <li class="w-100 ">${list}</li>`;
                                                 })
                                                     .join('');
                                             },
@@ -284,9 +268,7 @@ export class FileSystem {
                                                     {
                                                         src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                                     },
-                                                ], () => {
-                                                }, () => {
-                                                });
+                                                ], () => { }, () => { });
                                                 const interval = setInterval(() => {
                                                     if (window.Sortable) {
                                                         try {
@@ -306,8 +288,7 @@ export class FileSystem {
                                                                 group: id,
                                                                 animation: 100,
                                                                 handle: '.dragItem',
-                                                                onChange: function (evt) {
-                                                                },
+                                                                onChange: function (evt) { },
                                                                 onEnd: (evt) => {
                                                                     swapArr(array, startIndex, evt.newIndex);
                                                                     gvc.notifyDataChange(id);
@@ -317,22 +298,21 @@ export class FileSystem {
                                                                 },
                                                             });
                                                         }
-                                                        catch (e) {
-                                                        }
+                                                        catch (e) { }
                                                         clearInterval(interval);
                                                     }
                                                 }, 100);
                                             },
                                         };
-                                    }));
+                                    });
                                 }
                                 return renderItems(vm.link);
                             })()}
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                `;
+                                </div>
+                            `;
                         }),
                         divCreate: {
                             style: ``,
@@ -361,9 +341,11 @@ export class FileSystem {
                         finish();
                     });
                 }
-                return [BgWidget.cancel(gvc.event(() => {
+                return [
+                    BgWidget.cancel(gvc.event(() => {
                         gvc.closeDialog();
-                    })), BgWidget.save(gvc.event(() => {
+                    })),
+                    BgWidget.save(gvc.event(() => {
                         let select = [];
                         function loop(array) {
                             array.map((dd) => {
@@ -380,8 +362,9 @@ export class FileSystem {
                             cf.getSelect(select);
                             gvc.closeDialog();
                         });
-                    }), '確認')].join('');
-            }
+                    }), '確認'),
+                ].join('');
+            },
         });
     }
     static selectRichText(gvc, callback, title, def) {
@@ -395,27 +378,30 @@ export class FileSystem {
                     placeHolder: `請輸入資料夾標題`,
                     callback: (text) => {
                         item.title = text;
-                    }
+                    },
                 });
             }
             else {
                 item.data = (_a = item.data) !== null && _a !== void 0 ? _a : {};
-                return [BgWidget.editeInput({
+                return [
+                    BgWidget.editeInput({
                         gvc: gvc,
                         title: `文本標題`,
                         default: item.title,
                         placeHolder: `請輸入文本標題`,
                         callback: (text) => {
                             item.title = text;
-                        }
-                    }), EditorElem.richText({
+                        },
+                    }),
+                    EditorElem.richText({
                         gvc: gvc,
                         def: (_b = item.data.content) !== null && _b !== void 0 ? _b : '',
                         callback: (text) => {
                             item.data.content = text;
                         },
                         style: 'min-height:100vh;',
-                    })].join('');
+                    }),
+                ].join('');
             }
         }
         FileSystem.fileSystem({
@@ -430,17 +416,16 @@ export class FileSystem {
                     data: {},
                     items: [],
                     type: 'file',
-                    id: gvc.glitter.getUUID()
+                    id: gvc.glitter.getUUID(),
                 };
                 BgWidget.settingDialog({
                     gvc: gvc,
                     title: '新增文本',
                     innerHTML: (gvc) => {
                         return [
-                            html `
-                                <div>
-                                    <div class="tx_normal fw-normal mb-2">新增類型</div>
-                                    ${BgWidget.select({
+                            html ` <div>
+                                <div class="tx_normal fw-normal mb-2">新增類型</div>
+                                ${BgWidget.select({
                                 gvc: gvc,
                                 default: item.type,
                                 callback: (key) => {
@@ -450,28 +435,31 @@ export class FileSystem {
                                 options: [
                                     {
                                         key: 'folder',
-                                        value: '資料夾'
-                                    }, {
+                                        value: '資料夾',
+                                    },
+                                    {
                                         key: 'file',
-                                        value: '文本'
-                                    }
+                                        value: '文本',
+                                    },
                                 ],
                                 style: 'margin:0px;',
                             })}
-                                </div>`,
-                            editorView(gvc, item)
+                            </div>`,
+                            editorView(gvc, item),
                         ].join('');
                     },
                     footer_html: (gvc) => {
-                        return [BgWidget.cancel(gvc.event(() => {
+                        return [
+                            BgWidget.cancel(gvc.event(() => {
                                 gvc.closeDialog();
-                            })), BgWidget.save(gvc.event(() => {
+                            })),
+                            BgWidget.save(gvc.event(() => {
                                 callback(item);
                                 gvc.closeDialog();
-                            }), '新增')].join('');
+                            }), '新增'),
+                        ].join('');
                     },
-                    closeCallback: () => {
-                    }
+                    closeCallback: () => { },
                 });
             },
             edit: (item, callback) => {
@@ -483,7 +471,8 @@ export class FileSystem {
                         return editorView(gvc, item);
                     },
                     footer_html: (gvc) => {
-                        return [BgWidget.danger(gvc.event(() => {
+                        return [
+                            BgWidget.danger(gvc.event(() => {
                                 const dialog = new ShareDialog(gvc.glitter);
                                 dialog.checkYesOrNot({
                                     text: `刪除後使用此資源的內容將會被取消關聯，是否確認刪除?`,
@@ -492,19 +481,21 @@ export class FileSystem {
                                             callback(undefined);
                                             gvc.closeDialog();
                                         }
-                                    }
+                                    },
                                 });
-                            })), BgWidget.cancel(gvc.event(() => {
+                            })),
+                            BgWidget.cancel(gvc.event(() => {
                                 gvc.closeDialog();
-                            })), BgWidget.save(gvc.event(() => {
+                            })),
+                            BgWidget.save(gvc.event(() => {
                                 callback(item);
                                 gvc.closeDialog();
-                            }), '新增')].join('');
+                            }), '新增'),
+                        ].join('');
                     },
-                    closeCallback: () => {
-                    }
+                    closeCallback: () => { },
                 });
-            }
+            },
         });
     }
 }

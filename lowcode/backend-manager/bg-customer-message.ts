@@ -1162,7 +1162,9 @@ export class BgCustomerMessage {
                                                 // 取得要監聽的元素
                                                 let targetElement = document.querySelector('.chatContainer')!;
                                                 if (vm.lastScroll === -1) {
-                                                    document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
+                                                    setTimeout(()=>{
+                                                        document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
+                                                    },100)
                                                 } else {
                                                     if (vm.prefixScroll) {
                                                         vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;

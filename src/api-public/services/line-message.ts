@@ -1,23 +1,18 @@
 import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import {sendmail} from '../../services/ses.js';
 import {AutoSendEmail} from './auto-send-email.js';
 import config from "../../config.js";
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
-import {Mail} from "./mail";
 import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat.js";
 import {User} from "./user.js";
-import Logger from "../../modules/logger.js";
-import mime from "mime";
+import Logger from "../../modules/logger.js";]
 import s3bucket from "../../modules/AWSLib.js";
-import {Jimp} from "jimp";
-import fs from "fs";
+import {Jimp} from "jimp";]
 
-
-
+const mime = require('mime');
 interface LineResponse {
     // 定義 response 物件的結構，根據實際 API 回應的格式進行調整
     clientid?: string,

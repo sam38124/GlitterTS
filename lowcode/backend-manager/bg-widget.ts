@@ -68,6 +68,9 @@ export class BgWidget {
     static greenNote(text: string, event: string = '', style: string = ''): string {
         return html`<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
+    static dangerNote(text: string, event: string = '', style: string = ''): string {
+        return html`<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
+    }
 
     static taiwanPhoneAlert(str: string = '請輸入正確的市話或手機號碼格式') {
         return html`
@@ -228,6 +231,15 @@ export class BgWidget {
                 </div>
             </div>
         `;
+    }
+
+    static questionButton(
+        event: string,
+        obj?: {
+            size?: number;
+        }
+    ) {
+        return html`<i class="fa-regular fa-circle-question cursor_pointer" style="font-size: ${obj?.size ?? 18}px" onclick="${event}"></i>`;
     }
 
     static switchButton(gvc: GVC, def: boolean, callback: (value: boolean) => void) {
@@ -1494,8 +1506,8 @@ ${obj.default ?? ''}</textarea
 
     static container(htmlString: string, width?: number, style?: string) {
         return html` <div
-            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
-            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
+            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
+            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
         >
             ${htmlString}
         </div>`;
@@ -1763,7 +1775,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static mainCard(htmlString: string, classString?: string, styleString?: string) {
-        return html` <div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
+        return html` <div class="main-card ${classString ?? ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
     static tab(
@@ -1784,14 +1796,14 @@ ${obj.default ?? ''}</textarea
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                                 onclick="${gvc.event(() => {
                                     callback(dd.key);
                                 })}"
                             >
                                 ${dd.title}
                             </div>
-                            <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+                            <div style="align-self: stretch; height: 0px; border: 1px #393939 solid"></div>
                         </div>`;
                     } else {
                         return html` <div
@@ -1801,7 +1813,7 @@ ${obj.default ?? ''}</textarea
                             })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -1915,21 +1927,23 @@ ${obj.default ?? ''}</textarea
             .join(this.horizontalLine());
     }
 
-    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; openHeight?: number; autoClose?: boolean; guideClass?: string }): string {
+    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; height?: number; autoClose?: boolean; guideClass?: string }): string {
         const text = Tool.randomString(5);
+        const height = obj.height ?? 500;
+        const closeHeight = 56;
 
         obj.gvc.addStyle(`
             .box-container-${text} {
                 position: relative;
-                height: 56px;
+                height: ${closeHeight}px;
                 border: 1px solid #ddd;
                 border-radius: 10px;
                 overflow-y: hidden;
                 transition: height 0.3s ease-out;
             }
             .box-container-${text}.open-box {
-                max-height: ${obj.openHeight ?? 500}px;
-                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
+                max-height: ${height}px;
+                height: ${height}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1967,7 +1981,7 @@ ${obj.default ?? ''}</textarea
 
             @media (max-width: 768px) {
                 .box-inside-${text} {
-                    padding: 0.5rem 1.25rem 1.25rem;
+                    padding: 1rem;
                 }
             }
         `);
@@ -1978,17 +1992,39 @@ ${obj.default ?? ''}</textarea
                 onclick="${obj.gvc.event((e) => {
                     if (!obj.autoClose) {
                         const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
-                        boxes.forEach((box) => {
+                        boxes.forEach((box: any) => {
                             const isOpening = box.classList.contains('open-box');
                             const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
                             if (isOpening && !isSelf) {
                                 box.classList.remove('open-box');
+                                if (box.tagName === 'DIV') {
+                                    box.style.height = `${closeHeight}px`;
+                                }
                             }
                         });
                     }
+
                     setTimeout(() => {
                         e.parentElement.classList.toggle('open-box');
                         e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+
+                        const container = window.document.querySelector(`.box-container-${text}`) as any;
+                        if (e.parentElement.classList.contains('open-box')) {
+                            const si = setInterval(() => {
+                                const inside = window.document.querySelector(`.box-inside-${text}`) as any;
+                                if (inside) {
+                                    const insideHeight = inside.clientHeight;
+                                    if (insideHeight + closeHeight < height) {
+                                        container.style.height = `${insideHeight + closeHeight + 20}px`;
+                                    } else {
+                                        container.style.height = `${height}px`;
+                                    }
+                                    clearInterval(si);
+                                }
+                            }, 100);
+                        } else {
+                            container.style.height = `${closeHeight}px`;
+                        }
                     }, 50);
                 })}"
             >
@@ -2516,6 +2552,7 @@ ${obj.default ?? ''}</textarea
             text?: string;
             event?: (gvc: GVC) => Promise<boolean>;
         };
+        xmark?: (gvc: GVC) => Promise<boolean>;
         style?: string;
     }) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
@@ -2533,8 +2570,8 @@ ${obj.default ?? ''}</textarea
                         <i
                             class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                             onclick="${gvc.event(() => {
-                                if (obj.cancel?.event) {
-                                    obj.cancel?.event(gvc).then((response) => {
+                                if (obj.xmark) {
+                                    obj.xmark(gvc).then((response) => {
                                         response && gvc.closeDialog();
                                     });
                                 } else {
@@ -2980,22 +3017,22 @@ ${obj.default ?? ''}</textarea
                 loading: false,
             };
 
-            return html`
-                <div class="bg-white shadow rounded-3"
-                     style="max-height:calc(${(window.parent).innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
-                    ${gvc.bindView({
-                        bind: vm.id,
-                        view: () => {
-                            if (vm.loading) {
-                                return html`
-                                    <div class="my-4">${this.spinner()}</div>`;
-                            }
-                            return html`
-                                <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                         style="background: #F2F2F2;">
-                                        <div class="tx_700">${obj.title ?? '產品列表'}</div>
-                                        <div class="flex-fill"></div>
+            return html` <div
+                class="bg-white shadow rounded-3"
+                style="max-height:calc(${window.parent.innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768
+                    ? 'min-width: 800px; width: 1080px;'
+                    : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                ${gvc.bindView({
+                    bind: vm.id,
+                    view: () => {
+                        if (vm.loading) {
+                            return html` <div class="my-4">${this.spinner()}</div>`;
+                        }
+                        return html` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
+                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="flex-fill"></div>
 
                                 <i
                                     class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"

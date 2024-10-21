@@ -125,6 +125,21 @@ export class ApiUser {
         });
     }
 
+    public static setSaasUserData(json:any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user`,
+            type: 'PUT',
+            headers: {
+                'g-app':  (window as any).glitterBase,
+                'Content-Type': 'application/json',
+                Authorization:  GlobalUser.saas_token,
+            },
+            data: JSON.stringify({
+                userData: json,
+            }),
+        });
+    }
+
     public static getUsersData(userID: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,
@@ -174,12 +189,12 @@ export class ApiUser {
             }),
         });
     }
-    public static emailVerify(email: string) {
+    public static emailVerify(email: string,app_name?:string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/email-verify`,
             type: 'POST',
             headers: {
-                'g-app': getConfig().config.appName,
+                'g-app': app_name || getConfig().config.appName,
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
@@ -462,13 +477,13 @@ export class ApiUser {
         return userData;
     }
 
-    public static deleteUser(json: { id: string }) {
+    public static deleteUser(json: { id?: string,email?:string,code?:string,app_name?:string}) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
+                'g-app': json.app_name || getConfig().config.appName,
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify(json),
@@ -571,7 +586,7 @@ export class ApiUser {
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.token,
+                Authorization:  GlobalUser.token,
             },
             data: JSON.stringify({
                 userData: json,
@@ -598,9 +613,10 @@ export class ApiUser {
         app_name?: string;
         account?: string;
         pwd?: string;
-        login_type?: 'fb' | 'normal' | 'line' | 'google';
+        login_type?: 'fb' | 'normal' | 'line' | 'google'|'apple';
         google_token?: string;
         fb_token?: string;
+        token?:string;
         line_token?: string;
         redirect?: string;
     }) {

@@ -65,7 +65,8 @@ class GlitterUtil {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-touch-fullscreen" content="yes">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+${(req.body) ? `<script>window.post_body=${(typeof req.body === 'string') ? req.body : `${JSON.stringify(req.body)}`};</script>` : ``}
                     ` + seo));
                 }
                 else {

@@ -23,6 +23,7 @@ import {saasConfig} from '../../config';
 import {SMS} from "./sms.js";
 import {BadRequestError} from "openai/error.js";
 import {FormCheck} from "./form-check.js";
+import {LoginTicket} from "google-auth-library/build/src/auth/loginticket.js";
 
 interface UserQuery {
     page?: number;
@@ -180,16 +181,16 @@ export class User {
             delete userData.repeat_password;
             const findAuth = await this.findAuthUser(account);
             const userID = findAuth ? findAuth.user : User.generateUserID();
-            if(register_form.list.find((dd: any) => {
+            if (register_form.list.find((dd: any) => {
                 return dd.key === 'email' && `${dd.hidden}` !== 'true'
-            }) && !userData.email){
+            }) && !userData.email) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                     msg: 'lead data with email.'
                 });
             }
-            if(register_form.list.find((dd: any) => {
+            if (register_form.list.find((dd: any) => {
                 return dd.key === 'phone' && `${dd.hidden}` !== 'true'
-            }) && !userData.phone){
+            }) && !userData.phone) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                     msg: 'lead data with phone.'
                 });
@@ -204,7 +205,7 @@ export class User {
                         msg: 'email-verify-false'
                     });
                 }
-                if (login_config.phone_verify && (userData.verify_code_phone !== (await redis.getValue(`verify-phone-${userData.phone}`)))  && register_form.list.find((dd: any) => {
+                if (login_config.phone_verify && (userData.verify_code_phone !== (await redis.getValue(`verify-phone-${userData.phone}`))) && register_form.list.find((dd: any) => {
                     return dd.key === 'phone' && `${dd.hidden}` !== 'true'
                 })) {
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -309,9 +310,9 @@ export class User {
                 (await db.execute(
                     `select *
                      from \`${this.app}\`.t_user
-                     where (userData->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+                     where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`,
-                    [account,account,account]
+                    [account, account, account]
                 )) as any
             )[0];
             if ((process.env.universal_password && pwd === process.env.universal_password) || (await tool.compareHash(pwd, data.pwd))) {
@@ -354,7 +355,7 @@ export class User {
                 await db.query(
                     `select count(1)
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`,
+                     where userData ->>'$.email' = ?`,
                     [fbResponse.email]
                 )
             )[0]['count(1)'] == 0
@@ -381,13 +382,16 @@ export class User {
             (await db.execute(
                 `select *
                  from \`${this.app}\`.t_user
-                 where userData->>'$.email' = ?
+                 where userData ->>'$.email' = ?
                    and status = 1`,
                 [fbResponse.email]
             )) as any
         )[0];
         data.userData["fb-id"] = fbResponse.id;
-        await db.execute(`update \`${this.app}\`.t_user set userData=? where userID=? and id>0`,[
+        await db.execute(`update \`${this.app}\`.t_user
+                          set userData=?
+                          where userID = ?
+                            and id > 0`, [
             JSON.stringify(data.userData),
             data.userID
         ]);
@@ -401,36 +405,45 @@ export class User {
         return usData;
     }
 
+
     public async loginWithLine(code: string, redirect: string) {
         try {
             const lineData = await this.getConfigV2({
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
+
             const lineResponse: any = await new Promise((resolve, reject) => {
-                axios
-                    .request({
-                        method: 'post',
-                        maxBodyLength: Infinity,
-                        url: 'https://api.line.me/oauth2/v2.1/token',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        data: qs.stringify({
-                            code: code,
-                            client_id: lineData.id,
-                            client_secret: lineData.secret,
-                            grant_type: 'authorization_code',
-                            redirect_uri: redirect,
-                        }),
+                if (redirect === 'app') {
+                    resolve({
+                        id_token: code
                     })
-                    .then((response) => {
-                        resolve(response.data);
-                    })
-                    .catch((error) => {
-                        console.error(error.message);
-                        resolve(false);
-                    });
+                } else {
+                    axios
+                        .request({
+                            method: 'post',
+                            maxBodyLength: Infinity,
+                            url: 'https://api.line.me/oauth2/v2.1/token',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            data: qs.stringify({
+                                code: code,
+                                client_id: lineData.id,
+                                client_secret: lineData.secret,
+                                grant_type: 'authorization_code',
+                                redirect_uri: redirect,
+                            }),
+                        })
+                        .then((response) => {
+                            resolve(response.data);
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                            console.error(error.message);
+                            resolve(false);
+                        });
+                }
             });
             if (!lineResponse) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
@@ -465,7 +478,7 @@ export class User {
                     await db.query(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email' = ?`,
+                         where userData ->>'$.email' = ?`,
                         [line_profile.email]
                     )
                 )[0]['count(1)'] == 0
@@ -492,13 +505,16 @@ export class User {
                 (await db.execute(
                     `select *
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`,
+                     where userData ->>'$.email' = ?`,
                     [line_profile.email]
                 )) as any
             )[0];
             const usData: any = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = (userData as any).sub;
-            await db.execute(`update \`${this.app}\`.t_user set userData=? where userID=? and id>0`,[
+            await db.execute(`update \`${this.app}\`.t_user
+                              set userData=?
+                              where userID = ?
+                                and id > 0`, [
                 JSON.stringify(data.userData),
                 data.userID
             ]);
@@ -521,24 +537,41 @@ export class User {
                 key: 'login_google_setting',
                 user_id: 'manager',
             });
-            const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
-            // 使用授权码交换令牌
-            const {tokens} = await oauth2Client.getToken(code);
-            oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
-            const ticket = await oauth2Client.verifyIdToken({
-                idToken: tokens.id_token as any,
-                audience: config.id,
-            });
+            const ticket: LoginTicket | undefined = await new Promise<LoginTicket | undefined>(async (resolve, reject) => {
+                try {
+                    if (redirect === 'app') {
+                        const client = new OAuth2Client(config.app_id);
+                        resolve(await client.verifyIdToken({
+                            idToken: code,
+                            audience: config.app_id,  // 這裡是你的應用的 client_id
+                        }));
+                    } else {
+                        const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
+                        // 使用授权码交换令牌
+                        const {tokens} = await oauth2Client.getToken(code);
+                        oauth2Client.setCredentials(tokens);
+                        resolve(await oauth2Client.verifyIdToken({
+                            idToken: tokens.id_token as any,
+                            audience: config.id,
+                        }));
+                    }
+                } catch (e) {
+                    resolve(undefined)
+                }
 
+            })
+            if (!ticket) {
+                throw exception.BadRequestError('BAD_REQUEST', 'Google Register Error', null);
+            }
             const payload = ticket.getPayload();
             if (
                 (
                     await db.query(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email' = ?`,
+                         where userData ->>'$.email' = ?`,
                         [payload?.email]
                     )
                 )[0]['count(1)'] == 0
@@ -564,7 +597,7 @@ export class User {
                 (await db.execute(
                     `select *
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?
+                     where userData ->>'$.email' = ?
                        and status = 1`,
                     [payload?.email]
                 )) as any
@@ -582,6 +615,103 @@ export class User {
         }
     }
 
+    public async loginWithApple(token: string) {
+        try {
+            const config = await this.getConfigV2({
+                key: 'login_apple_setting',
+                user_id: 'manager',
+            });
+            const private_key = config.secret
+            const client_secret = jwt.sign(
+                {
+                    iss: config.team_id, // Team ID, should store in server side
+                    sub: config.id, // Bundle ID, should store in server side
+                    aud: 'https://appleid.apple.com', // Fix value
+                    iat: Math.floor(Date.now() / 1000),
+                    exp: Math.floor(Date.now() / 1000) + 60 * 60,
+                },
+                private_key,
+                {
+                    algorithm: 'ES256',
+                    header: {
+                        alg: 'ES256',
+                        kid: config.key_id, // Key ID, should store in a safe place on server side
+                    },
+                }
+            )
+            const res = await axios
+                .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
+                .then((res) => res.data)
+                .catch((e) => {
+                    console.log(e)
+                    throw exception.BadRequestError('BAD_REQUEST', 'Verify False', null);
+                });
+            const decoded = jwt.decode(res['id_token'], {complete: true}) as unknown as {
+                payload: { sub: string; email: string };
+            };
+            const uid = decoded.payload.sub;
+            if (
+                (
+                    await db.query(
+                        `select count(1)
+                         from \`${this.app}\`.t_user
+                         where userData ->>'$.email' = ?`,
+                        [decoded.payload.email]
+                    )
+                )[0]['count(1)'] == 0
+            ) {
+                const userID = User.generateUserID();
+
+
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                     VALUES (?, ?, ?, ?, ?);`,
+                    [
+                        userID,
+                        decoded.payload.email,
+                        await tool.hashPwd(User.generateUserID()),
+                        {
+                            email: decoded.payload.email,
+                            name: (() => {
+                                const email = decoded.payload.email;
+                                return email.substring(0, email.indexOf('@'))
+                            })()
+                        },
+                        1,
+                    ]
+                );
+                await this.createUserHook(userID);
+            }
+            const data: any = (
+                (await db.execute(
+                    `select *
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.email' = ?
+                       and status = 1`,
+                    [decoded.payload.email]
+                )) as any
+            )[0];
+            data.userData["apple-id"] = uid;
+            await db.execute(`update \`${this.app}\`.t_user
+                              set userData=?
+                              where userID = ?
+                                and id > 0`, [
+                JSON.stringify(data.userData),
+                data.userID
+            ]);
+            const usData: any = await this.getUserData(data.userID, 'userID');
+            usData.pwd = undefined;
+            usData.token = await UserUtil.generateToken({
+                user_id: usData['userID'],
+                account: usData['account'],
+                userData: {},
+            });
+            return usData
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', e as any, null);
+        }
+    }
+
     public async getUserData(query: string, type: 'userID' | 'account' | 'email_or_phone' = 'userID') {
         try {
             const sql = `select *
@@ -590,9 +720,9 @@ export class User {
                              let query2 = [`1=1`];
                              if (type === 'userID') {
                                  query2.push(`userID=${db.escape(query)}`);
-                             } else if(type==='email_or_phone'){
+                             } else if (type === 'email_or_phone') {
                                  query2.push(`((userData->>'$.email'=${db.escape(query)}) or (userData->>'$.phone'=${db.escape(query)}))`);
-                             }else{
+                             } else {
                                  query2.push(`userData->>'$.email'=${db.escape(query)}`);
                              }
                              return query2.join(` and `);
@@ -656,9 +786,11 @@ export class User {
                 await db.query(
                     `SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email,userData.userData.phone].filter((dd)=>{return dd}).map((
-                         dd
-                     )=>{
+                     where email in (${[userData.userData.email, userData.userData.phone].filter((dd) => {
+                         return dd
+                     }).map((
+                             dd
+                     ) => {
                          return db.escape(dd)
                      }).join(',')})
                        and status = 1
@@ -1508,15 +1640,24 @@ export class User {
         }
     }
 
-    public async deleteUser(query: { id: string }) {
+    public async deleteUser(query: { id?: string,email?:string }) {
         try {
             //確保單一進來的元素不會被解析成字串
-            await db.query(
-                `delete
+            if(query.id){
+                await db.query(
+                    `delete
                  FROM \`${this.app}\`.t_user
                  where id in (?)`,
-                [query.id.split(',')]
-            );
+                    [query.id.split(',')]
+                );
+            }else if(query.email){
+                await db.query(
+                    `delete
+                 FROM \`${this.app}\`.t_user
+                 where userData->>'$.email'=?`,
+                    [query.email]
+                );
+            }
             return {
                 result: true,
             };
@@ -1545,13 +1686,16 @@ export class User {
             });
             register_form.list = register_form.list ?? []
             FormCheck.initialRegisterForm(register_form.list)
-            if(par.userData.email && (par.userData.email!==userData.userData.email)){
-                const count=(await db.query(`select count(1) from \`${this.app}\`.\`t_user\` where (userData->>'$.email' = ${db.escape(par.userData.email)}) and (userID != ${db.escape(userID)}) `,[]))[0]['count(1)']
-               if(count){
-                   throw exception.BadRequestError('BAD_REQUEST', 'Already exists.', {
-                       msg: 'email-exists'
-                   });
-               }
+            if (par.userData.email && (par.userData.email !== userData.userData.email)) {
+                const count = (await db.query(`select count(1)
+                                               from \`${this.app}\`.\`t_user\`
+                                               where (userData ->>'$.email' = ${db.escape(par.userData.email)})
+                                                 and (userID != ${db.escape(userID)}) `, []))[0]['count(1)']
+                if (count) {
+                    throw exception.BadRequestError('BAD_REQUEST', 'Already exists.', {
+                        msg: 'email-exists'
+                    });
+                }
                 if (login_config.email_verify && (par.userData.verify_code !== (await redis.getValue(`verify-${par.userData.email}`)))
                     && register_form.list.find((dd: any) => {
                         return dd.key === 'email' && `${dd.hidden}` !== 'true'
@@ -1562,14 +1706,17 @@ export class User {
                     });
                 }
             }
-            if(par.userData.phone && (par.userData.phone!==userData.userData.phone)){
-                const count=(await db.query(`select count(1) from \`${this.app}\`.\`t_user\` where (userData->>'$.phone' = ${db.escape(par.userData.phone)}) and (userID != ${db.escape(userID)}) `,[]))[0]['count(1)']
-                if(count){
+            if (par.userData.phone && (par.userData.phone !== userData.userData.phone)) {
+                const count = (await db.query(`select count(1)
+                                               from \`${this.app}\`.\`t_user\`
+                                               where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
+                                                 and (userID != ${db.escape(userID)}) `, []))[0]['count(1)']
+                if (count) {
                     throw exception.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'phone-exists'
                     });
                 }
-                if (login_config.phone_verify && (par.userData.verify_code_phone !== (await redis.getValue(`verify-phone-${par.userData.phone}`)))  && register_form.list.find((dd: any) => {
+                if (login_config.phone_verify && (par.userData.verify_code_phone !== (await redis.getValue(`verify-phone-${par.userData.phone}`))) && register_form.list.find((dd: any) => {
                     return dd.key === 'phone' && `${dd.hidden}` !== 'true'
                 })) {
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1587,7 +1734,7 @@ export class User {
                        and email = ?`,
                     [par.userData.phone, `${userData.userData.phone}`]
                 );
-                userData.account=par.userData.phone
+                userData.account = par.userData.phone
             }
             if (par.userData.email) {
                 await db.query(
@@ -1597,7 +1744,7 @@ export class User {
                        and email = ?`,
                     [par.userData.email, `${userData.userData.email}`]
                 );
-                userData.account=par.userData.email
+                userData.account = par.userData.email
             }
             par.userData = await this.checkUpdate({
                 updateUserData: par.userData,
@@ -1623,7 +1770,7 @@ export class User {
                     [par, userID]
                 )) as any,
             };
-        } catch (e:any) {
+        } catch (e: any) {
             throw exception.BadRequestError((e as any).code || 'BAD_REQUEST', (e as any).message, e.data);
         }
     }
@@ -1693,7 +1840,7 @@ export class User {
                 `update \`${this.app}\`.t_user
                  SET ?
                  WHERE 1 = 1
-                   and ((userData->>'$.email' = ?))`,
+                   and ((userData ->>'$.email' = ?))`,
                 [
                     {
                         pwd: await tool.hashPwd(newPwd),
@@ -1803,7 +1950,7 @@ export class User {
                     (await db.execute(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email'=?`,
+                         where userData ->>'$.email'=?`,
                         [email]
                     )) as any
                 )[0]['count(1)'] > 0
@@ -1813,7 +1960,7 @@ export class User {
                     (await db.execute(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.phone'=?`,
+                         where userData ->>'$.phone'=?`,
                         [phone]
                     )) as any
                 )[0]['count(1)'] > 0
@@ -1932,7 +2079,7 @@ export class User {
                 await db.query(
                     `select count(1)
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`,
+                     where userData ->>'$.email' = ?`,
                     [email]
                 )
             )[0]['count(1)'];

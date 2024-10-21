@@ -30,6 +30,9 @@ export class BgWidget {
     static greenNote(text, event = '', style = '') {
         return html `<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
+    static dangerNote(text, event = '', style = '') {
+        return html `<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
+    }
     static taiwanPhoneAlert(str = '請輸入正確的市話或手機號碼格式') {
         return html `
             <div class="text-center">
@@ -151,6 +154,10 @@ export class BgWidget {
                 </div>
             </div>
         `;
+    }
+    static questionButton(event, obj) {
+        var _a;
+        return html `<i class="fa-regular fa-circle-question cursor_pointer" style="font-size: ${(_a = obj === null || obj === void 0 ? void 0 : obj.size) !== null && _a !== void 0 ? _a : 18}px" onclick="${event}"></i>`;
     }
     static switchButton(gvc, def, callback) {
         return html ` <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px;">
@@ -1223,8 +1230,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static container(htmlString, width, style) {
         return html ` <div
-            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
-            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
+            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
+            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
         >
             ${htmlString}
         </div>`;
@@ -1449,7 +1456,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div class="${classStyle}">${htmlString}</div>`;
     }
     static mainCard(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
         return html ` <div
@@ -1460,14 +1467,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                                 onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
                             >
                                 ${dd.title}
                             </div>
-                            <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+                            <div style="align-self: stretch; height: 0px; border: 1px #393939 solid"></div>
                         </div>`;
             }
             else {
@@ -1478,7 +1485,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -1583,18 +1590,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static openBoxContainer(obj) {
         var _a, _b;
         const text = Tool.randomString(5);
+        const height = (_a = obj.height) !== null && _a !== void 0 ? _a : 500;
+        const closeHeight = 56;
         obj.gvc.addStyle(`
             .box-container-${text} {
                 position: relative;
-                height: 56px;
+                height: ${closeHeight}px;
                 border: 1px solid #ddd;
                 border-radius: 10px;
                 overflow-y: hidden;
                 transition: height 0.3s ease-out;
             }
             .box-container-${text}.open-box {
-                max-height: ${(_a = obj.openHeight) !== null && _a !== void 0 ? _a : 500}px;
-                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
+                max-height: ${height}px;
+                height: ${height}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1632,7 +1641,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
 
             @media (max-width: 768px) {
                 .box-inside-${text} {
-                    padding: 0.5rem 1.25rem 1.25rem;
+                    padding: 1rem;
                 }
             }
         `);
@@ -1647,12 +1656,34 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
                     if (isOpening && !isSelf) {
                         box.classList.remove('open-box');
+                        if (box.tagName === 'DIV') {
+                            box.style.height = `${closeHeight}px`;
+                        }
                     }
                 });
             }
             setTimeout(() => {
                 e.parentElement.classList.toggle('open-box');
                 e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+                const container = window.document.querySelector(`.box-container-${text}`);
+                if (e.parentElement.classList.contains('open-box')) {
+                    const si = setInterval(() => {
+                        const inside = window.document.querySelector(`.box-inside-${text}`);
+                        if (inside) {
+                            const insideHeight = inside.clientHeight;
+                            if (insideHeight + closeHeight < height) {
+                                container.style.height = `${insideHeight + closeHeight + 20}px`;
+                            }
+                            else {
+                                container.style.height = `${height}px`;
+                            }
+                            clearInterval(si);
+                        }
+                    }, 100);
+                }
+                else {
+                    container.style.height = `${closeHeight}px`;
+                }
             }, 50);
         })}"
             >
@@ -2133,9 +2164,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <i
                             class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                             onclick="${gvc.event(() => {
-                var _a, _b;
-                if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
-                    (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event(gvc).then((response) => {
+                if (obj.xmark) {
+                    obj.xmark(gvc).then((response) => {
                         response && gvc.closeDialog();
                     });
                 }
@@ -2552,23 +2582,23 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html `
-                <div class="bg-white shadow rounded-3"
-                     style="max-height:calc(${(window.parent).innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 800px; width: 1080px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
-                    ${gvc.bindView({
+            return html ` <div
+                class="bg-white shadow rounded-3"
+                style="max-height:calc(${window.parent.innerHeight - 50}px);height:700px;overflow-y: auto;${document.body.clientWidth > 768
+                ? 'min-width: 800px; width: 1080px;'
+                : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
                     if (vm.loading) {
-                        return html `
-                                    <div class="my-4">${this.spinner()}</div>`;
+                        return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
-                    return html `
-                                <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                         style="background: #F2F2F2;">
-                                        <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
-                                        <div class="flex-fill"></div>
+                    return html ` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
+                                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                <div class="flex-fill"></div>
 
                                 <i
                                     class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"

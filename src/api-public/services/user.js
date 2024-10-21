@@ -238,7 +238,7 @@ class User {
         try {
             const data = (await database_1.default.execute(`select *
                      from \`${this.app}\`.t_user
-                     where (userData->>'$.email' = ? or userData->>'$.phone'=? or account=?)
+                     where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`, [account, account, account]))[0];
             if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
@@ -278,7 +278,7 @@ class User {
         });
         if ((await database_1.default.query(`select count(1)
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
+                     where userData ->>'$.email' = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
             const userID = User.generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`, [
@@ -296,10 +296,13 @@ class User {
         }
         const data = (await database_1.default.execute(`select *
                  from \`${this.app}\`.t_user
-                 where userData->>'$.email' = ?
+                 where userData ->>'$.email' = ?
                    and status = 1`, [fbResponse.email]))[0];
         data.userData["fb-id"] = fbResponse.id;
-        await database_1.default.execute(`update \`${this.app}\`.t_user set userData=? where userID=? and id>0`, [
+        await database_1.default.execute(`update \`${this.app}\`.t_user
+                          set userData=?
+                          where userID = ?
+                            and id > 0`, [
             JSON.stringify(data.userData),
             data.userID
         ]);
@@ -319,29 +322,37 @@ class User {
                 user_id: 'manager',
             });
             const lineResponse = await new Promise((resolve, reject) => {
-                axios_1.default
-                    .request({
-                    method: 'post',
-                    maxBodyLength: Infinity,
-                    url: 'https://api.line.me/oauth2/v2.1/token',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    data: qs_1.default.stringify({
-                        code: code,
-                        client_id: lineData.id,
-                        client_secret: lineData.secret,
-                        grant_type: 'authorization_code',
-                        redirect_uri: redirect,
-                    }),
-                })
-                    .then((response) => {
-                    resolve(response.data);
-                })
-                    .catch((error) => {
-                    console.error(error.message);
-                    resolve(false);
-                });
+                if (redirect === 'app') {
+                    resolve({
+                        id_token: code
+                    });
+                }
+                else {
+                    axios_1.default
+                        .request({
+                        method: 'post',
+                        maxBodyLength: Infinity,
+                        url: 'https://api.line.me/oauth2/v2.1/token',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        data: qs_1.default.stringify({
+                            code: code,
+                            client_id: lineData.id,
+                            client_secret: lineData.secret,
+                            grant_type: 'authorization_code',
+                            redirect_uri: redirect,
+                        }),
+                    })
+                        .then((response) => {
+                        resolve(response.data);
+                    })
+                        .catch((error) => {
+                        console.log(error);
+                        console.error(error.message);
+                        resolve(false);
+                    });
+                }
             });
             if (!lineResponse) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
@@ -373,7 +384,7 @@ class User {
             }
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email' = ?`, [line_profile.email]))[0]['count(1)'] == 0) {
+                         where userData ->>'$.email' = ?`, [line_profile.email]))[0]['count(1)'] == 0) {
                 const userID = User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
@@ -391,10 +402,13 @@ class User {
             }
             const data = (await database_1.default.execute(`select *
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`, [line_profile.email]))[0];
+                     where userData ->>'$.email' = ?`, [line_profile.email]))[0];
             const usData = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = userData.sub;
-            await database_1.default.execute(`update \`${this.app}\`.t_user set userData=? where userID=? and id>0`, [
+            await database_1.default.execute(`update \`${this.app}\`.t_user
+                              set userData=?
+                              where userID = ?
+                                and id > 0`, [
                 JSON.stringify(data.userData),
                 data.userID
             ]);
@@ -417,17 +431,36 @@ class User {
                 key: 'login_google_setting',
                 user_id: 'manager',
             });
-            const oauth2Client = new google_auth_library_1.OAuth2Client(config.id, config.secret, redirect);
-            const { tokens } = await oauth2Client.getToken(code);
-            oauth2Client.setCredentials(tokens);
-            const ticket = await oauth2Client.verifyIdToken({
-                idToken: tokens.id_token,
-                audience: config.id,
+            const ticket = await new Promise(async (resolve, reject) => {
+                try {
+                    if (redirect === 'app') {
+                        const client = new google_auth_library_1.OAuth2Client(config.app_id);
+                        resolve(await client.verifyIdToken({
+                            idToken: code,
+                            audience: config.app_id,
+                        }));
+                    }
+                    else {
+                        const oauth2Client = new google_auth_library_1.OAuth2Client(config.id, config.secret, redirect);
+                        const { tokens } = await oauth2Client.getToken(code);
+                        oauth2Client.setCredentials(tokens);
+                        resolve(await oauth2Client.verifyIdToken({
+                            idToken: tokens.id_token,
+                            audience: config.id,
+                        }));
+                    }
+                }
+                catch (e) {
+                    resolve(undefined);
+                }
             });
+            if (!ticket) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Google Register Error', null);
+            }
             const payload = ticket.getPayload();
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email' = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
+                         where userData ->>'$.email' = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
                 const userID = User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
@@ -444,8 +477,82 @@ class User {
             }
             const data = (await database_1.default.execute(`select *
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?
+                     where userData ->>'$.email' = ?
                        and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+            const usData = await this.getUserData(data.userID, 'userID');
+            usData.pwd = undefined;
+            usData.token = await UserUtil_1.default.generateToken({
+                user_id: usData['userID'],
+                account: usData['account'],
+                userData: {},
+            });
+            return usData;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
+        }
+    }
+    async loginWithApple(token) {
+        try {
+            const config = await this.getConfigV2({
+                key: 'login_apple_setting',
+                user_id: 'manager',
+            });
+            const private_key = config.secret;
+            const client_secret = jsonwebtoken_1.default.sign({
+                iss: config.team_id,
+                sub: config.id,
+                aud: 'https://appleid.apple.com',
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + 60 * 60,
+            }, private_key, {
+                algorithm: 'ES256',
+                header: {
+                    alg: 'ES256',
+                    kid: config.key_id,
+                },
+            });
+            const res = await axios_1.default
+                .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
+                .then((res) => res.data)
+                .catch((e) => {
+                console.log(e);
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify False', null);
+            });
+            const decoded = jsonwebtoken_1.default.decode(res['id_token'], { complete: true });
+            const uid = decoded.payload.sub;
+            if ((await database_1.default.query(`select count(1)
+                         from \`${this.app}\`.t_user
+                         where userData ->>'$.email' = ?`, [decoded.payload.email]))[0]['count(1)'] == 0) {
+                const userID = User.generateUserID();
+                await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                     VALUES (?, ?, ?, ?, ?);`, [
+                    userID,
+                    decoded.payload.email,
+                    await tool_1.default.hashPwd(User.generateUserID()),
+                    {
+                        email: decoded.payload.email,
+                        name: (() => {
+                            const email = decoded.payload.email;
+                            return email.substring(0, email.indexOf('@'));
+                        })()
+                    },
+                    1,
+                ]);
+                await this.createUserHook(userID);
+            }
+            const data = (await database_1.default.execute(`select *
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.email' = ?
+                       and status = 1`, [decoded.payload.email]))[0];
+            data.userData["apple-id"] = uid;
+            await database_1.default.execute(`update \`${this.app}\`.t_user
+                              set userData=?
+                              where userID = ?
+                                and id > 0`, [
+                JSON.stringify(data.userData),
+                data.userID
+            ]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -523,7 +630,9 @@ class User {
             })).levels || [];
             const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email, userData.userData.phone].filter((dd) => { return dd; }).map((dd) => {
+                     where email in (${[userData.userData.email, userData.userData.phone].filter((dd) => {
+                return dd;
+            }).map((dd) => {
                 return database_1.default.escape(dd);
             }).join(',')})
                        and status = 1
@@ -1238,9 +1347,16 @@ class User {
     }
     async deleteUser(query) {
         try {
-            await database_1.default.query(`delete
+            if (query.id) {
+                await database_1.default.query(`delete
                  FROM \`${this.app}\`.t_user
                  where id in (?)`, [query.id.split(',')]);
+            }
+            else if (query.email) {
+                await database_1.default.query(`delete
+                 FROM \`${this.app}\`.t_user
+                 where userData->>'$.email'=?`, [query.email]);
+            }
             return {
                 result: true,
             };
@@ -1266,7 +1382,10 @@ class User {
             register_form.list = (_a = register_form.list) !== null && _a !== void 0 ? _a : [];
             form_check_js_1.FormCheck.initialRegisterForm(register_form.list);
             if (par.userData.email && (par.userData.email !== userData.userData.email)) {
-                const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.\`t_user\` where (userData->>'$.email' = ${database_1.default.escape(par.userData.email)}) and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                const count = (await database_1.default.query(`select count(1)
+                                               from \`${this.app}\`.\`t_user\`
+                                               where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
+                                                 and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'email-exists'
@@ -1282,7 +1401,10 @@ class User {
                 }
             }
             if (par.userData.phone && (par.userData.phone !== userData.userData.phone)) {
-                const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.\`t_user\` where (userData->>'$.phone' = ${database_1.default.escape(par.userData.phone)}) and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                const count = (await database_1.default.query(`select count(1)
+                                               from \`${this.app}\`.\`t_user\`
+                                               where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
+                                                 and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'phone-exists'
@@ -1383,7 +1505,7 @@ class User {
             const result = (await database_1.default.query(`update \`${this.app}\`.t_user
                  SET ?
                  WHERE 1 = 1
-                   and ((userData->>'$.email' = ?))`, [
+                   and ((userData ->>'$.email' = ?))`, [
                 {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
@@ -1468,10 +1590,10 @@ class User {
         try {
             const emailExists = email && ((await database_1.default.execute(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.email'=?`, [email]))[0]['count(1)'] > 0);
+                         where userData ->>'$.email'=?`, [email]))[0]['count(1)'] > 0);
             const phoneExists = phone && ((await database_1.default.execute(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0);
+                         where userData ->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0);
             return emailExists || phoneExists;
         }
         catch (e) {
@@ -1561,7 +1683,7 @@ class User {
         try {
             const count = (await database_1.default.query(`select count(1)
                      from \`${this.app}\`.t_user
-                     where userData->>'$.email' = ?`, [email]))[0]['count(1)'];
+                     where userData ->>'$.email' = ?`, [email]))[0]['count(1)'];
             return count;
         }
         catch (e) {

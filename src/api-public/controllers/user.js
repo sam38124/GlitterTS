@@ -59,6 +59,12 @@ router.delete('/', async (req, resp) => {
                 id: req.body.id,
             }));
         }
+        else if (req.body.code === (await redis_js_1.default.getValue(`verify-${req.body.email}`))) {
+            const user = new user_1.User(req.get('g-app'));
+            return response_1.default.succ(resp, await user.deleteUser({
+                email: req.body.email
+            }));
+        }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -172,6 +178,9 @@ router.post('/login', async (req, resp) => {
         else if (req.body.login_type === 'google') {
             return response_1.default.succ(resp, await user.loginWithGoogle(req.body.google_token, req.body.redirect));
         }
+        else if (req.body.login_type === 'apple') {
+            return response_1.default.succ(resp, await user.loginWithApple(req.body.token));
+        }
         else {
             return response_1.default.succ(resp, await user.login(req.body.account, req.body.pwd));
         }
@@ -183,9 +192,9 @@ router.post('/login', async (req, resp) => {
 router.get('/checkMail', async (req, resp) => {
     try {
         let data = await database_1.default.query(`select \`value\`
-                                   from \`${config_js_1.default.DB_NAME}\`.private_config
-                                   where app_name = '${req.query['g-app']}'
-                                     and \`key\` = 'glitter_loginConfig'`, []);
+             from \`${config_js_1.default.DB_NAME}\`.private_config
+             where app_name = '${req.query['g-app']}'
+               and \`key\` = 'glitter_loginConfig'`, []);
         if (data.length > 0) {
             data = data[0]['value'];
         }
@@ -206,9 +215,9 @@ router.get('/checkMail', async (req, resp) => {
 router.get('/checkMail/updateAccount', async (req, resp) => {
     try {
         let data = await database_1.default.query(`select \`value\`
-                                   from \`${config_js_1.default.DB_NAME}\`.private_config
-                                   where app_name = '${req.query['g-app']}'
-                                     and \`key\` = 'glitter_loginConfig'`, []);
+             from \`${config_js_1.default.DB_NAME}\`.private_config
+             where app_name = '${req.query['g-app']}'
+               and \`key\` = 'glitter_loginConfig'`, []);
         if (data.length > 0) {
             data = data[0]['value'];
         }

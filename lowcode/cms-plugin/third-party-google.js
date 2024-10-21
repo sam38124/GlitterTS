@@ -20,6 +20,7 @@ export class ThirdPartyGoggle {
                 data: {
                     google_toggle: false,
                     id: '',
+                    app_id: '',
                     secret: '',
                     pixel: ''
                 },
@@ -104,12 +105,23 @@ export class ThirdPartyGoggle {
                                 BgWidget.editeInput({
                                     gvc: gvc,
                                     title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式編號
+客户端 ID
 </div>`,
                                     default: vm.data.id,
-                                    placeHolder: '請前往META開發者後台取得應用程式編號',
+                                    placeHolder: '請前往GOOGLE開發者後台取得客户端 ID',
                                     callback: (text) => {
                                         vm.data.id = text;
+                                    }
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: `<div class="d-flex align-items-center" style="gap:10px;">
+APP客户端 ID『 非必填 』
+</div>`,
+                                    default: vm.data.app_id,
+                                    placeHolder: '請前往Google Cloud後台取得客户端 ID',
+                                    callback: (text) => {
+                                        vm.data.app_id = text;
                                     }
                                 }),
                                 BgWidget.editeInput({
@@ -118,11 +130,45 @@ export class ThirdPartyGoggle {
 應用程式密鑰
 </div>`,
                                     default: vm.data.secret,
-                                    placeHolder: '請前往META開發者後台取得應用程式密鑰',
+                                    placeHolder: '請前往GOOGLE開發者後台取得應用程式密鑰',
                                     callback: (text) => {
                                         vm.data.secret = text;
                                     }
-                                })
+                                }),
+                                `<div onclick="${gvc.event(() => {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/login');
+                                    dialog.successMessage({ text: '已複製至剪貼簿' });
+                                })}">
+${BgWidget.editeInput({
+                                    readonly: true,
+                                    gvc: gvc,
+                                    title: `<div class="d-flex flex-column" style="gap:5px;">
+重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至Google Cloud後台的OAuth重定向URI')}
+</div>`,
+                                    default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
+                                    placeHolder: '',
+                                    callback: (text) => {
+                                    }
+                                })}
+</div>`,
+                                `<div onclick="${gvc.event(() => {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/register');
+                                    dialog.successMessage({ text: '已複製至剪貼簿' });
+                                })}">
+${BgWidget.editeInput({
+                                    readonly: true,
+                                    gvc: gvc,
+                                    title: `<div class="d-flex flex-column" style="gap:5px;">
+重新導向URI『 註冊頁 』  ${BgWidget.grayNote('點擊複製此連結至Google Cloud後台的OAuth重定向URI')}
+</div>`,
+                                    default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
+                                    placeHolder: '',
+                                    callback: (text) => {
+                                    }
+                                })}
+</div>`
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700 d-flex align-items-center" style="gap:10px;"><img  style="width: 25px;height: 25px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718208842472-ic_analytics.svg">

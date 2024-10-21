@@ -90,7 +90,59 @@ export class ThirdPartyLine {
                                         callback: (text) => {
                                             vm.data.secret = text
                                         }
-                                    })
+                                    }),
+                                   `<div onclick="${gvc.event(()=>{
+                                       const dialog=new ShareDialog(gvc.glitter)
+                                       navigator.clipboard.writeText( `https://`+(window.parent as any).glitter.share.editorViewModel.domain);
+                                       dialog.successMessage({text:'已複製至剪貼簿'})
+                                   })}">
+${ BgWidget.editeInput({
+                                       readonly:true,
+                                       gvc: gvc,
+                                       title: `<div class="d-flex flex-column" style="gap:5px;">
+允許網域 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的Javascript允許網域')}
+</div>`,
+                                       default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain,
+                                       placeHolder: '',
+                                       callback: (text) => {}
+                                   })}
+</div>`,
+                                    `<div onclick="${gvc.event(()=>{
+                                        const dialog=new ShareDialog(gvc.glitter)
+                                        navigator.clipboard.writeText( `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/login');
+                                        dialog.successMessage({text:'已複製至剪貼簿'})
+                                    })}">
+${ BgWidget.editeInput({
+                                        readonly:true,
+                                        gvc: gvc,
+                                        title: `<div class="d-flex flex-column" style="gap:5px;">
+重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
+</div>`,
+                                        default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/login',
+                                        placeHolder: '',
+                                        callback: (text) => {
+                                        
+                                        }
+                                    })}
+</div>`,
+                                    `<div onclick="${gvc.event(()=>{
+                                        const dialog=new ShareDialog(gvc.glitter)
+                                        navigator.clipboard.writeText( `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/register');
+                                        dialog.successMessage({text:'已複製至剪貼簿'})
+                                    })}">
+${ BgWidget.editeInput({
+                                        readonly:true,
+                                        gvc: gvc,
+                                        title: `<div class="d-flex flex-column" style="gap:5px;">
+重新導向URI『 註冊頁 』  ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
+</div>`,
+                                        default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/register',
+                                        placeHolder: '',
+                                        callback: (text) => {
+
+                                        }
+                                    })}
+</div>`
                                 ].join(BgWidget.mbContainer(12))),
                                 BgWidget.card([
                                     `<div class="tx_700">臉書訊息綁定</div>`,

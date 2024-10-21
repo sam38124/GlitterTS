@@ -737,12 +737,14 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     if (!viewModel.loading) {
                         switch (Storage.select_function) {
                             case 'backend-manger': {
-                                let bgGuide = new BgGuide(gvc, 0);
-                                ApiShop.getGuideable().then(r => {
-                                    if (!r.response.value || !r.response.value.view) {
-                                        bgGuide.drawGuide();
-                                    }
-                                })
+                                if (document.body.clientWidth>1000){
+                                    let bgGuide = new BgGuide(gvc, 0);
+                                    ApiShop.getGuideable().then(r => {
+                                        if (!r.response.value || !r.response.value.view) {
+                                            bgGuide.drawGuide();
+                                        }
+                                    })
+                                }
                                 break
                             }
                             case 'user-editor': {

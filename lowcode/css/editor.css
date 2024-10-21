@@ -1017,6 +1017,12 @@ h6 {
         padding: 10px 16px;
         gap: 12px;
     }
+
+    .main-card {
+        padding: 12px;
+        border-radius: 0;
+        box-shadow: none;
+    }
 }
 
 /* @keyframes 定義動畫 */
