@@ -1,14 +1,14 @@
 import express from 'express';
 import response from '../../modules/response';
 import db from '../../modules/database';
-import { User } from '../services/user';
+import {User} from '../services/user';
 import exception from '../../modules/exception';
 import config from '../../config.js';
-import { UtPermission } from '../utils/ut-permission.js';
+import {UtPermission} from '../utils/ut-permission.js';
 import redis from '../../modules/redis.js';
-import { Shopping } from '../services/shopping';
+import {Shopping} from '../services/shopping';
 import Tool from '../../modules/tool';
-import { SharePermission } from '../services/share-permission';
+import {SharePermission} from '../services/share-permission';
 import {FilterProtectData} from "../services/filter-protect-data.js";
 
 const router: express.Router = express.Router();
@@ -23,10 +23,10 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         } else if (req.query.type === 'account' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.email as any, 'account'));
-        } else  if(req.query.type==='email_or_phone'){
+        } else if (req.query.type === 'email_or_phone') {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.search as any, 'email_or_phone'));
-        }else{
+        } else {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.body.token.userID));
         }
@@ -56,6 +56,14 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
                     id: req.body.id,
                 })
             );
+        } else if (req.body.code === (await redis.getValue(`verify-${req.body.email}`))) {
+            const user = new User(req.get('g-app') as string);
+            return response.succ(
+                resp,
+                await user.deleteUser({
+                    email: req.body.email
+                })
+            )
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -70,18 +78,18 @@ router.get('/level', async (req: express.Request, resp: express.Response) => {
             const user = new User(req.get('g-app') as string);
             const emails = req.query.email
                 ? `${req.query.email}`.split(',').map((item) => {
-                      return { email: item };
-                  })
+                    return {email: item};
+                })
                 : [];
             const ids = req.query.id
                 ? `${req.query.id}`.split(',').map((item) => {
-                      return { userId: item };
-                  })
+                    return {userId: item};
+                })
                 : [];
             return response.succ(resp, await user.getUserLevel([...emails, ...ids]));
         } else {
             const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserLevel([{ userId: req.body.token.userID }]));
+            return response.succ(resp, await user.getUserLevel([{userId: req.body.token.userID}]));
         }
     } catch (err) {
         return response.fail(resp, err);
@@ -116,7 +124,7 @@ router.post('/phone-verify', async (req: express.Request, resp: express.Response
 router.post('/register', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        if (await user.checkMailAndPhoneExists(req.body.userData.email,req.body.userData.phone)) {
+        if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
             throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         } else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
@@ -132,7 +140,7 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
     try {
         if (await UtPermission.isManager(req)) {
             const user = new User(req.get('g-app') as string);
-            if (await user.checkMailAndPhoneExists(req.body.userData.email,req.body.userData.phone)) {
+            if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
             } else {
                 const res = await user.createUser(req.body.account, Tool.randomString(8), req.body.userData, {}, true);
@@ -156,6 +164,8 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
             return response.succ(resp, await user.loginWithLine(req.body.line_token, req.body.redirect));
         } else if (req.body.login_type === 'google') {
             return response.succ(resp, await user.loginWithGoogle(req.body.google_token, req.body.redirect));
+        } else if (req.body.login_type === 'apple') {
+            return response.succ(resp, await user.loginWithApple(req.body.token));
         } else {
             return response.succ(resp, await user.login(req.body.account, req.body.pwd));
         }
@@ -168,9 +178,9 @@ router.get('/checkMail', async (req: express.Request, resp: express.Response) =>
     try {
         let data = await db.query(
             `select \`value\`
-                                   from \`${config.DB_NAME}\`.private_config
-                                   where app_name = '${req.query['g-app']}'
-                                     and \`key\` = 'glitter_loginConfig'`,
+             from \`${config.DB_NAME}\`.private_config
+             where app_name = '${req.query['g-app']}'
+               and \`key\` = 'glitter_loginConfig'`,
             []
         );
         if (data.length > 0) {
@@ -192,9 +202,9 @@ router.get('/checkMail/updateAccount', async (req: express.Request, resp: expres
     try {
         let data = await db.query(
             `select \`value\`
-                                   from \`${config.DB_NAME}\`.private_config
-                                   where app_name = '${req.query['g-app']}'
-                                     and \`key\` = 'glitter_loginConfig'`,
+             from \`${config.DB_NAME}\`.private_config
+             where app_name = '${req.query['g-app']}'
+               and \`key\` = 'glitter_loginConfig'`,
             []
         );
         if (data.length > 0) {
@@ -382,10 +392,10 @@ router.get('/public/config', async (req: express.Request, resp: express.Response
                         })
                     )[0] ?? {})['value'] ?? '',
             });
-        }else{
+        } else {
             return response.succ(resp, {
                 result: true,
-                value:FilterProtectData.filter(req.query.key as string, ((
+                value: FilterProtectData.filter(req.query.key as string, ((
                     await post.getConfig({
                         key: req.query.key as string,
                         user_id: req.query.user_id as string,
@@ -412,7 +422,7 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
                 value: req.body.value,
             });
         }
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }

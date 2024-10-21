@@ -83,7 +83,7 @@ export class ThirdPartyLine {
                                 }),
                                 `<div  onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
-                                    navigator.clipboard.writeText(window.parent.glitter.share.editorViewModel.domain + '/login');
+                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/login');
                                     dialog.successMessage({ text: '已複製至剪貼簿' });
                                 })}">
 ${BgWidget.editeInput({

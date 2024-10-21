@@ -3,45 +3,47 @@ import {BgWidget} from "../backend-manager/bg-widget.js";
 import {ApiUser} from "../glitter-base/route/user.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
-export class ThirdPartyGoggle {
+export class ThirdPartyApple {
     public static main(gvc: GVC) {
         return BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
-            const key = 'login_google_setting';
+            const key = 'login_apple_setting';
             const vm: {
                 loading: boolean;
                 data: {
-                    google_toggle: boolean
+                    apple_toggle: boolean
+                    team_id: string,
+                    bundle_id: string,
                     id: string;
-                    app_id:string,
                     secret: string;
-                    pixel: string
+                    key_id: string
                 };
-                ga:{
-                    ga4:{code:string}[],
-                    g_tag:{code:string}[]
+                ga: {
+                    ga4: { code: string }[],
+                    g_tag: { code: string }[]
                 }
             } = {
                 loading: true,
                 data: {
-                    google_toggle: false,
+                    apple_toggle: false,
+                    bundle_id: '',
                     id: '',
-                    app_id:'',
+                    team_id: '',
                     secret: '',
-                    pixel: ''
+                    key_id: ''
                 },
-                ga:{
-                    ga4:[],
-                    g_tag:[]
+                ga: {
+                    ga4: [],
+                    g_tag: []
                 }
             };
 
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
                 dd.response.value && (vm.data = dd.response.value);
-                ApiUser.getPublicConfig('ga4_config','manager').then((res)=>{
-                   res.response.value && (vm.ga=res.response.value)
-                   gvc.notifyDataChange(id);
+                ApiUser.getPublicConfig('ga4_config', 'manager').then((res) => {
+                    res.response.value && (vm.ga = res.response.value)
+                    gvc.notifyDataChange(id);
                 })
             });
 
@@ -52,53 +54,8 @@ export class ThirdPartyGoggle {
                         return BgWidget.spinner()
                     }
                     const html = String.raw
-                    function renderCodeSelect(array:any){
-                        return [array.map((dd:any ,index:number)=>{
-                            return `<div class="col-12 col-sm-4  mb-2 ps-0" style="align-self: stretch;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 0px;
-    display: inline-flex;"><input class="w-100" style="flex: 1 1 0;
-    height: 40px;
-    padding: 9px 18px;
-    overflow: hidden;
-    border: 1px #DDDDDD solid;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 10px;
-    display: flex;
-    border-right: 0px;
-    border-radius: 10px 0px 0px 10px;" placeholder="請輸入編號" value="${dd.code}" onchange="${gvc.event((e, event) => {
-                                dd.code = e.value
-                            })}"><div style="height: 100%;
-    background: #f2f2f2;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    width: 40px;
-    border: 1px #DDDDDD solid;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-    cursor: pointer;" onclick="${gvc.event(() => {
-                                const dialog = new ShareDialog(gvc.glitter)
-                                dialog.checkYesOrNot({
-                                    text: '是否確認刪除此追蹤編號?', callback: (response) => {
-                                        if (response) {
-                                            array.splice(index, 1)
-                                            gvc.notifyDataChange(id)
-                                        }
-                                    }
-                                })
-                            })}"><div class="" style="" ><i class="fa-regular fa-trash-can" aria-hidden="true"></i></div></div></div>`
-                        }).join(''),`<div class="col-12 col-sm-4  mb-2 ps-0" onclick="${gvc.event(()=>{
-                            array.push({code:''})
-                            gvc.notifyDataChange(id)
-                        })}">
-<div class="bt_orange">新增編號</div>
-</div>`].join(``)
-                    }
                     return [
-                        BgWidget.title('Google串接設定'),
+                        BgWidget.title('Apple串接設定'),
                         BgWidget.mbContainer(18),
                         `<div class="d-flex justify-content-center mx-sm-n3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                                      style="gap: 24px">
@@ -107,44 +64,54 @@ export class ThirdPartyGoggle {
                                 BgWidget.card([
                                     `<div class="tx_700">串接綁定</div>`,
                                     `<div class="d-flex align-items-center" style="gap:10px;">
-啟用Google登入${BgWidget.switchButton(gvc, vm.data.google_toggle, () => {
-                                        vm.data.google_toggle = !vm.data.google_toggle
+啟用Apple登入${BgWidget.switchButton(gvc, vm.data.apple_toggle, () => {
+                                        vm.data.apple_toggle = !vm.data.apple_toggle
                                         gvc.notifyDataChange(id)
                                     })}</div>`,
                                     BgWidget.editeInput({
                                         gvc: gvc,
                                         title: `<div class="d-flex align-items-center" style="gap:10px;">
-客户端 ID
+應用程式編號 Identifier
 </div>`,
                                         default: vm.data.id,
-                                        placeHolder: '請前往GOOGLE開發者後台取得客户端 ID',
+                                        placeHolder: '請前往APPLE開發者後台取得應用程式編號',
                                         callback: (text) => {
                                             vm.data.id = text
                                         }
                                     }),
-                                    BgWidget.editeInput({
+                                    BgWidget.textArea({
                                         gvc: gvc,
                                         title: `<div class="d-flex align-items-center" style="gap:10px;">
-APP客户端 ID『 非必填 』
-</div>`,
-                                        default: vm.data.app_id,
-                                        placeHolder: '請前往Google Cloud後台取得客户端 ID',
-                                        callback: (text) => {
-                                            vm.data.app_id = text
-                                        }
-                                    }),
-                                    BgWidget.editeInput({
-                                        gvc: gvc,
-                                        title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式密鑰
+應用程式私鑰 PRIVATE KEY
 </div>`,
                                         default: vm.data.secret,
-                                        placeHolder: '請前往GOOGLE開發者後台取得應用程式密鑰',
+                                        placeHolder: '請前往APPLE開發者後台取得應用程式私鑰',
                                         callback: (text) => {
                                             vm.data.secret = text
                                         }
                                     }),
-                                    
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: `<div class="d-flex align-items-center" style="gap:10px;">
+團隊ID
+</div>`,
+                                        default: vm.data.team_id,
+                                        placeHolder: '請前往META開發者後台取得團隊ID',
+                                        callback: (text) => {
+                                            vm.data.team_id = text
+                                        }
+                                    }),
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: `<div class="d-flex align-items-center" style="gap:10px;">
+Key ID
+</div>`,
+                                        default: vm.data.key_id,
+                                        placeHolder: '請前往META開發者後台取得Key ID',
+                                        callback: (text) => {
+                                            vm.data.key_id = text
+                                        }
+                                    }),
                                     `<div onclick="${gvc.event(()=>{
                                         const dialog=new ShareDialog(gvc.glitter)
                                         navigator.clipboard.writeText( `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/login');
@@ -154,7 +121,25 @@ ${ BgWidget.editeInput({
                                         readonly:true,
                                         gvc: gvc,
                                         title: `<div class="d-flex flex-column" style="gap:5px;">
-重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至Google Cloud後台的OAuth重定向URI')}
+網域與子網域 ${BgWidget.grayNote('點擊複製此連結至APPLE Developer後台的Domain and subdomains')}
+</div>`,
+                                        default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain,
+                                        placeHolder: '',
+                                        callback: (text) => {
+
+                                        }
+                                    })}
+</div>`,
+                                    `<div onclick="${gvc.event(()=>{
+                                        const dialog=new ShareDialog(gvc.glitter)
+                                        navigator.clipboard.writeText( `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/login');
+                                        dialog.successMessage({text:'已複製至剪貼簿'})
+                                    })}">
+${ BgWidget.editeInput({
+                                        readonly:true,
+                                        gvc: gvc,
+                                        title: `<div class="d-flex flex-column" style="gap:5px;">
+重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至APPLE Developer後台的Return URLS')}
 </div>`,
                                         default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/login',
                                         placeHolder: '',
@@ -172,7 +157,7 @@ ${ BgWidget.editeInput({
                                         readonly:true,
                                         gvc: gvc,
                                         title: `<div class="d-flex flex-column" style="gap:5px;">
-重新導向URI『 註冊頁 』  ${BgWidget.grayNote('點擊複製此連結至Google Cloud後台的OAuth重定向URI')}
+重新導向URI『 註冊頁 』  ${BgWidget.grayNote('點擊複製此連結至APPLE Developer後台的Return URLS')}
 </div>`,
                                         default:    `https://`+(window.parent as any).glitter.share.editorViewModel.domain+'/register',
                                         placeHolder: '',
@@ -180,24 +165,6 @@ ${ BgWidget.editeInput({
 
                                         }
                                     })}
-</div>`
-                                ].join(BgWidget.mbContainer(12))),
-                                BgWidget.card([
-                                  `<div class="tx_700 d-flex align-items-center" style="gap:10px;"><img  style="width: 25px;height: 25px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718208842472-ic_analytics.svg">
-資料分析 Google Analytics ( GA4 )
-</div>`,
-                                    `<div class="tx_700">追蹤編號</div>`,
-                                    `<div class="row m-0">
-${renderCodeSelect(vm.ga.ga4)}
-</div>`
-                                ].join(BgWidget.mbContainer(12))),
-                                BgWidget.card([
-                                    `<div class="tx_700 d-flex align-items-center" style="gap:10px;"><img  style="width: 25px;height: 25px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718210156723-ic_tag_manager.svg">
-追蹤代碼管理工具 Google Tag Manager
-</div>`,
-                                    `<div class="tx_700">追蹤編號含GTM</div>`,
-                                    `<div class="row m-0">
-${renderCodeSelect(vm.ga.g_tag)}
 </div>`
                                 ].join(BgWidget.mbContainer(12)))
                             ].join(BgWidget.mbContainer(24)),
@@ -209,10 +176,7 @@ ${renderCodeSelect(vm.ga.g_tag)}
                             [
                                 BgWidget.card([
                                     `<div class="tx_700">操作說明</div>`,
-                                    `<div class="tx_normal">設定Google串接，實現Google登入，與 GA4 用戶行為追蹤</div>`,
-                                    `<div class="tx_normal">前往 ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
-                                        (window.parent as any).glitter.openNewTab('https://shopnex.cc/blogs/googleapiconnect')
-                                    }))} 查看串接設定流程</div>`,
+                                    `<div class="tx_normal">為啟用 Apple 登入功能，請前往 Apple 開發者後台，取得所需參數並完成設定。</div>`
                                 ].join(BgWidget.mbContainer(12)))
                             ].join(BgWidget.mbContainer(24)),
                             undefined,
@@ -223,7 +187,7 @@ ${renderCodeSelect(vm.ga.g_tag)}
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({visible: true});
                             const cf = (await ApiUser.getPublicConfig('login_config', 'manager')).response.value || {}
-                            cf.google = vm.data.google_toggle;
+                            cf.apple = vm.data.apple_toggle;
                             await ApiUser.setPublicConfig({
                                 key: 'login_config',
                                 value: cf,
@@ -254,4 +218,4 @@ ${renderCodeSelect(vm.ga.g_tag)}
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ThirdPartyGoggle);
+(window as any).glitter.setModule(import.meta.url, ThirdPartyApple);

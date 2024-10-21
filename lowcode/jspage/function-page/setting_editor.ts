@@ -463,6 +463,15 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'third-party-apple',
+                group: '第三方整合',
+                title: 'Apple 串接設定',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/list-tree-regular.svg',
+                moduleName: 'line自動發送',
+            },
+            {
+                icon: '',
                 page: 'web_theme',
                 group: '品牌官網',
                 title: '佈景主題',

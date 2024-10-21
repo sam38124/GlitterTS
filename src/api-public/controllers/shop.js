@@ -906,7 +906,7 @@ router.post('/apple-webhook', async (req, resp) => {
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: 'https://sandbox.itunes.apple.com/verifyReceipt',
+            url: 'https://buy.itunes.apple.com/verifyReceipt',
             headers: {
                 'Content-Type': 'application/json'
             },

@@ -118,41 +118,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-function openLineWebhook() {
-    const app = (0, express_1.default)();
-    const PORT = process.env.PORT || 3000;
-    const VERIFY_TOKEN = 'Ee7DWSoCMu8Fc/D0DbDyeWJYSgTp6kyx4JjKmN+6UnCFaBz7zZkzMLWCfJgbTwdPquynA5mLTYHv2DPYYL7Bf5VhHGyN70bi/Q5nx+/gz4fc1KakDEWXKpJpJsT+OVjZknTTdvI42ooj67rjY4RmMAdB04t89/1O/w1cDnyilFU=';
-    app.use(body_parser_1.default.json());
-    app.get('/webhook', (req, res) => {
-        const mode = req.query['hub.mode'];
-        const token = req.query['hub.verify_token'];
-        const challenge = req.query['hub.challenge'];
-        if (mode && token && mode === 'subscribe' && token === VERIFY_TOKEN) {
-            console.log('Webhook verified');
-            res.status(200).send(challenge);
-        }
-        else {
-            res.sendStatus(403);
-        }
-    });
-    app.post('/webhook', (req, res) => {
-        const body = req.body;
-        if (body.object === 'page') {
-            body.entry.forEach((entry) => {
-                const webhookEvent = entry.messaging[0];
-                const senderId = webhookEvent.sender.id;
-                if (webhookEvent.message) {
-                    console.log(`Received message: ${webhookEvent.message.text}`);
-                    sendMessage(senderId, `You said: ${webhookEvent.message.text}`);
-                }
-            });
-            res.status(200).send('EVENT_RECEIVED');
-        }
-        else {
-            res.sendStatus(404);
-        }
-    });
-}
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;

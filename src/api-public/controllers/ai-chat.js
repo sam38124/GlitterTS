@@ -39,12 +39,13 @@ router.post('/sync-data', async (req, resp) => {
                 limit: 5000,
                 shipment: req.query.shipment,
             })).data.map((order) => {
-                var _a, _b;
+                var _a, _b, _c;
                 const orderData = order.orderData;
+                orderData.customer_info = (_a = orderData.customer_info) !== null && _a !== void 0 ? _a : {};
                 exportData.push({
                     訂單編號: order.cart_token,
                     訂單建立時間: (0, moment_1.default)(order.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
-                    會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : 'none',
+                    會員信箱: (_b = order.email) !== null && _b !== void 0 ? _b : 'none',
                     訂單處理狀態: (() => {
                         var _a;
                         switch ((_a = orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
@@ -110,7 +111,7 @@ router.post('/sync-data', async (req, resp) => {
                     收件人姓名: orderData.user_info.name,
                     收件人手機: orderData.user_info.phone,
                     收件人信箱: orderData.user_info.email,
-                    備註: (_b = orderData.user_info.note) !== null && _b !== void 0 ? _b : '',
+                    備註: (_c = orderData.user_info.note) !== null && _c !== void 0 ? _c : '',
                 });
             });
             fs_1.default.writeFileSync(file1, JSON.stringify(exportData));
@@ -143,7 +144,11 @@ router.post('/sync-data', async (req, resp) => {
     }
     catch (err) {
         console.log(err);
-        fs_1.default.rmSync(file1);
+        try {
+            fs_1.default.rmSync(file1);
+        }
+        catch (e) {
+        }
         return response_js_1.default.fail(resp, err);
     }
 });

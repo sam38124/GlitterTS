@@ -62,6 +62,7 @@ export declare class User {
     loginWithFb(token: string): Promise<any>;
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
+    loginWithApple(token: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account' | 'email_or_phone'): Promise<any>;
     checkMember(userData: any, trigger: boolean): Promise<{
         id: string;
@@ -140,7 +141,8 @@ export declare class User {
         result?: undefined;
     }>;
     deleteUser(query: {
-        id: string;
+        id?: string;
+        email?: string;
     }): Promise<{
         result: boolean;
     }>;

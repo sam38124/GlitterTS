@@ -68,6 +68,9 @@ export class BgWidget {
     static greenNote(text: string, event: string = '', style: string = ''): string {
         return html`<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
+    static dangerNote(text: string, event: string = '', style: string = ''): string {
+        return html`<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
+    }
 
     static taiwanPhoneAlert(str: string = '請輸入正確的市話或手機號碼格式') {
         return html`

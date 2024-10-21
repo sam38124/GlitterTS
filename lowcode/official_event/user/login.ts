@@ -35,11 +35,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             { title: "一般登入", value: "normal" },
                                             { title: "FB登入", value: "fb" },
                                             { title: "LINE登入", value: "line" },
-                                            { title: "Google登入", value: "google" }
+                                            { title: "Google登入", value: "google" },
+                                            { title: "Apple登入", value: "apple" }
                                         ],
                                     })
                                 ]
-                                if(object.loginMethod!=='fb' && object.loginMethod!=='line' && object.loginMethod!=='google'){
+                                if(!['fb','apple','google','line'].includes(object.loginMethod)){
                                     option=option.concat([ TriggerEvent.editer(gvc, widget, object.account, {
                                         hover: false,
                                         option: [],
@@ -61,6 +62,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             hover: false,
                                             option: [],
                                             title: "redirect"
+                                        })
+                                    ])
+                                }
+                                if(object.loginMethod==='apple'){
+                                    option=option.concat([
+                                        TriggerEvent.editer(gvc, widget, object.code, {
+                                            hover: false,
+                                            option: [],
+                                            title: "code代碼"
                                         })
                                     ])
                                 }
@@ -111,19 +121,34 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                      }
                     if(object.loginMethod==='fb'){
                         return new Promise(async (resolve, reject) => {
-                            (window as any).FB.login(function(response:any) {
-                                // handle the response
-                                const accessToken=response.authResponse.accessToken;
-                                ApiUser.login({
-                                    login_type:'fb',
-                                    fb_token:accessToken
-                                }).then((r) => {
-                                    loginCallback(r,(res)=>{
-                                        resolve(res)
-                                    })
+                            if(gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Ios){
+                                gvc.glitter.runJsInterFace("facebook_login",{},(response)=>{
+                                    if(response.result){
+                                        ApiUser.login({
+                                            login_type:'fb',
+                                            fb_token:response.accessToken
+                                        }).then((r) => {
+                                            loginCallback(r,(res)=>{
+                                                resolve(res)
+                                            })
+                                        })
+                                    }
                                 })
-                            }, {scope: 'public_profile,email'});
 
+                            }else{
+                                (window as any).FB.login(function(response:any) {
+                                    // handle the response
+                                    const accessToken=response.authResponse.accessToken;
+                                    ApiUser.login({
+                                        login_type:'fb',
+                                        fb_token:accessToken
+                                    }).then((r) => {
+                                        loginCallback(r,(res)=>{
+                                            resolve(res)
+                                        })
+                                    })
+                                }, {scope: 'public_profile,email'});
+                            }
                         })
                     }else  if(object.loginMethod==='line'){
                         return new Promise(async (resolve, reject)=>{
@@ -172,6 +197,25 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 login_type:'google',
                                 google_token:code as any,
                                 redirect:redirect as any
+                            }).then((r) => {
+                                loginCallback(r,(res)=>{
+                                    resolve(res)
+                                })
+                            })
+                        })
+
+                    }else  if(object.loginMethod==='apple'){
+                        return new Promise(async (resolve, reject)=>{
+                            let code = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.code,
+                                subData: subData,
+                                element: element
+                            })
+                            ApiUser.login({
+                                login_type:'apple',
+                                token:code as any
                             }).then((r) => {
                                 loginCallback(r,(res)=>{
                                     resolve(res)

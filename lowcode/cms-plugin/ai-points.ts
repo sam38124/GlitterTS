@@ -287,22 +287,25 @@ export class AiPoints {
                         vm.user_info.company = ''
                         vm.user_info.gui_number = ''
                     }
-                    if (vm.user_info.invoice_type === 'company' && !vm.user_info.company) {
-                        dialog.errorMessage({text: '請確實填寫發票抬頭'})
-                        return
-                    } else if (vm.user_info.invoice_type === 'company' && !vm.user_info.gui_number) {
-                        dialog.errorMessage({text: '請確實填寫統一編號'})
-                        return
-                    } else if (!vm.user_info.email) {
-                        dialog.errorMessage({text: '請確實填寫信箱'})
-                        return
-                    } else if (!BgWidget.isValidEmail(vm.user_info.email)) {
-                        dialog.errorMessage({text: '請輸入有效信箱'})
-                        return
-                    } else if (vm.user_info.invoice_type === 'company' && !BgWidget.isValidNumbers(vm.user_info.gui_number)) {
-                        dialog.errorMessage({text: '請輸入有效統一編號'})
-                        return
+                    if(gvc.glitter.deviceType !== gvc.glitter.deviceTypeEnum.Ios){
+                        if (vm.user_info.invoice_type === 'company' && !vm.user_info.company) {
+                            dialog.errorMessage({text: '請確實填寫發票抬頭'})
+                            return
+                        } else if (vm.user_info.invoice_type === 'company' && !vm.user_info.gui_number) {
+                            dialog.errorMessage({text: '請確實填寫統一編號'})
+                            return
+                        } else if (!vm.user_info.email) {
+                            dialog.errorMessage({text: '請確實填寫信箱'})
+                            return
+                        } else if (!BgWidget.isValidEmail(vm.user_info.email)) {
+                            dialog.errorMessage({text: '請輸入有效信箱'})
+                            return
+                        } else if (vm.user_info.invoice_type === 'company' && !BgWidget.isValidNumbers(vm.user_info.gui_number)) {
+                            dialog.errorMessage({text: '請輸入有效統一編號'})
+                            return
+                        }
                     }
+
                     await ApiUser.setPublicConfig({
                         key: 'ai-points-store',
                         value: vm.user_info,

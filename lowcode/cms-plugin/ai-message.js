@@ -445,7 +445,9 @@ export class AiMessage {
                                                     vm.close = false;
                                                     let targetElement = document.querySelector('.chatContainer');
                                                     if (vm.lastScroll === -1) {
-                                                        document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
+                                                        setTimeout(() => {
+                                                            document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
+                                                        }, 100);
                                                     }
                                                     else {
                                                         if (vm.prefixScroll) {

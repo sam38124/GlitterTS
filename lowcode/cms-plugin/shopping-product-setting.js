@@ -2004,7 +2004,7 @@ export class ShoppingProductSetting {
                                     <div class="flex-fill"></div>
                                     ${BgWidget.grayButton(document.body.clientWidth > 768 ? '預覽商品' : '預覽', gvc.event(() => {
                                 const href = `https://${window.parent.glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
-                                window.parent.open(href, '_blank');
+                                window.parent.glitter.openNewTab(href);
                             }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined })}
                                 </div>
                                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="${document.body.clientWidth < 768 ? '' : 'gap: 24px'}">
@@ -3640,7 +3640,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                     html ` <div class="mt-2 mb-1">
                                                                             <span class="tx_normal me-1">網址預覽</span>
                                                                             ${BgWidget.greenNote(href + `/${postMD.seo.domain}`, gvc.event(() => {
-                                                        window.parent.open(href + `/${postMD.seo.domain}`, '_blank');
+                                                        window.parent.glitter.openNewTab(href + `/${postMD.seo.domain}`);
                                                     }))}
                                                                         </div>`,
                                                 ].join('')}

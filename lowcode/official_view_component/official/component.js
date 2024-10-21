@@ -952,30 +952,36 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
                                                                                                                                              onclick="${gvc.event(() => {
                                                                                                                                 const cGvc = gvc;
-                                                                                                                                EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                                                                                    return html `
+                                                                                                                                BgWidget.settingDialog({
+                                                                                                                                    gvc: gvc,
+                                                                                                                                    title: '設置自定義選項',
+                                                                                                                                    innerHTML: (gvc) => {
+                                                                                                                                        return html `
                                                                                                                                                          <div class="p-3">
                                                                                                                                                              ${[
-                                                                                                                                        BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
-                                                                                                                                            return {
-                                                                                                                                                key: dd.key,
-                                                                                                                                                name: dd.title
-                                                                                                                                            };
-                                                                                                                                        }).concat([{
-                                                                                                                                                key: '_container_margin',
-                                                                                                                                                name: '容器間距'
-                                                                                                                                            }, {
-                                                                                                                                                key: '_container_fonts',
-                                                                                                                                                name: '字型設定'
-                                                                                                                                            }, {
-                                                                                                                                                key: '_container_background',
-                                                                                                                                                name: '背景設定'
-                                                                                                                                            },
-                                                                                                                                        ]), oWidget[`${type}_editable`] || [], (select) => {
-                                                                                                                                            oWidget[`${type}_editable`] = select;
-                                                                                                                                        }, {}),
-                                                                                                                                        html `
-                                                                                                                                                                     <div class="d-flex justify-content-end"
+                                                                                                                                            BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
+                                                                                                                                                return {
+                                                                                                                                                    key: dd.key,
+                                                                                                                                                    name: dd.title
+                                                                                                                                                };
+                                                                                                                                            }).concat([{
+                                                                                                                                                    key: '_container_margin',
+                                                                                                                                                    name: '容器間距'
+                                                                                                                                                }, {
+                                                                                                                                                    key: '_container_fonts',
+                                                                                                                                                    name: '字型設定'
+                                                                                                                                                }, {
+                                                                                                                                                    key: '_container_background',
+                                                                                                                                                    name: '背景設定'
+                                                                                                                                                },
+                                                                                                                                            ]), oWidget[`${type}_editable`] || [], (select) => {
+                                                                                                                                                oWidget[`${type}_editable`] = select;
+                                                                                                                                            }, {})
+                                                                                                                                        ].join('')}
+                                                                                                                                                         </div>`;
+                                                                                                                                    },
+                                                                                                                                    footer_html: (gvc) => {
+                                                                                                                                        return ` <div class="d-flex justify-content-end"
                                                                                                                                                                           style="gap:10px;">
                                                                                                                                                                          ${BgWidget.cancel(gvc.event(() => {
                                                                                                                                             gvc.closeDialog();
@@ -986,11 +992,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                             refreshLeftBar();
                                                                                                                                             refresh(widget, type);
                                                                                                                                         }), '完成')}
-                                                                                                                                                                     </div>`
-                                                                                                                                    ].join('')}
-                                                                                                                                                         </div>`;
-                                                                                                                                }, () => {
-                                                                                                                                }, 569, '設置自定義選項');
+                                                                                                                                                                     </div>`;
+                                                                                                                                    },
+                                                                                                                                });
                                                                                                                             })}">
                                                                                                                                             <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                                                                                                                                 設置自定義選項

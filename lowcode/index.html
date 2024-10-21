@@ -449,6 +449,25 @@
     if (window.redirct_tohome) {
         location.href = window.redirct_tohome
     }
+    // 設置計時器的初始時間（10分鐘 = 600,000毫秒）
+    let timeoutTime = 10 * 60 * 1000; // 10 分鐘
+    let timeout;
+
+    function resetTimer() {
+        // 如果用戶操作，則清除舊的計時器並重新設置
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            location.reload(); // 重新整理網頁
+        }, timeoutTime);
+    }
+
+    // 以下事件可視為用戶有操作
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeydown = resetTimer;
+    document.onclick = resetTimer;
+    document.ontouchstart = resetTimer;
+    document.onkeypress = resetTimer;
 </script>
 <body>
 <div id="glitterPage" class="flex-fill ">
