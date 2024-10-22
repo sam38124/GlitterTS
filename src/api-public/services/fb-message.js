@@ -26,7 +26,10 @@ class FbMessage {
                     this.sendMessage({ data: content, fbID: d.lineID }, (res) => {
                         check--;
                         if (check === 0) {
-                            database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date ? 0 : 1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [id]);
+                            database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                                      SET status = ${date ? 0 : 1},
+                                          content = JSON_SET(content, '$.name', '${res.msgid}')
+                                      WHERE id = ?;`, [id]);
                             resolve(true);
                         }
                     });
@@ -171,11 +174,13 @@ class FbMessage {
                 whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
             }
             const whereSQL = `(tag = 'sendLine' OR tag = 'sendLineBySchedule') AND ${whereList.join(' AND ')}`;
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+            const emails = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL}
                  ORDER BY id DESC
-                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
-            const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                     ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_js_1.default.query(`SELECT count(id) as c
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`, []);
             let n = 0;
             await new Promise((resolve) => {
@@ -205,7 +210,8 @@ class FbMessage {
                 if (isLater(data.sendTime)) {
                     return { result: false, message: '排定發送的時間需大於現在時間' };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLineBySchedule',
                         content: JSON.stringify(data),
@@ -215,7 +221,8 @@ class FbMessage {
                 ]);
             }
             else {
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLine',
                         content: JSON.stringify(data),
@@ -233,14 +240,17 @@ class FbMessage {
     }
     async deleteSns(data) {
         try {
-            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+            const emails = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
             await new Promise((resolve) => {
                 this.deleteSNS({ id: data.id }, (res) => {
                     resolve(true);
                 });
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = 2 WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
+                            SET status = 2
+                            WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
             return { result: true, message: '取消預約成功' };
         }
         catch (e) {
@@ -248,7 +258,6 @@ class FbMessage {
         }
     }
     async listenMessage(body) {
-        let that = this;
         const post = new user_1.User(this.app, this.token);
         let tokenData = await post.getConfig({
             key: "login_fb_setting",
@@ -259,7 +268,7 @@ class FbMessage {
                 for (const entry of body.entry) {
                     const messagingEvents = entry.messaging;
                     for (const event of messagingEvents) {
-                        if (event.message && event.message.text) {
+                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
                             const senderId = "fb_" + event.sender.id;
                             const messageText = event.message.text;
                             let chatData = {
@@ -281,16 +290,14 @@ class FbMessage {
                             const result = await new chat_1.Chat(this.app).addChatRoom(chatData);
                             if (!result.create) {
                                 await database_js_1.default.query(`
-                        UPDATE \`${this.app}\`.\`t_chat_list\`
-                        SET ?
-                        WHERE ?
-                    `, [
+                                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                                        SET ?
+                                        WHERE chat_id = ?
+                                    `, [
                                     {
                                         info: chatData.info,
                                     },
-                                    {
-                                        chat_id: chatData.chat_id,
-                                    }
+                                    chatData.chat_id
                                 ]);
                             }
                             chatData.message = {
@@ -307,6 +314,7 @@ class FbMessage {
             return { result: true, message: 'accept message' };
         }
         catch (e) {
+            console.log(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Error:' + e, null);
         }
     }
@@ -314,7 +322,10 @@ class FbMessage {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendMessage({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), fbID: lineID }, (res) => {
+                resolve(await this.sendMessage({
+                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    fbID: lineID
+                }, (res) => {
                 }));
             });
         }
@@ -339,6 +350,7 @@ class FbMessage {
             return new Promise((resolve, reject) => {
                 axios_1.default.request(urlConfig)
                     .then((response) => {
+                    console.log(`fb-info-`, response.data);
                     callback(response.data);
                     resolve(response.data);
                 })

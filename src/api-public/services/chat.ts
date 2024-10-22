@@ -122,7 +122,7 @@ export class Chat {
             query.push(`chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${db.escape(userID)})`);
             qu.order_string = `order by updated_time desc`;
             const data = await new UtDatabase(this.app, `t_chat_list`).querySql(query, qu);
-            console.log(`查詢Chat-list:${((new Date().getTime()) - start) / 1000}`)
+            // console.log(`查詢Chat-list:${((new Date().getTime()) - start) / 1000}`)
             await new Promise(async (resolve, reject) => {
                 let pass=0
                 for (const b of data.data) {
@@ -141,7 +141,7 @@ export class Chat {
                                         []
                                     )
                                 )[0];
-                                console.log(`查詢topMessage:${((new Date().getTime()) - start) / 1000}`)
+                                // console.log(`查詢topMessage:${((new Date().getTime()) - start) / 1000}`)
                                 b.unread = (
                                     await db.query(
                                         `SELECT count(1)
@@ -161,7 +161,7 @@ export class Chat {
                                         []
                                     )
                                 )[0]['count(1)'];
-                                console.log(`查詢unread:${((new Date().getTime()) - start) / 1000}`)
+                                // console.log(`查詢unread:${((new Date().getTime()) - start) / 1000}`)
                                 if (b.topMessage) {
                                     b.topMessage.message.created_time = b.topMessage.created_time;
                                     b.topMessage = b.topMessage && b.topMessage.message;
@@ -170,7 +170,7 @@ export class Chat {
                                 if (user) {
                                     try {
                                         b.user_data = ((await new User(this.app).getUserData(user, 'userID')) ?? {}).userData ?? {};
-                                        console.log(`查詢user:${((new Date().getTime()) - start) / 1000}`)
+                                        // console.log(`查詢user:${((new Date().getTime()) - start) / 1000}`)
                                     } catch (e) {
                                     }
                                 }
@@ -190,7 +190,7 @@ export class Chat {
                     resolve(true)
                 }
             })
-            console.log(`查詢Chat-DATA:${((new Date().getTime()) - start) / 1000}`)
+            // console.log(`查詢Chat-DATA:${((new Date().getTime()) - start) / 1000}`)
             return data;
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetChatRoom Error:' + e!.message, null);
@@ -254,15 +254,12 @@ export class Chat {
             const insert = await db.query(
                 `
                     insert into \`${this.app}\`.\`t_chat_detail\`
-                    set ?
+                        (chat_id,user_id,message,created_time) values (?,?,?,NOW())
                 `,
                 [
-                    {
-                        chat_id: room.chat_id,
-                        user_id: room.user_id,
-                        message: JSON.stringify(room.message),
-                        created_time: new Date(),
-                    },
+                    room.chat_id,
+                    room.user_id,
+                    JSON.stringify(room.message)
                 ]
             );
             for (const dd of WebSocket.chatMemory[this.app + room.chat_id] ?? []) {
@@ -314,15 +311,12 @@ export class Chat {
                         const insert = await db.query(
                             `
                                 insert into \`${this.app}\`.\`t_chat_detail\`
-                                set ?
+                                    (chat_id,user_id,message,created_time) values (?,?,?,NOW())
                             `,
                             [
-                                {
-                                    chat_id: room.chat_id,
-                                    user_id: b.user_id,
-                                    message: JSON.stringify(response),
-                                    created_time: new Date(),
-                                },
+                                room.chat_id,
+                                b.user_id,
+                                JSON.stringify(response)
                             ]
                         );
                         for (const dd of WebSocket.chatMemory[this.app + room.chat_id] ?? []) {
@@ -368,17 +362,14 @@ export class Chat {
                                     const insert = await db.query(
                                         `
                                             insert into \`${this.app}\`.\`t_chat_detail\`
-                                            set ?
+                                             (chat_id,user_id,message,created_time) values (?,?,?,NOW())
                                         `,
                                         [
-                                            {
-                                                chat_id: room.chat_id,
-                                                user_id: b.user_id,
-                                                message: JSON.stringify({
-                                                    text: d.response,
-                                                }),
-                                                created_time: new Date(),
-                                            },
+                                            room.chat_id,
+                                            b.user_id,
+                                            JSON.stringify({
+                                                text: d.response,
+                                            })
                                         ]
                                     );
                                     for (const dd of WebSocket.chatMemory[this.app + room.chat_id] ?? []) {
@@ -437,15 +428,19 @@ export class Chat {
                  })()});`,
                 []
             );
+            //通知更新訊息紅點
+            particpant.map((dd:any)=>{
+                if(`${dd.user_id}` !== `${room.user_id}`){
+                    (WebSocket.messageChangeMem[`${dd.user_id}`] ?? []).map((d2) => {
+                        d2.callback({
+                            type: 'update_message_count',
+                        });
+                    });
+                }
+            })
             //SAAS品牌和用戶類型
             const managerUser = await App.checkBrandAndMemberType(this.app);
-
             for (const dd of userData) {
-                (WebSocket.messageChangeMem[`${dd.userID}`] ?? []).map((d2) => {
-                    d2.callback({
-                        type: 'update_message_count',
-                    });
-                });
                 if (dd.userData.email) {
                     if (chatRoom.type === 'user') {
                         if (room.message.text) {
@@ -510,8 +505,8 @@ export class Chat {
     public async updateLastRead(userID: string, chat_id: string) {
         await db.query(
             `replace
-            into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`,
-            [userID, chat_id, new Date()]
+            into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,NOW());`,
+            [userID, chat_id]
         );
     }
 
@@ -549,8 +544,8 @@ export class Chat {
 
             await db.query(
                 `replace
-                into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`,
-                [qu.user_id, qu.chat_id, new Date()]
+                into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,NOW());`,
+                [qu.user_id, qu.chat_id]
             );
             if (!qu.befor_id) {
                 const lastRead = await this.getLastRead(qu.chat_id);
@@ -608,6 +603,7 @@ export class Chat {
                and t_chat_detail.user_id!=${db.escape(
                      user_id
              )}
+               and t_chat_last_read.user_id= ${db.escape(user_id)}
                and t_chat_detail.chat_id=t_chat_last_read.chat_id
                and t_chat_last_read.last_read
                  < created_time

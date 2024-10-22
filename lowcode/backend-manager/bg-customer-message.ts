@@ -304,7 +304,7 @@ export class BgCustomerMessage {
                                             });
                                         },
                                         divCreate: {
-                                            class: `p-2`,style:``
+                                            class: `p-2`, style: ``
                                         },
                                     };
                                 })
@@ -450,13 +450,15 @@ export class BgCustomerMessage {
                                                                 keyData.question = keyData.question ?? []
                                                                 const parId = gvc.glitter.getUUID()
                                                                 const id = gvc.glitter.getUUID()
-                                                                function refresh(){
+
+                                                                function refresh() {
                                                                     gvc.notifyDataChange(id)
                                                                 }
+
                                                                 resolve(html`
                                                                     <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 p-2 py-3 border-top border-bottom mt-2 shadow">
                                                                         <span class="fs-6 fw-bold "
-                                                                              style="color:black;">自動回覆</span>
+                                                                              style="color:black;">常見問題</span>
                                                                     </div>
                                                                     <div style="" class="p-2">
                                                                         ${gvc.bindView(() => {
@@ -487,7 +489,7 @@ export class BgCustomerMessage {
                                                                                                             callback: (text) => {
                                                                                                                 copy.response = text;
                                                                                                             },
-                                                                                                        })].map((dd)=>{
+                                                                                                        })].map((dd) => {
                                                                                                             return `<div>${dd}</div>`
                                                                                                         }).join('')
                                                                                                     },
@@ -595,9 +597,12 @@ export class BgCustomerMessage {
                                                                                 }
                                                                             }
                                                                         })}
-                                                                        <div class="w-100" style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                                        <div class="w-100"
+                                                                             style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
+                                                                             data-bs-toggle="dropdown"
+                                                                             aria-haspopup="true" aria-expanded="false"
                                                                              onclick="${gvc.event(() => {
-                                                                                 const copy={ask:'',response:''}
+                                                                                 const copy = {ask: '', response: ''}
                                                                                  BgWidget.settingDialog({
                                                                                      gvc: gvc,
                                                                                      title: '設定問答',
@@ -618,7 +623,7 @@ export class BgCustomerMessage {
                                                                                              callback: (text) => {
                                                                                                  copy.response = text;
                                                                                              },
-                                                                                         })].map((dd)=>{
+                                                                                         })].map((dd) => {
                                                                                              return `<div>${dd}</div>`
                                                                                          }).join('')
                                                                                      },
@@ -628,11 +633,11 @@ export class BgCustomerMessage {
                                                                                                  gvc.closeDialog()
                                                                                              })),
                                                                                              BgWidget.save(gvc.event(() => {
-                                                                                                 if(!copy.ask || !copy.response){
-                                                                                                     dialog.errorMessage({text:'內容不得為空'})
+                                                                                                 if (!copy.ask || !copy.response) {
+                                                                                                     dialog.errorMessage({text: '內容不得為空'})
                                                                                                      return
                                                                                                  }
-                                                                                                 keyData.question.push(copy) 
+                                                                                                 keyData.question.push(copy)
                                                                                                  refresh()
                                                                                                  gvc.closeDialog()
                                                                                              }))
@@ -640,8 +645,11 @@ export class BgCustomerMessage {
                                                                                      }
                                                                                  })
                                                                              })}">
-                                                                            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">新增一則回覆</div>
-                                                                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                                                            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                新增一則回覆
+                                                                            </div>
+                                                                            <i class="fa-solid fa-plus"
+                                                                               aria-hidden="true"></i>
                                                                         </div>
                                                                     </div>
                                                                 `);
@@ -656,7 +664,8 @@ export class BgCustomerMessage {
                                             return view.join('')
                                         },
                                         divCreate: {
-                                            class: `p-2`,style:`height: calc(100vh - 132px);overflow-y:auto;${(parseInt(gvc.glitter.share.top_inset,10)) ? `padding-bottom:${parseInt(gvc.glitter.share.top_inset,10)+parseInt(gvc.glitter.share.bottom_inset,10)}px !important;`:``}`
+                                            class: `p-2`,
+                                            style: `height: calc(100vh - 132px);overflow-y:auto;${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10)}px !important;` : ``}`
                                         },
                                     };
                                 })
@@ -683,64 +692,109 @@ export class BgCustomerMessage {
             const listId = gvc.glitter.getUUID();
             let chatData: any = undefined;
             let unRead: any = undefined;
-            Chat.getChatRoom({
-                page: 0,
-                limit: 1000,
-                user_id: 'manager',
-            }).then(async (data) => {
-                chatData = data.response.data;
-                //過濾掉空白的聊天室
-                chatData = chatData.filter((data:any) => data.topMessage !== undefined);
-                Chat.getUnRead({user_id: 'manager'}).then((data) => {
-                    unRead = data.response;
-                    gvc.notifyDataChange(listId);
+            function loadData(){
+                Chat.getChatRoom({
+                    page: 0,
+                    limit: 1000,
+                    user_id: 'manager',
+                }).then(async (data) => {
+                    chatData = data.response.data;
+                    //過濾掉空白的聊天室
+                    chatData = chatData.filter((data: any) => data.topMessage !== undefined);
+                    Chat.getUnRead({user_id: 'manager'}).then((data) => {
+                        unRead = data.response;
+                        gvc.notifyDataChange(listId);
+                    });
                 });
-            });
+            }
+            let socket: any = undefined
+            const url = new URL((window as any).glitterBackend)
+            let vm = {
+                close: false
+            }
+            function connect() {
+                socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                socket.addEventListener('open', function (event: any) {
+                    console.log('Connected to update list server');
+                    socket.send(JSON.stringify({
+                        type: 'message-count-change',
+                        user_id: 'manager',
+                        app_name: (window as any).appName
+                    }))
+                });
+                socket.addEventListener('message', async function (event: any) {
+                    console.log(`update_message_count`)
+                    const data = JSON.parse(event.data)
+                    if (data.type === 'update_message_count') {
+                        vm.close=true
+                        socket && socket.close()
+                        loadData()
+                    }
+                });
+                socket.addEventListener('close', function (event: any) {
+                    console.log('Disconnected from server');
+                    if (!vm.close) {
+                        console.log('Reconnected from server');
+                        connect()
+                    }
+                });
+            }
+            loadData()
+
             return {
                 bind: listId,
                 view: () => {
                     if (chatData) {
                         const view = [];
-
                         try {
                             view.push(html`
-                            <div class="p-2">
-                                <div class="position-relative">
-                                    <input type="text" class="form-control pe-5" placeholder="搜尋用戶"/>
-                                    <i class="bx bx-search fs-xl text-nav position-absolute top-50 end-0 translate-middle-y me-3"></i>
+                                <div class="p-2">
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control pe-5" placeholder="搜尋用戶"/>
+                                        <i class="bx bx-search fs-xl text-nav position-absolute top-50 end-0 translate-middle-y me-3"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
-                                ${chatData
-                                .filter((dd: any) => {
-                                    return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id)
-                                }).map((dd: any) => {
-                                    dd.topMessage = dd.topMessage??{}
-                                    dd.topMessage.text = dd.topMessage?.text??"圖片內容";
-                                    if (dd.topMessage && dd.chat_id !== 'manager-preview') {
-                                        const unReadCount = unRead.filter((d2: any) => {
-                                            return dd.chat_id === d2.chat_id;
-                                        }).length;
-                                        if (dd.chat_id){
-                                            if (dd.chat_id.startsWith('line')){
-                                                dd.user_data.head = dd.info.line.head;
-                                                dd.user_data.name = dd.info.line.name;
-                                            }
-                                            if (dd.chat_id.startsWith('fb')){
-                                                dd.user_data.head = dd.info.fb.head;
-                                                dd.user_data.name = dd.info.fb.name;
-                                            }
-                                            let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
-                                            let name = (dd.user_data && dd.user_data.name) || `訪客`
+                                <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
+                                    ${chatData
+                                            .filter((dd: any) => {
+                                                return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id)
+                                            }).map((dd: any) => {
 
-                                            return html`<a
-                                                            class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
-                                                            style="cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
-                                                callback(dd);
-                                            })}"
-                                                    >
-                                                        <div class="rounded-circle position-relative "
+                                                dd.topMessage = dd.topMessage ?? {}
+                                                dd.topMessage.text = dd.topMessage?.text ?? "圖片內容";
+                                                dd.user_data = dd.user_data ?? {}
+                                                if (dd.topMessage && dd.chat_id !== 'manager-preview') {
+                                                    console.log(`unRead==>`,unRead)
+                                                    const unReadCount = unRead.filter((d2: any) => {
+                                                        return dd.chat_id === d2.chat_id;
+                                                    }).length;
+                                                    if (dd.chat_id) {
+                                                        if (dd.chat_id.startsWith('line')) {
+                                                            dd.user_data.head = dd.info.line.head;
+                                                            dd.user_data.name = dd.info.line.name;
+                                                        }
+                                                        if (dd.chat_id.startsWith('fb')) {
+                                                            dd.info.fb = dd.info.fb ?? {
+                                                                head: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`,
+                                                                name: '訪客'
+                                                            }
+                                                            dd.user_data.head = dd.info.fb.head;
+                                                            dd.user_data.name = dd.info.fb.name;
+                                                        }
+                                                        let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
+                                                        let name = (dd.user_data && dd.user_data.name) || `訪客`
+                                                        let socket: any = undefined;
+                                                        const vm = {
+                                                            close: false
+                                                        }
+                                                        const id = gvc.glitter.getUUID()
+
+
+                                                        return gvc.bindView(() => {
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return `<div class="rounded-circle position-relative "
                                                              style="width: 40px;height: 40px;">
                                                             <div
                                                                     class="rounded-circle text-white bg-danger ${unReadCount ? `` : `d-none`} fw-500 d-flex align-items-center justify-content-center me-2"
@@ -750,22 +804,22 @@ export class BgCustomerMessage {
                                                             </div>
                                                             <img
                                                                     src="${head}"
-                                                                    class="rounded-circle ${dd.chat_id.startsWith('line')?'':'border'}"
-                                                                    style="border-radius: 50%;${dd.chat_id.startsWith('line')?'border:1px solid green':''}"
+                                                                    class="rounded-circle ${dd.chat_id.startsWith('line') ? '' : 'border'}"
+                                                                    style="border-radius: 50%;${dd.chat_id.startsWith('line') ? 'border:1px solid green' : ''}"
                                                                     width="40"
                                                                     alt="Devon Lane"
                                                             />
-                                                            ${(()=>{
-                                                                let id:string = dd.chat_id
-                                                                if (id.startsWith('line')){
-                                                                    return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
-                                                                }
-                                                                if (id.startsWith('fb')){
+                                                            ${(() => {
+                                                                        let id: string = dd.chat_id
+                                                                        if (id.startsWith('line')) {
+                                                                            return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`
+                                                                        }
+                                                                        if (id.startsWith('fb')) {
 
-                                                                    return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`
-                                                                }
-                                                                return ``
-                                                            })()}
+                                                                            return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`
+                                                                        }
+                                                                        return ``
+                                                                    })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">
@@ -777,37 +831,52 @@ export class BgCustomerMessage {
                                                             <p class="fs-sm  mb-0 "
                                                                style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
                                                                 ${(dd.topMessage ? dd.topMessage.text : ``).length > 50
-                                                ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
-                                                : dd.topMessage
-                                                    ? dd.topMessage.text
-                                                    : ``}
+                                                                            ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
+                                                                            : dd.topMessage
+                                                                                    ? dd.topMessage.text
+                                                                                    : ``}
                                                             </p>
-                                                        </div>
-                                                    </a>`;
-                                        }
+                                                        </div>`
+                                                                },
+                                                                divCreate: {
+                                                                    class: `d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4`,
+                                                                    style: `cursor: pointer;`,
+                                                                    option: [
+                                                                        {
+                                                                            key: 'onclick',
+                                                                            value: gvc.event(() => {
+                                                                                callback(dd);
+                                                                            })
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        })
+                                                    }
 
-                                    } else {
-                                        return ``;
-                                    }
-                                })
-                                .join('') ||
-                            html`
-                                    <div class="d-flex align-items-center justify-content-center flex-column w-100"
-                                         style="width:700px;">
-                                        <lottie-player
-                                                style="max-width: 100%;width: 300px;"
-                                                src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                speed="1"
-                                                loop="true"
-                                                background="transparent"
-                                        ></lottie-player>
-                                        <h3 class="text-dark fs-6 mt-n3 px-2"
-                                            style="line-height: 200%;text-align: center;">尚未收到任何訊息</h3>
-                                    </div>`}
-                            </div>
-                        `);
+                                                } else {
+                                                    return ``;
+                                                }
+                                            })
+                                            .join('') ||
+                                    html`
+                                        <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                             style="width:700px;">
+                                            <lottie-player
+                                                    style="max-width: 100%;width: 300px;"
+                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                    speed="1"
+                                                    loop="true"
+                                                    background="transparent"
+                                            ></lottie-player>
+                                            <h3 class="text-dark fs-6 mt-n3 px-2"
+                                                style="line-height: 200%;text-align: center;">尚未收到任何訊息</h3>
+                                        </div>`}
+                                </div>
+                            `);
                             return view.join('');
-                        }catch (e){
+                        } catch (e) {
+                            console.log(e)
                             return `${e}`
                         }
 
@@ -822,6 +891,17 @@ export class BgCustomerMessage {
                     }
                 },
                 divCreate: {},
+                onCreate:()=>{
+                    setTimeout(()=>{
+                        vm.close=false
+                        connect()
+                    },50)
+
+                },
+                onDestroy:()=>{
+                    vm.close=true
+                    socket && socket.close()
+                }
             };
         });
     }
@@ -971,11 +1051,11 @@ export class BgCustomerMessage {
                                             chatRoom.user_data = BgCustomerMessage.config;
                                         }
 
-                                        if (chatRoom.chat_id.startsWith('line')){
+                                        if (chatRoom.chat_id.startsWith('line')) {
                                             chatRoom.user_data.head = chatRoom.info.line?.head;
                                             chatRoom.user_data.name = chatRoom.info.line?.name;
                                         }
-                                        if (chatRoom.chat_id.startsWith('fb')){
+                                        if (chatRoom.chat_id.startsWith('fb')) {
                                             chatRoom.user_data.head = chatRoom.fb.line?.head;
                                             chatRoom.user_data.name = chatRoom.fb.line?.name;
                                         }
@@ -1163,9 +1243,9 @@ export class BgCustomerMessage {
                                                 // 取得要監聽的元素
                                                 let targetElement = document.querySelector('.chatContainer')!;
                                                 if (vm.lastScroll === -1) {
-                                                    setTimeout(()=>{
+                                                    setTimeout(() => {
                                                         document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
-                                                    },100)
+                                                    }, 100)
                                                 } else {
                                                     if (vm.prefixScroll) {
                                                         vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
@@ -1203,7 +1283,7 @@ export class BgCustomerMessage {
                                             class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
                                             style="background: white;"
                                     >
-                                        
+
                                         <div class="position-relative w-100 me-2 ">
                                             ${gvc.bindView(() => {
                                                 return {
@@ -1282,10 +1362,11 @@ export class BgCustomerMessage {
         if (dd.user_id == 'manager') {
             dd.user_data = BgCustomerMessage.config;
         }
-        function drawChatContent(){
-            if (dd.message.image){
+
+        function drawChatContent() {
+            if (dd.message.image) {
                 return html`<img src="${dd.message.image}">`
-            }else{
+            } else {
                 return dd.message.text.replace(/\n/g, '<br>')
             }
         }
@@ -1301,9 +1382,9 @@ export class BgCustomerMessage {
                             alt="Albert Flores"
                     />
                     <div class="ps-2 ms-1" style="max-width: 348px;">
-                        <div class="p-3 mb-1 ${dd.message.image?'':'py-2'}"
+                        <div class="p-3 mb-1 ${dd.message.image ? '' : 'py-2'}"
                              style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
-                            
+
                             ${drawChatContent()}
                         </div>
                         <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
@@ -1316,7 +1397,7 @@ export class BgCustomerMessage {
                 <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                     <div class="pe-2 me-1" style="max-width: 348px;">
                         <div
-                                class=" text-light p-3 mb-1 ${dd?.message?.image?'':'py-2'}"
+                                class=" text-light p-3 mb-1 ${dd?.message?.image ? '' : 'py-2'}"
                                 style="background:${BgCustomerMessage.config.color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                         >
                             ${drawChatContent()}

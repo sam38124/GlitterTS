@@ -486,7 +486,7 @@ export class CustomerMessageUser {
                                         const data = JSON.parse(event.data);
                                         console.log(`message_in`, data.data);
                                         if (data.type === 'update_read_count') {
-                                            vm.last_read = data.data;
+                                            vm.last_read= data.data;
                                         } else {
                                             vm.data.push(data);
                                         }
@@ -645,16 +645,16 @@ export class CustomerMessageUser {
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column`,
-                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
+                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.bottom_inset || 0, 10))}px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
                                                 },
                                                 onCreate: () => {
                                                     vm.close = false;
                                                     // 取得要監聽的元素
                                                     let targetElement = document.querySelector('.chatContainer')!;
                                                     if (vm.lastScroll === -1) {
-                                                        setTimeout(()=>{
+                                                        setTimeout(() => {
                                                             document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
-                                                        },100)
+                                                        }, 100)
                                                     } else {
                                                         if (vm.prefixScroll) {
                                                             vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
@@ -728,13 +728,16 @@ export class CustomerMessageUser {
                                                                     style="height: 36px;"
                                                                     onclick="${gvc.event(() => {
                                                                         const queryParams = new URLSearchParams(window.location.search);
-                                                                        
-                                                                        if (queryParams.get('function')!="backend-manger"){
+
+                                                                        if (queryParams.get('function') != "backend-manger") {
                                                                             gvc.glitter.ut.chooseMediaCallback({
                                                                                 single: true,
                                                                                 accept: 'json,image/*',
                                                                                 callback(data: any) {
-                                                                                    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                                                                                    const saasConfig: {
+                                                                                        config: any;
+                                                                                        api: any
+                                                                                    } = (window as any).saasConfig;
                                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                                     dialog.dataLoading({visible: true});
                                                                                     const file = data[0].file;
@@ -753,7 +756,7 @@ export class CustomerMessageUser {
                                                                                             crossDomain: true,
                                                                                             success: () => {
                                                                                                 dialog.dataLoading({visible: false});
-                                                                                                
+
                                                                                                 imageArray.push(data1.fullUrl);
                                                                                                 gvc.notifyDataChange(`inputRow`);
                                                                                             },
@@ -771,7 +774,7 @@ export class CustomerMessageUser {
                                                                                     });
                                                                                 },
                                                                             });
-                                                                        }else {
+                                                                        } else {
                                                                             imageLibrary.selectImageLibrary(gvc, (urlArray) => {
                                                                                         imageArray.push(...urlArray.map((data) => {
                                                                                             return data.data
@@ -782,7 +785,7 @@ export class CustomerMessageUser {
                                                                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`
                                                                                     , {mul: true})
                                                                         }
-                                                                        
+
                                                                     })}"
                                                             >
                                                                 <i class="fa-sharp fa-solid fa-image"
@@ -832,15 +835,19 @@ export class CustomerMessageUser {
                                                                     style="background: ${CustomerMessageUser.config.color};height:45px;"
                                                                     onclick="${gvc.event(() => {
                                                                         const dialog = new ShareDialog(gvc.glitter);
+                                                                        if (!imageArray.length && !vm.message) {
+                                                                            dialog.errorMessage({text:'請輸入訊息'})
+                                                                            return
+                                                                        }
                                                                         dialog.dataLoading({
-                                                                            visible:true
+                                                                            visible: true
                                                                         })
                                                                         if (imageArray.length) {
                                                                             dialog.dataLoading({
-                                                                                visible:true
+                                                                                visible: true
                                                                             })
                                                                             for (const image of imageArray) {
-                                                                                
+
                                                                                 Chat.postMessage({
                                                                                     chat_id: cf.chat.chat_id,
                                                                                     user_id: cf.user_id,
@@ -852,14 +859,14 @@ export class CustomerMessageUser {
                                                                                     imageArray = [];
                                                                                     gvc.notifyDataChange('imageBox')
                                                                                     dialog.dataLoading({
-                                                                                        visible:false
+                                                                                        visible: false
                                                                                     })
                                                                                 });
                                                                             }
                                                                         }
                                                                         if (vm.message) {
                                                                             dialog.dataLoading({
-                                                                                visible:true
+                                                                                visible: true
                                                                             })
                                                                             Chat.postMessage({
                                                                                 chat_id: cf.chat.chat_id,
@@ -872,7 +879,7 @@ export class CustomerMessageUser {
                                                                                 vm.message = '';
                                                                                 console.log(res)
                                                                                 dialog.dataLoading({
-                                                                                    visible:false
+                                                                                    visible: false
                                                                                 })
                                                                             });
                                                                             const textArea = gvc.getBindViewElem(textAreaId).get(0);

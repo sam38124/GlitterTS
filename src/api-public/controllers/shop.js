@@ -930,10 +930,11 @@ router.post('/apple-webhook', async (req, resp) => {
             return (`${dd.product_id}`).includes('ai_points_') && dd.in_app_ownership_type === "PURCHASED";
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                                          from \`${req.get('g-app')}\`.t_ai_points
-                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+                                           from \`${req.get('g-app')}\`.t_ai_points
+                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
-                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points set ?`, [{
+                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points
+                                set ?`, [{
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
                         money: parseInt(b.product_id.replace('ai_points_', ''), 10) * 10,
@@ -946,16 +947,17 @@ router.post('/apple-webhook', async (req, resp) => {
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return (`${dd.product_id}`).includes('sms_points_') && dd.in_app_ownership_type === "PURCHASED";
+            return (`${dd.product_id}`).includes('sms_') && dd.in_app_ownership_type === "PURCHASED";
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                                          from \`${req.get('g-app')}\`.t_sms_points
-                                          where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+                                           from \`${req.get('g-app')}\`.t_sms_points
+                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
-                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points set ?`, [{
+                await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points
+                                set ?`, [{
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
-                        money: parseInt(b.product_id.replace('sms_points_', ''), 10) * 10,
+                        money: parseInt(b.product_id.replace('sms_', ''), 10) * 10,
                         status: 1,
                         note: JSON.stringify({
                             "text": "apple內購加值",
@@ -964,9 +966,96 @@ router.post('/apple-webhook', async (req, resp) => {
                     }]);
             }
         }
+        for (const b of receipt.receipt.in_app.filter((dd) => {
+            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === "PURCHASED";
+        })) {
+            if (!(await database_js_1.default.query(`select count(1) from shopnex.t_checkout where cart_token=?`, [b.transaction_id]))[0]['count(1)']) {
+                const app_info = (await database_js_1.default.query(`select dead_line, user
+                                              from glitter.app_config
+                                              where appName = ?`, [req.body.app_name]))[0];
+                const user = (await database_js_1.default.query(`SELECT *
+                                          FROM shopnex.t_user
+                                          where userID = ?`, [
+                    app_info.user
+                ]))[0];
+                const start = (() => {
+                    if (new Date(app_info.dead_line).getTime() > new Date().getTime()) {
+                        return new Date(app_info.dead_line);
+                    }
+                    else {
+                        return new Date();
+                    }
+                })();
+                start.setDate(start.getDate() + 365);
+                await database_js_1.default.query(`update glitter.app_config
+                            set dead_line=?,
+                                plan=?
+                            where appName = ?`, [start,
+                    `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'),
+                    req.body.app_name
+                ]);
+                const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
+                    return `${b.product_id}` === d1;
+                });
+                const money = [13200, 26400, 52800, 52800, 66000][index];
+                await database_js_1.default.query(`insert into shopnex.t_checkout
+                            set ? `, [
+                    {
+                        cart_token: b.transaction_id,
+                        status: 1,
+                        email: user.userData.email,
+                        orderData: JSON.stringify({
+                            "email": user.userData.email,
+                            "total": money,
+                            "method": "ALL",
+                            "rebate": 0,
+                            "orderID": b.transaction_id,
+                            "discount": 0,
+                            "lineItems": [{
+                                    "id": 289,
+                                    "sku": b.product_id,
+                                    "spec": [['輕便電商方案', '標準電商方案', '通路電商方案', '行動電商方案', '旗艦電商方案'][index]],
+                                    "count": 1,
+                                    "title": "SHOPNEX會員方案",
+                                    "rebate": 0,
+                                    "collection": [],
+                                    "sale_price": money,
+                                    "shipment_obj": { "type": "weight", "value": 0 },
+                                    "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png",
+                                    "discount_price": 0
+                                }],
+                            "user_info": {
+                                "email": user.userData.email,
+                                "appName": req.body.app_name,
+                                "company": "",
+                                "gui_number": "",
+                                "invoice_type": "me"
+                            },
+                            "code_array": [],
+                            "use_rebate": 0,
+                            "use_wallet": "0",
+                            "user_email": user.userData.email,
+                            "orderSource": "",
+                            "voucherList": [],
+                            "shipment_fee": 0,
+                            "customer_info": { "payment_select": "ecPay" },
+                            "useRebateInfo": { "point": 0 },
+                            "payment_setting": { "TYPE": "ecPay" },
+                            "user_rebate_sum": 0,
+                            "off_line_support": { "atm": false, "line": false, "cash_on_delivery": false },
+                            "payment_info_atm": { "bank_code": "", "bank_name": "", "bank_user": "", "bank_account": "" },
+                            "shipment_support": [],
+                            "shipment_selector": [],
+                            "payment_info_line_pay": { "text": "" }
+                        })
+                    }
+                ]);
+            }
+        }
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
+        console.log(err);
         return response_1.default.fail(resp, err);
     }
 });

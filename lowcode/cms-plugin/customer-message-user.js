@@ -567,7 +567,7 @@ export class CustomerMessageUser {
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column`,
-                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
+                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.bottom_inset || 0, 10))}px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
                                                 },
                                                 onCreate: () => {
                                                     vm.close = false;
@@ -748,6 +748,10 @@ export class CustomerMessageUser {
                                                                     style="background: ${CustomerMessageUser.config.color};height:45px;"
                                                                     onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
+                                                    if (!imageArray.length && !vm.message) {
+                                                        dialog.errorMessage({ text: '請輸入訊息' });
+                                                        return;
+                                                    }
                                                     dialog.dataLoading({
                                                         visible: true
                                                     });
