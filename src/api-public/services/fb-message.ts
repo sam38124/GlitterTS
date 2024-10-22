@@ -397,132 +397,269 @@ export class FbMessage {
         try {
             if (body.object === 'page') {
                 for (const entry of body.entry) {
-                    // console.log("entry.messaging -- " , entry.messaging);
-                    // console.log("entry.messaging -- " , entry.messaging)
                     const messagingEvents = entry.messaging;
                     // 使用 for...of 來處理每個 messaging 事件
+
                     for (const event of messagingEvents) {
-                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
-                            const senderId = "fb_" + event.sender.id;
-                            const messageText = event.message.text;
-                            // 建立要傳遞的訊息資料
-                            let chatData: any = {
-                                chat_id: [senderId, "manager"].sort().join(''),
-                                type: "user",
-                                user_id: senderId,
-                                info: {},
-                                participant: [senderId, "manager"]
-                            }
-                            await this.getFBInf({fbID: event.sender.id}, (data) => {
-                                chatData.info = {
-                                    fb: {
-                                        name: data.last_name + data.first_name,
-                                        head: data.profile_pic
-                                    }
-                                }
-
-                            })
-                            chatData.info = JSON.stringify(chatData.info);
-
-                            const result = await new Chat(this.app).addChatRoom(chatData);
-                            if (!result.create) {
-                                await db.query(
-                                    `
-                                        UPDATE \`${this.app}\`.\`t_chat_list\`
-                                        SET ?
-                                        WHERE chat_id = ?
-                                    `,
-                                    [
-                                        {
-                                            info: chatData.info,
-                                        },
-                                        chatData.chat_id
-                                    ]
-                                );
-                            }
-                            chatData.message = {
-                                "text": messageText
-                            };
-                            await new Chat(this.app).addMessage(chatData);
-                        }
-                        if (event.message && event.message.attachments) {
+                        if (event.message){
                             let accessToken = await post.getConfig({
                                 key: "login_fb_setting",
                                 user_id: "manager",
                             })
-                            // 檢查附件是否為圖片
-                            let imageUrl = 'https://your-image-url-from-facebook';
-
-
-                            const attachments = event.message.attachments;
-                            attachments.forEach((attachment: any) => {
-                                if (attachment.type === 'image' && attachment.payload) {
-                                    imageUrl = attachment.payload.url;
-
-                                    downloadImageFromFacebook(imageUrl, accessToken)
-                                        .then((buffer) => {
-                                            const fileExtension = getFileExtension(imageUrl);
-                                            this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)
-                                                .then(async (data) => {
-                                                    console.log("圖片上傳成功 -- ", data)
-                                                    const senderId = "fb_" + event.sender.id;
-                                                    const messageText = event.message.text;
-
-                                                    // 建立要傳遞的訊息資料
-                                                    let chatData: any = {
-                                                        chat_id: [senderId, "manager"].sort().join(''),
-                                                        type: "user",
-                                                        user_id: senderId,
-                                                        info: {},
-                                                        participant: [senderId, "manager"]
-                                                    }
-                                                    await this.getFBInf({fbID: event.sender.id}, (data) => {
-                                                        chatData.info = {
-                                                            fb: {
-                                                                name: data.last_name + data.first_name,
-                                                                head: data.profile_pic
-                                                            }
-                                                        }
-
-                                                    })
-                                                    chatData.info = JSON.stringify(chatData.info);
-
-                                                    const result = await new Chat(this.app).addChatRoom(chatData);
-                                                    if (!result.create) {
-                                                        await db.query(
-                                                            `
-                                                                UPDATE \`${this.app}\`.\`t_chat_list\`
-                                                                SET ?
-                                                                WHERE ?
-                                                            `,
-                                                            [
-                                                                {
-                                                                    info: chatData.info,
-                                                                },
-                                                                {
-                                                                    chat_id: chatData.chat_id,
-                                                                }
-                                                            ]
-                                                        );
-                                                    }
-                                                    chatData.message = {
-                                                        "image": imageUrl
-                                                    };
-                                                    await new Chat(this.app).addMessage(chatData);
-
-                                                });
-                                        })
-                                        .catch((error) => {
-                                            console.error('下載失敗:', error);
-                                        });
-
-                                    console.log('用戶發送的圖片 URL:', imageUrl);
-                                    // 這裡可以進行進一步的處理，比如下載圖片或儲存 URL
+                            if (((`${event.sender.id}`) == tokenData[0].value.fans_id)){
+                                const recipient = "fb_" + event.recipient.id;
+                                let chatData: any = {
+                                    chat_id: [recipient, "manager"].sort().join('-'),
+                                    type: "user",
+                                    user_id: recipient,
+                                    info: {},
+                                    participant: [recipient, "manager"]
                                 }
-                            });
+                                await this.getFBInf({fbID: event.recipient.id}, (data) => {
+                                    chatData.info = {
+                                        fb: {
+                                            name: data.last_name + data.first_name,
+                                            head: data.profile_pic,
+                                            update:new Date().getTime(),
+                                        }
+                                    }
+                                })
+                                chatData.info = JSON.stringify(chatData.info);
+                                let DBdata = await db.query(
+                                    `
+                                        SELECT *
+                                        FROM \`${this.app}\`.\`t_chat_list\`
+                                        WHERE chat_id = ?
+                                    `,
+                                    [
 
+                                        chatData.chat_id
+                                    ]
+                                );
+                                DBdata = DBdata[0];
+                                const now = new Date();
+                                if (!DBdata.info.fb.update || new Date().getTime() + (1000 * 60 * 60 * 24) - DBdata.info.fb.update > (1000 * 60 * 60 * 24)){
+                                    await this.getFBInf({fbID: event.recipient.id}, (data) => {
+                                        chatData.info = {
+                                            fb: {
+                                                name: data.last_name + data.first_name,
+                                                head: data.profile_pic,
+                                                update: new Date().getTime()
+                                            }
+                                        }
+
+                                    })
+                                    // chatData.info = JSON.stringify(chatData.info);
+                                    DBdata.info.fb.update = new Date().getTime();
+                                    chatData.info = JSON.stringify(chatData.info);
+                                    await db.query(
+                                        `
+                                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                                        SET ?
+                                        WHERE chat_id = ?
+                                    `,
+                                        [
+                                            {
+                                                info: chatData.info,
+                                            },
+                                            chatData.chat_id
+                                        ]
+                                    );
+                                    console.log("update success !");
+                                }
+
+                            }else {
+                                const senderId = "fb_" + event.sender.id;
+                                let chatData: any = {
+                                    chat_id: [senderId, "manager"].sort().join('-'),
+                                    type: "user",
+                                    user_id: senderId,
+                                    info: {},
+                                    participant: [senderId, "manager"]
+                                }
+                                await this.getFBInf({fbID: event.sender.id}, (data) => {
+                                    chatData.info = {
+                                        fb: {
+                                            name: data.last_name + data.first_name,
+                                            head: data.profile_pic
+                                        }
+                                    }
+
+                                })
+                                chatData.info = JSON.stringify(chatData.info);
+
+                                const result = await new Chat(this.app).addChatRoom(chatData);
+                                if (!result.create) {
+                                    await db.query(
+                                        `
+                                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                                        SET ?
+                                        WHERE chat_id = ?
+                                    `,
+                                        [
+                                            {
+                                                info: chatData.info,
+                                            },
+                                            chatData.chat_id
+                                        ]
+                                    );
+                                }
+                                if (event.message.text){
+                                    const messageText = event.message.text;
+                                    chatData.message = {
+                                        "text": messageText
+                                    };
+                                    await new Chat(this.app).addMessage(chatData);
+                                }
+                                if (event.message.attachments){
+                                    const attachments = event.message.attachments;
+                                    attachments.forEach((attachment: any) => {
+                                        if (attachment.type === 'image' && attachment.payload) {
+                                            let imageUrl = attachment.payload.url;
+
+                                            downloadImageFromFacebook(imageUrl, accessToken)
+                                                .then((buffer) => {
+                                                    const fileExtension = getFileExtension(imageUrl);
+                                                    this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)
+                                                        .then(async (data) => {
+                                                            const senderId = "fb_" + event.sender.id;
+
+                                                            chatData.message = {
+                                                                "image": imageUrl
+                                                            };
+                                                            await new Chat(this.app).addMessage(chatData);
+
+                                                        });
+                                                })
+                                                .catch((error) => {
+                                                    console.error('下載失敗:', error);
+                                                });
+
+                                        }
+                                    });
+                                }
+                            }
+                        }else {
+                            // let chatData: any = {
+                            //     chat_id: [senderId, "manager"].sort().join(''),
+                            //     type: "user",
+                            //     user_id: senderId,
+                            //     info: {},
+                            //     participant: [senderId, "manager"]
+                            // }
 
                         }
+                        // if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
+                        //     console.log("event -- " , event)
+                        //     const senderId = "fb_" + event.sender.id;
+                        //     const messageText = event.message.text;
+                        //     // 建立要傳遞的訊息資料
+
+                        //
+                        //     await this.getFBInf({fbID: event.sender.id}, (data) => {
+                        //         chatData.info = {
+                        //             fb: {
+                        //                 name: data.last_name + data.first_name,
+                        //                 head: data.profile_pic
+                        //             }
+                        //         }
+                        //
+                        //     })
+                        //     chatData.info = JSON.stringify(chatData.info);
+                        //
+                        //     const result = await new Chat(this.app).addChatRoom(chatData);
+                        //     if (!result.create) {
+                        //         await db.query(
+                        //             `
+                        //                 UPDATE \`${this.app}\`.\`t_chat_list\`
+                        //                 SET ?
+                        //                 WHERE chat_id = ?
+                        //             `,
+                        //             [
+                        //                 {
+                        //                     info: chatData.info,
+                        //                 },
+                        //                 chatData.chat_id
+                        //             ]
+                        //         );
+                        //     }
+                        //     chatData.message = {
+                        //         "text": messageText
+                        //     };
+                        //     await new Chat(this.app).addMessage(chatData);
+                        // }
+                        // if (event.message && event.message.attachments) {
+                        //
+                        //     // 檢查附件是否為圖片
+                        //     let imageUrl = 'https://your-image-url-from-facebook';
+                        //
+                        //
+                        //     const attachments = event.message.attachments;
+                        //     attachments.forEach((attachment: any) => {
+                        //         if (attachment.type === 'image' && attachment.payload) {
+                        //             imageUrl = attachment.payload.url;
+                        //
+                        //             downloadImageFromFacebook(imageUrl, accessToken)
+                        //                 .then((buffer) => {
+                        //                     const fileExtension = getFileExtension(imageUrl);
+                        //                     this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)
+                        //                         .then(async (data) => {
+                        //                             const senderId = "fb_" + event.sender.id;
+                        //                             const messageText = event.message.text;
+                        //
+                        //                             // 建立要傳遞的訊息資料
+                        //                             let chatData: any = {
+                        //                                 chat_id: [senderId, "manager"].sort().join(''),
+                        //                                 type: "user",
+                        //                                 user_id: senderId,
+                        //                                 info: {},
+                        //                                 participant: [senderId, "manager"]
+                        //                             }
+                        //                             await this.getFBInf({fbID: event.sender.id}, (data) => {
+                        //                                 chatData.info = {
+                        //                                     fb: {
+                        //                                         name: data.last_name + data.first_name,
+                        //                                         head: data.profile_pic
+                        //                                     }
+                        //                                 }
+                        //
+                        //                             })
+                        //                             chatData.info = JSON.stringify(chatData.info);
+                        //
+                        //                             const result = await new Chat(this.app).addChatRoom(chatData);
+                        //                             if (!result.create) {
+                        //                                 await db.query(
+                        //                                     `
+                        //                                         UPDATE \`${this.app}\`.\`t_chat_list\`
+                        //                                         SET ?
+                        //                                         WHERE ?
+                        //                                     `,
+                        //                                     [
+                        //                                         {
+                        //                                             info: chatData.info,
+                        //                                         },
+                        //                                         {
+                        //                                             chat_id: chatData.chat_id,
+                        //                                         }
+                        //                                     ]
+                        //                                 );
+                        //                             }
+                        //                             chatData.message = {
+                        //                                 "image": imageUrl
+                        //                             };
+                        //                             await new Chat(this.app).addMessage(chatData);
+                        //
+                        //                         });
+                        //                 })
+                        //                 .catch((error) => {
+                        //                     console.error('下載失敗:', error);
+                        //                 });
+                        //
+                        //         }
+                        //     });
+                        //
+                        //
+                        // }
                     }
                 }
             } else {
@@ -601,7 +738,6 @@ export class FbMessage {
         try {
             const post = new User(this.app, this.token);
 
-
             let tokenData = await post.getConfig({
                 key: "login_fb_setting",
                 user_id: "manager",
@@ -621,8 +757,6 @@ export class FbMessage {
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
                     .then((response) => {
-                        // let result = response.data.split('\r\n')
-                        console.log(`fb-info-`, response.data)
                         callback(response.data)
                         resolve(response.data)
                     })

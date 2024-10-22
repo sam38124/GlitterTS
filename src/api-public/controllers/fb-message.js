@@ -34,7 +34,6 @@ router.get('/', async (req, resp) => {
 router.get('/listenMessage', async (req, resp) => {
     try {
         if (req.query['hub.verify_token'] === 'my_secret_token') {
-            console.log(req.query);
             let challenge = req.query["hub.challenge"];
             return resp.status(http_status_codes_1.default.OK).send(challenge);
         }
