@@ -18,6 +18,8 @@ import { ShareDialog } from "./glitterBundle/dialog/ShareDialog.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.top_inset = 0;
+        glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
             const hashCode = window.preloadData.eval_code_hash || {};
             Object.keys(hashCode).map((dd, index) => {
@@ -55,7 +57,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_13.1.7";
+        glitter.share.editerVersion = "V_13.2.2";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],

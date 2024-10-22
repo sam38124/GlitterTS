@@ -29,8 +29,7 @@ class Chat {
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_chat_list
                          where chat_id = ?`, [room.chat_id]))[0]['count(1)'] === 0) {
-                const participant = room.participant.find((str) => str.startsWith("line"));
-                let data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
+                await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
                      SET ?`, [
                     {
                         chat_id: room.chat_id,
@@ -59,7 +58,11 @@ class Chat {
                         {
                             chat_id: room.chat_id,
                             user_id: b,
-                            last_read: new Date(),
+                            last_read: (() => {
+                                const today = new Date();
+                                today.setDate(today.getDate() - 2);
+                                return today;
+                            })(),
                         },
                     ]);
                 }

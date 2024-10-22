@@ -1839,7 +1839,7 @@ ${obj.default ?? ''}</textarea
                 h += html`<p class="mb-1">${str}</p>`;
             });
         }
-        return html` <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="${css.style}">
+        return html` <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal;word-break: break-all;${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
             ${messageList && messageList.length > 0 ? `<div class="mt-2">${h}</div>` : ``}
         </div>`;
