@@ -120,7 +120,7 @@ export class BgCustomerMessage {
                                     gvc,
                                     title: '提示',
                                     innerHTML: () => {
-                                        return BgWidget.alertInfo([`<div class="fs-6 fw-500" style="white-space: normal;word-break: break-all;">前往第三方整合進行設定，即可同步Line與Facebook官方訊息，請統一於SHOPNEX後台進行訊息發送，否則將無法同步訊息。</div>`].join('')) + ` <img class="w-100" src="https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2024-10-22 at 4.58.00 PM.jpg">`;
+                                        return BgWidget.alertInfo([`<div class="fs-6 fw-500" style="white-space: normal;word-break: break-all;">請前往第三方整合設定，以同步Line與Facebook官方訊息。為確保訊息同步，請統一透過SHOPNEX後台發送訊息。</div>`].join('')) + ` <img class="w-100" src="https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2024-10-22 at 4.58.00 PM.jpg">`;
                                     },
                                     width: 200
                                 });

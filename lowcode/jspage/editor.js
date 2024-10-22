@@ -28,6 +28,7 @@ import { BgGuide } from "../backend-manager/bg-guide.js";
 import { AiMessage } from "../cms-plugin/ai-message.js";
 import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
 import { BgWidget } from "../backend-manager/bg-widget.js";
+import { Chat } from "../glitter-base/route/chat.js";
 const html = String.raw;
 export var ViewType;
 (function (ViewType) {
@@ -802,15 +803,83 @@ color:white;
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                          class="me-2" style="width:24px;height: 24px;">AI助手
                                                 </div>
-                                                <div
-                                                        class=" me-2 bt_orange_lin"
-                                                        style="width:42px;"
-                                                        onclick="${gvc.event(() => {
+                                                <div class="position-relative">
+                                                    <div
+                                                            class="me-2 bt_orange_lin position-relative"
+                                                            style="width:42px;"
+                                                            onclick="${gvc.event(() => {
                         BgCustomerMessage.toggle(true, gvc);
                     })}"
-                                                >
-                                                    <i class="fa-regular fa-messages"></i>
+                                                    >
+                                                        <i class="fa-regular fa-messages"></i>
+                                                    </div>
+                                                    ${gvc.bindView(() => {
+                        const message_notice = gvc.glitter.getUUID();
+                        let unread = 0;
+                        let socket = undefined;
+                        const url = new URL(window.glitterBackend);
+                        let vm = {
+                            close: false
+                        };
+                        function loadData() {
+                            Chat.getUnRead({
+                                user_id: 'manager',
+                            }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                                unread = data.response.length;
+                                gvc.notifyDataChange(message_notice);
+                            }));
+                        }
+                        loadData();
+                        function connect() {
+                            socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                            socket.addEventListener('open', function (event) {
+                                console.log('Connected to update list server');
+                                socket.send(JSON.stringify({
+                                    type: 'message-count-change',
+                                    user_id: 'manager',
+                                    app_name: window.appName
+                                }));
+                            });
+                            socket.addEventListener('message', function (event) {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    console.log(`update_message_count`);
+                                    const data = JSON.parse(event.data);
+                                    if (data.type === 'update_message_count') {
+                                        loadData();
+                                    }
+                                });
+                            });
+                            socket.addEventListener('close', function (event) {
+                                console.log('Disconnected from server');
+                                if (!vm.close) {
+                                    console.log('Reconnected from server');
+                                    connect();
+                                }
+                            });
+                        }
+                        connect();
+                        return {
+                            bind: message_notice,
+                            view: () => {
+                                return html `<div
+                                                                                        class="${unread
+                                    ? `d-flex`
+                                    : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
+                                                                                        style="width:15px;height: 15px;color: white !important;"
+                                                                                >${unread}</div>`;
+                            },
+                            divCreate: {
+                                class: `position-absolute`,
+                                style: `font-size: 10px;right: 13px;top: 3px;`,
+                            },
+                            onDestroy: () => {
+                                vm.close = true;
+                                socket && socket.close();
+                            }
+                        };
+                    })}
                                                 </div>
+                                               
                                                 ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         const notice_count = gvc.glitter.getUUID();

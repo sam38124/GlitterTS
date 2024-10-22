@@ -11,10 +11,9 @@ import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
 import {User} from "./user";
 import Logger from "../../modules/logger";
-import mime from "mime";
 import s3bucket from "../../modules/AWSLib";
 
-
+const mime = require('mime');
 interface FbResponse {
     // 定義 response 物件的結構，根據實際 API 回應的格式進行調整
     clientid?: string,
@@ -399,13 +398,9 @@ export class FbMessage {
                 for (const entry of body.entry) {
                     const messagingEvents = entry.messaging;
                     // 使用 for...of 來處理每個 messaging 事件
-
                     for (const event of messagingEvents) {
-                        if (event.message){
-                            let accessToken = await post.getConfig({
-                                key: "login_fb_setting",
-                                user_id: "manager",
-                            })
+                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
+
                             if (((`${event.sender.id}`) == tokenData[0].value.fans_id)){
                                 const recipient = "fb_" + event.recipient.id;
                                 let chatData: any = {
@@ -515,8 +510,7 @@ export class FbMessage {
                                     attachments.forEach((attachment: any) => {
                                         if (attachment.type === 'image' && attachment.payload) {
                                             let imageUrl = attachment.payload.url;
-
-                                            downloadImageFromFacebook(imageUrl, accessToken)
+                                            downloadImageFromFacebook(imageUrl, `${tokenData[0].value.fans_token}`)
                                                 .then((buffer) => {
                                                     const fileExtension = getFileExtension(imageUrl);
                                                     this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)

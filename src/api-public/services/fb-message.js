@@ -14,8 +14,8 @@ const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
 const user_1 = require("./user");
 const logger_1 = __importDefault(require("../../modules/logger"));
-const mime_1 = __importDefault(require("mime"));
 const AWSLib_1 = __importDefault(require("../../modules/AWSLib"));
+const mime = require('mime');
 class FbMessage {
     constructor(app, token) {
         this.app = app;
@@ -291,11 +291,7 @@ class FbMessage {
                 for (const entry of body.entry) {
                     const messagingEvents = entry.messaging;
                     for (const event of messagingEvents) {
-                        if (event.message) {
-                            let accessToken = await post.getConfig({
-                                key: "login_fb_setting",
-                                user_id: "manager",
-                            });
+                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
                             if (((`${event.sender.id}`) == tokenData[0].value.fans_id)) {
                                 const recipient = "fb_" + event.recipient.id;
                                 let chatData = {
@@ -324,7 +320,7 @@ class FbMessage {
                                 ]);
                                 DBdata = DBdata[0];
                                 const now = new Date();
-                                if (!DBdata.info.fb.update || new Date().getTime() + (1000 * 60 * 60 * 24) - DBdata.info.fb.update > (1000 * 60 * 60 * 24)) {
+                                if (!DBdata.info.fb.update || new Date().getTime() - DBdata.info.fb.update > (1000 * 60 * 60 * 24)) {
                                     await this.getFBInf({ fbID: event.recipient.id }, (data) => {
                                         chatData.info = {
                                             fb: {
@@ -346,7 +342,6 @@ class FbMessage {
                                         },
                                         chatData.chat_id
                                     ]);
-                                    console.log("update success !");
                                 }
                             }
                             else {
@@ -392,7 +387,7 @@ class FbMessage {
                                     attachments.forEach((attachment) => {
                                         if (attachment.type === 'image' && attachment.payload) {
                                             let imageUrl = attachment.payload.url;
-                                            downloadImageFromFacebook(imageUrl, accessToken)
+                                            downloadImageFromFacebook(imageUrl, `${tokenData[0].value.fans_token}`)
                                                 .then((buffer) => {
                                                 const fileExtension = getFileExtension(imageUrl);
                                                 this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`, buffer)
@@ -411,8 +406,6 @@ class FbMessage {
                                     });
                                 }
                             }
-                        }
-                        else {
                         }
                     }
                 }
@@ -454,7 +447,7 @@ class FbMessage {
                     return `application/x-www-form-urlencoded; charset=UTF-8`;
                 }
                 else {
-                    return mime_1.default.getType(fullUrl.split('.').pop());
+                    return mime.getType(fullUrl.split('.').pop());
                 }
             })()
         };

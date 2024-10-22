@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiUser } from './api/user.js';
 import { config } from './config.js';
 import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
@@ -57,7 +56,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_13.2.2";
+        glitter.share.editerVersion = "V_13.2.6";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -262,46 +261,23 @@ export class Entry {
                 }
             }));
         }
-        if (glitter.getUrlParameter('account')) {
-            ApiUser.login({
-                account: glitter.getUrlParameter('account'),
-                pwd: glitter.getUrlParameter('pwd'),
-            }).then((re) => {
-                if (re.result) {
-                    GlobalUser.token = re.response.userData.token;
-                    toNext();
-                }
-                else {
-                    const url = new URL(glitter.location.href);
-                    location.href = `${url.origin}/glitter/?page=signin`;
-                }
-            });
-        }
-        else {
-            if (!GlobalUser.saas_token) {
+        BaseApi.create({
+            url: config.url + `/api/v1/user/checkToken`,
+            type: 'GET',
+            timeout: 0,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: GlobalUser.saas_token,
+            },
+        }).then((d2) => {
+            if (!d2.result) {
                 const url = new URL(glitter.location.href);
-                location.href = `${url.origin}/glitter/?page=signin`;
+                location.href = `${url.origin}/${window.glitterBase}/login`;
             }
             else {
-                BaseApi.create({
-                    url: config.url + `/api/v1/user/checkToken`,
-                    type: 'GET',
-                    timeout: 0,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: GlobalUser.saas_token,
-                    },
-                }).then((d2) => {
-                    if (!d2.result) {
-                        const url = new URL(glitter.location.href);
-                        location.href = `${url.origin}/glitter/?page=signin`;
-                    }
-                    else {
-                        toNext();
-                    }
-                });
+                toNext();
             }
-        }
+        });
     }
     static toHtmlEditor(glitter, vm, callback) {
         var _a;
