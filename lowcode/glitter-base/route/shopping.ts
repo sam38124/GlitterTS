@@ -779,6 +779,23 @@ export class ApiShop {
         });
     }
 
+    public static app_subscription(receipt:string,app_name:string){
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': (window.parent as any).glitterBase,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                base64:{
+                    app_name:app_name,
+                    "receipt-data": receipt }
+            }),
+        });
+    }
+
     // static getVoucherCode() {
     //     const glitter = (window as any).glitter;
     //     return new Promise((resolve, reject) => {

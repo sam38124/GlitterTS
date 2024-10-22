@@ -146,7 +146,7 @@ class LineMessage {
                     url: "https://api.line.me/v2/bot/message/push",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": token
+                        "Authorization": `Bearer ${token}`
                     },
                     data: JSON.stringify(postData)
                 };

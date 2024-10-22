@@ -303,7 +303,7 @@ export class SmsPoints {
                             dialog.dataLoading({ visible: true });
                             if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
                                 gvc.glitter.runJsInterFace("in_app_product", {
-                                    total: `sms_points_${vm.total}`
+                                    total: `sms_${vm.total}`
                                 }, (res) => __awaiter(this, void 0, void 0, function* () {
                                     console.log(`res.receipt_data=>`, res.receipt_data);
                                     if (res.receipt_data) {

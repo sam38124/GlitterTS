@@ -638,6 +638,23 @@ export class ApiShop {
             }),
         });
     }
+    static app_subscription(receipt, app_name) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': window.parent.glitterBase,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                base64: {
+                    app_name: app_name,
+                    "receipt-data": receipt
+                }
+            }),
+        });
+    }
     static ecDataAnalyze(tagArray) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,

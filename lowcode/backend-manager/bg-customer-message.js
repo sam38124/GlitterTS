@@ -426,7 +426,7 @@ export class BgCustomerMessage {
                                                             resolve(html `
                                                                     <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 p-2 py-3 border-top border-bottom mt-2 shadow">
                                                                         <span class="fs-6 fw-bold "
-                                                                              style="color:black;">自動回覆</span>
+                                                                              style="color:black;">常見問題</span>
                                                                     </div>
                                                                     <div style="" class="p-2">
                                                                         ${gvc.bindView(() => {
@@ -557,7 +557,10 @@ export class BgCustomerMessage {
                                                                     }
                                                                 };
                                                             })}
-                                                                        <div class="w-100" style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                                        <div class="w-100"
+                                                                             style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
+                                                                             data-bs-toggle="dropdown"
+                                                                             aria-haspopup="true" aria-expanded="false"
                                                                              onclick="${gvc.event(() => {
                                                                 const copy = { ask: '', response: '' };
                                                                 BgWidget.settingDialog({
@@ -602,8 +605,11 @@ export class BgCustomerMessage {
                                                                     }
                                                                 });
                                                             })}">
-                                                                            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">新增一則回覆</div>
-                                                                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                                                            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                新增一則回覆
+                                                                            </div>
+                                                                            <i class="fa-solid fa-plus"
+                                                                               aria-hidden="true"></i>
                                                                         </div>
                                                                     </div>
                                                                 `);
@@ -618,7 +624,8 @@ export class BgCustomerMessage {
                                         return view.join('');
                                     },
                                     divCreate: {
-                                        class: `p-2`, style: `height: calc(100vh - 132px);overflow-y:auto;${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10)}px !important;` : ``}`
+                                        class: `p-2`,
+                                        style: `height: calc(100vh - 132px);overflow-y:auto;${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10)}px !important;` : ``}`
                                     },
                                 };
                             }));
@@ -643,18 +650,55 @@ export class BgCustomerMessage {
             const listId = gvc.glitter.getUUID();
             let chatData = undefined;
             let unRead = undefined;
-            Chat.getChatRoom({
-                page: 0,
-                limit: 1000,
-                user_id: 'manager',
-            }).then((data) => __awaiter(this, void 0, void 0, function* () {
-                chatData = data.response.data;
-                chatData = chatData.filter((data) => data.topMessage !== undefined);
-                Chat.getUnRead({ user_id: 'manager' }).then((data) => {
-                    unRead = data.response;
-                    gvc.notifyDataChange(listId);
+            function loadData() {
+                Chat.getChatRoom({
+                    page: 0,
+                    limit: 1000,
+                    user_id: 'manager',
+                }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                    chatData = data.response.data;
+                    chatData = chatData.filter((data) => data.topMessage !== undefined);
+                    Chat.getUnRead({ user_id: 'manager' }).then((data) => {
+                        unRead = data.response;
+                        gvc.notifyDataChange(listId);
+                    });
+                }));
+            }
+            let socket = undefined;
+            const url = new URL(window.glitterBackend);
+            let vm = {
+                close: false
+            };
+            function connect() {
+                socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                socket.addEventListener('open', function (event) {
+                    console.log('Connected to update list server');
+                    socket.send(JSON.stringify({
+                        type: 'message-count-change',
+                        user_id: 'manager',
+                        app_name: window.appName
+                    }));
                 });
-            }));
+                socket.addEventListener('message', function (event) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        console.log(`update_message_count`);
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'update_message_count') {
+                            vm.close = true;
+                            socket && socket.close();
+                            loadData();
+                        }
+                    });
+                });
+                socket.addEventListener('close', function (event) {
+                    console.log('Disconnected from server');
+                    if (!vm.close) {
+                        console.log('Reconnected from server');
+                        connect();
+                    }
+                });
+            }
+            loadData();
             return {
                 bind: listId,
                 view: () => {
@@ -662,21 +706,23 @@ export class BgCustomerMessage {
                         const view = [];
                         try {
                             view.push(html `
-                            <div class="p-2">
-                                <div class="position-relative">
-                                    <input type="text" class="form-control pe-5" placeholder="搜尋用戶"/>
-                                    <i class="bx bx-search fs-xl text-nav position-absolute top-50 end-0 translate-middle-y me-3"></i>
+                                <div class="p-2">
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control pe-5" placeholder="搜尋用戶"/>
+                                        <i class="bx bx-search fs-xl text-nav position-absolute top-50 end-0 translate-middle-y me-3"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
-                                ${chatData
+                                <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
+                                    ${chatData
                                 .filter((dd) => {
                                 return !['manager-operation_guide', 'manager-order_analysis', 'manager-writer'].includes(dd.chat_id);
                             }).map((dd) => {
-                                var _a, _b, _c;
+                                var _a, _b, _c, _d, _e;
                                 dd.topMessage = (_a = dd.topMessage) !== null && _a !== void 0 ? _a : {};
                                 dd.topMessage.text = (_c = (_b = dd.topMessage) === null || _b === void 0 ? void 0 : _b.text) !== null && _c !== void 0 ? _c : "圖片內容";
+                                dd.user_data = (_d = dd.user_data) !== null && _d !== void 0 ? _d : {};
                                 if (dd.topMessage && dd.chat_id !== 'manager-preview') {
+                                    console.log(`unRead==>`, unRead);
                                     const unReadCount = unRead.filter((d2) => {
                                         return dd.chat_id === d2.chat_id;
                                     }).length;
@@ -686,19 +732,25 @@ export class BgCustomerMessage {
                                             dd.user_data.name = dd.info.line.name;
                                         }
                                         if (dd.chat_id.startsWith('fb')) {
+                                            dd.info.fb = (_e = dd.info.fb) !== null && _e !== void 0 ? _e : {
+                                                head: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`,
+                                                name: '訪客'
+                                            };
                                             dd.user_data.head = dd.info.fb.head;
                                             dd.user_data.name = dd.info.fb.name;
                                         }
                                         let head = (dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`;
                                         let name = (dd.user_data && dd.user_data.name) || `訪客`;
-                                        return html `<a
-                                                            class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
-                                                            style="cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
-                                            callback(dd);
-                                        })}"
-                                                    >
-                                                        <div class="rounded-circle position-relative "
+                                        let socket = undefined;
+                                        const vm = {
+                                            close: false
+                                        };
+                                        const id = gvc.glitter.getUUID();
+                                        return gvc.bindView(() => {
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return `<div class="rounded-circle position-relative "
                                                              style="width: 40px;height: 40px;">
                                                             <div
                                                                     class="rounded-circle text-white bg-danger ${unReadCount ? `` : `d-none`} fw-500 d-flex align-items-center justify-content-center me-2"
@@ -714,15 +766,15 @@ export class BgCustomerMessage {
                                                                     alt="Devon Lane"
                                                             />
                                                             ${(() => {
-                                            let id = dd.chat_id;
-                                            if (id.startsWith('line')) {
-                                                return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
-                                            }
-                                            if (id.startsWith('fb')) {
-                                                return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`;
-                                            }
-                                            return ``;
-                                        })()}
+                                                        let id = dd.chat_id;
+                                                        if (id.startsWith('line')) {
+                                                            return `<i class="fa-brands fa-line bg-white rounded" style="position:absolute;right:0;bottom:0;color:green;"></i>`;
+                                                        }
+                                                        if (id.startsWith('fb')) {
+                                                            return `<i class="fa-brands fa-facebook-messenger bg-white rounded" style="position:absolute;right:0;bottom:0;color:#0078ff;"></i>`;
+                                                        }
+                                                        return ``;
+                                                    })()}
                                                         </div>
 
                                                         <div class="w-100 ps-2 ms-1">
@@ -734,13 +786,27 @@ export class BgCustomerMessage {
                                                             <p class="fs-sm  mb-0 "
                                                                style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
                                                                 ${(dd.topMessage ? dd.topMessage.text : ``).length > 50
-                                            ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
-                                            : dd.topMessage
-                                                ? dd.topMessage.text
-                                                : ``}
+                                                        ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
+                                                        : dd.topMessage
+                                                            ? dd.topMessage.text
+                                                            : ``}
                                                             </p>
-                                                        </div>
-                                                    </a>`;
+                                                        </div>`;
+                                                },
+                                                divCreate: {
+                                                    class: `d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4`,
+                                                    style: `cursor: pointer;`,
+                                                    option: [
+                                                        {
+                                                            key: 'onclick',
+                                                            value: gvc.event(() => {
+                                                                callback(dd);
+                                                            })
+                                                        }
+                                                    ]
+                                                }
+                                            };
+                                        });
                                     }
                                 }
                                 else {
@@ -749,23 +815,24 @@ export class BgCustomerMessage {
                             })
                                 .join('') ||
                                 html `
-                                    <div class="d-flex align-items-center justify-content-center flex-column w-100"
-                                         style="width:700px;">
-                                        <lottie-player
-                                                style="max-width: 100%;width: 300px;"
-                                                src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                speed="1"
-                                                loop="true"
-                                                background="transparent"
-                                        ></lottie-player>
-                                        <h3 class="text-dark fs-6 mt-n3 px-2"
-                                            style="line-height: 200%;text-align: center;">尚未收到任何訊息</h3>
-                                    </div>`}
-                            </div>
-                        `);
+                                        <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                             style="width:700px;">
+                                            <lottie-player
+                                                    style="max-width: 100%;width: 300px;"
+                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                    speed="1"
+                                                    loop="true"
+                                                    background="transparent"
+                                            ></lottie-player>
+                                            <h3 class="text-dark fs-6 mt-n3 px-2"
+                                                style="line-height: 200%;text-align: center;">尚未收到任何訊息</h3>
+                                        </div>`}
+                                </div>
+                            `);
                             return view.join('');
                         }
                         catch (e) {
+                            console.log(e);
                             return `${e}`;
                         }
                     }
@@ -780,6 +847,16 @@ export class BgCustomerMessage {
                     }
                 },
                 divCreate: {},
+                onCreate: () => {
+                    setTimeout(() => {
+                        vm.close = false;
+                        connect();
+                    }, 50);
+                },
+                onDestroy: () => {
+                    vm.close = true;
+                    socket && socket.close();
+                }
             };
         });
     }
@@ -1119,7 +1196,7 @@ export class BgCustomerMessage {
                                             class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
                                             style="background: white;"
                                     >
-                                        
+
                                         <div class="position-relative w-100 me-2 ">
                                             ${gvc.bindView(() => {
                                         return {
@@ -1219,7 +1296,7 @@ export class BgCustomerMessage {
                     <div class="ps-2 ms-1" style="max-width: 348px;">
                         <div class="p-3 mb-1 ${dd.message.image ? '' : 'py-2'}"
                              style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
-                            
+
                             ${drawChatContent()}
                         </div>
                         <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">

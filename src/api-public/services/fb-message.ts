@@ -1,10 +1,10 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import { sendmail } from '../../services/ses.js';
-import { AutoSendEmail } from './auto-send-email.js';
+import {sendmail} from '../../services/ses.js';
+import {AutoSendEmail} from './auto-send-email.js';
 import config from "../../config";
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {Mail} from "./mail";
 import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
@@ -17,12 +17,12 @@ import s3bucket from "../../modules/AWSLib";
 
 interface FbResponse {
     // 定義 response 物件的結構，根據實際 API 回應的格式進行調整
-    clientid?:string,
-    msgid?:string,
-    statuscode:number,
-    accountPoint?:number,
-    Duplicate?:string,
-    smsPoint?:number,
+    clientid?: string,
+    msgid?: string,
+    statuscode: number,
+    accountPoint?: number,
+    Duplicate?: string,
+    smsPoint?: number,
     message?: string;
 }
 
@@ -40,33 +40,37 @@ interface Config {
     data: any;
 }
 
-interface FbData{
+interface FbData {
     username: string,
     password: string,
     dstaddr: string
     smbody: string
-    smsPointFlag:number
+    smsPointFlag: number
 }
 
 export class FbMessage {
     public app;
-    public token ?:IToken;
+    public token ?: IToken;
+
     constructor(app: string, token?: IToken) {
         this.app = app;
         this.token = token;
     }
 
-    async chunkSendMessage(userList:any , content: any, id: number , date?:string) {
+    async chunkSendMessage(userList: any, content: any, id: number, date?: string) {
         try {
             // let msgid = ""
 
             let check = userList.length;
             await new Promise((resolve) => {
                 for (const d of userList) {
-                    this.sendMessage({data:content , fbID:d.lineID}, (res)=>{
+                    this.sendMessage({data: content, fbID: d.lineID}, (res) => {
                         check--;
                         if (check === 0) {
-                            db.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date?0:1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [ id]);
+                            db.query(`UPDATE \`${this.app}\`.t_triggers
+                                      SET status = ${date ? 0 : 1},
+                                          content = JSON_SET(content, '$.name', '${res.msgid}')
+                                      WHERE id = ?;`, [id]);
                             resolve(true);
                         }
                     })
@@ -77,28 +81,31 @@ export class FbMessage {
             throw exception.BadRequestError('BAD_REQUEST', 'chunkSendSns Error:' + e, null);
         }
     }
-    async sendMessage(obj:{data: {
+
+    async sendMessage(obj: {
+        data: {
             text?: string;
-            image?:string;
+            image?: string;
             attachment: any;
-        }, fbID: string  } , callback: (data:any)=>void) {
+        }, fbID: string
+    }, callback: (data: any) => void) {
         try {
             const payload = {
-                recipient: { id: obj.fbID },
-                message: { }
+                recipient: {id: obj.fbID},
+                message: {}
             };
-            if (obj.data.image){
+            if (obj.data.image) {
                 payload.message = {
-                    attachment:{
-                        type:'image',
-                        payload:{
-                            url:obj.data.image,
-                            is_reusable:true
+                    attachment: {
+                        type: 'image',
+                        payload: {
+                            url: obj.data.image,
+                            is_reusable: true
                         }
                     }
                 }
 
-            }else{
+            } else {
                 payload.message = {
                     text: obj.data.text
                 }
@@ -117,7 +124,7 @@ export class FbMessage {
                 url: "https://graph.facebook.com/v12.0/me/messages",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization":`Bearer ${token}`
+                    "Authorization": `Bearer ${token}`
                 },
                 data: JSON.stringify(payload)
             };
@@ -129,16 +136,17 @@ export class FbMessage {
                         resolve(response.data)
                     })
                     .catch((error) => {
-                        console.log("error -- " , error.response.data.error )
+                        console.log("error -- ", error.response.data.error)
                         resolve(false)
                     });
             })
 
-        }catch (e:any){
+        } catch (e: any) {
             throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
     }
-    async sendUserInf(fbID: string  , callback: (data:any)=>void) {
+
+    async sendUserInf(fbID: string, callback: (data: any) => void) {
         try {
 
             let token = "Bearer EAAjqQPeQMmUBO0Xwr3p0BVWtkhm5RlWDZC9GleHtSaUZCAbjxsw3plF5lkn8XEpurozNeamiqSOUgnDeZCFVf2fnnMXSluos0gnnLK3pMTi7JYP44KulLIocGwxvlxFGVOW2dZB1xWS2oWerE2cc13ANqjcaGumZBl6PSVUKOOZByjVu31oD42zOB3DHbXbLoKZAGhZAFRxZCmDEy6ZC1dyQZDZD"
@@ -147,7 +155,7 @@ export class FbMessage {
                 url: `https://graph.facebook.com/v12.0/${fbID}?fields=first_name,last_name,profile_pic`,
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization":token
+                    "Authorization": token
                 },
                 data: JSON.stringify({})
             };
@@ -159,25 +167,26 @@ export class FbMessage {
                         resolve(response.data)
                     })
                     .catch((error) => {
-                        console.log("error -- " , error.data)
+                        console.log("error -- ", error.data)
                         resolve(false)
                     });
             })
 
-        }catch (e:any){
+        } catch (e: any) {
             throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
     }
-    async deleteSNS(obj:{id:string} , callback: (data:any)=>void) {
+
+    async deleteSNS(obj: { id: string }, callback: (data: any) => void) {
         try {
 
             const urlConfig: Config = {
                 method: 'post',
-                url: config.SNS_URL+`/api/mtk/SmCancel?username=${config.SNSAccount}&password=${config.SNSPWD}&msgid=${obj.id}`,
+                url: config.SNS_URL + `/api/mtk/SmCancel?username=${config.SNSAccount}&password=${config.SNSPWD}&msgid=${obj.id}`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
-                data:[]
+                data: []
             };
 
             return new Promise<boolean>((resolve, reject) => {
@@ -189,7 +198,7 @@ export class FbMessage {
                         resolve(response.data)
                     })
                     .catch((error) => {
-                        console.log("error -- " , error)
+                        console.log("error -- ", error)
                         resolve(false)
                     });
             })
@@ -213,18 +222,27 @@ export class FbMessage {
             //     console.log(response);
             // });
 
-        }catch (e){
+        } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'send SNS Error:' + e, null);
         }
     }
+
     public parseResponse(response: any) {
         const regex = /\[([0-9]+)\]\r\nmsgid=([^\r\n]+)\r\nstatuscode=([0-9]+)\r\nAccountPoint=([0-9]+)\r\n/;
         const match = response.match(regex);
 
 
-
     }
-    async getLine(query: { type: string; page: number; limit: number; search?: string; searchType?: string; mailType?: string; status?: string }) {
+
+    async getLine(query: {
+        type: string;
+        page: number;
+        limit: number;
+        search?: string;
+        searchType?: string;
+        mailType?: string;
+        status?: string
+    }) {
         try {
             const whereList: string[] = ['1 = 1'];
             switch (query.searchType) {
@@ -251,15 +269,17 @@ export class FbMessage {
             const whereSQL = `(tag = 'sendLine' OR tag = 'sendLineBySchedule') AND ${whereList.join(' AND ')}`;
 
             const emails = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_triggers
+                `SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL}
                  ORDER BY id DESC
-                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`,
+                     ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`,
                 []
             );
 
             const total = await db.query(
-                `SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                `SELECT count(id) as c
+                 FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`,
                 []
             );
@@ -280,20 +300,22 @@ export class FbMessage {
                 }, 300);
             });
 
-            return { data: emails, total: total[0].c };
+            return {data: emails, total: total[0].c};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
         }
     }
+
     async postLine(data: any): Promise<{ result: boolean; message: string }> {
 
         data.msgid = ""
         try {
             if (Boolean(data.sendTime)) {
                 if (isLater(data.sendTime)) {
-                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                    return {result: false, message: '排定發送的時間需大於現在時間'};
                 }
-                const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLineBySchedule',
                         content: JSON.stringify(data),
@@ -304,7 +326,8 @@ export class FbMessage {
 
                 // this.chunkSendLine(data.userList , data.content , insertData.insertId , formatDateTime(data.sendTime));
             } else {
-                const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
+                const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
                     {
                         tag: 'sendLine',
                         content: JSON.stringify(data),
@@ -312,28 +335,32 @@ export class FbMessage {
                         status: 0,
                     },
                 ]);
-                this.chunkSendMessage(data.userList , data.content , insertData.insertId);
+                this.chunkSendMessage(data.userList, data.content, insertData.insertId);
             }
-            return { result: true, message: '寄送成功' };
+            return {result: true, message: '寄送成功'};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
     }
+
     async deleteSns(data: any): Promise<{ result: boolean; message: string }> {
         try {
             const emails = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_triggers
+                `SELECT *
+                 FROM \`${this.app}\`.t_triggers
                  WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`,
                 []
             );
             await new Promise((resolve) => {
-                this.deleteSNS({id:data.id}, (res)=>{
+                this.deleteSNS({id: data.id}, (res) => {
                     resolve(true);
                 })
             });
 
-            await db.query(`UPDATE \`${this.app}\`.t_triggers SET status = 2 WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`,[])
-            return { result: true, message: '取消預約成功' };
+            await db.query(`UPDATE \`${this.app}\`.t_triggers
+                            SET status = 2
+                            WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, [])
+            return {result: true, message: '取消預約成功'};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
@@ -367,9 +394,7 @@ export class FbMessage {
             key: "login_fb_setting",
             user_id: "manager",
         })
-
         try {
-
             if (body.object === 'page') {
                 for (const entry of body.entry) {
                     // console.log("entry.messaging -- " , entry.messaging);
@@ -377,23 +402,22 @@ export class FbMessage {
                     const messagingEvents = entry.messaging;
                     // 使用 for...of 來處理每個 messaging 事件
                     for (const event of messagingEvents) {
-                        if (event.message && event.message.text) {
-                            const senderId = "fb_"+event.sender.id;
+                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
+                            const senderId = "fb_" + event.sender.id;
                             const messageText = event.message.text;
-
                             // 建立要傳遞的訊息資料
-                            let chatData:any = {
-                                chat_id:[senderId , "manager"].sort().join(''),
-                                type:"user",
-                                user_id:senderId,
-                                info:{},
-                                participant:[senderId , "manager"]
+                            let chatData: any = {
+                                chat_id: [senderId, "manager"].sort().join(''),
+                                type: "user",
+                                user_id: senderId,
+                                info: {},
+                                participant: [senderId, "manager"]
                             }
-                            await this.getFBInf({fbID:event.sender.id},(data)=>{
+                            await this.getFBInf({fbID: event.sender.id}, (data) => {
                                 chatData.info = {
-                                    fb:{
-                                        name : data.last_name + data.first_name,
-                                        head : data.profile_pic
+                                    fb: {
+                                        name: data.last_name + data.first_name,
+                                        head: data.profile_pic
                                     }
                                 }
 
@@ -401,25 +425,23 @@ export class FbMessage {
                             chatData.info = JSON.stringify(chatData.info);
 
                             const result = await new Chat(this.app).addChatRoom(chatData);
-                            if (!result.create){
+                            if (!result.create) {
                                 await db.query(
                                     `
-                        UPDATE \`${this.app}\`.\`t_chat_list\`
-                        SET ?
-                        WHERE ?
-                    `,
+                                        UPDATE \`${this.app}\`.\`t_chat_list\`
+                                        SET ?
+                                        WHERE chat_id = ?
+                                    `,
                                     [
                                         {
                                             info: chatData.info,
                                         },
-                                        {
-                                            chat_id:chatData.chat_id,
-                                        }
+                                        chatData.chat_id
                                     ]
                                 );
                             }
                             chatData.message = {
-                                "text" : messageText
+                                "text": messageText
                             };
                             await new Chat(this.app).addMessage(chatData);
                         }
@@ -504,19 +526,24 @@ export class FbMessage {
                     }
                 }
             } else {
-                return { result: true, message: 'body error' };
+                return {result: true, message: 'body error'};
             }
 
-            return { result: true, message: 'accept message' };
+            return {result: true, message: 'accept message'};
         } catch (e) {
+            console.log(e)
             throw exception.BadRequestError('BAD_REQUEST', 'Error:' + e, null);
         }
     }
+
     public async sendCustomerLine(tag: string, order_id: string, lineID: string) {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendMessage({data:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id) , fbID:lineID}, (res)=>{
+                resolve(await this.sendMessage({
+                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    fbID: lineID
+                }, (res) => {
 
                 }))
             })
@@ -570,6 +597,7 @@ export class FbMessage {
     }
 
     async getFBInf(obj:{fbID: string  } , callback: (data:any)=>void) {
+
         try {
             const post = new User(this.app, this.token);
 
@@ -585,7 +613,7 @@ export class FbMessage {
                 url: `https://graph.facebook.com/v16.0/${obj.fbID}?fields=first_name,last_name,profile_pic`,
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization":token
+                    "Authorization": token
                 },
                 data: {}
             };
@@ -594,22 +622,23 @@ export class FbMessage {
                 axios.request(urlConfig)
                     .then((response) => {
                         // let result = response.data.split('\r\n')
-
+                        console.log(`fb-info-`, response.data)
                         callback(response.data)
                         resolve(response.data)
                     })
                     .catch((error) => {
-                        console.log("error -- " , error)
+                        console.log("error -- ", error)
                         resolve(false)
                     });
             })
 
-        }catch (e:any){
+        } catch (e: any) {
             throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
     }
+
     //判斷餘額是否足夠
-    public async checkPoints(message:string,user_count:number) {
+    public async checkPoints(message: string, user_count: number) {
         const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
         // 判斷錢包是否有餘額
         const sum =
@@ -622,15 +651,15 @@ export class FbMessage {
                     [brandAndMemberType.user_id]
                 )
             )[0]['sum(money)'] || 0;
-        return sum > ( this.getUsePoints(message,user_count))
+        return sum > (this.getUsePoints(message, user_count))
     }
 
     //點數扣除
-    public async usePoints(obj:{message:string,user_count:number,order_id?:string,phone:string}) {
-        if(!obj.phone){
-            return  0
+    public async usePoints(obj: { message: string, user_count: number, order_id?: string, phone: string }) {
+        if (!obj.phone) {
+            return 0
         }
-        let total =  this.getUsePoints(obj.message,obj.user_count)
+        let total = this.getUsePoints(obj.message, obj.user_count)
         const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
         await db.query(`insert into \`${brandAndMemberType.brand}\`.t_sms_points
                         set ?`, [
@@ -641,38 +670,37 @@ export class FbMessage {
                 status: 1,
                 note: JSON.stringify({
                     message: obj.message,
-                    phone:obj.phone
+                    phone: obj.phone
                 })
             }
         ])
         return total * -1
     }
 
-    public getUsePoints(text:string,user_count:number){
-        let pointCount=0
-        const maxSize=160;
-        const longSMS=153;
-        let totalSize=0
+    public getUsePoints(text: string, user_count: number) {
+        let pointCount = 0
+        const maxSize = 160;
+        const longSMS = 153;
+        let totalSize = 0
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
             if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
                 totalSize += 2;
-            }
-            else {
+            } else {
                 totalSize += 1;
             }
         }
         if (totalSize < maxSize) {
             pointCount = 1;
-        }
-        else {
+        } else {
             pointCount = Math.ceil(totalSize / longSMS);
         }
         return pointCount * 15 * user_count
     }
 
 }
-function formatDate(date:any) {
+
+function formatDate(date: any) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -699,7 +727,7 @@ function chunkArray(array: any, groupSize: number) {
 
 function isLater(dateTimeObj: { date: string; time: string }) {
     const currentDateTime = new Date();
-    const { date, time } = dateTimeObj;
+    const {date, time} = dateTimeObj;
     const dateTimeString = `${date}T${time}:00`;
     const providedDateTime = new Date(dateTimeString);
     return currentDateTime > providedDateTime;

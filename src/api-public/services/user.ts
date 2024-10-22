@@ -734,7 +734,7 @@ export class User {
             await new CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
-                data.member = await this.checkMember(data, true);
+                data.member = await this.checkMember(data, false);
                 const userLevel = (await this.getUserLevel([{userId: data.userID}]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
