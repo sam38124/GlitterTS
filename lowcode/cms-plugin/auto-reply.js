@@ -43,7 +43,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: Tool.truncateString(dd.title, 40),
+                                    value: Tool.truncateString(dd.title, 32),
                                 },
                                 {
                                     key: '最後更新時間',
@@ -98,7 +98,7 @@ export class AutoReply {
                                 ${BgWidget.title('自動寄件')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
+                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
                         gvc: gvc,
                         getData: (vmk) => __awaiter(this, void 0, void 0, function* () {
                             const appData = yield ApiUser.getPublicConfig('store-information', 'manager');
@@ -122,18 +122,17 @@ export class AutoReply {
                                 vm.dataList[index].title = vm.dataList[index].title.replace(/@\{\{app_name\}\}/g, (appData.response.value && appData.response.value.shop_name) || '商店名稱');
                                 index++;
                             }
-                            vmi.data = getDatalist();
+                            vmi.originalData = vm.dataList;
+                            vmi.tableData = getDatalist();
                             vmi.loading = false;
-                            setTimeout(() => {
-                                vmi.callback();
-                            });
+                            vmi.callback();
                         }),
                         rowClick: (data, index) => {
                             vm.tag = vm.dataList[index].tag;
                             vm.type = 'replace';
                             gvc.notifyDataChange(id);
                         },
-                        filter: '',
+                        filter: [],
                     })))}
                             ${BgWidget.mbContainer(240)}
                         `, BgWidget.getContainerWidth());

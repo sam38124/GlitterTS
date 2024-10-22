@@ -31,7 +31,9 @@ export class BgWidget {
         return html `<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
     static dangerNote(text, event = '', style = '') {
-        return html `<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
+        return html `<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}"
+            >${text}</span
+        >`;
     }
     static taiwanPhoneAlert(str = '請輸入正確的市話或手機號碼格式') {
         return html `
@@ -193,6 +195,17 @@ export class BgWidget {
             <i class="fa-solid fa-angle-left" style="margin-top: 0.25rem; color: #393939; font-size: 1.75rem; font-weight: 900;"></i>
         </div>`;
     }
+    static aiChatButton(obj) {
+        return html `<div
+            class="bt_orange_lin"
+            onclick="${obj.gvc.event(() => {
+            window.parent.glitter.share.ai_message.vm.select_bt = obj.select;
+            window.parent.glitter.share.ai_message.toggle(true);
+        })}"
+        >
+            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-1" style="width: 24px; height: 24px;" />${obj.title}
+        </div>`;
+    }
     static primaryInsignia(text) {
         return html ` <div class="insignia insignia-primary">${text}</div>`;
     }
@@ -283,11 +296,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 >
             </div>`;
     }
-    static searchPlace(event, vale, placeholder, margin = '16px 0 0 0') {
-        return html ` <div class="w-100 position-relative" style="margin: ${margin};">
-            <i class=" fa-regular fa-magnifying-glass" style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
-        </div>`;
+    static searchPlace(event, vale, placeholder, margin, padding) {
+        const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
+        const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
+        return html `
+            <div style="margin: ${margin !== null && margin !== void 0 ? margin : defMargin}; padding: ${padding !== null && padding !== void 0 ? padding : defPadding}">
+                <div class="w-100 position-relative">
+                    <i class=" fa-regular fa-magnifying-glass" style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
+                    <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+                </div>
+            </div>
+        `;
     }
     static linkList(obj) {
         var _a, _b;
@@ -1016,19 +1035,33 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static tableV3(obj) {
-        var _a, _b;
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const ps = new PageSplit(gvc);
-        const isPhone = document.body.clientWidth < 768;
-        const tableMinWidth = (_a = obj.tableMinWidth) !== null && _a !== void 0 ? _a : 800;
-        const maxWidth = (_b = obj.tableMaxWidth) !== null && _b !== void 0 ? _b : 1500;
-        const tableMaxWidth = maxWidth > tableMinWidth ? maxWidth : tableMinWidth;
+        const widthList = [];
+        let defWidth = 0;
+        let fullWidth = 0;
         const ids = {
             container: glitter.getUUID(),
             filter: glitter.getUUID(),
             pencil: gvc.glitter.getUUID(),
+            header: Tool.randomString(6),
+            headerCell: Tool.randomString(6),
+            tr: Tool.randomString(6),
+            textClass: Tool.randomString(6),
         };
+        const created = {
+            checkbox: false,
+            header: false,
+            table: false,
+        };
+        gvc.addStyle(`
+            .${ids.textClass} {
+                text-align: left !important;
+                padding-right: 0.25rem !important;
+                padding-left: 0.25rem !important;
+            }
+        `);
         return gvc.bindView(() => {
             const vm = {
                 loading: true,
@@ -1037,8 +1070,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 tableData: [],
                 originalData: [],
                 callback: () => {
-                    vm.loading = false;
-                    gvc.notifyDataChange(ids.container);
+                    setTimeout(() => {
+                        vm.loading = false;
+                        gvc.notifyDataChange(ids.container);
+                    }, 50);
                 },
             };
             return {
@@ -1050,10 +1085,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     if (vm.tableData.length === 0) {
                         return html ` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">暫無資料</div>`;
                     }
-                    let widthList = [];
-                    let viewWidth = 100;
-                    let noneWidthElement = 0;
-                    const checkAllBox = (changeView) => {
+                    function checkAllBox(changeView) {
                         return EditorElem.checkBoxOnly({
                             gvc: gvc,
                             def: vm.originalData.every((item) => item.checked),
@@ -1068,111 +1100,147 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     }
                                 });
                                 gvc.notifyDataChange(ids.filter);
+                                changeHeaderStyle();
                             },
                             stopChangeView: changeView,
                         });
-                    };
-                    vm.tableData = vm.tableData.map((item, index) => {
-                        if (obj.filter.length > 0) {
-                            return [
-                                {
-                                    key: checkAllBox(true),
-                                    value: EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: false,
-                                        callback: (result) => {
-                                            vm.originalData[index].checked = result;
-                                            gvc.notifyDataChange(ids.filter);
-                                        },
-                                    }),
-                                    width: 5,
-                                },
-                                ...item,
-                            ];
+                    }
+                    function changeHeaderStyle() {
+                        const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`);
+                        if (target) {
+                            if (vm.originalData.find((dd) => dd.checked)) {
+                                target.style.position = 'sticky';
+                                target.style.top = '0';
+                                target.style.left = '0';
+                            }
+                            else {
+                                target.style.position = 'relative';
+                                target.style.top = '';
+                                target.style.left = '';
+                            }
                         }
-                        return item;
-                    });
-                    vm.tableData[0].map((item) => {
-                        if (item.width) {
-                            viewWidth -= item.width;
-                        }
-                        else {
-                            noneWidthElement++;
-                        }
-                    });
-                    vm.tableData[0].map((item) => {
-                        if (!item.width) {
-                            item.width = viewWidth / noneWidthElement;
-                        }
-                        widthList.push(item.width);
-                    });
-                    return html `<div style="margin-top: 4px; overflow-x: scroll; z-index: 1;">
-                            ${gvc.bindView(() => {
-                        return {
-                            bind: ids.filter,
-                            view: () => {
-                                if (vm.originalData.find((dd) => dd.checked)) {
-                                    const checkedData = vm.originalData.filter((dd) => dd.checked);
-                                    if (isPhone) {
-                                        return BgWidget.selNavbar({
-                                            checkbox: checkAllBox(false),
-                                            count: checkedData.length,
-                                            buttonList: [
+                    }
+                    if (!created.checkbox) {
+                        vm.tableData = vm.tableData.map((item, index) => {
+                            if (obj.filter.length > 0) {
+                                return [
+                                    {
+                                        key: checkAllBox(true),
+                                        value: EditorElem.checkBoxOnly({
+                                            gvc: gvc,
+                                            def: false,
+                                            callback: (result) => {
+                                                vm.originalData[index].checked = result;
+                                                gvc.notifyDataChange(ids.filter);
+                                                changeHeaderStyle();
+                                            },
+                                        }),
+                                    },
+                                    ...item,
+                                ];
+                            }
+                            return item;
+                        });
+                        created.checkbox = !created.checkbox;
+                    }
+                    return html `<div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
+                            <div class="w-100 h-100 bg-white top-0" style="position: absolute; z-index: ${defWidth > 0 ? 0 : 2}; display: ${defWidth > 0 ? 'none' : 'block'};"></div>
+                            ${gvc.bindView({
+                        bind: ids.header,
+                        view: () => {
+                            return gvc.bindView({
+                                bind: ids.filter,
+                                view: () => {
+                                    if (vm.originalData.find((dd) => dd.checked)) {
+                                        const checkedData = vm.originalData.filter((dd) => dd.checked);
+                                        if (document.body.clientWidth < 768) {
+                                            return BgWidget.selNavbar({
+                                                checkbox: checkAllBox(false),
+                                                count: checkedData.length,
+                                                buttonList: [
+                                                    BgWidget.selEventDropmenu({
+                                                        gvc: gvc,
+                                                        options: obj.filter.map((item) => {
+                                                            return {
+                                                                name: item.name,
+                                                                event: gvc.event(() => item.event(checkedData)),
+                                                            };
+                                                        }),
+                                                        text: '',
+                                                    }),
+                                                ],
+                                            });
+                                        }
+                                        const inButtons = obj.filter.filter((item) => item.option);
+                                        const outButtons = obj.filter.filter((item) => !item.option);
+                                        const inList = inButtons.length > 0
+                                            ? [
                                                 BgWidget.selEventDropmenu({
                                                     gvc: gvc,
-                                                    options: obj.filter.map((item) => {
+                                                    options: inButtons.map((item) => {
                                                         return {
                                                             name: item.name,
                                                             event: gvc.event(() => item.event(checkedData)),
                                                         };
                                                     }),
-                                                    text: '',
+                                                    text: '更多操作',
                                                 }),
-                                            ],
+                                            ]
+                                            : [];
+                                        const outList = outButtons.map((item) => {
+                                            return BgWidget.selEventButton(item.name, gvc.event(() => item.event(checkedData)));
+                                        });
+                                        return BgWidget.selNavbar({
+                                            checkbox: checkAllBox(false),
+                                            count: checkedData.length,
+                                            buttonList: [...inList, ...outList],
                                         });
                                     }
-                                    const inButtons = obj.filter.filter((item) => item.option);
-                                    const outButtons = obj.filter.filter((item) => !item.option);
-                                    const inList = inButtons.length > 0
-                                        ? [
-                                            BgWidget.selEventDropmenu({
-                                                gvc: gvc,
-                                                options: inButtons.map((item) => {
-                                                    return {
-                                                        name: item.name,
-                                                        event: gvc.event(() => item.event(checkedData)),
-                                                    };
-                                                }),
-                                                text: '更多操作',
-                                            }),
-                                        ]
-                                        : [];
-                                    const outList = outButtons.map((item) => {
-                                        return BgWidget.selEventButton(item.name, gvc.event(() => item.event(checkedData)));
-                                    });
-                                    return BgWidget.selNavbar({
-                                        checkbox: checkAllBox(false),
-                                        count: checkedData.length,
-                                        buttonList: [...inList, ...outList],
-                                    });
-                                }
-                                return vm.tableData[0]
-                                    .map((dd, index) => {
-                                    return html ` <th class="text-start tx_700 px-1" style="width: ${widthList[index]}%;">${dd.key}</th>`;
-                                })
-                                    .join('');
-                            },
-                            divCreate: {
-                                class: 'd-flex align-items-center mb-2',
-                                style: `position: relative; height: 40px !important; ${isPhone ? `min-width: ${tableMinWidth}px; max-width: ${tableMaxWidth}px;` : ''}`,
-                            },
-                        };
+                                    return vm.tableData[0]
+                                        .map((dd, index) => {
+                                        return html ` <div class="${ids.headerCell} ${ids.textClass} tx_700" style="min-width: ${widthList[index]}px;">${dd.key}</div>`;
+                                    })
+                                        .join('');
+                                },
+                                divCreate: {
+                                    class: `d-flex align-items-center mb-2 ${ids.header}`,
+                                    style: `height: 40px !important;`,
+                                },
+                                onCreate: () => {
+                                    if (!created.header) {
+                                        let timer = 0;
+                                        const si = setInterval(() => {
+                                            timer++;
+                                            const header = document.querySelector(`.${ids.header}`);
+                                            if (!created.header && header && header.offsetWidth > 0) {
+                                                let n = 0;
+                                                const htmlTags = new RegExp(/<[^>]*>/);
+                                                header === null || header === void 0 ? void 0 : header.querySelectorAll('div').forEach((div) => {
+                                                    if (div.classList.contains(ids.headerCell)) {
+                                                        const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.length * 24;
+                                                        widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
+                                                        n++;
+                                                    }
+                                                });
+                                                fullWidth = header.offsetWidth;
+                                                created.header = !created.header;
+                                                clearInterval(si);
+                                            }
+                                            if (timer > 500) {
+                                                clearInterval(si);
+                                            }
+                                        }, 50);
+                                    }
+                                },
+                            });
+                        },
                     })}
-                            <table class="table table-centered table-nowrap text-center table-hover" style="${isPhone ? `min-width: ${tableMinWidth}px; max-width: ${tableMaxWidth}px;` : ''}">
+                            <table class="table table-centered table-nowrap text-center table-hover" style="width: ${defWidth}px;">
                                 <tbody>
                                     ${vm.tableData
                         .map((dd, trIndex) => {
                         return html ` <tr
+                                                class="${trIndex === 0 ? ids.tr : ''}"
                                                 onclick="${gvc.event(() => {
                             obj.rowClick && obj.rowClick(dd, trIndex);
                         })}"
@@ -1185,20 +1253,22 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                             >
                                                 ${dd
                             .map((d3, tdIndex) => {
-                            var _a;
+                            const tdClass = Tool.randomString(5);
+                            gvc.addStyle(`
+                                                            .${tdClass} {
+                                                                border: none;
+                                                                vertical-align: middle;
+                                                                width: ${widthList[tdIndex]}px;
+                                                                ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
+                                                                ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
+                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
+                                                            }
+                                                        `);
                             return html ` <td
-                                                            class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal px-1"
-                                                            style="
-                                                                color:#393939 !important; 
-                                                                border: none; 
-                                                                vertical-align: middle; 
-                                                                width: ${widthList[tdIndex]}%;
-                                                                ${tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
-                                                                ${tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                            "
-                                                            gvc-checkbox="${obj.filter.length !== 0 && tdIndex === 0 ? `checkbox${trIndex}` : ''}"
+                                                            class="${ids.textClass} ${tdClass} tx_normal"
+                                                            ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                                         >
-                                                            <div class="text-nowrap">${d3.value}</div>
+                                                            <div class="text-nowrap" style="color: #393939 !important;">${d3.value}</div>
                                                         </td>`;
                         })
                             .join('')}
@@ -1223,6 +1293,42 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 onCreate: () => {
                     if (vm.loading) {
                         obj.getData(vm);
+                    }
+                    else {
+                        if (!created.table) {
+                            let timer = 0;
+                            const si = setInterval(() => {
+                                timer++;
+                                if (created.header) {
+                                    const checkbox = obj.filter.length > 0;
+                                    const tr = document.querySelector(`.${ids.tr}`);
+                                    tr === null || tr === void 0 ? void 0 : tr.querySelectorAll('td').forEach((td, index) => {
+                                        if (checkbox && index === 0) {
+                                            widthList[index] = 60;
+                                        }
+                                        else {
+                                            widthList[index] = td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index];
+                                        }
+                                        defWidth += widthList[index];
+                                    });
+                                    if (fullWidth > defWidth) {
+                                        const extraWidth = (fullWidth - defWidth) / (widthList.length - (checkbox ? 1 : 0));
+                                        widthList.map((width, index) => {
+                                            if (!(checkbox && index === 0)) {
+                                                widthList[index] = width + extraWidth;
+                                            }
+                                        });
+                                        defWidth = fullWidth;
+                                    }
+                                    created.table = !created.table;
+                                    gvc.notifyDataChange(ids.container);
+                                    clearInterval(si);
+                                }
+                                if (timer > 500) {
+                                    clearInterval(si);
+                                }
+                            }, 50);
+                        }
                     }
                 },
             };
@@ -1513,21 +1619,26 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static selNavbar(data) {
         var _a;
-        const pd = document.body.clientWidth > 768 ? this.getContainerWidth() / 60 : 12;
+        const navbarStyle = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 40px !important;
+            border-radius: 10px;
+            background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
+            padding: 0 22px;
+            ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
+        `;
         return html `
             <div
-                style="display: flex;
-                justify-content: space-between;
-                align-items: center;
-                height: 40px !important;
-                border-radius: 10px;
-                background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-                padding: 0 ${pd}px;
-                ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 8%); position: sticky; top: 0; left: 0;`}"
+                style="${navbarStyle
+            .replace(/;\s+/g, ';')
+            .replace(/[\r\n]/g, '')
+            .trim()}"
             >
                 <div style="display: flex; align-items: center; font-size: 14px; color: #393939; font-weight: 700;">
                     ${(_a = data.checkbox) !== null && _a !== void 0 ? _a : ''}
-                    <span class="ms-3">已選取${data.count}項</span>
+                    <span style="margin-left: 24px;">已選取${data.count}項</span>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 12px;">${data.buttonList.join('')}</div>
             </div>
@@ -1588,7 +1699,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             .join(this.horizontalLine());
     }
     static openBoxContainer(obj) {
-        var _a, _b;
+        var _a;
+        const bvid = Tool.randomString(5);
         const text = Tool.randomString(5);
         const height = (_a = obj.height) !== null && _a !== void 0 ? _a : 500;
         const closeHeight = 56;
@@ -1645,55 +1757,73 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
             }
         `);
-        return html ` <div class="box-tag-${obj.tag} box-container-${text}">
-            <div
-                class="box-navbar-${text} ${(_b = obj.guideClass) !== null && _b !== void 0 ? _b : ''}"
-                onclick="${obj.gvc.event((e) => {
-            if (!obj.autoClose) {
-                const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
-                boxes.forEach((box) => {
-                    const isOpening = box.classList.contains('open-box');
-                    const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
-                    if (isOpening && !isSelf) {
-                        box.classList.remove('open-box');
-                        if (box.tagName === 'DIV') {
-                            box.style.height = `${closeHeight}px`;
-                        }
+        return obj.gvc.bindView({
+            bind: bvid,
+            view: () => {
+                var _a;
+                return html ` <div class="box-tag-${obj.tag} box-container-${text}">
+                    <div
+                        class="box-navbar-${text} ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
+                        onclick="${obj.gvc.event((e) => {
+                    if (!obj.autoClose) {
+                        const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
+                        boxes.forEach((box) => {
+                            const isOpening = box.classList.contains('open-box');
+                            const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
+                            if (isOpening && !isSelf) {
+                                box.classList.remove('open-box');
+                                if (box.tagName === 'DIV') {
+                                    box.style.height = `${closeHeight}px`;
+                                }
+                            }
+                        });
                     }
-                });
-            }
-            setTimeout(() => {
-                e.parentElement.classList.toggle('open-box');
-                e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
-                const container = window.document.querySelector(`.box-container-${text}`);
-                if (e.parentElement.classList.contains('open-box')) {
-                    const si = setInterval(() => {
-                        const inside = window.document.querySelector(`.box-inside-${text}`);
-                        if (inside) {
-                            const insideHeight = inside.clientHeight;
-                            if (insideHeight + closeHeight < height) {
-                                container.style.height = `${insideHeight + closeHeight + 20}px`;
-                            }
-                            else {
-                                container.style.height = `${height}px`;
-                            }
-                            clearInterval(si);
+                    setTimeout(() => {
+                        e.parentElement.classList.toggle('open-box');
+                        e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+                        const container = window.document.querySelector(`.box-container-${text}`);
+                        if (e.parentElement.classList.contains('open-box')) {
+                            const si = setInterval(() => {
+                                const inside = window.document.querySelector(`.box-inside-${text}`);
+                                if (inside) {
+                                    const insideHeight = inside.clientHeight;
+                                    if (insideHeight + closeHeight < height) {
+                                        container.style.height = `${insideHeight + closeHeight + 20}px`;
+                                    }
+                                    else {
+                                        container.style.height = `${height}px`;
+                                    }
+                                    clearInterval(si);
+                                }
+                            }, 100);
+                        }
+                        else {
+                            container.style.height = `${closeHeight}px`;
+                        }
+                    }, 50);
+                })}"
+                    >
+                        <div class="d-flex tx_700">${obj.title}</div>
+                        <div class="d-flex">
+                            <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
+                        </div>
+                    </div>
+                    <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
+                </div>`;
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (obj.openOnInit) {
+                    setTimeout(() => {
+                        const navs = document.getElementsByClassName(`box-navbar-${text}`);
+                        if (navs.length > 0) {
+                            const nav = navs[0];
+                            nav.click();
                         }
                     }, 100);
                 }
-                else {
-                    container.style.height = `${closeHeight}px`;
-                }
-            }, 50);
-        })}"
-            >
-                <div class="d-flex tx_700">${obj.title}</div>
-                <div class="d-flex">
-                    <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
-                </div>
-            </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
-        </div>`;
+            },
+        });
     }
     static selectFilter(obj) {
         var _a;

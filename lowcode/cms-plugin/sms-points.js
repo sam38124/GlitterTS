@@ -7,30 +7,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { SmsPointsApi } from "../glitter-base/route/sms-points-api.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { AiPointsApi } from "../glitter-base/route/ai-points-api.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { SmsPointsApi } from '../glitter-base/route/sms-points-api.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { AiPointsApi } from '../glitter-base/route/ai-points-api.js';
 const html = String.raw;
 export class SmsPoints {
     static main(gvc) {
-        return [BgWidget.container([
+        return [
+            BgWidget.container([
                 BgWidget.mainCard([
                     BgWidget.title('SMS Points'),
-                    BgWidget.grayNote([`*透過SMS Points來進行手機簡訊發送`, `*1塊台幣可以換取10點SMS Points`, `*最少儲值金額500元`, `*SMS Points購買後無法退費，請購買前瞭解會員權益需知`].map((dd) => {
+                    BgWidget.grayNote([`*透過SMS Points來進行手機簡訊發送`, `*1塊台幣可以換取10點SMS Points`, `*最少儲值金額500元`, `*SMS Points購買後無法退費，請購買前瞭解會員權益需知`]
+                        .map((dd) => {
                         return `<div style="letter-spacing: 1.2px;">${dd}</div>`;
-                    }).join('')),
-                    html `
-                    <div class="d-flex align-items-center rounded-3" style="height:35px;width:100%;max-width: 500px;">
-                        <div style="height:100%;background:var(--main-black-hover)"
-                             class="d-flex align-items-center justify-content-center text-white px-3">目前 SMS Points
-                        </div>
-                        <div class="bgf6 d-flex align-items-center flex-fill h-100 ps-3 pe-2">${gvc.bindView(() => {
+                    })
+                        .join('')),
+                    html ` <div class="d-flex align-items-center rounded-3" style="height:35px;width:100%;max-width: 500px;">
+                                <div style="height:100%;background:var(--main-black-hover)" class="d-flex align-items-center justify-content-center text-white px-3">目前 SMS Points</div>
+                                <div class="bgf6 d-flex align-items-center flex-fill h-100 ps-3 pe-2">
+                                    ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         const vm = {
                             loading: true,
-                            sum: 0
+                            sum: 0,
                         };
                         SmsPointsApi.getSum({}).then((res) => {
                             vm.sum = parseInt(res.response.sum, 10);
@@ -46,17 +47,19 @@ export class SmsPoints {
                                 else {
                                     return `${vm.sum.toLocaleString()}`;
                                 }
-                            }
+                            },
                         };
                     })}
-                            <div class="flex-fill"></div>
-                            ${BgWidget.blueNote('儲值', gvc.event(() => {
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.blueNote('儲值', gvc.event(() => {
                         SmsPoints.store(gvc);
                     }))}
-                        </div>
-                    </div>`
-                ].join(`<div class="my-2"></div>`))
-            ].join(''), BgWidget.getContainerWidth()), SmsPoints.walletList(gvc)].join('');
+                                </div>
+                            </div>`,
+                ].join(`<div class="my-2"></div>`)),
+            ].join(''), BgWidget.getContainerWidth()),
+            SmsPoints.walletList(gvc),
+        ].join('');
     }
     static walletList(gvc) {
         const glitter = gvc.glitter;
@@ -65,7 +68,7 @@ export class SmsPoints {
             data: {},
             dataList: undefined,
             query: '',
-            select: 'all'
+            select: 'all',
         };
         const filterID = gvc.glitter.getUUID();
         return gvc.bindView(() => {
@@ -80,35 +83,34 @@ export class SmsPoints {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(BgWidget.card(html `
-                            ${BgWidget.tab([
+                                ${BgWidget.tab([
                             { title: '紀錄總覽', key: 'all' },
                             { title: '使用紀錄', key: 'cost' },
-                            { title: '儲值紀錄', key: 'income' }
+                            { title: '儲值紀錄', key: 'income' },
                         ], gvc, vm.select, (text) => {
                             vm.select = text;
                             gvc.notifyDataChange(id);
                         })}
-                            <div class="border-bottom mb-2 w-100"></div>
-                            ${BgWidget.tableV2({
+                                <div class="border-bottom mb-2 w-100"></div>
+                                ${BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vmi) => {
+                                const limit = 20;
                                 SmsPointsApi.get({
                                     page: vmi.page - 1,
-                                    limit: 20,
+                                    limit: limit,
                                     search: vm.query || undefined,
                                     type: (() => {
                                         switch (vm.select) {
-                                            case "all":
+                                            case 'all':
                                                 return undefined;
-                                            case "cost":
+                                            case 'cost':
                                                 return 'minus';
-                                            case "income":
+                                            case 'income':
                                                 return 'plus';
                                         }
-                                    })()
+                                    })(),
                                 }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
                                     function getDatalist() {
                                         return data.response.data.map((dd) => {
                                             var _a;
@@ -136,16 +138,18 @@ export class SmsPoints {
                                             ];
                                         });
                                     }
-                                    vmi.data = getDatalist();
+                                    vm.dataList = data.response.data;
+                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
                                     vmi.loading = false;
                                     vmi.callback();
                                 });
                             },
-                            rowClick: (data, index) => {
-                            },
-                            filter: ``
+                            rowClick: (data, index) => { },
+                            filter: [],
                         })}
-                        `), BgWidget.getContainerWidth());
+                            `), BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return ``;
@@ -155,8 +159,8 @@ export class SmsPoints {
                     }
                 },
                 divCreate: {
-                    class: `mt-n4`
-                }
+                    class: `mt-n4`,
+                },
             };
         });
     }
@@ -172,11 +176,11 @@ export class SmsPoints {
                     email: '',
                     invoice_type: 'me',
                     company: '',
-                    gui_number: ''
-                }
+                    gui_number: '',
+                },
             };
             vm.user_info.email = vm.user_info.email || '';
-            const dd = (yield ApiUser.getPublicConfig('ai-points-store', 'manager'));
+            const dd = yield ApiUser.getPublicConfig('ai-points-store', 'manager');
             if (dd.response.value) {
                 vm.user_info = dd.response.value;
             }
@@ -196,9 +200,9 @@ export class SmsPoints {
                                 { key: '500', value: '5,000點 ( NT.500 )' },
                                 { key: '1000', value: '10,000點 ( NT.1,000 )' },
                                 { key: '1500', value: '15,000點 ( NT.1,500 )' },
-                                { key: '2000', value: '20,000點 ( NT.2,000 )' }
+                                { key: '2000', value: '20,000點 ( NT.2,000 )' },
                             ],
-                            default: `${vm.total}`
+                            default: `${vm.total}`,
                         }),
                         ...(() => {
                             if (vm.total) {
@@ -210,7 +214,8 @@ export class SmsPoints {
                         })(),
                         ...(() => {
                             if (gvc.glitter.deviceType !== gvc.glitter.deviceTypeEnum.Ios) {
-                                return [BgWidget.editeInput({
+                                return [
+                                    BgWidget.editeInput({
                                         gvc: gvc,
                                         title: `發票寄送電子信箱`,
                                         placeHolder: '請輸入發票寄送電子信箱',
@@ -218,25 +223,33 @@ export class SmsPoints {
                                             vm.user_info.email = text;
                                         },
                                         type: 'email',
-                                        default: vm.user_info.email
+                                        default: vm.user_info.email,
                                     }),
                                     `<div class="tx_normal fw-normal" >發票開立方式</div>`,
                                     BgWidget.select({
-                                        gvc: gvc, callback: (text) => {
+                                        gvc: gvc,
+                                        callback: (text) => {
                                             vm.user_info.invoice_type = text;
                                             gvc.recreateView();
-                                        }, options: [
+                                        },
+                                        options: [
                                             { key: 'me', value: '個人單位' },
-                                            { key: 'company', value: '公司行號' }
-                                        ], default: vm.user_info.invoice_type
+                                            { key: 'company', value: '公司行號' },
+                                        ],
+                                        default: vm.user_info.invoice_type,
                                     }),
                                     ...(() => {
                                         if (vm.user_info.invoice_type === 'company') {
                                             return [
                                                 BgWidget.editeInput({
-                                                    gvc: gvc, title: `發票抬頭`, placeHolder: '請輸入發票抬頭', callback: (text) => {
+                                                    gvc: gvc,
+                                                    title: `發票抬頭`,
+                                                    placeHolder: '請輸入發票抬頭',
+                                                    callback: (text) => {
                                                         vm.user_info.company = text;
-                                                    }, type: 'text', default: `${vm.user_info.company}`
+                                                    },
+                                                    type: 'text',
+                                                    default: `${vm.user_info.company}`,
                                                 }),
                                                 BgWidget.editeInput({
                                                     gvc: gvc,
@@ -246,25 +259,28 @@ export class SmsPoints {
                                                         vm.user_info.gui_number = text;
                                                     },
                                                     type: 'number',
-                                                    default: `${vm.user_info.gui_number}`
-                                                })
+                                                    default: `${vm.user_info.gui_number}`,
+                                                }),
                                             ];
                                         }
                                         else {
                                             return [];
                                         }
-                                    })()];
+                                    })(),
+                                ];
                             }
                             else {
                                 return [];
                             }
-                        })()
+                        })(),
                     ].join(`<div class="my-2"></div>`)}</div>`;
                 },
                 footer_html: (gvc) => {
-                    return [BgWidget.cancel(gvc.event(() => {
+                    return [
+                        BgWidget.cancel(gvc.event(() => {
                             gvc.closeDialog();
-                        })), BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                        })),
+                        BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             if (vm.user_info.invoice_type !== 'company') {
                                 vm.user_info.company = '';
                                 vm.user_info.gui_number = '';
@@ -298,14 +314,13 @@ export class SmsPoints {
                                 user_id: 'manager',
                             });
                             vm.note = {
-                                invoice_data: vm.user_info
+                                invoice_data: vm.user_info,
                             };
                             dialog.dataLoading({ visible: true });
                             if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                                gvc.glitter.runJsInterFace("in_app_product", {
-                                    total: `sms_${vm.total}`
+                                gvc.glitter.runJsInterFace('in_app_product', {
+                                    total: `sms_${vm.total}`,
                                 }, (res) => __awaiter(this, void 0, void 0, function* () {
-                                    console.log(`res.receipt_data=>`, res.receipt_data);
                                     if (res.receipt_data) {
                                         yield AiPointsApi.apple_webhook(res.receipt_data);
                                         window.parent.location.reload();
@@ -329,8 +344,9 @@ export class SmsPoints {
                                     }
                                 }));
                             }
-                        })))].join('');
-                }
+                        }))),
+                    ].join('');
+                },
             });
             return;
         });

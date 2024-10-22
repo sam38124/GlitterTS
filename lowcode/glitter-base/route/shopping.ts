@@ -258,7 +258,7 @@ export class ApiShop {
         page: number;
         search?: string;
         searchType?: string;
-        domain?:string;
+        domain?: string;
         id?: string;
         collection?: string;
         accurate_search_collection?: boolean;
@@ -270,8 +270,8 @@ export class ApiShop {
         id_list?: string;
         with_hide_index?: string;
         productType?: string;
-        filter_visible?:string,
-        app_name?:string
+        filter_visible?: string;
+        app_name?: string;
     }) {
         return BaseApi.create({
             url:
@@ -292,8 +292,8 @@ export class ApiShop {
                     json.productType && par.push(`productType=${json.productType}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.filter_visible && par.push(`filter_visible=${json.filter_visible}`)
-                     if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
+                    json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
+                    if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
                         par.push(`show_hidden=true`);
                     }
                     return par.join('&');
@@ -354,7 +354,7 @@ export class ApiShop {
         page: number;
         search?: string;
         email?: string;
-        phone?:number;
+        phone?: number;
         searchType?: string;
         id?: string;
         data_from?: 'user' | 'manager';
@@ -376,7 +376,7 @@ export class ApiShop {
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.email && par.push(`email=${json.email}`);
-                    json.phone &&par.push(`phone=${json.phone}`)
+                    json.phone && par.push(`phone=${json.phone}`);
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
@@ -542,12 +542,12 @@ export class ApiShop {
     }
 
     static getCollection() {
-        return new Promise<{result:boolean,response:any}>((resolve, reject)=>{
-            (window as any).glitter.share._public_config= (window as any).glitter.share._public_config??{}
-            const config=(window as any).glitter.share._public_config
-            if(config[`collection-manager`]){
-                resolve(config[`collection-manager`])
-                return
+        return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
+            (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
+            const config = (window as any).glitter.share._public_config;
+            if (config[`collection-manager`] && (window as any).glitter.getUrlParameter('cms') !== 'true') {
+                resolve(config[`collection-manager`]);
+                return;
             }
             BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/manager/config?key=collection`,
@@ -556,11 +556,11 @@ export class ApiShop {
                     'Content-Type': 'application/json',
                     'g-app': getConfig().config.appName,
                 },
-            }).then((res)=>{
-                config[`collection-manager`]=res
-                resolve(res)
-            })
-        })
+            }).then((res) => {
+                config[`collection-manager`] = res;
+                resolve(res);
+            });
+        });
     }
 
     static getInvoiceType() {
@@ -635,7 +635,7 @@ export class ApiShop {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
-        give_away?:any
+        give_away?: any;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,

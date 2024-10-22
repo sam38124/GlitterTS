@@ -1045,7 +1045,6 @@ export class ShoppingProductSetting {
                                                                                     class: 'rounded border me-4',
                                                                                 })}${Tool.truncateString(dd.content.title)}
                                                                                             </div>`,
-                                                                                width: 45,
                                                                             },
                                                                             {
                                                                                 key: '售價',
@@ -1221,7 +1220,6 @@ export class ShoppingProductSetting {
                                                                         },
                                                                     });
                                                                 },
-                                                                option: false,
                                                             },
                                                         ],
                                                     });
@@ -2044,6 +2042,11 @@ export class ShoppingProductSetting {
                                                     return BgWidget.spinner();
                                                 }
                                                 return html ` <div class="d-flex align-items-center justify-content-end mb-3">
+                                                                        ${BgWidget.aiChatButton({
+                                                    gvc,
+                                                    select: 'writer',
+                                                    title: '使用AI文案寫手',
+                                                })}
                                                                         <div class="flex-fill"></div>
                                                                         <div
                                                                             class="cursor_pointer"
@@ -2175,6 +2178,7 @@ export class ShoppingProductSetting {
                                                         },
                                                     }),
                                                     height: 800,
+                                                    openOnInit: true,
                                                 })}
                                                                     ${BgWidget.mbContainer(8)}
                                                                     ${vm.documents

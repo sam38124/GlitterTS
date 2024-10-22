@@ -41,12 +41,12 @@ export class BgGraphApi {
                                 vm.status = 'add';
                             }))}
                                     </div>
-                                    ${BgWidget.container([
-                                BgWidget.searchPlace(gvc.event((e, event) => {
+                                    ${BgWidget.container(BgWidget.mainCard([
+                                BgWidget.searchPlace(gvc.event((e) => {
                                     vm.query = e.value;
                                     gvc.notifyDataChange(id);
                                 }), vm.query || '', '搜尋所有訂單'),
-                                BgWidget.mainCard(BgWidget.tableV3({
+                                BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vmi) => {
                                         const limit = 20;
@@ -103,11 +103,7 @@ export class BgGraphApi {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             GraphApi.delete({
-                                                                id: checkedData
-                                                                    .map((dd) => {
-                                                                    return dd.id;
-                                                                })
-                                                                    .join(`,`),
+                                                                id: checkedData.map((dd) => dd.id).join(`,`),
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
@@ -122,11 +118,10 @@ export class BgGraphApi {
                                                     },
                                                 });
                                             },
-                                            option: false,
                                         },
                                     ],
-                                })),
-                            ].join(''))}
+                                }),
+                            ].join('')))}
                                 `, BgWidget.getContainerWidth());
                         case 'replace':
                             return BgGraphApi.editor({

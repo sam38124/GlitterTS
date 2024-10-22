@@ -463,7 +463,7 @@ export class ApiShop {
             var _a;
             window.glitter.share._public_config = (_a = window.glitter.share._public_config) !== null && _a !== void 0 ? _a : {};
             const config = window.glitter.share._public_config;
-            if (config[`collection-manager`]) {
+            if (config[`collection-manager`] && window.glitter.getUrlParameter('cms') !== 'true') {
                 resolve(config[`collection-manager`]);
                 return;
             }

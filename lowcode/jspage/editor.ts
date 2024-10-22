@@ -214,7 +214,7 @@ color: transparent;"
                              
                             </div>
                             <div class="border-end d-none d-sm-block"
-                                 style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `37px`};height: 56px; "></div>
+                                 style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `39.5px`};height: 56px; "></div>
 
                             ${(() => {
                                 if (Storage.select_function === 'backend-manger') {

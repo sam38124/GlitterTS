@@ -107,160 +107,104 @@ export class ShoppingRebate {
                             });
                         }))}
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(gvc.bindView({
-                            bind: vm.tableId,
-                            view: () => {
-                                return BgWidget.tableV2({
-                                    gvc: gvc,
-                                    getData: (vmi) => {
-                                        const limit = 15;
-                                        ApiWallet.getRebate({
-                                            page: vmi.page - 1,
-                                            limit: limit,
-                                            search: vm.query || undefined,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
-                                            vm.dataList = data.response.data;
-                                            function getDatalist() {
-                                                return data.response.data.map((dd) => {
-                                                    var _a, _b;
-                                                    return [
-                                                        {
-                                                            key: EditorElem.checkBoxOnly({
-                                                                gvc: gvc,
-                                                                def: !data.response.data.find((dd) => {
-                                                                    return !dd.checked;
-                                                                }),
-                                                                callback: (result) => {
-                                                                    data.response.data.map((dd) => {
-                                                                        dd.checked = result;
-                                                                    });
-                                                                    vmi.data = getDatalist();
-                                                                    vmi.callback();
-                                                                    gvc.notifyDataChange(vm.filterId);
-                                                                },
-                                                            }),
-                                                            value: EditorElem.checkBoxOnly({
-                                                                gvc: gvc,
-                                                                def: dd.checked,
-                                                                callback: (result) => {
-                                                                    dd.checked = result;
-                                                                    vmi.data = getDatalist();
-                                                                    vmi.callback();
-                                                                    gvc.notifyDataChange(vm.filterId);
-                                                                },
-                                                                style: 'height:25px;',
-                                                            }),
-                                                        },
-                                                        {
-                                                            key: '用戶名稱',
-                                                            value: `<span class="fs-7">${(_a = dd.name) !== null && _a !== void 0 ? _a : '資料異常'}</span>`,
-                                                        },
-                                                        {
-                                                            key: '購物金來源',
-                                                            value: (() => {
-                                                                let text = '';
-                                                                if (dd.content.order_id) {
-                                                                    text = `訂單編號：${dd.content.order_id}`;
-                                                                }
-                                                                else {
-                                                                    switch (dd.content.type) {
-                                                                        case 'manual':
-                                                                            text = '手動設定';
-                                                                            break;
-                                                                        case 'first_regiser':
-                                                                            text = '新加入會員';
-                                                                            break;
-                                                                        case 'birth':
-                                                                            text = '生日禮';
-                                                                            break;
-                                                                        default:
-                                                                            text = dd.origin < 0 ? '使用折抵' : '其他';
-                                                                            break;
+                                ${BgWidget.container(BgWidget.mainCard([
+                            BgWidget.searchPlace(gvc.event((e, event) => {
+                                vm.query = e.value;
+                                gvc.notifyDataChange(vm.id);
+                            }), vm.query || '', '搜尋顧客信箱、姓名'),
+                            gvc.bindView({
+                                bind: vm.tableId,
+                                view: () => {
+                                    return BgWidget.tableV3({
+                                        gvc: gvc,
+                                        getData: (vmi) => {
+                                            const limit = 15;
+                                            ApiWallet.getRebate({
+                                                page: vmi.page - 1,
+                                                limit: limit,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                function getDatalist() {
+                                                    return data.response.data.map((dd) => {
+                                                        var _a, _b;
+                                                        return [
+                                                            {
+                                                                key: '用戶名稱',
+                                                                value: `<span class="fs-7">${(_a = dd.name) !== null && _a !== void 0 ? _a : '資料異常'}</span>`,
+                                                            },
+                                                            {
+                                                                key: '購物金來源',
+                                                                value: (() => {
+                                                                    let text = '';
+                                                                    if (dd.content.order_id) {
+                                                                        text = `訂單編號：${dd.content.order_id}`;
                                                                     }
-                                                                }
-                                                                return html `<span class="fs-7">${text}</span>`;
-                                                            })(),
-                                                        },
-                                                        {
-                                                            key: '增減',
-                                                            value: (() => {
-                                                                if (dd.origin > 0) {
-                                                                    return html `<span class="tx_700 text-success">+ ${dd.origin}</span>`;
-                                                                }
-                                                                return html `<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
-                                                            })(),
-                                                        },
-                                                        {
-                                                            key: '此筆可使用餘額',
-                                                            value: (() => {
-                                                                const now = new Date();
-                                                                if (dd.origin > 0 && dd.remain > 0 && now > new Date(dd.created_at) && now < new Date(dd.deadline)) {
-                                                                    return html `<span class="tx_700 text-success">+ ${dd.remain}</span>`;
-                                                                }
-                                                                return html `<span class="tx_700">0</span>`;
-                                                            })(),
-                                                        },
-                                                        {
-                                                            key: '備註',
-                                                            value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
-                                                        },
-                                                        {
-                                                            key: '建立時間',
-                                                            value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
-                                                        },
-                                                    ];
-                                                });
-                                            }
-                                            vmi.data = getDatalist();
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.data = vm.dataList[index];
-                                        vm.type = 'replace';
-                                    },
-                                    filter: html `
-                                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
-                                        vm.query = e.value;
-                                        gvc.notifyDataChange(vm.id);
-                                    }), vm.query || '', '搜尋顧客信箱、姓名')}
-                                                        ${gvc.bindView(() => {
-                                        return {
-                                            bind: vm.filterId,
-                                            view: () => {
-                                                if (!vm.dataList ||
-                                                    !vm.dataList.find((dd) => {
-                                                        return dd.checked;
-                                                    })) {
-                                                    return '';
-                                                }
-                                                else {
-                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                                    return BgWidget.selNavbar({
-                                                        count: selCount,
-                                                        buttonList: [],
+                                                                    else {
+                                                                        switch (dd.content.type) {
+                                                                            case 'manual':
+                                                                                text = '手動設定';
+                                                                                break;
+                                                                            case 'first_regiser':
+                                                                                text = '新加入會員';
+                                                                                break;
+                                                                            case 'birth':
+                                                                                text = '生日禮';
+                                                                                break;
+                                                                            default:
+                                                                                text = dd.origin < 0 ? '使用折抵' : '其他';
+                                                                                break;
+                                                                        }
+                                                                    }
+                                                                    return html `<span class="fs-7">${text}</span>`;
+                                                                })(),
+                                                            },
+                                                            {
+                                                                key: '增減',
+                                                                value: (() => {
+                                                                    if (dd.origin > 0) {
+                                                                        return html `<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                                                                    }
+                                                                    return html `<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                                                                })(),
+                                                            },
+                                                            {
+                                                                key: '此筆可使用餘額',
+                                                                value: (() => {
+                                                                    const now = new Date();
+                                                                    if (dd.origin > 0 && dd.remain > 0 && now > new Date(dd.created_at) && now < new Date(dd.deadline)) {
+                                                                        return html `<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                                                                    }
+                                                                    return html `<span class="tx_700">0</span>`;
+                                                                })(),
+                                                            },
+                                                            {
+                                                                key: '備註',
+                                                                value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
+                                                            },
+                                                            {
+                                                                key: '建立時間',
+                                                                value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
+                                                            },
+                                                        ];
                                                     });
                                                 }
-                                            },
-                                            divCreate: () => {
-                                                return {
-                                                    class: `d-flex align-items-center mt-2 p-2 py-3 ${!vm.dataList ||
-                                                        !vm.dataList.find((dd) => {
-                                                            return dd.checked;
-                                                        })
-                                                        ? `d-none`
-                                                        : ``}`,
-                                                    style: ``,
-                                                };
-                                            },
-                                        };
-                                    })}
-                                                    `,
-                                });
-                            },
-                        })) + BgWidget.mbContainer(120))}
+                                                vm.dataList = data.response.data;
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vmi.originalData = vm.dataList;
+                                                vmi.tableData = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.data = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        },
+                                        filter: [],
+                                    });
+                                },
+                            }),
+                        ].join('')) + BgWidget.mbContainer(120))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {

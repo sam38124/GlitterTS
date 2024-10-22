@@ -75,7 +75,7 @@ class User {
     }
     async emailVerify(account) {
         const time = await redis_js_1.default.getValue(`verify-${account}-last-time`);
-        if (!time || ((new Date().getTime() - new Date(time).getTime()) > 1000 * 30)) {
+        if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis_js_1.default.setValue(`verify-${account}-last-time`, new Date().toISOString());
             const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update');
             const code = tool_js_1.default.randomNumber(6);
@@ -83,33 +83,32 @@ class User {
             data.content = data.content.replace(`@{{code}}`, code);
             (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
             return {
-                result: true
+                result: true,
             };
         }
         else {
             return {
-                result: false
+                result: false,
             };
         }
     }
     async phoneVerify(account) {
         const time = await redis_js_1.default.getValue(`verify-phone-${account}-last-time`);
-        if (!time || ((new Date().getTime() - new Date(time).getTime()) > 1000 * 30)) {
+        if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis_js_1.default.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
             const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update');
             const code = tool_js_1.default.randomNumber(6);
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => {
-            });
+            await sns.sendSNS({ data: data.content, phone: account }, () => { });
             return {
-                result: true
+                result: true,
             };
         }
         else {
             return {
-                result: false
+                result: false,
             };
         }
     }
@@ -133,32 +132,37 @@ class User {
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if (register_form.list.find((dd) => {
                 return dd.key === 'email' && `${dd.hidden}` !== 'true';
-            }) && !userData.email) {
+            }) &&
+                !userData.email) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                    msg: 'lead data with email.'
+                    msg: 'lead data with email.',
                 });
             }
             if (register_form.list.find((dd) => {
                 return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-            }) && !userData.phone) {
+            }) &&
+                !userData.phone) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                    msg: 'lead data with phone.'
+                    msg: 'lead data with phone.',
                 });
             }
             if (!pass_verify) {
-                if (login_config.email_verify && (userData.verify_code !== (await redis_js_1.default.getValue(`verify-${userData.email}`)))
-                    && register_form.list.find((dd) => {
+                if (login_config.email_verify &&
+                    userData.verify_code !== (await redis_js_1.default.getValue(`verify-${userData.email}`)) &&
+                    register_form.list.find((dd) => {
                         return dd.key === 'email' && `${dd.hidden}` !== 'true';
                     })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                        msg: 'email-verify-false'
+                        msg: 'email-verify-false',
                     });
                 }
-                if (login_config.phone_verify && (userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${userData.phone}`))) && register_form.list.find((dd) => {
-                    return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-                })) {
+                if (login_config.phone_verify &&
+                    userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${userData.phone}`)) &&
+                    register_form.list.find((dd) => {
+                        return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                    })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                        msg: 'phone-verify-false'
+                        msg: 'phone-verify-false',
                     });
                 }
             }
@@ -177,7 +181,7 @@ class User {
             return usData;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Register Error:' + e, e.data);
         }
     }
@@ -298,14 +302,11 @@ class User {
                  from \`${this.app}\`.t_user
                  where userData ->>'$.email' = ?
                    and status = 1`, [fbResponse.email]))[0];
-        data.userData["fb-id"] = fbResponse.id;
+        data.userData['fb-id'] = fbResponse.id;
         await database_1.default.execute(`update \`${this.app}\`.t_user
                           set userData=?
                           where userID = ?
-                            and id > 0`, [
-            JSON.stringify(data.userData),
-            data.userID
-        ]);
+                            and id > 0`, [JSON.stringify(data.userData), data.userID]);
         const usData = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
         usData.token = await UserUtil_1.default.generateToken({
@@ -324,7 +325,7 @@ class User {
             const lineResponse = await new Promise((resolve, reject) => {
                 if (redirect === 'app') {
                     resolve({
-                        id_token: code
+                        id_token: code,
                     });
                 }
                 else {
@@ -348,8 +349,7 @@ class User {
                         resolve(response.data);
                     })
                         .catch((error) => {
-                        console.log(error);
-                        console.error(error.message);
+                        console.error(error);
                         resolve(false);
                     });
                 }
@@ -408,10 +408,7 @@ class User {
             await database_1.default.execute(`update \`${this.app}\`.t_user
                               set userData=?
                               where userID = ?
-                                and id > 0`, [
-                JSON.stringify(data.userData),
-                data.userID
-            ]);
+                                and id > 0`, [JSON.stringify(data.userData), data.userID]);
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
                 user_id: usData['userID'],
@@ -516,7 +513,7 @@ class User {
                 .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
                 .then((res) => res.data)
                 .catch((e) => {
-                console.log(e);
+                console.error(e);
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify False', null);
             });
             const decoded = jsonwebtoken_1.default.decode(res['id_token'], { complete: true });
@@ -535,7 +532,7 @@ class User {
                         name: (() => {
                             const email = decoded.payload.email;
                             return email.substring(0, email.indexOf('@'));
-                        })()
+                        })(),
                     },
                     1,
                 ]);
@@ -545,14 +542,11 @@ class User {
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?
                        and status = 1`, [decoded.payload.email]))[0];
-            data.userData["apple-id"] = uid;
+            data.userData['apple-id'] = uid;
             await database_1.default.execute(`update \`${this.app}\`.t_user
                               set userData=?
                               where userID = ?
-                                and id > 0`, [
-                JSON.stringify(data.userData),
-                data.userID
-            ]);
+                                and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -630,11 +624,14 @@ class User {
             })).levels || [];
             const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email, userData.userData.phone].filter((dd) => {
+                     where email in (${[userData.userData.email, userData.userData.phone]
+                .filter((dd) => {
                 return dd;
-            }).map((dd) => {
+            })
+                .map((dd) => {
                 return database_1.default.escape(dd);
-            }).join(',')})
+            })
+                .join(',')})
                        and status = 1
                      order by id desc`, [])).map((dd) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
@@ -950,8 +947,8 @@ class User {
                                 return item.userID === parseInt(`${id}`, 10);
                             });
                         })
-                        : users.map((item) => item.userID);
-                    query.id = ids.filter((id) => id).join(',');
+                        : users.map((item) => item.userID).filter((item) => item);
+                    query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
                 }
                 else {
                     query.id = '0,0';
@@ -1381,40 +1378,43 @@ class User {
             });
             register_form.list = (_a = register_form.list) !== null && _a !== void 0 ? _a : [];
             form_check_js_1.FormCheck.initialRegisterForm(register_form.list);
-            if (par.userData.email && (par.userData.email !== userData.userData.email)) {
+            if (par.userData.email && par.userData.email !== userData.userData.email) {
                 const count = (await database_1.default.query(`select count(1)
                                                from \`${this.app}\`.\`t_user\`
                                                where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
                                                  and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
-                        msg: 'email-exists'
+                        msg: 'email-exists',
                     });
                 }
-                if (login_config.email_verify && (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)))
-                    && register_form.list.find((dd) => {
+                if (login_config.email_verify &&
+                    par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)) &&
+                    register_form.list.find((dd) => {
                         return dd.key === 'email' && `${dd.hidden}` !== 'true';
                     })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                        msg: 'email-verify-false'
+                        msg: 'email-verify-false',
                     });
                 }
             }
-            if (par.userData.phone && (par.userData.phone !== userData.userData.phone)) {
+            if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
                 const count = (await database_1.default.query(`select count(1)
                                                from \`${this.app}\`.\`t_user\`
                                                where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
                                                  and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
-                        msg: 'phone-exists'
+                        msg: 'phone-exists',
                     });
                 }
-                if (login_config.phone_verify && (par.userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${par.userData.phone}`))) && register_form.list.find((dd) => {
-                    return dd.key === 'phone' && `${dd.hidden}` !== 'true';
-                })) {
+                if (login_config.phone_verify &&
+                    par.userData.verify_code_phone !== (await redis_js_1.default.getValue(`verify-phone-${par.userData.phone}`)) &&
+                    register_form.list.find((dd) => {
+                        return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                    })) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
-                        msg: 'phone-verify-false'
+                        msg: 'phone-verify-false',
                     });
                 }
             }
@@ -1588,12 +1588,14 @@ class User {
     }
     async checkMailAndPhoneExists(email, phone) {
         try {
-            const emailExists = email && ((await database_1.default.execute(`select count(1)
+            const emailExists = email &&
+                (await database_1.default.execute(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData ->>'$.email'=?`, [email]))[0]['count(1)'] > 0);
-            const phoneExists = phone && ((await database_1.default.execute(`select count(1)
+                         where userData ->>'$.email'=?`, [email]))[0]['count(1)'] > 0;
+            const phoneExists = phone &&
+                (await database_1.default.execute(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData ->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0);
+                         where userData ->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0;
             return emailExists || phoneExists;
         }
         catch (e) {
@@ -1659,15 +1661,15 @@ class User {
                  where \`key\` = ${database_1.default.escape(config.key)}
                    and user_id = ${database_1.default.escape(config.user_id)}
                 `, []);
-            if ((!data[0]) && config.user_id === 'manager') {
+            if (!data[0] && config.user_id === 'manager') {
                 switch (config.key) {
-                    case "member_level_config":
+                    case 'member_level_config':
                         await this.setConfig({
                             key: config.key,
                             user_id: config.user_id,
                             value: {
-                                "levels": []
-                            }
+                                levels: [],
+                            },
                         });
                         return await this.getConfigV2(config);
                 }
@@ -1721,8 +1723,7 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;

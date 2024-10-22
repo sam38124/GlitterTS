@@ -1,4 +1,3 @@
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
@@ -40,55 +39,6 @@ export class StockList {
                 var _a, _b, _c;
                 vm.stockList[index] = dd.variant_content.stock;
                 return [
-                    {
-                        key: gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: !vm.dataList.find((dd) => {
-                                            return !dd.checked;
-                                        }),
-                                        callback: (result) => {
-                                            vm.dataList.map((dd) => {
-                                                dd.checked = result;
-                                            });
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                            gvc.notifyDataChange(vm.filterId);
-                                        },
-                                    });
-                                },
-                                divCreate: {
-                                    class: `check-box-item`,
-                                },
-                            };
-                        }),
-                        value: gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: dd.checked,
-                                        callback: (result) => {
-                                            dd.checked = result;
-                                            vmi.data = getDatalist();
-                                            gvc.glitter.recreateView('.check-box-item');
-                                            gvc.notifyDataChange(vm.filterId);
-                                        },
-                                        style: 'height:40px;',
-                                    });
-                                },
-                                divCreate: {
-                                    class: `check-box-item`,
-                                },
-                            };
-                        }),
-                    },
                     {
                         key: '商品名稱',
                         value: html ` <div class="d-flex align-items-center gap-3">
@@ -165,11 +115,7 @@ export class StockList {
                                 ${BgWidget.title(option.title)}
                                 <div class="flex-fill"></div>
                                 <div style="display: none; gap: 14px;">
-                                    ${BgWidget.grayButton('匯入', gvc.event(() => {
-                        console.log('匯入');
-                    }))}${BgWidget.grayButton('匯出', gvc.event(() => {
-                        console.log('匯出');
-                    }))}
+                                    ${BgWidget.grayButton('匯入', gvc.event(() => { }))}${BgWidget.grayButton('匯出', gvc.event(() => { }))}
                                 </div>
                             </div>
                             ${BgWidget.container([
@@ -260,7 +206,7 @@ export class StockList {
                             gvc.bindView({
                                 bind: vm.tableId,
                                 view: () => {
-                                    return BgWidget.tableV2({
+                                    return BgWidget.tableV3({
                                         gvc: gvc,
                                         getData: (vd) => {
                                             vmi = vd;
@@ -286,15 +232,13 @@ export class StockList {
                                                 stockCount: vm.filter.count,
                                                 accurate_search_collection: true,
                                             }).then((data) => {
+                                                vm.dataList = data.response.data;
                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                vm.dataList = data.response.data.filter((data) => {
-                                                    return !option.filter_variants.find((dd) => {
-                                                        return dd === [data.product_id].concat(data.variant_content.spec).join('-');
-                                                    });
-                                                });
-                                                vmi.data = getDatalist();
+                                                vmi.originalData = vm.dataList;
+                                                vmi.tableData = getDatalist();
                                                 vm.stockOriginList = vm.stockList.concat();
                                                 gvc.notifyDataChange(vm.updateId);
+                                                vmi.loading = false;
                                                 vmi.callback();
                                             });
                                         },
@@ -315,31 +259,7 @@ export class StockList {
                                                 vm.type = 'editSpec';
                                             }
                                         },
-                                        filter: gvc.bindView(() => {
-                                            return {
-                                                bind: vm.filterId,
-                                                view: () => {
-                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                                    option.select_data.splice(0, option.select_data.length);
-                                                    vm.dataList
-                                                        .filter((dd) => dd.checked)
-                                                        .map((dd) => {
-                                                        option.select_data.push(dd);
-                                                    });
-                                                    return BgWidget.selNavbar({
-                                                        count: selCount,
-                                                        buttonList: [],
-                                                    });
-                                                },
-                                                divCreate: () => {
-                                                    const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 ${display}`,
-                                                        style: `min-height:45px;`,
-                                                    };
-                                                },
-                                            };
-                                        }),
+                                        filter: [],
                                     });
                                 },
                             }),
@@ -367,11 +287,11 @@ export class StockList {
                                             }).then((re) => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (re.result) {
-                                                    dialog.successMessage({ text: `上傳成功` });
+                                                    dialog.successMessage({ text: '更新成功' });
                                                     gvc.notifyDataChange(vm.tableId);
                                                 }
                                                 else {
-                                                    dialog.errorMessage({ text: `上傳失敗` });
+                                                    dialog.errorMessage({ text: '更新失敗' });
                                                 }
                                             });
                                         }))}
@@ -414,12 +334,12 @@ export class StockList {
                         });
                     }
                     catch (e) {
-                        console.log(`editSpec===>`, e);
-                        return ``;
+                        console.error('editProductSpec error', e);
+                        return '';
                     }
                 }
                 else {
-                    return ``;
+                    return '';
                 }
             },
         });

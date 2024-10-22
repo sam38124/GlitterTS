@@ -4,13 +4,13 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Tool } from '../modules/tool.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 
 const html = String.raw;
 
 export class AutoReply {
     public static maxSize = 160;
-    public static longSMS=153;
+    public static longSMS = 153;
     public static ticket = 15;
 
     public static main(gvc: GVC, widget: any) {
@@ -27,10 +27,10 @@ export class AutoReply {
             dataList: undefined,
             tag: '',
             query: '',
-            userData:{
-                userName : "",
-                password : ""
-            }
+            userData: {
+                userName: '',
+                password: '',
+            },
         };
         const glitter = gvc.glitter;
         const id = glitter.getUUID();
@@ -39,7 +39,6 @@ export class AutoReply {
                 bind: id,
                 view: () => {
                     if (vm.type === 'replace') {
-
                         return AutoReply.autoSendEmail(
                             gvc,
                             vm.tag,
@@ -125,7 +124,7 @@ export class AutoReply {
                             </div>
                             ${BgWidget.container(
                                 BgWidget.mainCard(
-                                    BgWidget.tableV2({
+                                    BgWidget.tableV3({
                                         gvc: gvc,
                                         getData: async (vmk) => {
                                             const appData = await ApiUser.getPublicConfig('store-information', 'manager');
@@ -138,7 +137,7 @@ export class AutoReply {
                                                 'auto-sns-order-create',
                                                 'sns-proof-purchase',
                                                 'auto-sns-birthday',
-                                                    'auto-phone-verify'
+                                                'auto-phone-verify',
                                             ];
                                             let index = 0;
                                             for (const b of vm.dataList) {
@@ -149,18 +148,18 @@ export class AutoReply {
                                                 );
                                                 index++;
                                             }
-                                            vmi.data = getDatalist();
+                                            vmi.pageSize = 1;
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
                                             vmi.loading = false;
-                                            setTimeout(() => {
-                                                vmi.callback();
-                                            });
+                                            vmi.callback();
                                         },
                                         rowClick: (data, index) => {
                                             vm.tag = vm.dataList[index].tag;
                                             vm.type = 'replace';
                                             gvc.notifyDataChange(id);
                                         },
-                                        filter: '',
+                                        filter: [],
                                     })
                                 )
                             )}
@@ -234,7 +233,6 @@ export class AutoReply {
                         return {
                             bind: id,
                             view: () => {
-                                
                                 return [
                                     EditorElem.editeInput({
                                         gvc: gvc,
@@ -246,20 +244,20 @@ export class AutoReply {
                                         placeHolder: '請輸入寄件者名稱',
                                     }),
                                     html`
-                                        <div class="d-flex mt-3 mb-2" >
+                                        <div class="d-flex mt-3 mb-2">
                                             <div class="d-flex" style="color: #393939;font-size: 15px;">簡訊內容</div>
-                                            <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount*this.ticket}點</div>
+                                            <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount * this.ticket}點</div>
                                         </div>
                                     `,
                                     EditorElem.editeText({
                                         gvc: gvc,
-                                        title:"",
-                                        default:vm.data.content || "",
-                                        placeHolder:"",
-                                        callback:(text)=>{
+                                        title: '',
+                                        default: vm.data.content || '',
+                                        placeHolder: '',
+                                        callback: (text) => {
                                             vm.data.content = text;
                                             let totalSize = 0;
-                                            
+
                                             for (let i = 0; i < text.length; i++) {
                                                 const char = text[i];
                                                 // 判斷是否為中文或全形字符（Unicode範圍包含中文）
@@ -269,16 +267,15 @@ export class AutoReply {
                                                     totalSize += 1; // 英文或半形字符佔1個單位
                                                 }
                                             }
-                                            
-                                            if (totalSize < this.maxSize){
+
+                                            if (totalSize < this.maxSize) {
                                                 pointCount = 1;
-                                            }else {
-                                                pointCount =  Math.ceil(totalSize / this.longSMS);
+                                            } else {
+                                                pointCount = Math.ceil(totalSize / this.longSMS);
                                             }
-                                            gvc.notifyDataChange(id)
-                                            
-                                        }
-                                    })
+                                            gvc.notifyDataChange(id);
+                                        },
+                                    }),
                                 ].join('');
                             },
                         };
@@ -295,9 +292,9 @@ export class AutoReply {
                         gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.checkYesOrNot({
-                                callback : (select)=>{
-                                    if (select){
-                                        dialog.dataLoading({visible:true,text:'儲存中'})
+                                callback: (select) => {
+                                    if (select) {
+                                        dialog.dataLoading({ visible: true, text: '儲存中' });
                                         vm.data.updated_time = new Date();
                                         ApiUser.setPublicConfig({
                                             key: tag,
@@ -305,15 +302,14 @@ export class AutoReply {
                                             user_id: 'manager',
                                         }).then(() => {
                                             setTimeout(() => {
-                                                dialog.dataLoading({visible:false})
-                                                dialog.successMessage({text:'儲存成功'})
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.successMessage({ text: '儲存成功' });
                                             }, 1000);
                                         });
                                     }
                                 },
-                                text:`確認無誤後將儲存`
-                            })
-                            
+                                text: `確認無誤後將儲存`,
+                            });
                         })
                     )}
                 </div>`,
@@ -410,7 +406,6 @@ export class AutoReply {
             return dd.tag === tag;
         })!;
         if (keyData.response.value) {
-
             b.title = keyData.response.value.title || b.title;
             b.toggle = keyData.response.value.toggle ?? true;
             b.content = keyData.response.value.content || b.content;
@@ -419,7 +414,6 @@ export class AutoReply {
         }
         return b;
     }
-
 }
 
 (window as any).glitter.setModule(import.meta.url, AutoReply);

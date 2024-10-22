@@ -20,39 +20,6 @@ export class FormSetting {
             return vm.dataList.map((dd) => {
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
-                    {
                         key: '表單標題',
                         value: html `<span class="fs-7">${dd.content.form_title}</span>`,
                     },
@@ -88,88 +55,71 @@ export class FormSetting {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                            gvc: gvc,
-                            getData: (vd) => {
-                                vmi = vd;
-                                ApiPost.getManagerPost({
-                                    page: vmi.page - 1,
-                                    limit: 20,
-                                    type: 'form_format_list',
-                                    search: vm.query ? [`form_title-|>${vm.query}`] : [],
-                                }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            },
-                            rowClick: (data, index) => {
-                                vm.data = vm.dataList[index];
-                                vm.type = 'replace';
-                            },
-                            filter: html `
-                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                ${BgWidget.container(BgWidget.mainCard([
+                            BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋所有表單')}
-                                                ${gvc.bindView(() => {
-                                return {
-                                    bind: filterID,
-                                    view: () => {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiPost.delete({
-                                                                    id: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.id;
-                                                                    })
-                                                                        .join(`,`),
-                                                                }).then((res) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        vm.dataList = undefined;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                    }
-                                                                });
+                            }), vm.query || '', '搜尋所有表單'),
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vd) => {
+                                    vmi = vd;
+                                    const limit = 20;
+                                    ApiPost.getManagerPost({
+                                        page: vmi.page - 1,
+                                        limit: limit,
+                                        type: 'form_format_list',
+                                        search: vm.query ? [`form_title-|>${vm.query}`] : [],
+                                    }).then((data) => {
+                                        vm.dataList = data.response.data;
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.data = vm.dataList[index];
+                                    vm.type = 'replace';
+                                },
+                                filter: [
+                                    {
+                                        name: '批量移除',
+                                        event: () => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.checkYesOrNot({
+                                                text: '是否確認刪除所選項目？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiPost.delete({
+                                                            id: vm.dataList
+                                                                .filter((dd) => {
+                                                                return dd.checked;
+                                                            })
+                                                                .map((dd) => {
+                                                                return dd.id;
+                                                            })
+                                                                .join(`,`),
+                                                        }).then((res) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (res.result) {
+                                                                vm.dataList = undefined;
+                                                                gvc.notifyDataChange(id);
                                                             }
-                                                        },
-                                                    });
-                                                })),
-                                            ],
-                                        });
+                                                            else {
+                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                            }
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        },
                                     },
-                                    divCreate: () => {
-                                        return {
-                                            class: `mt-2 d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: ``,
-                                        };
-                                    },
-                                };
-                            })}
-                                            `,
-                        })))}
+                                ],
+                            }),
+                        ].join('')))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
@@ -201,39 +151,6 @@ export class FormSetting {
             return vm.dataList.map((dd) => {
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
-                    {
                         key: '表單標題',
                         value: `<span class="fs-7">${dd.content.form_title}</span>`,
                     },
@@ -256,88 +173,73 @@ export class FormSetting {
                                     ${BgWidget.title('表單收集')}
                                     <div class="flex-fill"></div>
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                            gvc: gvc,
-                            getData: (vd) => {
-                                vmi = vd;
-                                ApiPost.getV2({
-                                    page: vmi.page - 1,
-                                    limit: 20,
-                                    type: 'user',
-                                    search: vm.query ? `form_title-|>${vm.query},type->post-form-config` : `type->post-form-config`,
-                                }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            },
-                            rowClick: (data, index) => {
-                                vm.data = vm.dataList[index];
-                                vm.type = 'replace';
-                            },
-                            filter: html `
+                                ${BgWidget.container(BgWidget.mainCard([
+                            html `<div class="mb-3 px-2">
                                                 ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有表單')}
-                                                ${gvc.bindView(() => {
-                                return {
-                                    bind: filterID,
-                                    view: () => {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiPost.deleteUserPost({
-                                                                    id: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.id;
-                                                                    })
-                                                                        .join(`,`),
-                                                                }).then((res) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        vm.dataList = undefined;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                    }
-                                                                });
+                                            </div>`,
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vd) => {
+                                    vmi = vd;
+                                    const limit = 20;
+                                    ApiPost.getV2({
+                                        page: vmi.page - 1,
+                                        limit: limit,
+                                        type: 'user',
+                                        search: vm.query ? `form_title-|>${vm.query},type->post-form-config` : `type->post-form-config`,
+                                    }).then((data) => {
+                                        vm.dataList = data.response.data;
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.data = vm.dataList[index];
+                                    vm.type = 'replace';
+                                },
+                                filter: [
+                                    {
+                                        name: '批量移除',
+                                        event: () => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.checkYesOrNot({
+                                                text: '是否確認刪除所選項目？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiPost.deleteUserPost({
+                                                            id: vm.dataList
+                                                                .filter((dd) => {
+                                                                return dd.checked;
+                                                            })
+                                                                .map((dd) => {
+                                                                return dd.id;
+                                                            })
+                                                                .join(`,`),
+                                                        }).then((res) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (res.result) {
+                                                                vm.dataList = undefined;
+                                                                gvc.notifyDataChange(id);
                                                             }
-                                                        },
-                                                    });
-                                                })),
-                                            ],
-                                        });
+                                                            else {
+                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                            }
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        },
                                     },
-                                    divCreate: () => {
-                                        return {
-                                            class: `d-flex align-items-center p-2 mt-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: ``,
-                                        };
-                                    },
-                                };
-                            })}
-                                            `,
-                        })))}
+                                ],
+                            }),
+                        ].join('')))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
@@ -18,7 +17,6 @@ import { UserList } from './user-list.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc) {
-        const filterID = gvc.glitter.getUUID();
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -35,55 +33,6 @@ export class ShoppingOrderManager {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.returnOrderFilterFrame);
         vm.filter = ListComp.getFilterObject();
         gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => { }, () => { });
-        function importDataTo(event) {
-            const input = event.target;
-            const XLSX = window.XLSX;
-            if (!input.files || input.files.length === 0) {
-                console.log('No file selected');
-                return;
-            }
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (!e.target) {
-                    console.log('Failed to read file');
-                    return;
-                }
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        function exportDataTo(firstRow, data) {
-            if (window.XLSX) {
-                let XLSX = window.XLSX;
-                const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
-                XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-                function s2ab(s) {
-                    const buf = new ArrayBuffer(s.length);
-                    const view = new Uint8Array(buf);
-                    for (let i = 0; i < s.length; i++) {
-                        view[i] = s.charCodeAt(i) & 0xff;
-                    }
-                    return buf;
-                }
-                const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.download = 'data.xlsx';
-                link.click();
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                }, 100);
-            }
-        }
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
@@ -99,7 +48,6 @@ export class ShoppingOrderManager {
                             vm.type = 'addSearch';
                         }))}
                                 </div>
-
                                 ${BgWidget.tab([
                             {
                                 title: '一般列表',
@@ -109,111 +57,8 @@ export class ShoppingOrderManager {
                             vm.filter_type = text;
                             gvc.notifyDataChange(vm.id);
                         })}
-                                <!--                            vm.query || vm.queryType-->
-                                ${BgWidget.table({
-                            gvc: gvc,
-                            getData: (vmi) => {
-                                var _a, _b;
-                                ApiShop.getSearchReturnOrder({
-                                    page: vmi.page - 1,
-                                    limit: 20,
-                                    search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
-                                    searchType: vm.queryType || 'name',
-                                    orderString: (_b = vm.orderString) !== null && _b !== void 0 ? _b : '',
-                                    filter: vm.filter,
-                                    archived: vm.filter_type === 'normal' ? `false` : `true`,
-                                }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
-                                    function getDatalist() {
-                                        return data.response.data.map((dd) => {
-                                            return [
-                                                {
-                                                    key: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: !data.response.data.find((dd) => {
-                                                            return !dd.checked;
-                                                        }),
-                                                        callback: (result) => {
-                                                            data.response.data.map((dd) => {
-                                                                dd.checked = result;
-                                                            });
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                    }),
-                                                    value: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: dd.checked,
-                                                        callback: (result) => {
-                                                            dd.checked = result;
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                        style: 'height:40px;',
-                                                    }),
-                                                },
-                                                {
-                                                    key: '退貨單編號',
-                                                    value: dd.return_order_id,
-                                                },
-                                                {
-                                                    key: '訂單編號',
-                                                    value: dd.order_id,
-                                                },
-                                                {
-                                                    key: '申請日期',
-                                                    value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm:ss'),
-                                                },
-                                                {
-                                                    key: '申請人',
-                                                    value: dd.orderData.user_info ? dd.orderData.user_info.name : `匿名`,
-                                                },
-                                                {
-                                                    key: '退貨狀態',
-                                                    value: (() => {
-                                                        var _a;
-                                                        switch ((_a = dd.orderData.returnProgress) !== null && _a !== void 0 ? _a : '1') {
-                                                            case '0':
-                                                                return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
-                                                            case '-1':
-                                                                return `<div class="badge" style="font-size: 14px;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;color:#393939;">已退貨</div>`;
-                                                            default:
-                                                                return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
-                                                        }
-                                                    })(),
-                                                },
-                                                {
-                                                    key: '退款狀態',
-                                                    value: (() => {
-                                                        var _a;
-                                                        switch ((_a = dd.status) !== null && _a !== void 0 ? _a : 0) {
-                                                            case 1:
-                                                                return `<div class="badge " style="font-size: 14px;color:#393939;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;">已退款</div>`;
-                                                            default:
-                                                                return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退款中</div>`;
-                                                        }
-                                                    })(),
-                                                },
-                                            ].map((dd) => {
-                                                dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                return dd;
-                                            });
-                                        });
-                                    }
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            },
-                            rowClick: (data, index) => {
-                                vm.data = vm.dataList[index];
-                                vm.type = 'replace';
-                            },
-                            filter: html `
-                                        <div>
+                                ${BgWidget.mainCard([
+                            html `<div>
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                 ${BgWidget.selectFilter({
                                 gvc,
@@ -243,93 +88,147 @@ export class ShoppingOrderManager {
                             })}
                                             </div>
                                             <div>${ListComp.getFilterTags(FilterOptions.returnOrderFunnel)}</div>
-                                        </div>
-                                        ${gvc.bindView(() => {
-                                return {
-                                    bind: vm.filterId,
-                                    view: () => {
-                                        return [
-                                            html `<span class="fs-7 fw-bold">操作選項</span>
-                                                            <button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height: 30px; border: none;"
-                                                                onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: `是否確認${vm.filter_type === 'normal' ? `封存` : `解除封存`}所選項目?`,
-                                                    callback: (response) => __awaiter(this, void 0, void 0, function* () {
-                                                        if (response) {
-                                                            dialog.dataLoading({ visible: true });
-                                                            const check = vm.dataList.filter((dd) => {
-                                                                return dd.checked;
-                                                            });
-                                                            for (const b of check) {
-                                                                b.orderData.archived = vm.filter_type === 'normal' ? `true` : `false`;
-                                                                yield ApiShop.putReturnOrder({
-                                                                    id: `${b.id}`,
-                                                                    data: b,
-                                                                });
+                                        </div>`,
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    var _a, _b;
+                                    const limit = 20;
+                                    ApiShop.getSearchReturnOrder({
+                                        page: vmi.page - 1,
+                                        limit: limit,
+                                        search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
+                                        searchType: vm.queryType || 'name',
+                                        orderString: (_b = vm.orderString) !== null && _b !== void 0 ? _b : '',
+                                        filter: vm.filter,
+                                        archived: vm.filter_type === 'normal' ? `false` : `true`,
+                                    }).then((data) => {
+                                        function getDatalist() {
+                                            return data.response.data.map((dd) => {
+                                                return [
+                                                    {
+                                                        key: '退貨單編號',
+                                                        value: dd.return_order_id,
+                                                    },
+                                                    {
+                                                        key: '訂單編號',
+                                                        value: dd.order_id,
+                                                    },
+                                                    {
+                                                        key: '申請日期',
+                                                        value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm:ss'),
+                                                    },
+                                                    {
+                                                        key: '申請人',
+                                                        value: dd.orderData.user_info ? dd.orderData.user_info.name : `匿名`,
+                                                    },
+                                                    {
+                                                        key: '退貨狀態',
+                                                        value: (() => {
+                                                            var _a;
+                                                            switch ((_a = dd.orderData.returnProgress) !== null && _a !== void 0 ? _a : '1') {
+                                                                case '0':
+                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
+                                                                case '-1':
+                                                                    return `<div class="badge" style="font-size: 14px;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;color:#393939;">已退貨</div>`;
+                                                                default:
+                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
                                                             }
-                                                            setTimeout(() => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                gvc.notifyDataChange(vm.id);
-                                                            }, 100);
-                                                        }
-                                                    }),
-                                                });
-                                            })}"
-                                                            >
-                                                                ${vm.filter_type === 'normal' ? ` 批量封存` : `解除封存`}
-                                                            </button>
-                                                            <button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height: 30px; border: none;"
-                                                                onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: `是否確認${vm.filter_type === 'void' ? `解除作廢` : `作廢`}所選項目?`,
-                                                    callback: (response) => __awaiter(this, void 0, void 0, function* () {
-                                                        if (response) {
-                                                            dialog.dataLoading({ visible: true });
-                                                            const check = vm.dataList.filter((dd) => {
-                                                                return dd.checked;
-                                                            });
-                                                            for (const b of check) {
-                                                                b.orderData.void = vm.filter_type === 'void' ? `false` : `true`;
-                                                                yield ApiShop.putReturnOrder({
-                                                                    id: `${b.id}`,
-                                                                    data: b,
-                                                                });
+                                                        })(),
+                                                    },
+                                                    {
+                                                        key: '退款狀態',
+                                                        value: (() => {
+                                                            var _a;
+                                                            switch ((_a = dd.status) !== null && _a !== void 0 ? _a : 0) {
+                                                                case 1:
+                                                                    return `<div class="badge " style="font-size: 14px;color:#393939;border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;">已退款</div>`;
+                                                                default:
+                                                                    return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退款中</div>`;
                                                             }
-                                                            setTimeout(() => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                gvc.notifyDataChange(vm.id);
-                                                            }, 100);
-                                                        }
-                                                    }),
+                                                        })(),
+                                                    },
+                                                ].map((dd) => {
+                                                    dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                    return dd;
                                                 });
-                                            })}"
-                                                            >
-                                                                ${vm.filter_type === 'void' ? ` 批量作廢` : `解除作廢`}
-                                                            </button>`,
-                                        ].join(``);
+                                            });
+                                        }
+                                        vm.dataList = data.response.data;
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.data = vm.dataList[index];
+                                    vm.type = 'replace';
+                                },
+                                filter: [
+                                    {
+                                        name: vm.filter_type === 'normal' ? `批量封存` : `解除封存`,
+                                        option: true,
+                                        event: () => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.checkYesOrNot({
+                                                text: `是否確認${vm.filter_type === 'normal' ? `封存` : `解除封存`}所選項目?`,
+                                                callback: (response) => __awaiter(this, void 0, void 0, function* () {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        const check = vm.dataList.filter((dd) => {
+                                                            return dd.checked;
+                                                        });
+                                                        for (const b of check) {
+                                                            b.orderData.archived = vm.filter_type === 'normal' ? `true` : `false`;
+                                                            yield ApiShop.putReturnOrder({
+                                                                id: `${b.id}`,
+                                                                data: b,
+                                                            });
+                                                        }
+                                                        setTimeout(() => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            gvc.notifyDataChange(vm.id);
+                                                        }, 100);
+                                                    }
+                                                }),
+                                            });
+                                        },
                                     },
-                                    divCreate: () => {
-                                        return {
-                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: document.body.clientWidth > 768 ? 'height: 40px; margin-top: 10px;' : '',
-                                        };
+                                    {
+                                        name: vm.filter_type === 'void' ? `批量作廢` : `解除作廢`,
+                                        option: true,
+                                        event: () => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.checkYesOrNot({
+                                                text: `是否確認${vm.filter_type === 'void' ? `解除作廢` : `作廢`}所選項目?`,
+                                                callback: (response) => __awaiter(this, void 0, void 0, function* () {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        const check = vm.dataList.filter((dd) => {
+                                                            return dd.checked;
+                                                        });
+                                                        for (const b of check) {
+                                                            b.orderData.void = vm.filter_type === 'void' ? `false` : `true`;
+                                                            yield ApiShop.putReturnOrder({
+                                                                id: `${b.id}`,
+                                                                data: b,
+                                                            });
+                                                        }
+                                                        setTimeout(() => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            gvc.notifyDataChange(vm.id);
+                                                        }, 100);
+                                                    }
+                                                }),
+                                            });
+                                        },
                                     },
-                                };
-                            })}
-                                    `,
-                        })}
-                            `, 1200);
+                                ],
+                            }),
+                        ].join(''))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return this.replaceOrder(gvc, vm, id);
@@ -338,7 +237,7 @@ export class ShoppingOrderManager {
                         return this.searchOrder(gvc, vm);
                     }
                     else {
-                        return ``;
+                        return '';
                     }
                 },
             };
@@ -1048,10 +947,7 @@ export class ShoppingOrderManager {
                                         </div>
                                     `, 1200, `position: relative;`)}
                                 ${BgWidget.mbContainer(240)}
-                                <div
-                                    class="testLine d-flex align-items-center justify-content-end"
-                                    style="gap:14px;max-height:48px; position:fixed;bottom:0;right:0;width: 100%;height:50px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);padding: 14px 16px 14px 0;"
-                                >
+                                <div class="update-bar-container">
                                     ${BgWidget.danger(gvc.event(() => {
                         vm.type = 'list';
                     }), '作廢')}
@@ -1059,8 +955,6 @@ export class ShoppingOrderManager {
                         vm.type = 'list';
                     }))}
                                     ${BgWidget.save(gvc.event(() => {
-                        const now = new Date();
-                        console.log(orderData.orderData);
                         let passData = {
                             id: orderData.id,
                             status: orderData.status,
@@ -1080,10 +974,10 @@ export class ShoppingOrderManager {
                     }), '送出')}
                                 </div>
                             </div>
-                        `, 1200);
+                        `, BgWidget.getContainerWidth());
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                     return ``;
                 }
             },
@@ -1803,22 +1697,11 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                                         </div>
                                     `)}
                                     ${BgWidget.mbContainer(240)}
-                                    <div
-                                        class="testLine d-flex align-items-center justify-content-end"
-                                        style="gap:14px;max-height:48px; position:fixed;bottom:0;right:0;width: 100%;height:50px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);padding: 14px 16px 14px 0;"
-                                    >
-                                        <button
-                                            style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 16px;font-weight: 700;color:#393939;"
-                                            onclick="${gvc.event(() => {
+                                    <div class="update-bar-container">
+                                        ${BgWidget.cancel(gvc.event(() => {
                         vm.type = 'list';
-                    })}"
-                                        >
-                                            取消
-                                        </button>
-                                        <button
-                                            class="btn bt_c39"
-                                            style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
-                                            onclick="${gvc.event(() => {
+                    }))}
+                                        ${BgWidget.save(gvc.event(() => {
                         viewModel.searchData.orderData.returnProgress = '1';
                         viewModel.searchData.orderData.lineItems = checkList;
                         function checkPass() {
@@ -1835,10 +1718,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
                                 vm.type = 'list';
                             });
                         }
-                    })}"
-                                        >
-                                            儲存
-                                        </button>
+                    }))}
                                     </div>
                                 </div>
                             `;
@@ -1847,7 +1727,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
             },
             divCreate: {},
         })}
-            `, 1200);
+            `, BgWidget.getContainerWidth());
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingOrderManager);

@@ -1,5 +1,4 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
@@ -85,33 +84,6 @@ export class PermissionSetting {
             return vm.dataList.map((dd) => {
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
-                    {
                         key: '員工名稱',
                         value: `<span class="fs-7">${dd.config.name}</span>`,
                     },
@@ -132,10 +104,12 @@ export class PermissionSetting {
                             return [];
                         }
                         else {
-                            return [{
+                            return [
+                                {
                                     key: '最後登入',
                                     value: dd.online_time ? html `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>` : '...',
-                                },];
+                                },
+                            ];
                         }
                     })(),
                     {
@@ -178,10 +152,12 @@ export class PermissionSetting {
                             return [];
                         }
                         else {
-                            return [{
+                            return [
+                                {
                                     key: '邀請狀態',
                                     value: dd.invited ? BgWidget.infoInsignia('已接受') : BgWidget.notifyInsignia('邀請中'),
-                                }];
+                                },
+                            ];
                         }
                     })(),
                 ];
@@ -200,7 +176,7 @@ export class PermissionSetting {
                         vm.type = 'add';
                     }))}
                             </div>
-                 
+
                             ${BgWidget.mainCard([
                         (() => {
                             const id = gvc.glitter.getUUID();
@@ -260,7 +236,7 @@ export class PermissionSetting {
                         gvc.bindView({
                             bind: vm.tableId,
                             view: () => {
-                                return BgWidget.tableV2({
+                                return BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vd) => {
                                         vmi = vd;
@@ -273,9 +249,11 @@ export class PermissionSetting {
                                             orderBy: vm.orderString,
                                             filter: vm.filter,
                                         }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
                                             vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
+                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
+                                            vmi.loading = false;
                                             vmi.callback();
                                         });
                                     },
@@ -283,68 +261,53 @@ export class PermissionSetting {
                                         vm.data = vm.dataList[index];
                                         vm.type = 'replace';
                                     },
-                                    filter: gvc.bindView(() => {
-                                        return {
-                                            bind: vm.filterId,
-                                            view: () => {
+                                    filter: [
+                                        {
+                                            name: '批量刪除',
+                                            event: () => {
                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                                return BgWidget.selNavbar({
-                                                    count: selCount,
-                                                    buttonList: [
-                                                        BgWidget.selEventButton('批量刪除', gvc.event(() => {
-                                                            dialog.warningMessage({
-                                                                text: '您即將批量刪除所選員工的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                                                callback: (response) => {
-                                                                    if (response) {
-                                                                        let n = 0;
-                                                                        const emails = vm.dataList
-                                                                            .filter((dd) => {
-                                                                            return dd.checked;
-                                                                        })
-                                                                            .map((dd) => {
-                                                                            return dd.email || dd.config.verifyEmail;
-                                                                        });
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        new Promise((resolve, reject) => {
-                                                                            for (const email of emails) {
-                                                                                ApiUser.deletePermission(email).then((res) => {
-                                                                                    if (res.result && res.response.result) {
-                                                                                        if (++n === emails.length) {
-                                                                                            resolve();
-                                                                                        }
-                                                                                    }
-                                                                                    else {
-                                                                                        dialog.dataLoading({ visible: false });
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                        reject();
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        }).then(() => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            dialog.successMessage({ text: '刪除成功' });
-                                                                            setTimeout(() => {
-                                                                                vm.dataList = undefined;
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            }, 400);
-                                                                        });
-                                                                    }
-                                                                },
+                                                dialog.warningMessage({
+                                                    text: '您即將批量刪除所選員工的所有資料<br />此操作無法復原。確定要刪除嗎？',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            let n = 0;
+                                                            const emails = vm.dataList
+                                                                .filter((dd) => {
+                                                                return dd.checked;
+                                                            })
+                                                                .map((dd) => {
+                                                                return dd.email || dd.config.verifyEmail;
                                                             });
-                                                        })),
-                                                    ],
+                                                            dialog.dataLoading({ visible: true });
+                                                            new Promise((resolve, reject) => {
+                                                                for (const email of emails) {
+                                                                    ApiUser.deletePermission(email).then((res) => {
+                                                                        if (res.result && res.response.result) {
+                                                                            if (++n === emails.length) {
+                                                                                resolve();
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                            reject();
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }).then(() => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                dialog.successMessage({ text: '刪除成功' });
+                                                                setTimeout(() => {
+                                                                    vm.dataList = undefined;
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                }, 300);
+                                                            });
+                                                        }
+                                                    },
                                                 });
                                             },
-                                            divCreate: () => {
-                                                const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
-                                                return {
-                                                    class: `d-flex align-items-center p-2 ${display}`,
-                                                    style: ``,
-                                                };
-                                            },
-                                        };
-                                    }),
+                                        },
+                                    ],
                                 });
                             },
                         }),
@@ -355,14 +318,14 @@ export class PermissionSetting {
                         return this.editorDetailPos({
                             vm: vm,
                             gvc: gvc,
-                            type: 'replace'
+                            type: 'replace',
                         });
                     }
                     else {
                         return this.editorDetail({
                             vm: vm,
                             gvc: gvc,
-                            type: 'replace'
+                            type: 'replace',
                         });
                     }
                 }
@@ -370,14 +333,14 @@ export class PermissionSetting {
                     return this.editorDetailPos({
                         vm: vm,
                         gvc: gvc,
-                        type: 'add'
+                        type: 'add',
                     });
                 }
                 else {
                     return this.editorDetail({
                         vm: vm,
                         gvc: gvc,
-                        type: 'add'
+                        type: 'add',
                     });
                 }
             },
@@ -470,9 +433,11 @@ export class PermissionSetting {
                                     `),
                             BgWidget.mainCard(html ` <div class="tx_700">權限指派</div>
                                     ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`),
-                        ].filter((dd) => {
+                        ]
+                            .filter((dd) => {
                             return dd;
-                        }).join(BgWidget.mbContainer(24)),
+                        })
+                            .join(BgWidget.mbContainer(24)),
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${obj.type === 'replace'
@@ -634,7 +599,7 @@ export class PermissionSetting {
                                     default: vm.data.config.member_id,
                                     callback: (text) => {
                                         vm.data.config.member_id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -645,14 +610,14 @@ export class PermissionSetting {
                                     callback: (text) => {
                                         vm.data.config.pin = text;
                                     },
-                                    pattern: "0-9",
+                                    pattern: '0-9',
                                     oninput: (text) => {
                                         if (text.length >= 6) {
                                             text.substring(0, 6);
                                             vm.data.config.pin = text;
                                             gvc.notifyDataChange(viewID);
                                         }
-                                    }
+                                    },
                                 }),
                             ]
                                 .filter((str) => {
@@ -663,10 +628,12 @@ export class PermissionSetting {
                             })
                                 .join('')}
                                         </div>
-                                    `)
-                        ].filter((dd) => {
+                                    `),
+                        ]
+                            .filter((dd) => {
                             return dd;
-                        }).join(BgWidget.mbContainer(24)),
+                        })
+                            .join(BgWidget.mbContainer(24)),
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${obj.type === 'replace'
@@ -719,7 +686,7 @@ export class PermissionSetting {
                                 dialog.infoMessage({ text: 'PIN碼長度需等於6' });
                                 return;
                             }
-                            else if (!(/^[0-9]+$/.test(vm.data.config.pin))) {
+                            else if (!/^[0-9]+$/.test(vm.data.config.pin)) {
                                 dialog.infoMessage({ text: 'PIN碼只能包含數字' });
                                 return;
                             }
@@ -732,7 +699,7 @@ export class PermissionSetting {
                             ApiUser.setPermission({
                                 email: obj.type === 'add' ? vm.data.email : original.email,
                                 config: vm.data.config,
-                                status: vm.data.status
+                                status: vm.data.status,
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
                                 if (res.result) {
