@@ -13,6 +13,9 @@ const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
 const user_1 = require("./user");
+const logger_1 = __importDefault(require("../../modules/logger"));
+const mime_1 = __importDefault(require("mime"));
+const AWSLib_1 = __importDefault(require("../../modules/AWSLib"));
 class FbMessage {
     constructor(app, token) {
         this.app = app;
@@ -248,6 +251,25 @@ class FbMessage {
         }
     }
     async listenMessage(body) {
+        async function downloadImageFromFacebook(imageUrl, accessToken) {
+            try {
+                const response = await axios_1.default.get(imageUrl, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    responseType: 'arraybuffer',
+                });
+                return Buffer.from(response.data);
+            }
+            catch (error) {
+                console.error('下載圖片時出錯:', error);
+                throw error;
+            }
+        }
+        function getFileExtension(url) {
+            const matches = url.match(/\.(jpg|jpeg|png|gif|bmp|webp)(?=[\?&]|$)/i);
+            return matches ? matches[1].toLowerCase() : null;
+        }
         let that = this;
         const post = new user_1.User(this.app, this.token);
         let tokenData = await post.getConfig({
@@ -298,6 +320,68 @@ class FbMessage {
                             };
                             await new chat_1.Chat(this.app).addMessage(chatData);
                         }
+                        if (event.message && event.message.attachments) {
+                            let accessToken = await post.getConfig({
+                                key: "login_fb_setting",
+                                user_id: "manager",
+                            });
+                            let imageUrl = 'https://your-image-url-from-facebook';
+                            const attachments = event.message.attachments;
+                            attachments.forEach((attachment) => {
+                                if (attachment.type === 'image' && attachment.payload) {
+                                    imageUrl = attachment.payload.url;
+                                    downloadImageFromFacebook(imageUrl, accessToken)
+                                        .then((buffer) => {
+                                        const fileExtension = getFileExtension(imageUrl);
+                                        this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`, buffer)
+                                            .then(async (data) => {
+                                            console.log("圖片上傳成功 -- ", data);
+                                            const senderId = "fb_" + event.sender.id;
+                                            const messageText = event.message.text;
+                                            let chatData = {
+                                                chat_id: [senderId, "manager"].sort().join(''),
+                                                type: "user",
+                                                user_id: senderId,
+                                                info: {},
+                                                participant: [senderId, "manager"]
+                                            };
+                                            await this.getFBInf({ fbID: event.sender.id }, (data) => {
+                                                chatData.info = {
+                                                    fb: {
+                                                        name: data.last_name + data.first_name,
+                                                        head: data.profile_pic
+                                                    }
+                                                };
+                                            });
+                                            chatData.info = JSON.stringify(chatData.info);
+                                            const result = await new chat_1.Chat(this.app).addChatRoom(chatData);
+                                            if (!result.create) {
+                                                await database_js_1.default.query(`
+                                                                UPDATE \`${this.app}\`.\`t_chat_list\`
+                                                                SET ?
+                                                                WHERE ?
+                                                            `, [
+                                                    {
+                                                        info: chatData.info,
+                                                    },
+                                                    {
+                                                        chat_id: chatData.chat_id,
+                                                    }
+                                                ]);
+                                            }
+                                            chatData.message = {
+                                                "image": imageUrl
+                                            };
+                                            await new chat_1.Chat(this.app).addMessage(chatData);
+                                        });
+                                    })
+                                        .catch((error) => {
+                                        console.error('下載失敗:', error);
+                                    });
+                                    console.log('用戶發送的圖片 URL:', imageUrl);
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -318,6 +402,50 @@ class FbMessage {
                 }));
             });
         }
+    }
+    async uploadFile(file_name, fileData) {
+        const TAG = `[AWS-S3][Upload]`;
+        const logger = new logger_1.default();
+        const s3bucketName = config_1.default.AWS_S3_NAME;
+        const s3path = file_name;
+        const fullUrl = config_1.default.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            ContentType: (() => {
+                if (config_1.default.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`;
+                }
+                else {
+                    return mime_1.default.getType(fullUrl.split('.').pop());
+                }
+            })()
+        };
+        return new Promise((resolve, reject) => {
+            AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {
+                if (err) {
+                    logger.error(TAG, String(err));
+                    console.log(err, err.stack);
+                    reject(false);
+                }
+                else {
+                    (0, axios_1.default)({
+                        method: 'PUT',
+                        url: url,
+                        data: fileData,
+                        headers: {
+                            "Content-Type": params.ContentType
+                        }
+                    }).then(() => {
+                        console.log(fullUrl);
+                        resolve(fullUrl);
+                    }).catch(() => {
+                        console.log(`convertError:${fullUrl}`);
+                    });
+                }
+            });
+        });
     }
     async getFBInf(obj, callback) {
         try {

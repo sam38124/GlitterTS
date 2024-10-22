@@ -13,6 +13,17 @@ export class ApiShop {
             },
         });
     }
+    static getFEGuideable() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config?key=FEguideable`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
     static setGuideable(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,

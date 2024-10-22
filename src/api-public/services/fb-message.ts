@@ -10,6 +10,9 @@ import {App} from "../../services/app.js";
 import Tool from "../../modules/tool.js";
 import {Chat} from "./chat";
 import {User} from "./user";
+import Logger from "../../modules/logger";
+import mime from "mime";
+import s3bucket from "../../modules/AWSLib";
 
 
 interface FbResponse {
@@ -337,6 +340,27 @@ export class FbMessage {
     }
 
     async listenMessage(body: any): Promise<{ result: boolean; message: string }> {
+        async function downloadImageFromFacebook(imageUrl: string, accessToken: string): Promise<Buffer> {
+            try {
+                const response = await axios.get(imageUrl, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    responseType: 'arraybuffer', // 下載二進制資料
+                });
+
+                return Buffer.from(response.data);
+            } catch (error) {
+                console.error('下載圖片時出錯:', error);
+                throw error;
+            }
+        }
+        function getFileExtension(url: string): string | null {
+            // 使用正規表達式匹配文件副檔名
+            const matches = url.match(/\.(jpg|jpeg|png|gif|bmp|webp)(?=[\?&]|$)/i);
+            return matches ? matches[1].toLowerCase() : null;
+        }
+
         let that = this;
         const post = new User(this.app, this.token);
         let tokenData = await post.getConfig({
@@ -348,6 +372,8 @@ export class FbMessage {
 
             if (body.object === 'page') {
                 for (const entry of body.entry) {
+                    // console.log("entry.messaging -- " , entry.messaging);
+                    // console.log("entry.messaging -- " , entry.messaging)
                     const messagingEvents = entry.messaging;
                     // 使用 for...of 來處理每個 messaging 事件
                     for (const event of messagingEvents) {
@@ -397,9 +423,86 @@ export class FbMessage {
                             };
                             await new Chat(this.app).addMessage(chatData);
                         }
+                        if (event.message && event.message.attachments) {
+                            let accessToken = await post.getConfig({
+                                key: "login_fb_setting",
+                                user_id: "manager",
+                            })
+                            // 檢查附件是否為圖片
+                            let imageUrl = 'https://your-image-url-from-facebook';
+
+
+                            const attachments = event.message.attachments;
+                            attachments.forEach((attachment: any) => {
+                                if (attachment.type === 'image' && attachment.payload) {
+                                    imageUrl = attachment.payload.url;
+
+                                    downloadImageFromFacebook(imageUrl, accessToken)
+                                        .then((buffer) => {
+                                            const fileExtension = getFileExtension(imageUrl);
+                                            this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)
+                                                .then(async (data) => {
+                                                    console.log("圖片上傳成功 -- ", data)
+                                                    const senderId = "fb_" + event.sender.id;
+                                                    const messageText = event.message.text;
+
+                                                    // 建立要傳遞的訊息資料
+                                                    let chatData: any = {
+                                                        chat_id: [senderId, "manager"].sort().join(''),
+                                                        type: "user",
+                                                        user_id: senderId,
+                                                        info: {},
+                                                        participant: [senderId, "manager"]
+                                                    }
+                                                    await this.getFBInf({fbID: event.sender.id}, (data) => {
+                                                        chatData.info = {
+                                                            fb: {
+                                                                name: data.last_name + data.first_name,
+                                                                head: data.profile_pic
+                                                            }
+                                                        }
+
+                                                    })
+                                                    chatData.info = JSON.stringify(chatData.info);
+
+                                                    const result = await new Chat(this.app).addChatRoom(chatData);
+                                                    if (!result.create) {
+                                                        await db.query(
+                                                            `
+                                                                UPDATE \`${this.app}\`.\`t_chat_list\`
+                                                                SET ?
+                                                                WHERE ?
+                                                            `,
+                                                            [
+                                                                {
+                                                                    info: chatData.info,
+                                                                },
+                                                                {
+                                                                    chat_id: chatData.chat_id,
+                                                                }
+                                                            ]
+                                                        );
+                                                    }
+                                                    chatData.message = {
+                                                        "image": imageUrl
+                                                    };
+                                                    await new Chat(this.app).addMessage(chatData);
+
+                                                });
+                                        })
+                                        .catch((error) => {
+                                            console.error('下載失敗:', error);
+                                        });
+
+                                    console.log('用戶發送的圖片 URL:', imageUrl);
+                                    // 這裡可以進行進一步的處理，比如下載圖片或儲存 URL
+                                }
+                            });
+
+
+                        }
                     }
                 }
-
             } else {
                 return { result: true, message: 'body error' };
             }
@@ -418,6 +521,52 @@ export class FbMessage {
                 }))
             })
         }
+    }
+
+    async uploadFile(file_name:string,fileData: Buffer) {
+        const TAG = `[AWS-S3][Upload]`
+        const logger = new Logger();
+        const s3bucketName = config.AWS_S3_NAME;
+        const s3path = file_name;
+        const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            //If you use other contentType will response 403 error
+            ContentType: (() => {
+                if (config.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`
+                } else {
+                    return mime.getType(<string>fullUrl.split('.').pop())
+                }
+            })()
+        };
+        return new Promise<string>((resolve, reject) => {
+            s3bucket.getSignedUrl('putObject', params, async (err: any, url: any) => {
+                if (err) {
+                    logger.error(TAG, String(err));
+                    // use console.log here because logger.info cannot log err.stack correctly
+                    console.log(err, err.stack);
+                    reject(false)
+                } else {
+                    axios({
+                        method: 'PUT',
+                        url: url,
+                        data: fileData,
+                        headers: {
+                            "Content-Type": params.ContentType
+                        }
+                    }).then(() => {
+                        console.log(fullUrl);
+                        resolve(fullUrl)
+                    }).catch(() => {
+                        console.log(`convertError:${fullUrl}`)
+                    });
+
+                }
+            })
+        });
     }
 
     async getFBInf(obj:{fbID: string  } , callback: (data:any)=>void) {

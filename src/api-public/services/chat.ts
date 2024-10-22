@@ -187,7 +187,6 @@ export class Chat {
             //檢查是不是要回傳給fb
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
                 const newChatId = room.chat_id.slice(3).split("-")[0];
-                console.log(room.message , newChatId)
                 await new FbMessage(this.app).sendMessage({
                     data: room.message,
                     fbID: newChatId

@@ -96,7 +96,7 @@ export class BgGuide {
         this.type = type;
         this.step = 0;
     }
-    detectClickThrough(target, clickEvent, cover) {
+    detectClickThrough(target, clickEvent) {
         target.classList.add('guideClickListen');
         const handleClick = () => {
             setTimeout(() => {
@@ -597,6 +597,150 @@ export class BgGuide {
             </div>
         `;
     }
+    drawBGwithTopWindow(BG, vm, targetSelector, viewID, step, allStep, window, closeEvent) {
+        var _a;
+        let gvc = this.gvc;
+        function close() {
+            if (closeEvent) {
+                closeEvent();
+            }
+            if (window.cover) {
+                if (document.querySelector('.clickInterface')) {
+                    document.querySelector('.clickInterface').remove();
+                }
+            }
+            BG.classList.remove(`${targetSelector.split('.')[1]}`);
+        }
+        function next() {
+            vm.step++;
+            close();
+            gvc.notifyDataChange(viewID);
+        }
+        let iframe = this.findPageIframe();
+        let iframeRect = iframe.getBoundingClientRect();
+        let target = this.findIframeDom(`${targetSelector}`);
+        let rect = target.getBoundingClientRect();
+        let left = rect.left + iframeRect.left - 6;
+        let top = rect.top + iframeRect.top - 6;
+        let right = rect.right + iframeRect.left + 6;
+        let bottom = rect.bottom + iframeRect.top + 6;
+        let mid = (right + left) / 2;
+        gvc.addStyle(`
+                            ${targetSelector} {
+                                ${this.holeBG(left, right, top, bottom)}
+                            }                       
+                        `);
+        if (window.cover) {
+            let body = document.querySelector('.editorContainer');
+            if (body && !document.querySelector('.clickInterface')) {
+                $(body).append(html `
+                    <div class="clickInterface"
+                         style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                         onclick="${gvc.event(() => {
+                })}"></div>
+                `);
+            }
+        }
+        BG.classList.add(`${targetSelector.split('.')[1]}`);
+        let winPosition = () => {
+            switch (window.alignment) {
+                case 'left': {
+                    return `left: ${right - window.width}px;top:${rect.bottom + iframeRect.top + 24}px;`;
+                }
+                default: {
+                    return `left: ${mid - window.width / 2}px;top:${rect.bottom + iframeRect.top + 24}px;`;
+                }
+            }
+        };
+        let arrowPosition = () => {
+            switch (window.alignment) {
+                case 'left': {
+                    return window.width - 42;
+                }
+                default: {
+                    return window.width / 2 - 11;
+                }
+            }
+        };
+        return html `
+            <div class="d-flex flex-column"
+                 style="width: ${window.width}px;height: ${window.height}px;flex-shrink: 0;position: absolute;${winPosition()};">
+                <div class="w-100" style="padding-left: ${arrowPosition()}px;height:23px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20"/>
+                    </svg>
+                </div>
+                <div class="w-100" style="border-radius: 10px;">
+                    <div
+                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                    >
+                        ${window.title}
+                        <div class="d-flex ms-auto align-items-center"
+                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                            步驟 ${step}/${allStep}
+                            <svg
+                                    style="cursor: pointer;"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="13"
+                                    viewBox="0 0 14 13"
+                                    fill="none"
+                                    onclick="${gvc.event(() => {
+            close();
+            this.leaveGuide(vm);
+        })}"
+                            >
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div
+                            class="d-flex flex-column w-100"
+                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal"
+                    >
+                        ${window.content}
+                        <div class="d-flex align-items-center justify-content-between w-100"
+                             style="margin-top: 24px;height:52px;">
+                            <div
+                                    class="${window.preview ? 'd-none' : ''}"
+                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+            vm.step--;
+            close();
+            if (window.previewEvent) {
+                window.previewEvent();
+            }
+            gvc.notifyDataChange(viewID);
+        })}"
+                            >
+                                上一步
+                            </div>
+                            <div class="${window.next ? 'd-none' : 'd-flex'} align-items-center justify-content-center ms-auto"
+                                 style="width: 96px;height: 46px;">
+                                <div
+                                        class="${window.disable ? `` : `breathing-light`} "
+                                        style="${window.disable
+            ? `opacity: 0.8;background: #FFE9B2`
+            : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                        onclick="${gvc.event(() => {
+            if (!window.disable) {
+                next();
+            }
+            if (window.nextEvent) {
+                window.nextEvent();
+            }
+        })}"
+                                >
+                                    ${(_a = window.btnText) !== null && _a !== void 0 ? _a : '下一步'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     drawFinBG(BG, vm, targetSelector, viewID, step, key) {
         function close() {
             BG.classList.remove(targetSelector);
@@ -686,7 +830,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
-        let totalStep = 7;
+        let totalStep = 4;
         return gvc.bindView({
             bind: 'layoutInit',
             dataList: [],
@@ -747,6 +891,7 @@ export class BgGuide {
                             title: '當前主題',
                             content: '為當前首頁套用的主題資訊',
                             cover: true,
+                            preview: true
                         }, () => {
                         });
                     }
@@ -783,13 +928,13 @@ export class BgGuide {
                         function close() {
                             BG.classList.remove('guide7-1');
                         }
-                        let target1 = document.querySelector(`.mainRow9`);
+                        let target1 = document.querySelector(`.mainRow11`);
                         let rect = target1.getBoundingClientRect();
                         let target2 = this.findIframeDom(`.guide7-1`);
                         let iframeRect = iframe.getBoundingClientRect();
                         this.detectClickThrough(target1, () => {
                             close();
-                            totalStep = 4;
+                            totalStep = 3;
                             vm.step = 2;
                             gvc.notifyDataChange(viewID);
                         });
@@ -807,11 +952,14 @@ export class BgGuide {
                                 y2: iframeRect.top + rect2.bottom + 12,
                             });
                             BG.classList.add('guide7-1');
-                            this.detectClickThrough(target2, () => {
+                            const handler = (event) => {
                                 close();
+                                totalStep = 3;
                                 vm.step = 3;
                                 gvc.notifyDataChange(viewID);
-                            });
+                                target2.removeEventListener('click', handler, { capture: true });
+                            };
+                            target2.addEventListener('click', handler, { capture: true });
                             gvc.addStyle(`
                                 .guide7-1{
                                     ${cssStyle}
@@ -861,7 +1009,7 @@ export class BgGuide {
                                 </div>
                             `;
                         }
-                        return this.drawMainRowBG(BG, vm, `.mainRow9`, viewID, 5, '品牌官網');
+                        return this.drawMainRowBG(BG, vm, `.mainRow11`, viewID, 5, '品牌官網');
                     }
                 }
             },
@@ -875,7 +1023,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
-        let totalStep = 7;
+        let totalStep = 8;
         return gvc.bindView({
             bind: 'layoutInit',
             dataList: [],
@@ -930,12 +1078,14 @@ export class BgGuide {
                                 }
                             }, 400);
                         }
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-3', viewID, totalStep - 5, totalStep, {
+                        target.scrollIntoView();
+                        return this.drawBGwithTopWindow(BG, vm, '.guide7-3', viewID, totalStep - 6, totalStep, {
                             width: 332,
                             height: 209,
                             title: '當前主題',
                             content: '為當前首頁套用的主題資訊',
                             cover: true,
+                            preview: true
                         }, () => {
                         });
                     }
@@ -955,7 +1105,8 @@ export class BgGuide {
                                 點擊<span style="font-weight: 700;">自訂</span>，可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
                             </div>
                         `;
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 4, totalStep, {
+                        target.scrollIntoView();
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 5, totalStep, {
                             width: 332,
                             height: 235,
                             title: '自訂主題',
@@ -974,13 +1125,14 @@ export class BgGuide {
                                 }
                             }, 400);
                         }
+                        target.scrollIntoView();
                         let content = html `
                             <div class=""
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 在<span style="font-weight: 700;">佈景主題庫</span>儲存並管理多個設計主題，可根據需求靈活切換應用，展現多樣視覺效果，增強品牌吸引力
                             </div>
                         `;
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 3, totalStep, {
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 4, totalStep, {
                             width: 439,
                             height: 261,
                             title: '自訂主題',
@@ -1009,7 +1161,7 @@ export class BgGuide {
                                 滑鼠移入喜歡的主題後點擊<span style="font-weight: 700;">新增</span>
                             </div>
                         `;
-                        return this.drawBGwithBelowWindow(BG, vm, '.themeGroup', viewID, totalStep - 2, totalStep, {
+                        return this.drawBGwithBelowWindow(BG, vm, '.themeGroup', viewID, totalStep - 3, totalStep, {
                             width: 439,
                             height: 261,
                             title: '選擇主題',
@@ -1026,14 +1178,14 @@ export class BgGuide {
                                 }
                             }, 400);
                         }
-                        target.parentElement.scrollIntoView();
+                        target.scrollIntoView();
                         let content = html `
                             <div class=""
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 您可以對剛新增的主題進行操作，如自定義樣式、切換、複製及下載等等
                             </div>
                         `;
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 1, totalStep, {
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 2, totalStep, {
                             width: 439,
                             height: 261,
                             title: '管理主題庫',
@@ -1116,7 +1268,7 @@ export class BgGuide {
                         function close() {
                             BG.classList.remove('guide7-1');
                         }
-                        let target1 = document.querySelector(`.mainRow9`);
+                        let target1 = document.querySelector(`.mainRow11`);
                         let rect = target1.getBoundingClientRect();
                         let target2 = this.findIframeDom(`.guide7-1`);
                         let iframeRect = iframe.getBoundingClientRect();
@@ -1140,11 +1292,14 @@ export class BgGuide {
                                 y2: iframeRect.top + rect2.bottom + 12,
                             });
                             BG.classList.add('guide7-1');
-                            this.detectClickThrough(target2, () => {
+                            const handler = (event) => {
                                 close();
+                                totalStep = 7;
                                 vm.step = 3;
                                 gvc.notifyDataChange(viewID);
-                            });
+                                target2.removeEventListener('click', handler, { capture: true });
+                            };
+                            target2.addEventListener('click', handler, { capture: true });
                             gvc.addStyle(`
                                 .guide7-1{
                                     ${cssStyle}
@@ -1194,7 +1349,7 @@ export class BgGuide {
                                 </div>
                             `;
                         }
-                        return this.drawMainRowBG(BG, vm, `.mainRow9`, viewID, totalStep, '品牌官網');
+                        return this.drawMainRowBG(BG, vm, `.mainRow11`, viewID, totalStep, '品牌官網');
                     }
                 }
             },
@@ -2517,7 +2672,7 @@ export class BgGuide {
                             </div>
                         `;
                     }
-                    case 0: {
+                    case 1: {
                         return html `
                             <div style="width: 461px;height:210px;display: flex;flex-direction: column;align-items:center;border-radius: 10px;background: #FEAD20;">
                                 <div class="w-100 d-flex align-items-center justify-content-end" style="padding: 16px;">
@@ -2564,7 +2719,7 @@ export class BgGuide {
                             </div>
                         `;
                     }
-                    case 1: {
+                    case 0: {
                         return html `
                             <div class="d-flex flex-column"
                                  style="width:588px;border-radius: 10px;background-color: white;">
@@ -3743,7 +3898,8 @@ export class BgGuide {
                                       </g>
                                       <defs>
                                         <clipPath id="clip0_13405_223884">
-                                          <rect width="13.7154" height="13.7154" fill="white" transform="translate(0.144287 0.142578)"/>
+                                          <rect width="13.7154" height="13.7154" fill="white"
+                                                transform="translate(0.144287 0.142578)"/>
                                         </clipPath>
                                       </defs>
                                     </svg>
@@ -3756,7 +3912,8 @@ export class BgGuide {
                                 }
                             `);
                             const context = html `
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span style="font-weight: 700;">「全站樣式」</span>${icon}
+                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                        style="font-weight: 700;">「全站樣式」</span>${icon}
                                     頁面，您可以統一管理全站的樣式設置，一旦您進行了修改，所有套用這些樣式的元件都會自動更新，確保官網設計的一致性。
                                 </div>
                             `;
@@ -3845,7 +4002,8 @@ export class BgGuide {
                         let target = document.querySelector(`.${className}`);
                         console.log("target -- ", target);
                         if (target) {
-                            const context = html `<div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`;
+                            const context = html `
+                                <div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`;
                             this.detectClickThrough(target, () => {
                                 vm.step++;
                                 BG.classList.remove(`${className}-BG`);
@@ -3959,8 +4117,10 @@ export class BgGuide {
                             }
                             let icon = html `
                                 <span style="display: inline-flex;width: 24.002px;height: 24.002px;padding: 5.143px 5.142px 5.143px 5.144px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                      <path d="M1.61258 1.61197V4.55074H4.55135V1.61197H1.61258ZM0.143188 1.61197C0.143188 0.800741 0.801352 0.142578 1.61258 0.142578H4.55135C5.36258 0.142578 6.02074 0.800741 6.02074 1.61197V4.55074C6.02074 5.36197 5.36258 6.02013 4.55135 6.02013H1.61258C0.801352 6.02013 0.143188 5.36197 0.143188 4.55074V1.61197ZM1.61258 9.4487V12.3875H4.55135V9.4487H1.61258ZM0.143188 9.4487C0.143188 8.63748 0.801352 7.97931 1.61258 7.97931H4.55135C5.36258 7.97931 6.02074 8.63748 6.02074 9.4487V12.3875C6.02074 13.1987 5.36258 13.8569 4.55135 13.8569H1.61258C0.801352 13.8569 0.143188 13.1987 0.143188 12.3875V9.4487ZM12.3881 1.61197H9.44931V4.55074H12.3881V1.61197ZM9.44931 0.142578H12.3881C13.1993 0.142578 13.8575 0.800741 13.8575 1.61197V4.55074C13.8575 5.36197 13.1993 6.02013 12.3881 6.02013H9.44931C8.63809 6.02013 7.97992 5.36197 7.97992 4.55074V1.61197C7.97992 0.800741 8.63809 0.142578 9.44931 0.142578ZM9.44931 9.4487V12.3875H12.3881V9.4487H9.44931ZM7.97992 9.4487C7.97992 8.63748 8.63809 7.97931 9.44931 7.97931H12.3881C13.1993 7.97931 13.8575 8.63748 13.8575 9.4487V12.3875C13.8575 13.1987 13.1993 13.8569 12.3881 13.8569H9.44931C8.63809 13.8569 7.97992 13.1987 7.97992 12.3875V9.4487Z" fill="white"/>
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
+                                          fill="none">
+                                      <path d="M1.61258 1.61197V4.55074H4.55135V1.61197H1.61258ZM0.143188 1.61197C0.143188 0.800741 0.801352 0.142578 1.61258 0.142578H4.55135C5.36258 0.142578 6.02074 0.800741 6.02074 1.61197V4.55074C6.02074 5.36197 5.36258 6.02013 4.55135 6.02013H1.61258C0.801352 6.02013 0.143188 5.36197 0.143188 4.55074V1.61197ZM1.61258 9.4487V12.3875H4.55135V9.4487H1.61258ZM0.143188 9.4487C0.143188 8.63748 0.801352 7.97931 1.61258 7.97931H4.55135C5.36258 7.97931 6.02074 8.63748 6.02074 9.4487V12.3875C6.02074 13.1987 5.36258 13.8569 4.55135 13.8569H1.61258C0.801352 13.8569 0.143188 13.1987 0.143188 12.3875V9.4487ZM12.3881 1.61197H9.44931V4.55074H12.3881V1.61197ZM9.44931 0.142578H12.3881C13.1993 0.142578 13.8575 0.800741 13.8575 1.61197V4.55074C13.8575 5.36197 13.1993 6.02013 12.3881 6.02013H9.44931C8.63809 6.02013 7.97992 5.36197 7.97992 4.55074V1.61197C7.97992 0.800741 8.63809 0.142578 9.44931 0.142578ZM9.44931 9.4487V12.3875H12.3881V9.4487H9.44931ZM7.97992 9.4487C7.97992 8.63748 8.63809 7.97931 9.44931 7.97931H12.3881C13.1993 7.97931 13.8575 8.63748 13.8575 9.4487V12.3875C13.8575 13.1987 13.1993 13.8569 12.3881 13.8569H9.44931C8.63809 13.8569 7.97992 13.1987 7.97992 12.3875V9.4487Z"
+                                            fill="white"/>
                                     </svg>
                                 </span>
 
@@ -3971,7 +4131,8 @@ export class BgGuide {
                                 }
                             `);
                             const context = html `
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span style="font-weight: 700;">「設計元件」</span>${icon}
+                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                        style="font-weight: 700;">「設計元件」</span>${icon}
                                     頁面，您可以替全站的<span style="font-weight: 700;">「標頭」</span>
                                     <span style="font-weight: 700;">「商品卡片」</span>及<span style="font-weight: 700;">「頁腳」</span>設置預設樣式，一旦您修改了預設樣式，所有網頁都會自動更新，確保一致性。
                                 </div>
@@ -4055,7 +4216,8 @@ export class BgGuide {
                         }
                         let target = document.querySelector(`.${className}`);
                         if (target) {
-                            const context = html `<div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`;
+                            const context = html `
+                                <div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`;
                             this.detectClickThrough(target.querySelector('button'), () => {
                                 vm.step++;
                                 BG.classList.remove(`${className}-BG`);
@@ -4108,7 +4270,8 @@ export class BgGuide {
                         }
                         let target = document.querySelector(`.${className}`);
                         if (target) {
-                            const context = html `<div>點擊<span style="font-weight: 700">設定</span>，修改更多細節</div>`;
+                            const context = html `
+                                <div>點擊<span style="font-weight: 700">設定</span>，修改更多細節</div>`;
                             this.detectClickThrough(target, () => {
                                 vm.step++;
                                 BG.classList.remove(`${className}-BG`);
@@ -4157,8 +4320,10 @@ export class BgGuide {
                             }
                             let icon = html `
                                 <span style="display: inline-flex;width: 24.002px;height: 24.002px;padding: 5.143px 5.142px 5.143px 5.144px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                      <path d="M1.61258 1.61197V4.55074H4.55135V1.61197H1.61258ZM0.143188 1.61197C0.143188 0.800741 0.801352 0.142578 1.61258 0.142578H4.55135C5.36258 0.142578 6.02074 0.800741 6.02074 1.61197V4.55074C6.02074 5.36197 5.36258 6.02013 4.55135 6.02013H1.61258C0.801352 6.02013 0.143188 5.36197 0.143188 4.55074V1.61197ZM1.61258 9.4487V12.3875H4.55135V9.4487H1.61258ZM0.143188 9.4487C0.143188 8.63748 0.801352 7.97931 1.61258 7.97931H4.55135C5.36258 7.97931 6.02074 8.63748 6.02074 9.4487V12.3875C6.02074 13.1987 5.36258 13.8569 4.55135 13.8569H1.61258C0.801352 13.8569 0.143188 13.1987 0.143188 12.3875V9.4487ZM12.3881 1.61197H9.44931V4.55074H12.3881V1.61197ZM9.44931 0.142578H12.3881C13.1993 0.142578 13.8575 0.800741 13.8575 1.61197V4.55074C13.8575 5.36197 13.1993 6.02013 12.3881 6.02013H9.44931C8.63809 6.02013 7.97992 5.36197 7.97992 4.55074V1.61197C7.97992 0.800741 8.63809 0.142578 9.44931 0.142578ZM9.44931 9.4487V12.3875H12.3881V9.4487H9.44931ZM7.97992 9.4487C7.97992 8.63748 8.63809 7.97931 9.44931 7.97931H12.3881C13.1993 7.97931 13.8575 8.63748 13.8575 9.4487V12.3875C13.8575 13.1987 13.1993 13.8569 12.3881 13.8569H9.44931C8.63809 13.8569 7.97992 13.1987 7.97992 12.3875V9.4487Z" fill="white"/>
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
+                                          fill="none">
+                                      <path d="M1.61258 1.61197V4.55074H4.55135V1.61197H1.61258ZM0.143188 1.61197C0.143188 0.800741 0.801352 0.142578 1.61258 0.142578H4.55135C5.36258 0.142578 6.02074 0.800741 6.02074 1.61197V4.55074C6.02074 5.36197 5.36258 6.02013 4.55135 6.02013H1.61258C0.801352 6.02013 0.143188 5.36197 0.143188 4.55074V1.61197ZM1.61258 9.4487V12.3875H4.55135V9.4487H1.61258ZM0.143188 9.4487C0.143188 8.63748 0.801352 7.97931 1.61258 7.97931H4.55135C5.36258 7.97931 6.02074 8.63748 6.02074 9.4487V12.3875C6.02074 13.1987 5.36258 13.8569 4.55135 13.8569H1.61258C0.801352 13.8569 0.143188 13.1987 0.143188 12.3875V9.4487ZM12.3881 1.61197H9.44931V4.55074H12.3881V1.61197ZM9.44931 0.142578H12.3881C13.1993 0.142578 13.8575 0.800741 13.8575 1.61197V4.55074C13.8575 5.36197 13.1993 6.02013 12.3881 6.02013H9.44931C8.63809 6.02013 7.97992 5.36197 7.97992 4.55074V1.61197C7.97992 0.800741 8.63809 0.142578 9.44931 0.142578ZM9.44931 9.4487V12.3875H12.3881V9.4487H9.44931ZM7.97992 9.4487C7.97992 8.63748 8.63809 7.97931 9.44931 7.97931H12.3881C13.1993 7.97931 13.8575 8.63748 13.8575 9.4487V12.3875C13.8575 13.1987 13.1993 13.8569 12.3881 13.8569H9.44931C8.63809 13.8569 7.97992 13.1987 7.97992 12.3875V9.4487Z"
+                                            fill="white"/>
                                     </svg>
                                 </span>
 
@@ -4169,7 +4334,8 @@ export class BgGuide {
                                 }
                             `);
                             const context = html `
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span style="font-weight: 700;">「設計元件」</span>${icon}
+                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                        style="font-weight: 700;">「設計元件」</span>${icon}
                                     頁面，您可以替全站的<span style="font-weight: 700;">「標頭」</span>
                                     <span style="font-weight: 700;">「商品卡片」</span>及<span style="font-weight: 700;">「頁腳」</span>設置預設樣式，一旦您修改了預設樣式，所有網頁都會自動更新，確保一致性。
                                 </div>

@@ -135,7 +135,6 @@ class Chat {
             }
             if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
                 const newChatId = room.chat_id.slice(3).split("-")[0];
-                console.log(room.message, newChatId);
                 await new fb_message_js_1.FbMessage(this.app).sendMessage({
                     data: room.message,
                     fbID: newChatId

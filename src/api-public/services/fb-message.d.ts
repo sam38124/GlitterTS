@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
@@ -48,6 +49,7 @@ export declare class FbMessage {
         message: string;
     }>;
     sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
+    uploadFile(file_name: string, fileData: Buffer): Promise<string>;
     getFBInf(obj: {
         fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
