@@ -1,16 +1,17 @@
 'use strict';
 import {Glitter} from './glitterBundle/Glitter.js';
-import {ApiUser} from './api/user.js';
 import {config} from './config.js';
 import {ApiPageConfig} from './api/pageConfig.js';
 import {BaseApi} from './glitterBundle/api/base.js';
 import {GlobalUser} from './glitter-base/global/global-user.js';
 import {EditorConfig} from './editor-config.js';
 import {ShareDialog} from "./glitterBundle/dialog/ShareDialog.js";
+import {ApiUser} from "./glitter-base/route/user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-//#ff6c02
+        glitter.share.top_inset = 0
+        glitter.share.bottom_inset = 0
         glitter.share.reload_code_hash = function () {
             const hashCode = (window as any).preloadData.eval_code_hash || {};
             Object.keys(hashCode).map((dd, index) => {
@@ -55,8 +56,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-
-        glitter.share.editerVersion = "V_13.1.7";
+        glitter.share.editerVersion = "V_13.2.6";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -73,11 +73,11 @@ export class Entry {
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
-            ${(parseInt((window.parent as any).glitter.share.bottom_inset,10)) ? `
+            ${(parseInt((window.parent as any).glitter.share.bottom_inset, 10)) ? `
              .update-bar-container {
         padding-bottom:${(window.parent as any).glitter.share.bottom_inset}px !important;
         }
-            `:``}
+            ` : ``}
             
                 .editorParent .editorChild {
                     display: none;
@@ -161,8 +161,8 @@ export class Entry {
             // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
-                const dialog=new ShareDialog(glitter)
-                dialog.dataLoading({visible:true,text:'後台載入中'})
+                const dialog = new ShareDialog(glitter)
+                dialog.dataLoading({visible: true, text: '後台載入中'})
                 // 頁面編輯器
                 Entry.toBackendEditor(glitter, () => {
                 });
@@ -210,6 +210,8 @@ export class Entry {
         if (!glitter.getUrlParameter('function')) {
             glitter.setUrlParameter('function', 'backend-manger');
         }
+
+
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
@@ -282,42 +284,22 @@ export class Entry {
             });
         }
 
-        if (glitter.getUrlParameter('account')) {
-            ApiUser.login({
-                account: glitter.getUrlParameter('account'),
-                pwd: glitter.getUrlParameter('pwd'),
-            }).then((re) => {
-                if (re.result) {
-                    GlobalUser.token = re.response.userData.token;
-                    toNext();
-                } else {
-                    const url = new URL(glitter.location.href);
-                    location.href = `${url.origin}/glitter/?page=signin`;
-                }
-            });
-        } else {
-            if (!GlobalUser.saas_token) {
+        BaseApi.create({
+            url: config.url + `/api/v1/user/checkToken`,
+            type: 'GET',
+            timeout: 0,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: GlobalUser.saas_token,
+            },
+        }).then((d2) => {
+            if (!d2.result) {
                 const url = new URL(glitter.location.href);
-                location.href = `${url.origin}/glitter/?page=signin`;
+                location.href = `${url.origin}/${(window as any).glitterBase}/login`;
             } else {
-                BaseApi.create({
-                    url: config.url + `/api/v1/user/checkToken`,
-                    type: 'GET',
-                    timeout: 0,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: GlobalUser.saas_token,
-                    },
-                }).then((d2) => {
-                    if (!d2.result) {
-                        const url = new URL(glitter.location.href);
-                        location.href = `${url.origin}/glitter/?page=signin`;
-                    } else {
-                        toNext();
-                    }
-                });
+                toNext();
             }
-        }
+        });
     }
 
     // 跳轉至頁面編輯器Iframe顯示

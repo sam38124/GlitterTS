@@ -49,7 +49,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: Tool.truncateString(dd.title, 40),
+                                    value: Tool.truncateString(dd.title, 32),
                                 },
                                 {
                                     key: '最後更新時間',
@@ -113,7 +113,7 @@ export class AutoReply {
                             </div>
                             ${BgWidget.container(
                                 BgWidget.mainCard(
-                                    BgWidget.tableV2({
+                                    BgWidget.tableV3({
                                         gvc: gvc,
                                         getData: async (vmk) => {
                                             const appData = await ApiUser.getPublicConfig('store-information', 'manager');
@@ -142,18 +142,17 @@ export class AutoReply {
                                                 );
                                                 index++;
                                             }
-                                            vmi.data = getDatalist();
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
                                             vmi.loading = false;
-                                            setTimeout(() => {
-                                                vmi.callback();
-                                            });
+                                            vmi.callback();
                                         },
                                         rowClick: (data, index) => {
                                             vm.tag = vm.dataList[index].tag;
                                             vm.type = 'replace';
                                             gvc.notifyDataChange(id);
                                         },
-                                        filter: '',
+                                        filter: [],
                                     })
                                 )
                             )}

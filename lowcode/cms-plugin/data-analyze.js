@@ -53,12 +53,11 @@ export class DataAnalyze {
                                              style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;"
                                         >查看目前的業務情形
                                         </div>
-                                        <div class="bt_orange_lin" style="" onclick="${gvc.event(() => {
-                        window.parent.glitter.share.ai_message.vm.select_bt = "order_analysis";
-                        window.parent.glitter.share.ai_message.toggle(true);
-                    })}">
-                                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-2" style="width:24px;height: 24px;">使用AI分析工具
-                                        </div>
+                                        ${BgWidget.aiChatButton({
+                        gvc,
+                        select: 'order_analysis',
+                        title: '使用AI分析工具',
+                    })}
                                     </div>
                                     <div class="row p-0"
                                          style="width: 896px;    max-width: 100%; gap:15px 0px; "

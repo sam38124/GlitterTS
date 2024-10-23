@@ -413,19 +413,25 @@ export class CustomerMessageUser {
                                         }
                                         else {
                                             vm.data.push(data);
+                                            const element = document.querySelector('.chatContainer');
+                                            const st = element.scrollTop;
+                                            const ofs = element.offsetHeight;
+                                            const sh = element.scrollHeight;
+                                            for (const dd of document.querySelectorAll('.time-mute')) {
+                                                dd.remove();
+                                            }
+                                            document.querySelector(`#message-lines`).innerHTML += CustomerMessageUser.message_line(data, vm.data.length - 1, gvc, vm, cf, chatRoomInf);
+                                            if (st + ofs >= sh - 50) {
+                                                element.scrollTop = element.scrollHeight;
+                                                let clock = gvc.glitter.ut.clock();
+                                                const interval = setInterval(() => {
+                                                    if (clock.stop() > 1000) {
+                                                        clearInterval(interval);
+                                                    }
+                                                    element.scrollTop = element.scrollHeight;
+                                                }, 50);
+                                            }
                                         }
-                                        const element = document.querySelector('.chatContainer');
-                                        const st = element.scrollTop;
-                                        const ofs = element.offsetHeight;
-                                        const sh = element.scrollHeight;
-                                        if (st + ofs >= sh - 50) {
-                                            vm.lastScroll = -1;
-                                        }
-                                        else {
-                                            vm.lastScroll = st;
-                                        }
-                                        clearInterval(interVal);
-                                        gvc.notifyDataChange(messageID);
                                         console.log('Message from server:', event.data);
                                     });
                                     socket.addEventListener('close', function (event) {
@@ -458,102 +464,13 @@ export class CustomerMessageUser {
                                                     try {
                                                         return ` 
                                                 <div class="my-auto flex-fill"></div>
-                                                ${vm.data
+                                                   <div class="w-100" id="message-lines">
+                                                          ${vm.data
                                                             .map((dd, index) => {
-                                                            var _a, _b;
-                                                            function drawChatContent() {
-                                                                if (dd.message.image) {
-                                                                    return html `<img style="cursor: pointer;"
-                                                                                             src="${dd.message.image}"
-                                                                                             alt="image"
-                                                                                             onclick="${gvc.event(() => {
-                                                                        gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
-                                                                    })}">`;
-                                                                }
-                                                                else {
-                                                                    return dd.message.text.replace(/\n/g, '<br>');
-                                                                }
-                                                            }
-                                                            dd.message.text = dd.message.text || "";
-                                                            if (dd.user_id == 'manager') {
-                                                                dd.user_data = CustomerMessageUser.config;
-                                                            }
-                                                            if (cf.user_id !== dd.user_id) {
-                                                                if (chatRoomInf.who && (chatRoomInf.who.startsWith('line'))) {
-                                                                    dd.user_data.head = chatRoomInf.info.line.head;
-                                                                    dd.user_data.name = chatRoomInf.info.line.name;
-                                                                }
-                                                                if (chatRoomInf.who && (chatRoomInf.who.startsWith('fb'))) {
-                                                                    dd.user_data.head = chatRoomInf.info.fb.head;
-                                                                    dd.user_data.name = chatRoomInf.info.fb.name;
-                                                                }
-                                                                return html `
-                                                                            <div
-                                                                                    class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
-                                                                            >
-                                                                                <img
-                                                                                        src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                        class="rounded-circle border"
-                                                                                        width="40"
-                                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                                        alt="Albert Flores"
-                                                                                />
-                                                                                <div class="ps-2 ms-1 pe-3"
-                                                                                     style="max-width: 348px;">
-                                                                                    <div
-                                                                                            class="p-3 mb-1 ${((_a = dd === null || dd === void 0 ? void 0 : dd.message) === null || _a === void 0 ? void 0 : _a.image) ? '' : 'py-2'}"
-                                                                                            style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                                    >
-                                                                                        ${drawChatContent()}
-                                                                                    </div>
-                                                                                    <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                                                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>`;
-                                                            }
-                                                            else {
-                                                                return html `
-                                                                            <div
-                                                                                    class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
-                                                                    ? `mb-1`
-                                                                    : `mb-3`}"
-                                                                            >
-                                                                                <div class="pe-2 me-1 ps-3"
-                                                                                     style="max-width: 348px;">
-                                                                                    <div
-                                                                                            class=" text-light p-3 mb-1 ${((_b = dd === null || dd === void 0 ? void 0 : dd.message) === null || _b === void 0 ? void 0 : _b.image) ? '' : 'py-2'}"
-                                                                                            style="background:${CustomerMessageUser.config
-                                                                    .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                                    >
-                                                                                        ${drawChatContent()}
-                                                                                    </div>
-                                                                                    <div
-                                                                                            class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
-                                                                    vm.data[index + 1].user_id === dd.user_id
-                                                                    ? `d-none`
-                                                                    : ``}"
-                                                                                            style="gap:5px;"
-                                                                                    >
-                                                                                        <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                                                        ${vm.last_read.find((d2) => {
-                                                                    return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
-                                                                })
-                                                                    ? `已讀`
-                                                                    : ``}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <img
-                                                                                        src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                        class="rounded-circle border"
-                                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                                        width="40"
-                                                                                        alt="Albert Flores"
-                                                                                />
-                                                                            </div>`;
-                                                            }
+                                                            return CustomerMessageUser.message_line(dd, index, gvc, vm, cf, chatRoomInf);
                                                         })
                                                             .join('')}
+                                                    </div>
                                             ${vm.data.length === 0
                                                             ? `
                                             <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
@@ -902,6 +819,101 @@ export class CustomerMessageUser {
                 divCreate: {},
             };
         });
+    }
+    static message_line(dd, index, gvc, vm, cf, chatRoomInf) {
+        var _a, _b;
+        const html = String.raw;
+        function drawChatContent() {
+            if (dd.message.image) {
+                return html `<img style="cursor: pointer;"
+                                 src="${dd.message.image}"
+                                 alt="image"
+                                 onclick="${gvc.event(() => {
+                    gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                })}">`;
+            }
+            else {
+                return dd.message.text.replace(/\n/g, '<br>');
+            }
+        }
+        dd.message.text = dd.message.text || "";
+        if (dd.user_id == 'manager') {
+            dd.user_data = CustomerMessageUser.config;
+        }
+        if (cf.user_id !== dd.user_id) {
+            if (chatRoomInf.who && (chatRoomInf.who.startsWith('line'))) {
+                dd.user_data.head = chatRoomInf.info.line.head;
+                dd.user_data.name = chatRoomInf.info.line.name;
+            }
+            if (chatRoomInf.who && (chatRoomInf.who.startsWith('fb'))) {
+                dd.user_data.head = chatRoomInf.info.fb.head;
+                dd.user_data.name = chatRoomInf.info.fb.name;
+            }
+            return html `
+                <div
+                        class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
+                >
+                    <img
+                            src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                            class="rounded-circle border"
+                            width="40"
+                            style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                            alt="Albert Flores"
+                    />
+                    <div class="ps-2 ms-1 pe-3"
+                         style="max-width: 348px;">
+                        <div
+                                class="p-3 mb-1 ${((_a = dd === null || dd === void 0 ? void 0 : dd.message) === null || _a === void 0 ? void 0 : _a.image) ? '' : 'py-2'}"
+                                style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                        >
+                            ${drawChatContent()}
+                        </div>
+                        <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                            ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                        </div>
+                    </div>
+                </div>`;
+        }
+        else {
+            return html `
+                <div
+                        class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
+                ? `mb-1`
+                : `mb-3`}"
+                >
+                    <div class="pe-2 me-1 ps-3"
+                         style="max-width: 348px;">
+                        <div
+                                class=" text-light p-3 mb-1 ${((_b = dd === null || dd === void 0 ? void 0 : dd.message) === null || _b === void 0 ? void 0 : _b.image) ? '' : 'py-2'}"
+                                style="background:${CustomerMessageUser.config
+                .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                        >
+                            ${drawChatContent()}
+                        </div>
+                        <div
+                                class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
+                vm.data[index + 1].user_id === dd.user_id
+                ? `d-none`
+                : ``}"
+                                style="gap:5px;"
+                        >
+                            <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                            ${vm.last_read.find((d2) => {
+                return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+            })
+                ? `已讀`
+                : ``}
+                        </div>
+                    </div>
+                    <img
+                            src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                            class="rounded-circle border"
+                            style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                            width="40"
+                            alt="Albert Flores"
+                    />
+                </div>`;
+        }
     }
 }
 CustomerMessageUser.config = {};

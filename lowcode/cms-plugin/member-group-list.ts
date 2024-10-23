@@ -74,18 +74,21 @@ export class MemberTypeList {
                                 </div>
                                 ${BgWidget.container(
                                     BgWidget.mainCard(
-                                        BgWidget.tableV2({
+                                        BgWidget.tableV3({
                                             gvc: gvc,
                                             getData: async (vd) => {
                                                 vmi = vd;
                                                 ApiUser.getUserGroupList().then((dd: any) => {
                                                     vm.dataList = dd.response.data;
                                                     vmi.pageSize = 1;
-                                                    vmi.data = getDatalist();
+                                                    vmi.originalData = vm.dataList;
+                                                    vmi.tableData = getDatalist();
                                                     vmi.loading = false;
                                                     vmi.callback();
                                                 });
                                             },
+                                            rowClick: () => {},
+                                            filter: [],
                                         })
                                     )
                                 )}

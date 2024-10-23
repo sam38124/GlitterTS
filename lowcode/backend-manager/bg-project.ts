@@ -561,43 +561,6 @@ export class BgProject {
             return vm.dataList.map((dd: any) => {
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                            style: 'height:25px;',
-                        }),
-                    },
-                    {
                         key: '用戶名稱',
                         value: `<span class="fs-7">${dd.userData.name}</span>`,
                     },
@@ -647,117 +610,85 @@ export class BgProject {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vd) => {
-                                    vmi = vd;
-                                    ApiUser.getUserList({
-                                        page: vmi.page - 1,
-                                        limit: 20,
-                                        search: vm.query || undefined,
-                                    }).then((data) => {
-                                        vmi.pageSize = Math.ceil(data.response.total / 20);
-                                        vm.dataList = data.response.data;
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        vmi.callback();
-                                    });
-                                },
-                                rowClick: (data, index) => {
-                                    if (type === 'select') {
-                                        vm.dataList[index].checked = !vm.dataList[index].checked;
-                                        vmi.data = getDatalist();
-                                        vmi.callback();
-                                        callback(
-                                            vm.dataList.filter((dd: any) => {
-                                                return dd.checked;
-                                            })
-                                        );
-                                    } else {
-                                        vm.data = vm.dataList[index];
-                                        vm.type = 'replace';
-                                    }
-                                },
-                                filter: html`
-                                    ${BgWidget.searchPlace(
+                            ${BgWidget.mainCard(
+                                [
+                                    BgWidget.searchPlace(
                                         gvc.event((e, event) => {
                                             vm.query = e.value;
                                             gvc.notifyDataChange(id);
                                         }),
                                         vm.query || '',
                                         '搜尋所有用戶'
-                                    )}
-                                    ${gvc.bindView(() => {
-                                        return {
-                                            bind: filterID,
-                                            view: () => {
-                                                if (
-                                                    !vm.dataList ||
-                                                    !vm.dataList.find((dd: any) => {
+                                    ),
+                                    BgWidget.tableV3({
+                                        gvc: gvc,
+                                        getData: (vmi) => {
+                                            const limit = 20;
+                                            ApiUser.getUserList({
+                                                page: vmi.page - 1,
+                                                limit: limit,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                vm.dataList = data.response.data;
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vmi.originalData = vm.dataList;
+                                                vmi.tableData = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            if (type === 'select') {
+                                                vm.dataList[index].checked = !vm.dataList[index].checked;
+                                                vmi.data = getDatalist();
+                                                vmi.callback();
+                                                callback(
+                                                    vm.dataList.filter((dd: any) => {
                                                         return dd.checked;
-                                                    }) ||
-                                                    type === 'select'
-                                                ) {
-                                                    return ``;
-                                                } else {
+                                                    })
+                                                );
+                                            } else {
+                                                vm.data = vm.dataList[index];
+                                                vm.type = 'replace';
+                                            }
+                                        },
+                                        filter: [
+                                            {
+                                                name: '批量移除',
+                                                event: () => {
                                                     const dialog = new ShareDialog(gvc.glitter);
-                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                    return BgWidget.selNavbar({
-                                                        count: selCount,
-                                                        buttonList: [
-                                                            BgWidget.selEventButton(
-                                                                '批量移除',
-                                                                gvc.event(() => {
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認刪除所選項目？',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiUser.deleteUser({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })
-                                                            ),
-                                                        ],
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認刪除所選項目？',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiUser.deleteUser({
+                                                                    id: vm.dataList
+                                                                        .filter((dd: any) => {
+                                                                            return dd.checked;
+                                                                        })
+                                                                        .map((dd: any) => {
+                                                                            return dd.id;
+                                                                        })
+                                                                        .join(`,`),
+                                                                }).then((res) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (res.result) {
+                                                                        vm.dataList = undefined;
+                                                                        gvc.notifyDataChange(id);
+                                                                    } else {
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                    }
+                                                                });
+                                                            }
+                                                        },
                                                     });
-                                                }
+                                                },
                                             },
-                                            divCreate: () => {
-                                                return {
-                                                    class: `d-flex align-items-center p-2 py-3 ${
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        }) ||
-                                                        type === 'select'
-                                                            ? `d-none`
-                                                            : ``
-                                                    }`,
-                                                    style: `height:40px;gap: 10px;margin-top:10px;`,
-                                                };
-                                            },
-                                        };
-                                    })}
-                                `,
-                            })}
+                                        ],
+                                    }),
+                                ].join('')
+                            )}
                         `);
                     } else if (vm.type == 'replace') {
                         return this.userInformationDetail({
@@ -1118,217 +1049,156 @@ export class BgProject {
                                     ])}
                                     ${BgWidget.container(
                                         BgWidget.mainCard(
-                                            BgWidget.tableV2({
-                                                gvc: gvc,
-                                                getData: (vmi) => {
-                                                    ApiApp.getAppRelease({
-                                                        page: vmi.page - 1,
-                                                        limit: 50,
-                                                        search: vm.query || undefined,
-                                                        type: type,
-                                                    }).then((data) => {
-                                                        vmi.pageSize = Math.ceil(data.response.total / 50);
-                                                        vm.dataList = data.response.data;
-                                                        function getDatalist() {
-                                                            return data.response.data.map(
-                                                                (dd: {
-                                                                    content: {
-                                                                        logo: string;
-                                                                        image: {
-                                                                            '6.7': string[];
-                                                                            '6.5': string[];
-                                                                            '5.5': string[];
+                                            [
+                                                BgWidget.searchPlace(
+                                                    gvc.event((e, event) => {
+                                                        vm.query = e.value;
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                    vm.query || '',
+                                                    '搜尋所有紀錄'
+                                                ),
+                                                BgWidget.tableV3({
+                                                    gvc: gvc,
+                                                    getData: (vmi) => {
+                                                        const limit = 50;
+                                                        ApiApp.getAppRelease({
+                                                            page: vmi.page - 1,
+                                                            limit: limit,
+                                                            search: vm.query || undefined,
+                                                            type: type,
+                                                        }).then((data) => {
+                                                            function getDatalist() {
+                                                                return data.response.data.map(
+                                                                    (dd: {
+                                                                        content: {
+                                                                            logo: string;
+                                                                            image: {
+                                                                                '6.7': string[];
+                                                                                '6.5': string[];
+                                                                                '5.5': string[];
+                                                                            };
+                                                                            type: 'apple_release';
+                                                                            market_info: {
+                                                                                promote_string: string;
+                                                                                description: string;
+                                                                                keywords: string;
+                                                                                support_url: string;
+                                                                                version: string;
+                                                                                copy_right: string;
+                                                                                market_url: string;
+                                                                                title: string;
+                                                                                sub_title: string;
+                                                                                privacy: string;
+                                                                            };
+                                                                            name: string;
+                                                                            bundle_id: string;
+                                                                            status: 'wait' | 'finish' | 'manual' | 'error';
                                                                         };
-                                                                        type: 'apple_release';
-                                                                        market_info: {
-                                                                            promote_string: string;
-                                                                            description: string;
-                                                                            keywords: string;
-                                                                            support_url: string;
-                                                                            version: string;
-                                                                            copy_right: string;
-                                                                            market_url: string;
-                                                                            title: string;
-                                                                            sub_title: string;
-                                                                            privacy: string;
-                                                                        };
-                                                                        name: string;
-                                                                        bundle_id: string;
-                                                                        status: 'wait' | 'finish' | 'manual' | 'error';
-                                                                    };
-                                                                    checked: boolean;
-                                                                }) => {
-                                                                    return [
-                                                                        {
-                                                                            key: EditorElem.checkBoxOnly({
-                                                                                gvc: gvc,
-                                                                                def: !data.response.data.find((dd: any) => {
-                                                                                    return !dd.checked;
-                                                                                }),
-                                                                                callback: (result) => {
-                                                                                    data.response.data.map((dd: any) => {
-                                                                                        dd.checked = result;
-                                                                                    });
-                                                                                    vmi.data = getDatalist();
-                                                                                    vmi.callback();
-                                                                                    gvc.notifyDataChange(filterID);
-                                                                                },
-                                                                            }),
-                                                                            value: EditorElem.checkBoxOnly({
-                                                                                gvc: gvc,
-                                                                                def: dd.checked,
-                                                                                callback: (result) => {
-                                                                                    dd.checked = result;
-                                                                                    vmi.data = getDatalist();
-                                                                                    vmi.callback();
-                                                                                    gvc.notifyDataChange(filterID);
-                                                                                },
-                                                                                style: 'height:40px;',
-                                                                            }),
-                                                                        },
-                                                                        {
-                                                                            key: 'APP資訊',
-                                                                            value: html`<div style="min-width: 150px;">
-                                                                                <img
-                                                                                    class="rounded border me-4 ${dd.content.logo || 'd-none'}"
-                                                                                    alt=""
-                                                                                    src="${dd.content.logo}"
-                                                                                    style="width:40px;height:40px;"
-                                                                                />
-                                                                                <span>${dd.content.name}</span>
-                                                                            </div>`,
-                                                                        },
-                                                                        {
-                                                                            key: '審核狀態',
-                                                                            value: (() => {
-                                                                                switch (dd.content.status) {
-                                                                                    case 'finish':
-                                                                                        return `<div class="badge badge-success fs-7" >審核通過</div>`;
-                                                                                    case 'error':
-                                                                                        return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
-                                                                                    case 'wait':
-                                                                                        return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
-                                                                                    default:
-                                                                                        return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
-                                                                                }
-                                                                            })(),
-                                                                        },
-                                                                        {
-                                                                            key: '專案包',
-                                                                            value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
-                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
-                                                                                    app_name: dd.content.name,
-                                                                                    bundle_id: dd.content.bundle_id,
-                                                                                }).then((dd: any) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (dd.result) {
-                                                                                        dialog.successMessage({
-                                                                                            text: '下載成功，請前往資料夾查看。',
-                                                                                        });
-                                                                                        (window.parent as any).glitter.openNewTab(dd.response.url);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '下載失敗' });
+                                                                        checked: boolean;
+                                                                    }) => {
+                                                                        return [
+                                                                            {
+                                                                                key: 'APP資訊',
+                                                                                value: html`<div style="min-width: 150px;">
+                                                                                    <img
+                                                                                        class="rounded border me-4 ${dd.content.logo || 'd-none'}"
+                                                                                        alt=""
+                                                                                        src="${dd.content.logo}"
+                                                                                        style="width:40px;height:40px;"
+                                                                                    />
+                                                                                    <span>${dd.content.name}</span>
+                                                                                </div>`,
+                                                                            },
+                                                                            {
+                                                                                key: '審核狀態',
+                                                                                value: (() => {
+                                                                                    switch (dd.content.status) {
+                                                                                        case 'finish':
+                                                                                            return `<div class="badge badge-success fs-7" >審核通過</div>`;
+                                                                                        case 'error':
+                                                                                            return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
+                                                                                        case 'wait':
+                                                                                            return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
+                                                                                        default:
+                                                                                            return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
                                                                                     }
-                                                                                });
-                                                                                event.stopPropagation();
-                                                                            })}"></i>`,
-                                                                        },
-                                                                    ].map((dd) => {
-                                                                        dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                                        return dd;
-                                                                    });
-                                                                }
-                                                            );
-                                                        }
-                                                        vmi.data = getDatalist();
-                                                        vmi.loading = false;
-                                                        vmi.callback();
-                                                    });
-                                                },
-                                                rowClick: (data, index) => {
-                                                    replaceData = vm.dataList[index].content;
-                                                    vm.status = 'replace';
-                                                },
-                                                filter: html`
-                                                    ${BgWidget.searchPlace(
-                                                        gvc.event((e, event) => {
-                                                            vm.query = e.value;
-                                                            gvc.notifyDataChange(id);
-                                                        }),
-                                                        vm.query || '',
-                                                        '搜尋所有紀錄'
-                                                    )}
-                                                    ${gvc.bindView(() => {
-                                                        return {
-                                                            bind: filterID,
-                                                            view: () => {
-                                                                if (
-                                                                    !vm.dataList ||
-                                                                    !vm.dataList.find((dd: any) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                ) {
-                                                                    return ``;
-                                                                } else {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                                    return BgWidget.selNavbar({
-                                                                        count: selCount,
-                                                                        buttonList: [
-                                                                            BgWidget.selEventButton(
-                                                                                '批量移除',
-                                                                                gvc.event(() => {
-                                                                                    dialog.checkYesOrNot({
-                                                                                        text: '是否確認刪除所選項目？',
-                                                                                        callback: (response) => {
-                                                                                            if (response) {
-                                                                                                dialog.dataLoading({ visible: true });
-                                                                                                ApiShop.delete({
-                                                                                                    id: vm.dataList
-                                                                                                        .filter((dd: any) => {
-                                                                                                            return dd.checked;
-                                                                                                        })
-                                                                                                        .map((dd: any) => {
-                                                                                                            return dd.id;
-                                                                                                        })
-                                                                                                        .join(`,`),
-                                                                                                }).then((res) => {
-                                                                                                    dialog.dataLoading({ visible: false });
-                                                                                                    if (res.result) {
-                                                                                                        vm.dataList = undefined;
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    } else {
-                                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                                    }
+                                                                                })(),
+                                                                            },
+                                                                            {
+                                                                                key: '專案包',
+                                                                                value: html`<i
+                                                                                    class="fa-solid fa-download fs-6 ms-3"
+                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                                        dialog.dataLoading({ visible: true });
+                                                                                        ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
+                                                                                            app_name: dd.content.name,
+                                                                                            bundle_id: dd.content.bundle_id,
+                                                                                        }).then((dd: any) => {
+                                                                                            dialog.dataLoading({ visible: false });
+                                                                                            if (dd.result) {
+                                                                                                dialog.successMessage({
+                                                                                                    text: '下載成功，請前往資料夾查看。',
                                                                                                 });
+                                                                                                (window.parent as any).glitter.openNewTab(dd.response.url);
+                                                                                            } else {
+                                                                                                dialog.errorMessage({ text: '下載失敗' });
                                                                                             }
-                                                                                        },
-                                                                                    });
-                                                                                })
-                                                                            ),
-                                                                        ],
-                                                                    });
-                                                                }
+                                                                                        });
+                                                                                        event.stopPropagation();
+                                                                                    })}"
+                                                                                ></i>`,
+                                                                            },
+                                                                        ].map((dd) => {
+                                                                            dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                                            return dd;
+                                                                        });
+                                                                    }
+                                                                );
+                                                            }
+
+                                                            vm.dataList = data.response.data;
+                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                            vmi.originalData = vm.dataList;
+                                                            vmi.tableData = getDatalist();
+                                                            vmi.loading = false;
+                                                            vmi.callback();
+                                                        });
+                                                    },
+                                                    rowClick: (data, index) => {
+                                                        replaceData = vm.dataList[index].content;
+                                                        vm.status = 'replace';
+                                                    },
+                                                    filter: [
+                                                        {
+                                                            name: '批量移除',
+                                                            event: (checkedData) => {
+                                                                const dialog = new ShareDialog(glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除所選項目？',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiShop.delete({
+                                                                                id: checkedData.map((dd: any) => dd.id).join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                } else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
                                                             },
-                                                            divCreate: () => {
-                                                                return {
-                                                                    class: `d-flex align-items-center p-2 py-3 ${
-                                                                        !vm.dataList ||
-                                                                        !vm.dataList.find((dd: any) => {
-                                                                            return dd.checked;
-                                                                        })
-                                                                            ? `d-none`
-                                                                            : ``
-                                                                    }`,
-                                                                    style: `height:40px;gap: 10px;margin-top:10px;`,
-                                                                };
-                                                            },
-                                                        };
-                                                    })}
-                                                `,
-                                            })
+                                                        },
+                                                    ],
+                                                }),
+                                            ].join('')
                                         )
                                     )}
                                 `,

@@ -32,8 +32,6 @@ type TableV3 = {
     tableData: {
         key: string;
         value: string;
-        width?: number;
-        position?: string;
     }[][];
     originalData: any;
     callback: () => void;
@@ -68,8 +66,11 @@ export class BgWidget {
     static greenNote(text: string, event: string = '', style: string = ''): string {
         return html`<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
+
     static dangerNote(text: string, event: string = '', style: string = ''): string {
-        return html`<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
+        return html`<span style="color: #ef4444 !important; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}"
+            >${text}</span
+        >`;
     }
 
     static taiwanPhoneAlert(str: string = '請輸入正確的市話或手機號碼格式') {
@@ -286,6 +287,18 @@ export class BgWidget {
         </div>`;
     }
 
+    static aiChatButton(obj: { gvc: GVC; select: 'writer' | 'order_analysis' | 'operation_guide'; title: string }) {
+        return html`<div
+            class="bt_orange_lin"
+            onclick="${obj.gvc.event(() => {
+                (window.parent as any).glitter.share.ai_message.vm.select_bt = obj.select;
+                (window.parent as any).glitter.share.ai_message.toggle(true);
+            })}"
+        >
+            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-1" style="width: 24px; height: 24px;" />${obj.title}
+        </div>`;
+    }
+
     // 標籤
     static primaryInsignia(text: string) {
         return html` <div class="insignia insignia-primary">${text}</div>`;
@@ -328,10 +341,12 @@ export class BgWidget {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
+
     static isValidNumbers(str: string) {
         const numberRegex = /^\d+$/;
         return numberRegex.test(str);
     }
+
     static editeInput(obj: {
         gvc: GVC;
         title: string;
@@ -402,11 +417,17 @@ ${obj.default ?? ''}</textarea
             </div>`;
     }
 
-    static searchPlace(event: string, vale: string, placeholder: string, margin: string = '16px 0 0 0') {
-        return html` <div class="w-100 position-relative" style="margin: ${margin};">
-            <i class=" fa-regular fa-magnifying-glass" style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
-        </div>`;
+    static searchPlace(event: string, vale: string, placeholder: string, margin?: string, padding?: string) {
+        const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
+        const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
+        return html`
+            <div style="margin: ${margin ?? defMargin}; padding: ${padding ?? defPadding}">
+                <div class="w-100 position-relative">
+                    <i class=" fa-regular fa-magnifying-glass" style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
+                    <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+                </div>
+            </div>
+        `;
     }
 
     static linkList(obj: {
@@ -1240,26 +1261,42 @@ ${obj.default ?? ''}</textarea
         rowClick: (data: any, index: number) => void;
         filter: {
             name: string;
+            option?: boolean;
             event: (data: any) => void;
-            option: boolean;
         }[];
-        tableMinWidth?: number;
-        tableMaxWidth?: number;
         hiddenPageSplit?: boolean;
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const ps = new PageSplit(gvc);
-        const isPhone = document.body.clientWidth < 768;
-        const tableMinWidth = obj.tableMinWidth ?? 800;
-        const maxWidth = obj.tableMaxWidth ?? 1500;
-        const tableMaxWidth = maxWidth > tableMinWidth ? maxWidth : tableMinWidth;
+
+        const widthList: number[] = [];
+        let defWidth = 0;
+        let fullWidth = 0;
 
         const ids = {
             container: glitter.getUUID(),
             filter: glitter.getUUID(),
             pencil: gvc.glitter.getUUID(),
+            header: Tool.randomString(6),
+            headerCell: Tool.randomString(6),
+            tr: Tool.randomString(6),
+            textClass: Tool.randomString(6),
         };
+
+        const created = {
+            checkbox: false,
+            header: false,
+            table: false,
+        };
+
+        gvc.addStyle(`
+            .${ids.textClass} {
+                text-align: left !important;
+                padding-right: 0.25rem !important;
+                padding-left: 0.25rem !important;
+            }
+        `);
 
         return gvc.bindView(() => {
             const vm: TableV3 = {
@@ -1269,8 +1306,10 @@ ${obj.default ?? ''}</textarea
                 tableData: [],
                 originalData: [],
                 callback: () => {
-                    vm.loading = false;
-                    gvc.notifyDataChange(ids.container);
+                    setTimeout(() => {
+                        vm.loading = false;
+                        gvc.notifyDataChange(ids.container);
+                    }, 50);
                 },
             };
 
@@ -1284,12 +1323,8 @@ ${obj.default ?? ''}</textarea
                         return html` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">暫無資料</div>`;
                     }
 
-                    let widthList: number[] = [];
-                    let viewWidth = 100;
-                    let noneWidthElement = 0;
-
                     // 表頭行爲全選按鈕
-                    const checkAllBox = (changeView: boolean) => {
+                    function checkAllBox(changeView: boolean) {
                         return EditorElem.checkBoxOnly({
                             gvc: gvc,
                             def: vm.originalData.every((item: any) => item.checked),
@@ -1304,128 +1339,161 @@ ${obj.default ?? ''}</textarea
                                     }
                                 });
                                 gvc.notifyDataChange(ids.filter);
+                                changeHeaderStyle();
                             },
                             stopChangeView: changeView,
                         });
-                    };
+                    }
+
+                    // 表頭位置設定
+                    function changeHeaderStyle() {
+                        const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`) as HTMLElement;
+                        if (target) {
+                            if (vm.originalData.find((dd: any) => dd.checked)) {
+                                target.style.position = 'sticky';
+                                target.style.top = '0';
+                                target.style.left = '0';
+                            } else {
+                                target.style.position = 'relative';
+                                target.style.top = '';
+                                target.style.left = '';
+                            }
+                        }
+                    }
 
                     // 判斷是否添加行爲按鈕
-                    vm.tableData = vm.tableData.map((item, index: number) => {
-                        if (obj.filter.length > 0) {
-                            return [
-                                {
-                                    key: checkAllBox(true),
-                                    value: EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: false,
-                                        callback: (result) => {
-                                            vm.originalData[index].checked = result;
-                                            gvc.notifyDataChange(ids.filter);
-                                        },
-                                    }),
-                                    width: 5,
-                                },
-                                ...item,
-                            ];
-                        }
-                        return item;
-                    });
+                    if (!created.checkbox) {
+                        vm.tableData = vm.tableData.map((item, index: number) => {
+                            if (obj.filter.length > 0) {
+                                return [
+                                    {
+                                        key: checkAllBox(true),
+                                        value: EditorElem.checkBoxOnly({
+                                            gvc: gvc,
+                                            def: false,
+                                            callback: (result) => {
+                                                vm.originalData[index].checked = result;
+                                                gvc.notifyDataChange(ids.filter);
+                                                changeHeaderStyle();
+                                            },
+                                        }),
+                                    },
+                                    ...item,
+                                ];
+                            }
+                            return item;
+                        });
+                        created.checkbox = !created.checkbox;
+                    }
 
-                    // 判斷表頭項目是否有設定寬度
-                    vm.tableData[0].map((item) => {
-                        if (item.width) {
-                            viewWidth -= item.width;
-                        } else {
-                            noneWidthElement++;
-                        }
-                    });
+                    return html`<div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
+                            <div class="w-100 h-100 bg-white top-0" style="position: absolute; z-index: ${defWidth > 0 ? 0 : 2}; display: ${defWidth > 0 ? 'none' : 'block'};"></div>
+                            ${gvc.bindView({
+                                bind: ids.header,
+                                view: () => {
+                                    return gvc.bindView({
+                                        bind: ids.filter,
+                                        view: () => {
+                                            // 顯示行為列
+                                            if (vm.originalData.find((dd: any) => dd.checked)) {
+                                                const checkedData = vm.originalData.filter((dd: any) => dd.checked);
 
-                    // 設定表頭項目的寬度
-                    vm.tableData[0].map((item) => {
-                        if (!item.width) {
-                            item.width = viewWidth / noneWidthElement;
-                        }
-                        widthList.push(item.width);
-                    });
+                                                // 手機版
+                                                if (document.body.clientWidth < 768) {
+                                                    return BgWidget.selNavbar({
+                                                        checkbox: checkAllBox(false),
+                                                        count: checkedData.length,
+                                                        buttonList: [
+                                                            BgWidget.selEventDropmenu({
+                                                                gvc: gvc,
+                                                                options: obj.filter.map((item) => {
+                                                                    return {
+                                                                        name: item.name,
+                                                                        event: gvc.event(() => item.event(checkedData)),
+                                                                    };
+                                                                }),
+                                                                text: '',
+                                                            }),
+                                                        ],
+                                                    });
+                                                }
 
-                    return html`<div style="margin-top: 4px; overflow-x: scroll; z-index: 1;">
-                            ${gvc.bindView(() => {
-                                // 表頭＆行爲列
-                                return {
-                                    bind: ids.filter,
-                                    view: () => {
-                                        // 顯示行為列
-                                        if (vm.originalData.find((dd: any) => dd.checked)) {
-                                            const checkedData = vm.originalData.filter((dd: any) => dd.checked);
-
-                                            // 手機版
-                                            if (isPhone) {
+                                                // 電腦版
+                                                const inButtons = obj.filter.filter((item) => item.option);
+                                                const outButtons = obj.filter.filter((item) => !item.option);
+                                                const inList =
+                                                    inButtons.length > 0
+                                                        ? [
+                                                              BgWidget.selEventDropmenu({
+                                                                  gvc: gvc,
+                                                                  options: inButtons.map((item) => {
+                                                                      return {
+                                                                          name: item.name,
+                                                                          event: gvc.event(() => item.event(checkedData)),
+                                                                      };
+                                                                  }),
+                                                                  text: '更多操作',
+                                                              }),
+                                                          ]
+                                                        : [];
+                                                const outList = outButtons.map((item) => {
+                                                    return BgWidget.selEventButton(
+                                                        item.name,
+                                                        gvc.event(() => item.event(checkedData))
+                                                    );
+                                                });
                                                 return BgWidget.selNavbar({
                                                     checkbox: checkAllBox(false),
                                                     count: checkedData.length,
-                                                    buttonList: [
-                                                        BgWidget.selEventDropmenu({
-                                                            gvc: gvc,
-                                                            options: obj.filter.map((item) => {
-                                                                return {
-                                                                    name: item.name,
-                                                                    event: gvc.event(() => item.event(checkedData)),
-                                                                };
-                                                            }),
-                                                            text: '',
-                                                        }),
-                                                    ],
+                                                    buttonList: [...inList, ...outList],
                                                 });
                                             }
-
-                                            // 電腦版
-                                            const inButtons = obj.filter.filter((item) => item.option);
-                                            const outButtons = obj.filter.filter((item) => !item.option);
-                                            const inList =
-                                                inButtons.length > 0
-                                                    ? [
-                                                          BgWidget.selEventDropmenu({
-                                                              gvc: gvc,
-                                                              options: inButtons.map((item) => {
-                                                                  return {
-                                                                      name: item.name,
-                                                                      event: gvc.event(() => item.event(checkedData)),
-                                                                  };
-                                                              }),
-                                                              text: '更多操作',
-                                                          }),
-                                                      ]
-                                                    : [];
-                                            const outList = outButtons.map((item) => {
-                                                return BgWidget.selEventButton(
-                                                    item.name,
-                                                    gvc.event(() => item.event(checkedData))
-                                                );
-                                            });
-                                            return BgWidget.selNavbar({
-                                                checkbox: checkAllBox(false),
-                                                count: checkedData.length,
-                                                buttonList: [...inList, ...outList],
-                                            });
-                                        }
-                                        // 顯示表頭
-                                        return vm.tableData[0]
-                                            .map((dd, index: number) => {
-                                                return html` <th class="text-start tx_700 px-1" style="width: ${widthList[index]}%;">${dd.key}</th>`;
-                                            })
-                                            .join('');
-                                    },
-                                    divCreate: {
-                                        class: 'd-flex align-items-center mb-2',
-                                        style: `position: relative; height: 40px !important; ${isPhone ? `min-width: ${tableMinWidth}px; max-width: ${tableMaxWidth}px;` : ''}`,
-                                    },
-                                };
+                                            // 顯示表頭
+                                            return vm.tableData[0]
+                                                .map((dd, index: number) => {
+                                                    return html` <div class="${ids.headerCell} ${ids.textClass} tx_700" style="min-width: ${widthList[index]}px;">${dd.key}</div>`;
+                                                })
+                                                .join('');
+                                        },
+                                        divCreate: {
+                                            class: `d-flex align-items-center mb-2 ${ids.header}`,
+                                            style: `height: 40px !important;`,
+                                        },
+                                        onCreate: () => {
+                                            if (!created.header) {
+                                                let timer = 0;
+                                                const si = setInterval(() => {
+                                                    timer++;
+                                                    const header = document.querySelector(`.${ids.header}`) as HTMLElement;
+                                                    if (!created.header && header && header.offsetWidth > 0) {
+                                                        let n = 0;
+                                                        const htmlTags = new RegExp(/<[^>]*>/);
+                                                        header?.querySelectorAll('div').forEach((div: any) => {
+                                                            if (div.classList.contains(ids.headerCell)) {
+                                                                const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.length * 24;
+                                                                widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
+                                                                n++;
+                                                            }
+                                                        });
+                                                        fullWidth = header.offsetWidth;
+                                                        created.header = !created.header;
+                                                        clearInterval(si);
+                                                    }
+                                                    if (timer > 500) {
+                                                        clearInterval(si);
+                                                    }
+                                                }, 50);
+                                            }
+                                        },
+                                    });
+                                },
                             })}
-                            <table class="table table-centered table-nowrap text-center table-hover" style="${isPhone ? `min-width: ${tableMinWidth}px; max-width: ${tableMaxWidth}px;` : ''}">
+                            <table class="table table-centered table-nowrap text-center table-hover" style="width: ${defWidth}px;">
                                 <tbody>
                                     ${vm.tableData
                                         .map((dd, trIndex: number) => {
                                             return html` <tr
+                                                class="${trIndex === 0 ? ids.tr : ''}"
                                                 onclick="${gvc.event(() => {
                                                     obj.rowClick && obj.rowClick(dd, trIndex);
                                                 })}"
@@ -1438,19 +1506,22 @@ ${obj.default ?? ''}</textarea
                                             >
                                                 ${dd
                                                     .map((d3, tdIndex: number) => {
+                                                        const tdClass = Tool.randomString(5);
+                                                        gvc.addStyle(`
+                                                            .${tdClass} {
+                                                                border: none;
+                                                                vertical-align: middle;
+                                                                width: ${widthList[tdIndex]}px;
+                                                                ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
+                                                                ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
+                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
+                                                            }
+                                                        `);
                                                         return html` <td
-                                                            class="${d3.position ?? 'text-start'} tx_normal px-1"
-                                                            style="
-                                                                color:#393939 !important; 
-                                                                border: none; 
-                                                                vertical-align: middle; 
-                                                                width: ${widthList[tdIndex]}%;
-                                                                ${tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
-                                                                ${tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                            "
-                                                            gvc-checkbox="${obj.filter.length !== 0 && tdIndex === 0 ? `checkbox${trIndex}` : ''}"
+                                                            class="${ids.textClass} ${tdClass} tx_normal"
+                                                            ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                                         >
-                                                            <div class="text-nowrap">${d3.value}</div>
+                                                            <div class="text-nowrap" style="color: #393939 !important;">${d3.value}</div>
                                                         </td>`;
                                                     })
                                                     .join('')}
@@ -1480,6 +1551,43 @@ ${obj.default ?? ''}</textarea
                 onCreate: () => {
                     if (vm.loading) {
                         obj.getData(vm);
+                    } else {
+                        if (!created.table) {
+                            let timer = 0;
+                            const si = setInterval(() => {
+                                timer++;
+                                if (created.header) {
+                                    const checkbox = obj.filter.length > 0;
+                                    const tr = document.querySelector(`.${ids.tr}`) as HTMLElement;
+
+                                    tr?.querySelectorAll('td').forEach((td: any, index: number) => {
+                                        if (checkbox && index === 0) {
+                                            widthList[index] = 60;
+                                        } else {
+                                            widthList[index] = td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index];
+                                        }
+                                        defWidth += widthList[index];
+                                    });
+
+                                    if (fullWidth > defWidth) {
+                                        const extraWidth = (fullWidth - defWidth) / (widthList.length - (checkbox ? 1 : 0));
+                                        widthList.map((width, index) => {
+                                            if (!(checkbox && index === 0)) {
+                                                widthList[index] = width + extraWidth;
+                                            }
+                                        });
+                                        defWidth = fullWidth;
+                                    }
+
+                                    created.table = !created.table;
+                                    gvc.notifyDataChange(ids.container);
+                                    clearInterval(si);
+                                }
+                                if (timer > 500) {
+                                    clearInterval(si);
+                                }
+                            }, 50);
+                        }
                     }
                 },
             };
@@ -1839,28 +1947,33 @@ ${obj.default ?? ''}</textarea
                 h += html`<p class="mb-1">${str}</p>`;
             });
         }
-        return html` <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="${css.style}">
+        return html` <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal;word-break: break-all;${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
             ${messageList && messageList.length > 0 ? `<div class="mt-2">${h}</div>` : ``}
         </div>`;
     }
 
     static selNavbar(data: { checkbox?: string; count: number; buttonList: string[] }): string {
-        const pd = document.body.clientWidth > 768 ? this.getContainerWidth() / 60 : 12;
+        const navbarStyle = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 40px !important;
+            border-radius: 10px;
+            background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
+            padding: 0 22px;
+            ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
+        `;
         return html`
             <div
-                style="display: flex;
-                justify-content: space-between;
-                align-items: center;
-                height: 40px !important;
-                border-radius: 10px;
-                background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-                padding: 0 ${pd}px;
-                ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 8%); position: sticky; top: 0; left: 0;`}"
+                style="${navbarStyle
+                    .replace(/;\s+/g, ';')
+                    .replace(/[\r\n]/g, '')
+                    .trim()}"
             >
                 <div style="display: flex; align-items: center; font-size: 14px; color: #393939; font-weight: 700;">
                     ${data.checkbox ?? ''}
-                    <span class="ms-3">已選取${data.count}項</span>
+                    <span style="margin-left: 24px;">已選取${data.count}項</span>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 12px;">${data.buttonList.join('')}</div>
             </div>
@@ -1927,7 +2040,8 @@ ${obj.default ?? ''}</textarea
             .join(this.horizontalLine());
     }
 
-    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; height?: number; autoClose?: boolean; guideClass?: string }): string {
+    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; height?: number; autoClose?: boolean; guideClass?: string; openOnInit?: boolean }): string {
+        const bvid = Tool.randomString(5);
         const text = Tool.randomString(5);
         const height = obj.height ?? 500;
         const closeHeight = 56;
@@ -1986,55 +2100,72 @@ ${obj.default ?? ''}</textarea
             }
         `);
 
-        return html` <div class="box-tag-${obj.tag} box-container-${text}">
-            <div
-                class="box-navbar-${text} ${obj.guideClass ?? ''}"
-                onclick="${obj.gvc.event((e) => {
-                    if (!obj.autoClose) {
-                        const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
-                        boxes.forEach((box: any) => {
-                            const isOpening = box.classList.contains('open-box');
-                            const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
-                            if (isOpening && !isSelf) {
-                                box.classList.remove('open-box');
-                                if (box.tagName === 'DIV') {
-                                    box.style.height = `${closeHeight}px`;
-                                }
-                            }
-                        });
-                    }
-
-                    setTimeout(() => {
-                        e.parentElement.classList.toggle('open-box');
-                        e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
-
-                        const container = window.document.querySelector(`.box-container-${text}`) as any;
-                        if (e.parentElement.classList.contains('open-box')) {
-                            const si = setInterval(() => {
-                                const inside = window.document.querySelector(`.box-inside-${text}`) as any;
-                                if (inside) {
-                                    const insideHeight = inside.clientHeight;
-                                    if (insideHeight + closeHeight < height) {
-                                        container.style.height = `${insideHeight + closeHeight + 20}px`;
-                                    } else {
-                                        container.style.height = `${height}px`;
+        return obj.gvc.bindView({
+            bind: bvid,
+            view: () => {
+                return html` <div class="box-tag-${obj.tag} box-container-${text}">
+                    <div
+                        class="box-navbar-${text} ${obj.guideClass ?? ''}"
+                        onclick="${obj.gvc.event((e) => {
+                            if (!obj.autoClose) {
+                                const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
+                                boxes.forEach((box: any) => {
+                                    const isOpening = box.classList.contains('open-box');
+                                    const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
+                                    if (isOpening && !isSelf) {
+                                        box.classList.remove('open-box');
+                                        if (box.tagName === 'DIV') {
+                                            box.style.height = `${closeHeight}px`;
+                                        }
                                     }
-                                    clearInterval(si);
+                                });
+                            }
+
+                            setTimeout(() => {
+                                e.parentElement.classList.toggle('open-box');
+                                e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+
+                                const container = window.document.querySelector(`.box-container-${text}`) as any;
+                                if (e.parentElement.classList.contains('open-box')) {
+                                    const si = setInterval(() => {
+                                        const inside = window.document.querySelector(`.box-inside-${text}`) as any;
+                                        if (inside) {
+                                            const insideHeight = inside.clientHeight;
+                                            if (insideHeight + closeHeight < height) {
+                                                container.style.height = `${insideHeight + closeHeight + 20}px`;
+                                            } else {
+                                                container.style.height = `${height}px`;
+                                            }
+                                            clearInterval(si);
+                                        }
+                                    }, 100);
+                                } else {
+                                    container.style.height = `${closeHeight}px`;
                                 }
-                            }, 100);
-                        } else {
-                            container.style.height = `${closeHeight}px`;
+                            }, 50);
+                        })}"
+                    >
+                        <div class="d-flex tx_700">${obj.title}</div>
+                        <div class="d-flex">
+                            <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
+                        </div>
+                    </div>
+                    <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
+                </div>`;
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (obj.openOnInit) {
+                    setTimeout(() => {
+                        const navs = document.getElementsByClassName(`box-navbar-${text}`) as any;
+                        if (navs.length > 0) {
+                            const nav = navs[0];
+                            nav.click();
                         }
-                    }, 50);
-                })}"
-            >
-                <div class="d-flex tx_700">${obj.title}</div>
-                <div class="d-flex">
-                    <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
-                </div>
-            </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
-        </div>`;
+                    }, 100);
+                }
+            },
+        });
     }
 
     // 視窗

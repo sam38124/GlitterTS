@@ -424,8 +424,8 @@ h6 {
 
 .bt_orange_lin {
     cursor: pointer;
-    height: 38px;
-    padding: 8px 15px;
+    height: 36px;
+    padding: 8px 12px;
     border-radius: 8px;
     border: 1px var(--main-orange) solid;
     justify-content: center;
@@ -440,6 +440,7 @@ h6 {
     letter-spacing: 0.64px;
     word-wrap: break-word;
 }
+
 .bt_orange_lin:hover {
     background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
     color: white;
@@ -447,6 +448,7 @@ h6 {
     -webkit-background-clip: unset;
     -webkit-text-fill-color: unset;
 }
+
 .bt_c39 {
     border-radius: 10px;
     background: var(--main-black);
@@ -915,6 +917,7 @@ h6 {
     border-radius: 7px;
     border: 1px solid var(--background-4);
     padding: 2px 14px;
+    height: 28px;
     background: var(--main-white);
     box-shadow: 0px 0px 10px 0px var(--main-dark-alpha-15);
 }

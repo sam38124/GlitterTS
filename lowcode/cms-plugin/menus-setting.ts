@@ -1,7 +1,6 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 
 const html = String.raw;
@@ -38,10 +37,6 @@ export class MenusSetting {
                         key: '選單名稱',
                         value: html`<span class="tx_normal">${dd.title}</span>`,
                     },
-                    {
-                        key: '編輯',
-                        value: html`<i class="fa-solid fa-pencil text-dark"></i>`,
-                    },
                 ];
             });
         }
@@ -69,89 +64,24 @@ export class MenusSetting {
                             </div>
                             ${BgWidget.container(
                                 BgWidget.mainCard(
-                                    BgWidget.tableV2({
+                                    BgWidget.tableV3({
                                         gvc: gvc,
-                                        getData: (vd) => {
-                                            vmi = vd;
-                                            vmi.pageSize = 1;
+                                        getData: (vmi) => {
                                             vm.dataList = [
                                                 { tag: 'menu-setting', title: '主選單' },
                                                 { tag: 'footer-setting', title: '頁腳' },
                                             ];
-                                            vmi.data = getDatalist();
+                                            vmi.pageSize = 1;
+                                            vmi.originalData = vm.dataList;
+                                            vmi.tableData = getDatalist();
                                             vmi.loading = false;
-                                            setTimeout(() => {
-                                                vmi.callback();
-                                            }, 100);
+                                            vmi.callback();
                                         },
                                         rowClick: (data, index) => {
                                             vm.index = index;
                                             vm.type = 'replace';
                                         },
-                                        filter: html`
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                        return BgWidget.selNavbar({
-                                                            count: selCount,
-                                                            buttonList: [
-                                                                BgWidget.selEventButton(
-                                                                    '批量移除',
-                                                                    gvc.event(() => {
-                                                                        dialog.checkYesOrNot({
-                                                                            text: '是否確認刪除所選項目？',
-                                                                            callback: (response) => {
-                                                                                if (response) {
-                                                                                    widget.event('loading', {
-                                                                                        title: '設定中...',
-                                                                                    });
-                                                                                    ApiUser.setPublicConfig({
-                                                                                        key: 'member_level_config',
-                                                                                        user_id: 'manager',
-                                                                                        value: {
-                                                                                            levels: vm.dataList.filter((dd: any) => {
-                                                                                                return !dd.checked;
-                                                                                            }),
-                                                                                        },
-                                                                                    }).then(() => {
-                                                                                        setTimeout(() => {
-                                                                                            widget.event('loading', {
-                                                                                                visible: false,
-                                                                                            });
-                                                                                            widget.event('success', {
-                                                                                                title: '設定成功',
-                                                                                            });
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        }, 500);
-                                                                                    });
-                                                                                }
-                                                                            },
-                                                                        });
-                                                                    })
-                                                                ),
-                                                            ],
-                                                        });
-                                                    },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex align-items-center p-2 py-3 ${
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                })
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: ``,
-                                                        };
-                                                    },
-                                                };
-                                            })}
-                                        `,
-                                        style: ['width: auto;', 'width: 50px;'],
+                                        filter: [],
                                     })
                                 )
                             )}
@@ -387,7 +317,7 @@ export class MenusSetting {
                                                                                         })}"
                                                                                     ></div>
                                                                                     <div
-                                                                                        class="hoverF2 pe-2"
+                                                                                        class="hoverF2 pe-2 my-1"
                                                                                         style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex"
                                                                                     >
                                                                                         <i

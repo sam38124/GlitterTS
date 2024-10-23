@@ -66,18 +66,21 @@ export class MemberTypeList {
                                     ${BgWidget.title('顧客分群')}
                                     <div class="flex-fill"></div>
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                 vmi = vd;
                                 ApiUser.getUserGroupList().then((dd) => {
                                     vm.dataList = dd.response.data;
                                     vmi.pageSize = 1;
-                                    vmi.data = getDatalist();
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
                                     vmi.loading = false;
                                     vmi.callback();
                                 });
                             }),
+                            rowClick: () => { },
+                            filter: [],
                         })))}
                             `, BgWidget.getContainerWidth());
                     }

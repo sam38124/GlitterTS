@@ -122,33 +122,6 @@ export class BgRecommend {
                 const url = prefixURL + ((_a = dd.content.link) !== null && _a !== void 0 ? _a : '');
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height: 37.5px;',
-                        }),
-                    },
-                    {
                         key: '連結名稱',
                         value: `<span class="fs-7">${dd.content.title}</span>`,
                     },
@@ -249,75 +222,43 @@ export class BgRecommend {
                 ];
             });
         }
-        return BgWidget.tableV2({
+        return BgWidget.tableV3({
             gvc: gvc,
             getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                 vmi = vd;
+                const limit = 10;
                 ApiRecommend.getList({
                     data: {},
-                    limit: 10,
+                    limit: limit,
                     page: vmi.page - 1,
                     user_id: obj.user_id,
                     token: window.parent.config.token,
                 }).then((data) => {
-                    vmi.pageSize = Math.ceil(data.response.total / 10);
                     vm.dataList = data.result ? data.response.data : [];
-                    vmi.data = getDatalist();
+                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                    vmi.originalData = vm.dataList;
+                    vmi.tableData = getDatalist();
                     vmi.loading = false;
                     vmi.callback();
                 });
             }),
-            style: [
-                '',
-                'min-width: 150px; max-width: 200px; white-space: normal !important;',
-                'min-width: 220px; max-width: 250px; white-space: normal !important; overflow-wrap: break-word;',
-                ...new Array(5).fill('min-width: 70px;'),
-                ...new Array(3).fill('min-width: 100px;'),
-            ],
             rowClick: (data, index) => {
                 obj.rowCallback(data, index);
             },
-            filter: html `
-                ${gvc.bindView(() => {
-                return {
-                    bind: vm.filterId,
-                    view: () => {
-                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                        return BgWidget.selNavbar({
-                            count: selCount,
-                            buttonList: [
-                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                    this.deleteLink({
-                                        gvc: gvc,
-                                        ids: vm.dataList
-                                            .filter((dd) => {
-                                            return dd.checked;
-                                        })
-                                            .map((dd) => {
-                                            return dd.id;
-                                        }),
-                                        callback: () => {
-                                            gvc.notifyDataChange(vm.id);
-                                        },
-                                    });
-                                })),
-                            ],
+            filter: [
+                {
+                    name: '批量移除',
+                    event: (checkedData) => {
+                        this.deleteLink({
+                            gvc: gvc,
+                            ids: checkedData.map((dd) => dd.id),
+                            callback: () => {
+                                gvc.notifyDataChange(vm.id);
+                            },
                         });
                     },
-                    divCreate: () => {
-                        return {
-                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                !vm.dataList.find((dd) => {
-                                    return dd.checked;
-                                })
-                                ? `d-none`
-                                : ``}`,
-                            style: ``,
-                        };
-                    },
-                };
-            })}
-            `,
+                },
+            ],
         });
     }
     static userList(gvc, widget) {
@@ -343,33 +284,6 @@ export class BgRecommend {
             return vm.dataList.map((dd) => {
                 var _a;
                 return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height: 37.5px;',
-                        }),
-                    },
                     {
                         key: '推薦人名稱',
                         value: `<span class="fs-7">${dd.content.name}</span>`,
@@ -461,6 +375,9 @@ export class BgRecommend {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
                                         }
                                     },
+                                    divCreate: {
+                                        class: 'mb-3',
+                                    },
                                     onCreate: () => {
                                         if (fvm.loading) {
                                             setTimeout(() => {
@@ -474,22 +391,24 @@ export class BgRecommend {
                             gvc.bindView({
                                 bind: vm.tableId,
                                 view: () => {
-                                    return BgWidget.tableV2({
+                                    return BgWidget.tableV3({
                                         gvc: gvc,
                                         getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                             vmi = vd;
+                                            const limit = 15;
                                             ApiRecommend.getUsers({
                                                 data: {},
-                                                limit: 15,
+                                                limit: limit,
                                                 page: vmi.page - 1,
                                                 token: window.parent.config.token,
                                                 search: vm.query,
                                                 searchType: vm.queryType,
                                                 orderBy: vm.orderString,
                                             }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 15);
                                                 vm.dataList = data.response.data;
-                                                vmi.data = getDatalist();
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vmi.originalData = vm.dataList;
+                                                vmi.tableData = getDatalist();
                                                 vmi.loading = false;
                                                 vmi.callback();
                                             });
@@ -498,48 +417,20 @@ export class BgRecommend {
                                             vm.editData = vm.dataList[index];
                                             vm.type = 'replace';
                                         },
-                                        filter: html `
-                                                            ${gvc.bindView(() => {
-                                            return {
-                                                bind: vm.filterId,
-                                                view: () => {
-                                                    const dialog = new ShareDialog(glitter);
-                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                                    return BgWidget.selNavbar({
-                                                        count: selCount,
-                                                        buttonList: [
-                                                            BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                                this.deleteUser({
-                                                                    gvc: gvc,
-                                                                    ids: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.id;
-                                                                    }),
-                                                                    callback: () => {
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    },
-                                                                });
-                                                            })),
-                                                        ],
+                                        filter: [
+                                            {
+                                                name: '批量移除',
+                                                event: (checkedData) => {
+                                                    this.deleteUser({
+                                                        gvc: gvc,
+                                                        ids: checkedData.map((dd) => dd.id),
+                                                        callback: () => {
+                                                            gvc.notifyDataChange(vm.id);
+                                                        },
                                                     });
                                                 },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                            !vm.dataList.find((dd) => {
-                                                                return dd.checked;
-                                                            })
-                                                            ? `d-none`
-                                                            : ``}`,
-                                                        style: ``,
-                                                    };
-                                                },
-                                            };
-                                        })}
-                                                        `,
+                                            },
+                                        ],
                                     });
                                 },
                             }),

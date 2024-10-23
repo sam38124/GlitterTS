@@ -54,16 +54,16 @@ export class BgGraphApi {
                                         )}
                                     </div>
                                     ${BgWidget.container(
-                                        [
-                                            BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋所有訂單'
-                                            ),
-                                            BgWidget.mainCard(
+                                        BgWidget.mainCard(
+                                            [
+                                                BgWidget.searchPlace(
+                                                    gvc.event((e) => {
+                                                        vm.query = e.value;
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                    vm.query || '',
+                                                    '搜尋所有訂單'
+                                                ),
                                                 BgWidget.tableV3({
                                                     gvc: gvc,
                                                     getData: (vmi) => {
@@ -98,7 +98,6 @@ export class BgGraphApi {
                                                                     });
                                                                 });
                                                             }
-
                                                             vm.dataList = data.response.data;
                                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                                             vmi.originalData = vm.dataList;
@@ -122,11 +121,7 @@ export class BgGraphApi {
                                                                         if (response) {
                                                                             dialog.dataLoading({ visible: true });
                                                                             GraphApi.delete({
-                                                                                id: checkedData
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                    .join(`,`),
+                                                                                id: checkedData.map((dd: any) => dd.id).join(`,`),
                                                                             }).then((res) => {
                                                                                 dialog.dataLoading({ visible: false });
                                                                                 if (res.result) {
@@ -140,12 +135,11 @@ export class BgGraphApi {
                                                                     },
                                                                 });
                                                             },
-                                                            option: false,
                                                         },
                                                     ],
-                                                })
-                                            ),
-                                        ].join('')
+                                                }),
+                                            ].join('')
+                                        )
                                     )}
                                 `,
                                 BgWidget.getContainerWidth()

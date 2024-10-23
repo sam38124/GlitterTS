@@ -156,7 +156,7 @@ export class SaasViewModel {
                     }));
                 },
                 divCreate: {
-                    class: `btn-group dropdown border-start ps-1`,
+                    class: `btn-group dropdown border-start ps-1`, style: `${document.body.clientWidth < 800 ? 'min-width:72px;' : 'min-width:133px;'}`
                 },
             };
         });

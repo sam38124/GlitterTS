@@ -12,7 +12,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Tool } from '../modules/tool.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from "../dialog/ShareDialog.js";
+import { ShareDialog } from '../dialog/ShareDialog.js';
 const html = String.raw;
 export class AutoReply {
     static main(gvc, widget) {
@@ -23,9 +23,9 @@ export class AutoReply {
             tag: '',
             query: '',
             userData: {
-                userName: "",
-                password: ""
-            }
+                userName: '',
+                password: '',
+            },
         };
         const glitter = gvc.glitter;
         const id = glitter.getUUID();
@@ -104,7 +104,7 @@ export class AutoReply {
                                 ${BgWidget.title('LINE自動發送訊息')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
+                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
                         gvc: gvc,
                         getData: (vmk) => __awaiter(this, void 0, void 0, function* () {
                             const appData = yield ApiUser.getPublicConfig('store-information', 'manager');
@@ -124,18 +124,17 @@ export class AutoReply {
                                 vm.dataList[index].title = vm.dataList[index].title.replace(/@\{\{app_name\}\}/g, (appData.response.value && appData.response.value.shop_name) || '商店名稱');
                                 index++;
                             }
-                            vmi.data = getDatalist();
+                            vmi.originalData = vm.dataList;
+                            vmi.tableData = getDatalist();
                             vmi.loading = false;
-                            setTimeout(() => {
-                                vmi.callback();
-                            });
+                            vmi.callback();
                         }),
                         rowClick: (data, index) => {
                             vm.tag = vm.dataList[index].tag;
                             vm.type = 'replace';
                             gvc.notifyDataChange(id);
                         },
-                        filter: '',
+                        filter: [],
                     })))}
                             ${BgWidget.mbContainer(240)}
                         `, BgWidget.getContainerWidth());
@@ -206,16 +205,16 @@ export class AutoReply {
                                 placeHolder: '請輸入寄件者名稱',
                             }),
                             html `
-                                        <div class="d-flex mt-3 mb-2" >
+                                        <div class="d-flex mt-3 mb-2">
                                             <div class="d-flex" style="color: #393939;font-size: 15px;">簡訊內容</div>
                                             <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount * this.ticket}點</div>
                                         </div>
                                     `,
                             EditorElem.editeText({
                                 gvc: gvc,
-                                title: "",
-                                default: vm.data.content || "",
-                                placeHolder: "",
+                                title: '',
+                                default: vm.data.content || '',
+                                placeHolder: '',
                                 callback: (text) => {
                                     vm.data.content = text;
                                     let totalSize = 0;
@@ -232,11 +231,11 @@ export class AutoReply {
                                         pointCount = 1;
                                     }
                                     else {
-                                        pointCount = Math.ceil(totalSize /= this.longSMS);
+                                        pointCount = Math.ceil((totalSize /= this.longSMS));
                                     }
                                     gvc.notifyDataChange(id);
-                                }
-                            })
+                                },
+                            }),
                         ].join('');
                     },
                 };
@@ -265,7 +264,7 @@ export class AutoReply {
                             });
                         }
                     },
-                    text: `確認無誤後將儲存。`
+                    text: `確認無誤後將儲存。`,
                 });
             }))}
                 </div>`,

@@ -113,9 +113,18 @@ export class BgCustomerMessage {
                              class="rounded-circle border"
                              style="background: white;border-radius: 50%;width: 40px;height: 40px;" width="40"
                              alt="Albert Flores">
-                        <div class="d-flex flex-column px-1 text-white">
-                            <h6 class="mb-0 text-white d-flex">客服訊息</h6>
-                            <span class="fw-500 d-none" style="font-size:13px;">剩餘代幣:10</span>
+                        <div class="d-flex  px-1 text-white align-items-center" style="gap:8px;">
+                            <h6 class="mb-0 text-white " style="">一站式客服整合系統</h6>
+                            ${BgWidget.questionButton(gvc.event(() => {
+                                BgWidget.dialog({
+                                    gvc,
+                                    title: '提示',
+                                    innerHTML: () => {
+                                        return BgWidget.alertInfo([`<div class="fs-6 fw-500" style="white-space: normal;word-break: break-all;">請前往第三方整合設定，以同步Line與Facebook官方訊息。為確保訊息同步，請統一透過SHOPNEX後台發送訊息。</div>`].join('')) + ` <img class="w-100" src="https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2024-10-22 at 4.58.00 PM.jpg">`;
+                                    },
+                                    width: 200
+                                });
+                            }))}
                         </div>
                         <div class="flex-fill" style="flex: 1;"></div>
                         <i class="fa-regular fa-circle-xmark text-white fs-3 " aria-hidden="true"
@@ -1100,6 +1109,9 @@ export class BgCustomerMessage {
                                         document.querySelector(`#message-lines`).innerHTML += BgCustomerMessage.message_line(data, cf, vm.data.length - 1, vm, gvc);
                                         if (st + ofs >= sh - 50) {
                                             element.scrollTop = element.scrollHeight;
+                                            setTimeout(() => {
+                                                element.scrollTop = element.scrollHeight;
+                                            }, 1000);
                                         }
                                     }
                                 });

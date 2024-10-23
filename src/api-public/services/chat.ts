@@ -52,8 +52,7 @@ export class Chat {
                     )
                 )[0]['count(1)'] === 0
             ) {
-                const participant = room.participant.find((str) => str.startsWith("line"));
-                let data = await db.query(
+              await db.query(
                     `INSERT INTO \`${this.app}\`.\`t_chat_list\`
                      SET ?`,
                     [
@@ -64,7 +63,6 @@ export class Chat {
                         },
                     ]
                 );
-
 
                 for (const b of room.participant) {
                     await db.query(
@@ -92,7 +90,12 @@ export class Chat {
                             {
                                 chat_id: room.chat_id,
                                 user_id: b,
-                                last_read: new Date(),
+                                last_read: (()=>{
+                                    const today = new Date();
+                                    // 设置昨天的日期
+                                    today.setDate(today.getDate() - 2);
+                                    return today
+                                })(),
                             },
                         ]
                     );

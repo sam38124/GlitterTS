@@ -52,55 +52,6 @@ export class BgNotify {
                         return vm.dataList.map((dd) => {
                             return [
                                 {
-                                    key: (() => {
-                                        clearInterval(interval);
-                                        if (!vm.dataList.find((dd) => {
-                                            return !dd.checked;
-                                        })) {
-                                            interval = setTimeout(() => {
-                                                ApiUser.getSubScribe({
-                                                    page: vmi.page - 1,
-                                                    limit: 100000,
-                                                    search: vm.query || undefined,
-                                                }).then((data) => {
-                                                    callback(data.response.data);
-                                                });
-                                            }, 10);
-                                        }
-                                        return EditorElem.checkBoxOnly({
-                                            gvc: gvc,
-                                            def: !vm.dataList.find((dd) => {
-                                                return !dd.checked;
-                                            }),
-                                            callback: (result) => {
-                                                vm.dataList.map((dd) => {
-                                                    dd.checked = result;
-                                                });
-                                                vmi.data = getDatalist();
-                                                vmi.callback();
-                                                gvc.notifyDataChange(filterID);
-                                                callback(vm.dataList.filter((dd) => {
-                                                    return dd.checked;
-                                                }));
-                                            },
-                                        });
-                                    })(),
-                                    value: EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: dd.checked,
-                                        callback: (result) => {
-                                            dd.checked = result;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                            gvc.notifyDataChange(filterID);
-                                            callback(vm.dataList.filter((dd) => {
-                                                return dd.checked;
-                                            }));
-                                        },
-                                        style: 'height:25px;',
-                                    }),
-                                },
-                                {
                                     key: '註冊信箱',
                                     value: `<span class="fs-7">${dd.email}</span>`,
                                 },
@@ -111,107 +62,74 @@ export class BgNotify {
                             ];
                         });
                     }
-                    return BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                        gvc: gvc,
-                        getData: (vmk) => {
-                            vmi = vmk;
-                            ApiUser.getSubScribe({
-                                page: vmi.page - 1,
-                                limit: 20,
-                                search: vm.query || undefined,
-                                filter: { account: 'no' },
-                            }).then((data) => {
-                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                vm.dataList = data.response.data;
-                                vmi.data = getDatalist();
-                                vmi.loading = false;
-                                vmi.callback();
-                                if (type === 'select') {
-                                    callback(vm.dataList.filter((dd) => {
-                                        return dd.checked;
-                                    }));
-                                }
-                            });
-                        },
-                        rowClick: (data, index) => {
-                            vm.dataList[index].checked = !vm.dataList[index].checked;
-                            vmi.data = getDatalist();
-                            vmi.callback();
-                            gvc.notifyDataChange(filterID);
-                            callback(vm.dataList.filter((dd) => {
-                                return dd.checked;
-                            }));
-                        },
-                        filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                    return BgWidget.container(BgWidget.mainCard([
+                        BgWidget.searchPlace(gvc.event((e) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
-                        }), vm.query || '', '搜尋信箱或標籤')}
-                                    ${gvc.bindView(() => {
-                            return {
-                                bind: filterID,
-                                view: () => {
-                                    if (!vm.dataList ||
-                                        !vm.dataList.find((dd) => {
+                        }), vm.query || '', '搜尋信箱或標籤'),
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vmk) => {
+                                vmi = vmk;
+                                const limit = 20;
+                                ApiUser.getSubScribe({
+                                    page: vmi.page - 1,
+                                    limit: limit,
+                                    search: vm.query || undefined,
+                                    filter: { account: 'no' },
+                                }).then((data) => {
+                                    vm.dataList = data.response.data;
+                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                    if (type === 'select') {
+                                        callback(vm.dataList.filter((dd) => {
                                             return dd.checked;
-                                        })) {
-                                        return ``;
+                                        }));
                                     }
-                                    else {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiUser.deleteSubscribe({
-                                                                    email: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.email;
-                                                                    })
-                                                                        .join(`,`),
-                                                                }).then((res) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        vm.dataList = undefined;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                    }
-                                                                });
-                                                            }
-                                                        },
+                                });
+                            },
+                            rowClick: (data, index) => {
+                                vm.dataList[index].checked = !vm.dataList[index].checked;
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(filterID);
+                                callback(vm.dataList.filter((dd) => {
+                                    return dd.checked;
+                                }));
+                            },
+                            filter: [
+                                {
+                                    name: '批量移除',
+                                    event: (checkedData) => {
+                                        const dialog = new ShareDialog(glitter);
+                                        dialog.checkYesOrNot({
+                                            text: '是否確認刪除所選項目？',
+                                            callback: (response) => {
+                                                if (response) {
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiUser.deleteSubscribe({
+                                                        email: checkedData.map((dd) => dd.email).join(`,`),
+                                                    }).then((res) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        if (res.result) {
+                                                            vm.dataList = undefined;
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                        else {
+                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                        }
                                                     });
-                                                })),
-                                            ],
+                                                }
+                                            },
                                         });
-                                    }
+                                    },
                                 },
-                                divCreate: () => {
-                                    return {
-                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                            !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            }) ||
-                                            type === 'select'
-                                            ? `d-none`
-                                            : ``}`,
-                                        style: ``,
-                                    };
-                                },
-                            };
-                        })}
-                                `,
-                    })), type === 'select' ? 850 : BgWidget.getContainerWidth(), 'padding: 0;');
+                            ],
+                        }),
+                    ].join('')), type === 'select' ? 850 : BgWidget.getContainerWidth(), 'padding: 0;');
                 },
             };
         });
@@ -241,135 +159,77 @@ export class BgNotify {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                            gvc: gvc,
-                            getData: (vmi) => {
-                                ApiPost.getManagerPost({
-                                    page: vmi.page - 1,
-                                    limit: 20,
-                                    search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-email-config',
-                                }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
-                                    function getDatalist() {
-                                        return data.response.data.map((dd) => {
-                                            return [
-                                                {
-                                                    key: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: !data.response.data.find((dd) => {
-                                                            return !dd.checked;
-                                                        }),
-                                                        callback: (result) => {
-                                                            data.response.data.map((dd) => {
-                                                                dd.checked = result;
-                                                            });
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                    }),
-                                                    value: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: dd.checked,
-                                                        callback: (result) => {
-                                                            dd.checked = result;
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                        style: 'height:25px;',
-                                                    }),
-                                                },
-                                                {
-                                                    key: '標題',
-                                                    value: html `<span class="fs-7">${dd.content.title}</span>`,
-                                                },
-                                                {
-                                                    key: '最後更新時間',
-                                                    value: dd.updated_time ? gvc.glitter.ut.dateFormat(new Date(dd.updated_time), 'yyyy-MM-dd') : '無',
-                                                },
-                                            ];
-                                        });
-                                    }
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            },
-                            style: ['', `min-width: ${BgWidget.getContainerWidth() / 2 - 30}px`, ''],
-                            rowClick: (data, index) => {
-                                vm.data = vm.dataList[index].content;
-                                vm.type = 'replace';
-                            },
-                            filter: html ` ${BgWidget.searchPlace(gvc.event((e) => {
+                                ${BgWidget.container(BgWidget.mainCard([
+                            BgWidget.searchPlace(gvc.event((e) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋所有信件內容')}
-                                            ${gvc.bindView(() => {
-                                return {
-                                    bind: filterID,
-                                    view: () => {
-                                        if (!vm.dataList ||
-                                            !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) {
-                                            return ``;
-                                        }
-                                        else {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                            return BgWidget.selNavbar({
-                                                count: selCount,
-                                                buttonList: [
-                                                    BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認刪除所選項目？',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ApiPost.delete({
-                                                                        id: vm.dataList
-                                                                            .filter((dd) => {
-                                                                            return dd.checked;
-                                                                        })
-                                                                            .map((dd) => {
-                                                                            return dd.id;
-                                                                        })
-                                                                            .join(`,`),
-                                                                    }).then((res) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (res.result) {
-                                                                            vm.dataList = undefined;
-                                                                            gvc.notifyDataChange(id);
-                                                                        }
-                                                                        else {
-                                                                            dialog.errorMessage({ text: '刪除失敗' });
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })),
-                                                ],
+                            }), vm.query || '', '搜尋所有信件內容'),
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    const limit = 20;
+                                    ApiPost.getManagerPost({
+                                        page: vmi.page - 1,
+                                        limit: limit,
+                                        search: vm.query ? [`title->${vm.query}`] : undefined,
+                                        type: 'notify-email-config',
+                                    }).then((data) => {
+                                        function getDatalist() {
+                                            return data.response.data.map((dd) => {
+                                                return [
+                                                    {
+                                                        key: '標題',
+                                                        value: html `<span class="fs-7">${dd.content.title}</span>`,
+                                                    },
+                                                    {
+                                                        key: '最後更新時間',
+                                                        value: dd.updated_time ? gvc.glitter.ut.dateFormat(new Date(dd.updated_time), 'yyyy-MM-dd') : '無',
+                                                    },
+                                                ];
                                             });
                                         }
+                                        vm.dataList = data.response.data;
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.data = vm.dataList[index].content;
+                                    vm.type = 'replace';
+                                },
+                                filter: [
+                                    {
+                                        name: '批量移除',
+                                        event: (checkedData) => {
+                                            const dialog = new ShareDialog(glitter);
+                                            dialog.checkYesOrNot({
+                                                text: '是否確認刪除所選項目？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiPost.delete({
+                                                            id: checkedData.map((dd) => dd.id).join(`,`),
+                                                        }).then((res) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (res.result) {
+                                                                vm.dataList = undefined;
+                                                                gvc.notifyDataChange(id);
+                                                            }
+                                                            else {
+                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                            }
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        },
                                     },
-                                    divCreate: () => {
-                                        return {
-                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: ``,
-                                        };
-                                    },
-                                };
-                            })}`,
-                        })))}
+                                ],
+                            }),
+                        ].join('')))}
                                 ${BgWidget.mbContainer(120)}
                             `, BgWidget.getContainerWidth());
                     }
@@ -464,7 +324,7 @@ export class BgNotify {
                             gvc.bindView({
                                 bind: vm.tableId,
                                 view: () => {
-                                    return BgWidget.tableV2({
+                                    return BgWidget.tableV3({
                                         gvc: gvc,
                                         getData: (vmi) => {
                                             var _a, _b;
@@ -479,8 +339,6 @@ export class BgNotify {
                                                 mailType: vm.filter.mailType,
                                             }).then((data) => {
                                                 if (data.result) {
-                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                    vm.dataList = data.response.data;
                                                     function getDatalist() {
                                                         return data.response.data.map((dd) => {
                                                             return [
@@ -537,7 +395,10 @@ export class BgNotify {
                                                             ];
                                                         });
                                                     }
-                                                    vmi.data = getDatalist();
+                                                    vm.dataList = data.response.data;
+                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                    vmi.originalData = vm.dataList;
+                                                    vmi.tableData = getDatalist();
                                                     vmi.loading = false;
                                                     vmi.callback();
                                                 }
@@ -549,6 +410,7 @@ export class BgNotify {
                                             vm.data.id = vm.dataList[index].id;
                                             vm.type = 'replace';
                                         },
+                                        filter: [],
                                     });
                                 },
                             }),
@@ -1755,55 +1617,6 @@ export class BgNotify {
                             var _a;
                             return [
                                 {
-                                    key: (() => {
-                                        clearInterval(interval);
-                                        if (!vm.dataList.find((dd) => {
-                                            return !dd.checked;
-                                        })) {
-                                            interval = setTimeout(() => {
-                                                ApiUser.getFCM({
-                                                    page: vmi.page - 1,
-                                                    limit: 100000,
-                                                    search: vm.query || undefined,
-                                                }).then((data) => {
-                                                    callback(data.response.data);
-                                                });
-                                            }, 10);
-                                        }
-                                        return EditorElem.checkBoxOnly({
-                                            gvc: gvc,
-                                            def: !vm.dataList.find((dd) => {
-                                                return !dd.checked;
-                                            }),
-                                            callback: (result) => {
-                                                vm.dataList.map((dd) => {
-                                                    dd.checked = result;
-                                                });
-                                                vmi.data = getDatalist();
-                                                vmi.callback();
-                                                gvc.notifyDataChange(filterID);
-                                                callback(vm.dataList.filter((dd) => {
-                                                    return dd.checked;
-                                                }));
-                                            },
-                                        });
-                                    })(),
-                                    value: EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: dd.checked,
-                                        callback: (result) => {
-                                            dd.checked = result;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                            gvc.notifyDataChange(filterID);
-                                            callback(vm.dataList.filter((dd) => {
-                                                return dd.checked;
-                                            }));
-                                        },
-                                        style: 'height:25px;',
-                                    }),
-                                },
-                                {
                                     key: '用戶ID',
                                     value: `<span class="fs-7">${(_a = dd.userID) !== null && _a !== void 0 ? _a : '尚未登入'}</span>`,
                                 },
@@ -1823,106 +1636,72 @@ export class BgNotify {
                                 ${BgWidget.title('已訂閱裝置')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                        gvc: gvc,
-                        getData: (vmk) => {
-                            vmi = vmk;
-                            ApiUser.getFCM({
-                                page: vmi.page - 1,
-                                limit: 20,
-                                search: vm.query || undefined,
-                            }).then((data) => {
-                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                vm.dataList = data.response.data;
-                                vmi.data = getDatalist();
-                                vmi.loading = false;
-                                vmi.callback();
-                                if (type === 'select') {
-                                    callback(vm.dataList.filter((dd) => {
-                                        return dd.checked;
-                                    }));
-                                }
-                            });
-                        },
-                        rowClick: (data, index) => {
-                            vm.dataList[index].checked = !vm.dataList[index].checked;
-                            vmi.data = getDatalist();
-                            vmi.callback();
-                            gvc.notifyDataChange(filterID);
-                            callback(vm.dataList.filter((dd) => {
-                                return dd.checked;
-                            }));
-                        },
-                        filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                            ${BgWidget.container(BgWidget.mainCard([
+                        BgWidget.searchPlace(gvc.event((e) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
-                        }), vm.query || '', '搜尋信箱或者標籤')}
-                                            ${gvc.bindView(() => {
-                            return {
-                                bind: filterID,
-                                view: () => {
-                                    if (!vm.dataList ||
-                                        !vm.dataList.find((dd) => {
+                        }), vm.query || '', '搜尋信箱或者標籤'),
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vmk) => {
+                                vmi = vmk;
+                                const limit = 20;
+                                ApiUser.getFCM({
+                                    page: vmi.page - 1,
+                                    limit: limit,
+                                    search: vm.query || undefined,
+                                }).then((data) => {
+                                    vm.dataList = data.response.data;
+                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                    if (type === 'select') {
+                                        callback(vm.dataList.filter((dd) => {
                                             return dd.checked;
-                                        })) {
-                                        return ``;
+                                        }));
                                     }
-                                    else {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiUser.deleteSubscribe({
-                                                                    email: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.email;
-                                                                    })
-                                                                        .join(`,`),
-                                                                }).then((res) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        vm.dataList = undefined;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                    }
-                                                                });
-                                                            }
-                                                        },
+                                });
+                            },
+                            rowClick: (data, index) => {
+                                vm.dataList[index].checked = !vm.dataList[index].checked;
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(filterID);
+                                callback(vm.dataList.filter((dd) => {
+                                    return dd.checked;
+                                }));
+                            },
+                            filter: [
+                                {
+                                    name: '批量移除',
+                                    event: (checkedData) => {
+                                        dialog.checkYesOrNot({
+                                            text: '是否確認刪除所選項目？',
+                                            callback: (response) => {
+                                                if (response) {
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiUser.deleteSubscribe({
+                                                        email: checkedData.map((dd) => dd.email).join(`,`),
+                                                    }).then((res) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        if (res.result) {
+                                                            vm.dataList = undefined;
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                        else {
+                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                        }
                                                     });
-                                                })),
-                                            ],
+                                                }
+                                            },
                                         });
-                                    }
+                                    },
                                 },
-                                divCreate: () => {
-                                    return {
-                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                            !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            }) ||
-                                            type === 'select'
-                                            ? `d-none`
-                                            : ``}`,
-                                        style: ``,
-                                    };
-                                },
-                            };
-                        })}
-                                        `,
-                    })))}
+                            ],
+                        }),
+                    ].join('')))}
                         `, BgWidget.getContainerWidth());
                 },
                 divCreate: {
@@ -1956,219 +1735,162 @@ export class BgNotify {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                            gvc: gvc,
-                            getData: (vmi) => {
-                                ApiPost.getManagerPost({
-                                    page: vmi.page - 1,
-                                    limit: 20,
-                                    search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-message-config',
-                                }).then((data) => {
-                                    vmi.pageSize = Math.ceil(data.response.total / 20);
-                                    vm.dataList = data.response.data;
-                                    function getDatalist() {
-                                        return data.response.data.map((dd) => {
-                                            return [
-                                                {
-                                                    key: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: !data.response.data.find((dd) => {
-                                                            return !dd.checked;
-                                                        }),
-                                                        callback: (result) => {
-                                                            data.response.data.map((dd) => {
-                                                                dd.checked = result;
-                                                            });
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                    }),
-                                                    value: EditorElem.checkBoxOnly({
-                                                        gvc: gvc,
-                                                        def: dd.checked,
-                                                        callback: (result) => {
-                                                            dd.checked = result;
-                                                            vmi.data = getDatalist();
-                                                            vmi.callback();
-                                                            gvc.notifyDataChange(filterID);
-                                                        },
-                                                        style: 'height:25px;',
-                                                    }),
-                                                },
-                                                {
-                                                    key: '推播標題',
-                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
-                                                },
-                                                {
-                                                    key: '推播內文',
-                                                    value: `<span class="fs-7">${Tool.truncateString(dd.content.content.replace(/<[^>]*>/g, ''), 30)}</span>`,
-                                                },
-                                                {
-                                                    key: '發送推播',
-                                                    value: html `<button
-                                                                        class="btn btn-primary-c px-4"
-                                                                        style="width:20px !important;height: 30px;"
-                                                                        onclick="${gvc.event((e, event) => {
-                                                        event.stopPropagation();
-                                                        gvc.glitter.innerDialog((gvc) => {
-                                                            let dataList = [];
-                                                            return html `
-                                                                                    <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
-                                                                                        ${BgWidget.container(BgWidget.card([
-                                                                html `
-                                                                                                        <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                            ${BgWidget.goBack(gvc.event(() => {
-                                                                    gvc.closeDialog();
-                                                                }))}
-                                                                                                            ${BgWidget.title(`選擇群發對象`)}
-                                                                                                            <div class="flex-fill"></div>
-                                                                                                            <button
-                                                                                                                class="btn bt_c39 me-2"
-                                                                                                                style="height:38px;font-size: 14px;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.dataLoading({
-                                                                        text: '發送中...',
-                                                                        visible: true,
-                                                                    });
-                                                                    ApiFcm.send({
-                                                                        device_token: ['all'],
-                                                                        title: dd.content.title,
-                                                                        content: dd.content.content,
-                                                                        link: dd.content.link,
-                                                                    }).then(() => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        dialog.successMessage({ text: `發送成功` });
-                                                                    });
-                                                                })}"
-                                                                                                            >
-                                                                                                                發送給所有用戶
-                                                                                                            </button>
-                                                                                                            <button
-                                                                                                                class="btn bt_c39"
-                                                                                                                style="height:38px;font-size: 14px;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    if (dataList.length > 0) {
+                                ${BgWidget.container(BgWidget.mainCard([
+                            BgWidget.searchPlace(gvc.event((e) => {
+                                vm.query = e.value;
+                                gvc.notifyDataChange(id);
+                            }), vm.query || '', '搜尋所有信件內容'),
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    const limit = 20;
+                                    ApiPost.getManagerPost({
+                                        page: vmi.page - 1,
+                                        limit: limit,
+                                        search: vm.query ? [`title->${vm.query}`] : undefined,
+                                        type: 'notify-message-config',
+                                    }).then((data) => {
+                                        function getDatalist() {
+                                            return data.response.data.map((dd) => {
+                                                return [
+                                                    {
+                                                        key: '推播標題',
+                                                        value: `<span class="fs-7">${dd.content.title}</span>`,
+                                                    },
+                                                    {
+                                                        key: '推播內文',
+                                                        value: `<span class="fs-7">${Tool.truncateString(dd.content.content.replace(/<[^>]*>/g, ''), 30)}</span>`,
+                                                    },
+                                                    {
+                                                        key: '發送推播',
+                                                        value: html `<button
+                                                                            class="btn btn-primary-c px-4"
+                                                                            style="width:20px !important;height: 30px;"
+                                                                            onclick="${gvc.event((e, event) => {
+                                                            event.stopPropagation();
+                                                            gvc.glitter.innerDialog((gvc) => {
+                                                                let dataList = [];
+                                                                return html `
+                                                                                        <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
+                                                                                            ${BgWidget.container(BgWidget.card([
+                                                                    html `
+                                                                                                            <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                                ${BgWidget.goBack(gvc.event(() => {
+                                                                        gvc.closeDialog();
+                                                                    }))}
+                                                                                                                ${BgWidget.title(`選擇群發對象`)}
+                                                                                                                <div class="flex-fill"></div>
+                                                                                                                <button
+                                                                                                                    class="btn bt_c39 me-2"
+                                                                                                                    style="height:38px;font-size: 14px;"
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
                                                                         dialog.dataLoading({
                                                                             text: '發送中...',
                                                                             visible: true,
                                                                         });
                                                                         ApiFcm.send({
-                                                                            device_token: dataList.map((dd) => {
-                                                                                return dd.deviceToken;
-                                                                            }),
+                                                                            device_token: ['all'],
                                                                             title: dd.content.title,
                                                                             content: dd.content.content,
                                                                             link: dd.content.link,
                                                                         }).then(() => {
                                                                             dialog.dataLoading({ visible: false });
-                                                                            dialog.successMessage({ text: '發送成功' });
+                                                                            dialog.successMessage({ text: `發送成功` });
                                                                         });
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '請選擇發送對象' });
-                                                                    }
-                                                                })}"
-                                                                                                            >
-                                                                                                                確認並發送
-                                                                                                            </button>
-                                                                                                        </div>
-                                                                                                    ` +
-                                                                    BgNotify.fcmDevice(gvc, 'select', (data) => {
-                                                                        dataList = data;
-                                                                    }),
-                                                            ].join('')), 900)}
-                                                                                        <div></div>
-                                                                                    </div>
-                                                                                `;
-                                                        }, 'email');
-                                                    })}"
-                                                                    >
-                                                                        <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-                                                                    </button>`,
-                                                },
-                                            ];
-                                        });
-                                    }
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            },
-                            rowClick: (data, index) => {
-                                vm.data = vm.dataList[index].content;
-                                vm.type = 'replace';
-                            },
-                            filter: html ` ${BgWidget.searchPlace(gvc.event((e, event) => {
-                                vm.query = e.value;
-                                gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋所有信件內容')}
-                                            ${gvc.bindView(() => {
-                                return {
-                                    bind: filterID,
-                                    view: () => {
-                                        if (!vm.dataList ||
-                                            !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) {
-                                            return ``;
-                                        }
-                                        else {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                            return BgWidget.selNavbar({
-                                                count: selCount,
-                                                buttonList: [
-                                                    BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認刪除所選項目？',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ApiPost.delete({
-                                                                        id: vm.dataList
-                                                                            .filter((dd) => {
-                                                                            return dd.checked;
-                                                                        })
-                                                                            .map((dd) => {
-                                                                            return dd.id;
-                                                                        })
-                                                                            .join(`,`),
-                                                                    }).then((res) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (res.result) {
-                                                                            vm.dataList = undefined;
-                                                                            gvc.notifyDataChange(id);
+                                                                    })}"
+                                                                                                                >
+                                                                                                                    發送給所有用戶
+                                                                                                                </button>
+                                                                                                                <button
+                                                                                                                    class="btn bt_c39"
+                                                                                                                    style="height:38px;font-size: 14px;"
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        if (dataList.length > 0) {
+                                                                            dialog.dataLoading({
+                                                                                text: '發送中...',
+                                                                                visible: true,
+                                                                            });
+                                                                            ApiFcm.send({
+                                                                                device_token: dataList.map((dd) => {
+                                                                                    return dd.deviceToken;
+                                                                                }),
+                                                                                title: dd.content.title,
+                                                                                content: dd.content.content,
+                                                                                link: dd.content.link,
+                                                                            }).then(() => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                dialog.successMessage({ text: '發送成功' });
+                                                                            });
                                                                         }
                                                                         else {
-                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                            dialog.errorMessage({ text: '請選擇發送對象' });
                                                                         }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })),
-                                                ],
+                                                                    })}"
+                                                                                                                >
+                                                                                                                    確認並發送
+                                                                                                                </button>
+                                                                                                            </div>
+                                                                                                        ` +
+                                                                        BgNotify.fcmDevice(gvc, 'select', (data) => {
+                                                                            dataList = data;
+                                                                        }),
+                                                                ].join('')), 900)}
+                                                                                            <div></div>
+                                                                                        </div>
+                                                                                    `;
+                                                            }, 'email');
+                                                        })}"
+                                                                        >
+                                                                            <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                        </button>`,
+                                                    },
+                                                ];
                                             });
                                         }
+                                        vm.dataList = data.response.data;
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.data = vm.dataList[index].content;
+                                    vm.type = 'replace';
+                                },
+                                filter: [
+                                    {
+                                        name: '批量移除',
+                                        event: (checkedData) => {
+                                            const dialog = new ShareDialog(glitter);
+                                            dialog.checkYesOrNot({
+                                                text: '是否確認刪除所選項目？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiPost.delete({
+                                                            id: checkedData.map((dd) => dd.id).join(`,`),
+                                                        }).then((res) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (res.result) {
+                                                                vm.dataList = undefined;
+                                                                gvc.notifyDataChange(id);
+                                                            }
+                                                            else {
+                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                            }
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        },
                                     },
-                                    divCreate: () => {
-                                        return {
-                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: ``,
-                                        };
-                                    },
-                                };
-                            })}`,
-                        })))}
+                                ],
+                            }),
+                        ].join('')))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
@@ -2218,55 +1940,6 @@ export class BgNotify {
                         return vm.dataList.map((dd) => {
                             var _a;
                             return [
-                                {
-                                    key: (() => {
-                                        clearInterval(interval);
-                                        if (!vm.dataList.find((dd) => {
-                                            return !dd.checked;
-                                        })) {
-                                            interval = setTimeout(() => {
-                                                ApiUser.getFCM({
-                                                    page: vmi.page - 1,
-                                                    limit: 100000,
-                                                    search: vm.query || undefined,
-                                                }).then((data) => {
-                                                    callback(data.response.data);
-                                                });
-                                            }, 10);
-                                        }
-                                        return EditorElem.checkBoxOnly({
-                                            gvc: gvc,
-                                            def: !vm.dataList.find((dd) => {
-                                                return !dd.checked;
-                                            }),
-                                            callback: (result) => {
-                                                vm.dataList.map((dd) => {
-                                                    dd.checked = result;
-                                                });
-                                                vmi.data = getDatalist();
-                                                vmi.callback();
-                                                gvc.notifyDataChange(filterID);
-                                                callback(vm.dataList.filter((dd) => {
-                                                    return dd.checked;
-                                                }));
-                                            },
-                                        });
-                                    })(),
-                                    value: EditorElem.checkBoxOnly({
-                                        gvc: gvc,
-                                        def: dd.checked,
-                                        callback: (result) => {
-                                            dd.checked = result;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                            gvc.notifyDataChange(filterID);
-                                            callback(vm.dataList.filter((dd) => {
-                                                return dd.checked;
-                                            }));
-                                        },
-                                        style: 'height:25px;',
-                                    }),
-                                },
                                 {
                                     key: '名稱',
                                     value: `<span class="fs-7">${dd.content.name}</span>`,
@@ -2407,103 +2080,76 @@ export class BgNotify {
                             ${BgWidget.title('回饋信件')}
                             <div class="flex-fill"></div>
                         </div>
-                        ${BgWidget.table({
-                        gvc: gvc,
-                        getData: (vmk) => {
-                            vmi = vmk;
-                            ApiPost.getUserPost({
-                                page: vmi.page - 1,
-                                limit: 20,
-                                search: vm.query || undefined,
-                                type: 'userQuestion',
-                            }).then((data) => {
-                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                vm.dataList = data.response.data;
-                                vmi.data = getDatalist();
-                                vmi.loading = false;
-                                vmi.callback();
-                                if (type === 'select') {
-                                    callback(vm.dataList.filter((dd) => {
-                                        return dd.checked;
-                                    }));
-                                }
-                            });
-                        },
-                        rowClick: (data, index) => {
-                            vm.type = 'replace';
-                            vm.data = vm.dataList[index];
-                            gvc.notifyDataChange(id);
-                        },
-                        filter: html `
-                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                        ${BgWidget.mainCard([
+                        BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
-                        }), vm.query || '', '搜尋標題')}
-                                ${gvc.bindView(() => {
-                            return {
-                                bind: filterID,
-                                view: () => {
-                                    if (!vm.dataList ||
-                                        !vm.dataList.find((dd) => {
+                        }), vm.query || '', '搜尋標題'),
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vmi) => {
+                                const limit = 20;
+                                ApiPost.getUserPost({
+                                    page: vmi.page - 1,
+                                    limit: limit,
+                                    search: vm.query || undefined,
+                                    type: 'userQuestion',
+                                }).then((data) => {
+                                    vm.dataList = data.response.data;
+                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.originalData = vm.dataList;
+                                    vmi.tableData = getDatalist();
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                    if (type === 'select') {
+                                        callback(vm.dataList.filter((dd) => {
                                             return dd.checked;
-                                        })) {
-                                        return ``;
+                                        }));
                                     }
-                                    else {
+                                });
+                            },
+                            rowClick: (data, index) => {
+                                vm.type = 'replace';
+                                vm.data = vm.dataList[index];
+                                gvc.notifyDataChange(id);
+                            },
+                            filter: [
+                                {
+                                    name: '批量刪除',
+                                    event: () => {
                                         const dialog = new ShareDialog(gvc.glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiPost.deleteUserPost({
-                                                                    id: vm.dataList
-                                                                        .filter((dd) => {
-                                                                        return dd.checked;
-                                                                    })
-                                                                        .map((dd) => {
-                                                                        return dd.id;
-                                                                    })
-                                                                        .join(`,`),
-                                                                }).then((res) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        vm.dataList = undefined;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                    }
-                                                                });
-                                                            }
-                                                        },
+                                        dialog.checkYesOrNot({
+                                            text: '是否確認刪除所選項目？',
+                                            callback: (response) => {
+                                                if (response) {
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiPost.deleteUserPost({
+                                                        id: vm.dataList
+                                                            .filter((dd) => {
+                                                            return dd.checked;
+                                                        })
+                                                            .map((dd) => {
+                                                            return dd.id;
+                                                        })
+                                                            .join(`,`),
+                                                    }).then((res) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        if (res.result) {
+                                                            vm.dataList = undefined;
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                        else {
+                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                        }
                                                     });
-                                                })),
-                                            ],
+                                                }
+                                            },
                                         });
-                                    }
+                                    },
                                 },
-                                divCreate: () => {
-                                    return {
-                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                            !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            }) ||
-                                            type === 'select'
-                                            ? `d-none`
-                                            : ``}`,
-                                        style: ``,
-                                    };
-                                },
-                            };
-                        })}
-                            `,
-                    })}
+                            ],
+                        }),
+                    ].join(''))}
                     `);
                 },
                 divCreate: {

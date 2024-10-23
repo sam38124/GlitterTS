@@ -56,12 +56,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         }
 
         .scroll-in {
-            animation: slideInFromLeft 0.5s ease-out forwards;
+            animation: slideInFromLeft 0.3s ease-out forwards;
         }
 
         .scroll-out {
             left: 0%; /* 將元素移到畫面外 */
-            animation: slideOutFromLeft 0.5s ease-out forwards;
+            animation: slideOutFromLeft 0.3s ease-out forwards;
         }
 
         /* @keyframes 定義動畫 */
@@ -104,12 +104,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
         .scroll-right-in {
             right: -120%; /* 將元素移到畫面外 */
-            animation: slideInRight 0.5s ease-out forwards;
+            animation: slideInRight 0.3s ease-out forwards;
         }
 
         .scroll-right-out {
             right: 0; /* 將元素移到畫面外 */
-            animation: slideOutRight 0.5s ease-out forwards;
+            animation: slideOutRight 0.3s ease-out forwards;
         }
 
         /* @keyframes 定義動畫 */

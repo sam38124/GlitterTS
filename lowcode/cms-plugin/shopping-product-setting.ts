@@ -1248,7 +1248,6 @@ export class ShoppingProductSetting {
                                                                                                     class: 'rounded border me-4',
                                                                                                 })}${Tool.truncateString(dd.content.title)}
                                                                                             </div>`,
-                                                                                            width: 45,
                                                                                         },
                                                                                         {
                                                                                             key: '售價',
@@ -1430,7 +1429,6 @@ export class ShoppingProductSetting {
                                                                                     },
                                                                                 });
                                                                             },
-                                                                            option: false,
                                                                         },
                                                                     ],
                                                                 });
@@ -2324,7 +2322,7 @@ export class ShoppingProductSetting {
                                         document.body.clientWidth > 768 ? '預覽商品' : '預覽',
                                         gvc.event(() => {
                                             const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
-                                            (window.parent as any).glitter.openNewTab(href)
+                                            (window.parent as any).glitter.openNewTab(href);
                                         }),
                                         { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
                                     )}
@@ -2369,6 +2367,11 @@ export class ShoppingProductSetting {
                                                                 }
 
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
+                                                                        ${BgWidget.aiChatButton({
+                                                                            gvc,
+                                                                            select: 'writer',
+                                                                            title: '使用AI文案寫手',
+                                                                        })}
                                                                         <div class="flex-fill"></div>
                                                                         <div
                                                                             class="cursor_pointer"
@@ -2507,6 +2510,7 @@ export class ShoppingProductSetting {
                                                                             },
                                                                         }),
                                                                         height: 800,
+                                                                        openOnInit: true,
                                                                     })}
                                                                     ${BgWidget.mbContainer(8)}
                                                                     ${vm.documents
@@ -4067,7 +4071,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                             ${BgWidget.greenNote(
                                                                                 href + `/${postMD.seo.domain}`,
                                                                                 gvc.event(() => {
-                                                                                    (window.parent as any).glitter.openNewTab(href + `/${postMD.seo.domain}`)
+                                                                                    (window.parent as any).glitter.openNewTab(href + `/${postMD.seo.domain}`);
                                                                                 })
                                                                             )}
                                                                         </div>`,

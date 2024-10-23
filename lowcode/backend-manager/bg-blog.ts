@@ -52,7 +52,6 @@ export class BgBlog {
                     {
                         key: `${is_page ? `頁面` : `網誌`}標題`,
                         value: html`<span class="fs-7">${(dd.content.name ?? '尚未設定標題').substring(0, 15)}</span>`,
-                        width: 40,
                     },
                     {
                         key: '發布時間',
@@ -88,7 +87,6 @@ export class BgBlog {
                                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
                             </div>
                         `,
-                        width: 10,
                     },
                 ];
             });
@@ -156,16 +154,14 @@ export class BgBlog {
                                 </div>
                                 ${BgWidget.mainCard(
                                     [
-                                        html`<div class="mb-3 px-2">
-                                            ${BgWidget.searchPlace(
-                                                gvc.event((e) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋所有文章'
-                                            )}
-                                        </div>`,
+                                        BgWidget.searchPlace(
+                                            gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋所有文章'
+                                        ),
                                         BgWidget.tableV3({
                                             gvc: gvc,
                                             getData: (vd) => {
@@ -231,7 +227,6 @@ export class BgBlog {
                                                             },
                                                         });
                                                     },
-                                                    option: false,
                                                 },
                                             ],
                                         }),
