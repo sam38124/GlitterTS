@@ -2238,11 +2238,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return glitter;
         })();
         return glitter.innerDialog((gvc) => {
+            var _a;
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+            return html ` <div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
                 ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -2266,7 +2270,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             </div>
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
-                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}</div>
+                                    <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}</div>
                                     <div class="c_dialog_bar">${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
                                 </div>
                             </div>
