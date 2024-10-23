@@ -906,12 +906,45 @@ color:white;
                                                     const id = gvc.glitter.getUUID();
                                                     const notice_count = gvc.glitter.getUUID();
                                                     let toggle = false;
-                                                    let unread = 0;
-                                                    clearInterval(glitter.share.notice_interval);
-                                                    glitter.share.notice_interval = setInterval(async () => {
+                                                    let unread=0
+                                                    let socket: any = undefined
+                                                    let vm = {
+                                                        close: false
+                                                    }
+                                                    async function loadData() {
                                                         unread = (await ApiUser.getNoticeUnread((window as any).glitterBase, GlobalUser.saas_token)).response.count;
-                                                        gvc.notifyDataChange(notice_count);
-                                                    }, 3000);
+                                                        
+                                                        gvc.notifyDataChange(id)
+                                                    }
+                                                    loadData()
+                                                    
+                                                    function connect() {
+                                                        const url = new URL((window as any).glitterBackend)
+                                                        socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                                        socket.addEventListener('open',async function (event: any) {
+                                                            console.log('Connected to notice count server');
+                                                            const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+                                                            socket.send(JSON.stringify({
+                                                                type: 'notice_count_change',
+                                                                user_id: userData.userID,
+                                                                app_name: (window as any).appName
+                                                            }))
+                                                        });
+                                                        socket.addEventListener('message', async function (event: any) {
+                                                            const data = JSON.parse(event.data)
+                                                            if (data.type === 'notice_count_change') {
+                                                                loadData()
+                                                            }
+                                                        });
+                                                        socket.addEventListener('close', function (event: any) {
+                                                            console.log('Disconnected from server');
+                                                            if (!vm.close) {
+                                                                console.log('Reconnected from server');
+                                                                connect()
+                                                            }
+                                                        });
+                                                    }
+                                                    connect()
                                                     return {
                                                         bind: id,
                                                         view: () => {
@@ -923,6 +956,7 @@ color:white;
                                                                             style="width: 42px;"
                                                                             onclick="${gvc.event(() => {
                                                                                 toggle = !toggle;
+                                                                                unread=0
                                                                                 setTimeout(() => {
                                                                                     gvc.notifyDataChange(id);
                                                                                 }, 100);

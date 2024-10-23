@@ -2620,7 +2620,7 @@ ${obj.default ?? ''}</textarea
         }, 'productsDialog');
     }
 
-    static settingDialog(obj: { gvc: GVC; title: string; innerHTML: (gvc: GVC) => string; footer_html: (gvc: GVC) => string; closeCallback?: () => void }) {
+    static settingDialog(obj: { gvc: GVC; title: string; width?: number; height?: number; innerHTML: (gvc: GVC) => string; footer_html: (gvc: GVC) => string; closeCallback?: () => void }) {
         const glitter = (() => {
             let glitter = obj.gvc.glitter;
             if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
@@ -2634,7 +2634,10 @@ ${obj.default ?? ''}</textarea
                 loading: false,
             };
 
-            return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+            return html` <div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${obj.width ?? 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
                 ${gvc.bindView({
                     bind: vm.id,
                     view: () => {
@@ -2657,7 +2660,7 @@ ${obj.default ?? ''}</textarea
                             </div>
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
-                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${obj.innerHTML(gvc) ?? ''}</div>
+                                    <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${obj.innerHTML(gvc) ?? ''}</div>
                                     <div class="c_dialog_bar">${obj.footer_html(gvc) ?? ''}</div>
                                 </div>
                             </div>
@@ -2675,6 +2678,7 @@ ${obj.default ?? ''}</textarea
         innerHTML: (gvc: GVC) => string;
         width?: number;
         height?: number;
+        style?: string;
         save?: {
             text?: string;
             event: (gvc: GVC) => Promise<boolean>;
@@ -2684,7 +2688,6 @@ ${obj.default ?? ''}</textarea
             event?: (gvc: GVC) => Promise<boolean>;
         };
         xmark?: (gvc: GVC) => Promise<boolean>;
-        style?: string;
     }) {
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
             obj.gvc = (window.parent as any).glitter.pageConfig[0].gvc;

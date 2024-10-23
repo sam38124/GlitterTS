@@ -15,7 +15,7 @@ class WebSocket {
             const id = new Date().getTime();
             console.log('Client connected');
             ws.on('message', function incoming(message) {
-                var _a, _b;
+                var _a, _b, _c;
                 console.log('received: %s', message);
                 const json = JSON.parse(message);
                 const chat_key = json.app_name + json.chatID;
@@ -49,6 +49,21 @@ class WebSocket {
                         });
                     });
                 }
+                else if (json.type === 'notice_count_change') {
+                    json.user_id = `${json.user_id}`;
+                    WebSocket.noticeChangeMem[json.user_id] = (_c = WebSocket.noticeChangeMem[json.user_id]) !== null && _c !== void 0 ? _c : [];
+                    WebSocket.noticeChangeMem[json.user_id].push({
+                        id: id,
+                        callback: (data) => {
+                            ws.send(JSON.stringify(data));
+                        }
+                    });
+                    event.close.push(() => {
+                        WebSocket.noticeChangeMem[json.user_id] = WebSocket.noticeChangeMem[json.user_id].filter((dd) => {
+                            return dd.id !== id;
+                        });
+                    });
+                }
             });
             ws.on('close', function close() {
                 console.log('Client disconnected');
@@ -62,4 +77,5 @@ class WebSocket {
 exports.WebSocket = WebSocket;
 WebSocket.chatMemory = {};
 WebSocket.messageChangeMem = {};
+WebSocket.noticeChangeMem = {};
 //# sourceMappingURL=web-socket.js.map

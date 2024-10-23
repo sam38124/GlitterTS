@@ -12,6 +12,12 @@ export declare class WebSocket {
             callback: (data: any) => void;
         }[];
     };
+    static noticeChangeMem: {
+        [userID: string]: {
+            id: any;
+            callback: (data: any) => void;
+        }[];
+    };
     static start(): void;
     static userMessage(): void;
 }

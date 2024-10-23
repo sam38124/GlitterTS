@@ -885,11 +885,48 @@ color:white;
                         const notice_count = gvc.glitter.getUUID();
                         let toggle = false;
                         let unread = 0;
-                        clearInterval(glitter.share.notice_interval);
-                        glitter.share.notice_interval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                            unread = (yield ApiUser.getNoticeUnread(window.glitterBase, GlobalUser.saas_token)).response.count;
-                            gvc.notifyDataChange(notice_count);
-                        }), 3000);
+                        let socket = undefined;
+                        let vm = {
+                            close: false
+                        };
+                        function loadData() {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                unread = (yield ApiUser.getNoticeUnread(window.glitterBase, GlobalUser.saas_token)).response.count;
+                                gvc.notifyDataChange(id);
+                            });
+                        }
+                        loadData();
+                        function connect() {
+                            const url = new URL(window.glitterBackend);
+                            socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                            socket.addEventListener('open', function (event) {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    console.log('Connected to notice count server');
+                                    const userData = (yield ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+                                    socket.send(JSON.stringify({
+                                        type: 'notice_count_change',
+                                        user_id: userData.userID,
+                                        app_name: window.appName
+                                    }));
+                                });
+                            });
+                            socket.addEventListener('message', function (event) {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    const data = JSON.parse(event.data);
+                                    if (data.type === 'notice_count_change') {
+                                        loadData();
+                                    }
+                                });
+                            });
+                            socket.addEventListener('close', function (event) {
+                                console.log('Disconnected from server');
+                                if (!vm.close) {
+                                    console.log('Reconnected from server');
+                                    connect();
+                                }
+                            });
+                        }
+                        connect();
                         return {
                             bind: id,
                             view: () => {
@@ -900,6 +937,7 @@ color:white;
                                                                             style="width: 42px;"
                                                                             onclick="${gvc.event(() => {
                                         toggle = !toggle;
+                                        unread = 0;
                                         setTimeout(() => {
                                             gvc.notifyDataChange(id);
                                         }, 100);

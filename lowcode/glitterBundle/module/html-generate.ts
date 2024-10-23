@@ -727,6 +727,7 @@ ${obj.gvc.bindView({
                             }else if (key==='loading'){
                                 dialog.dataLoading({visible:(subData.visible) ?? true,text:subData.title})
                             }
+                            resolve(true)
                             return
                         }
                         GlobalEvent.getGlobalEvent({
@@ -745,6 +746,7 @@ ${obj.gvc.bindView({
                                 resolve(false);
                             }
                         });
+
                     });
                 };
                 return dd;

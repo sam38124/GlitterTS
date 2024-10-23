@@ -11,6 +11,7 @@ import {AutoSendEmail} from './auto-send-email.js';
 import {AiRobot} from './ai-robot.js';
 import {FbMessage} from "./fb-message.js";
 import {LineMessage} from "./line-message.js";
+
 const Jimp = require('jimp');
 
 export interface ChatRoom {
@@ -25,7 +26,7 @@ export interface ChatMessage {
     user_id: string;
     message: {
         text?: string;
-        image?:string;
+        image?: string;
         attachment: any;
     };
 }
@@ -52,7 +53,7 @@ export class Chat {
                     )
                 )[0]['count(1)'] === 0
             ) {
-              await db.query(
+                await db.query(
                     `INSERT INTO \`${this.app}\`.\`t_chat_list\`
                      SET ?`,
                     [
@@ -90,7 +91,7 @@ export class Chat {
                             {
                                 chat_id: room.chat_id,
                                 user_id: b,
-                                last_read: (()=>{
+                                last_read: (() => {
                                     const today = new Date();
                                     // 设置昨天的日期
                                     today.setDate(today.getDate() - 2);
@@ -127,7 +128,7 @@ export class Chat {
             const data = await new UtDatabase(this.app, `t_chat_list`).querySql(query, qu);
             // console.log(`查詢Chat-list:${((new Date().getTime()) - start) / 1000}`)
             await new Promise(async (resolve, reject) => {
-                let pass=0
+                let pass = 0
                 for (const b of data.data) {
                     new Promise(async (resolve, reject) => {
                         try {
@@ -182,14 +183,14 @@ export class Chat {
                         } catch (e) {
                             resolve(false)
                         }
-                    }).then(()=>{
+                    }).then(() => {
                         pass++
-                        if(pass===data.data.length){
+                        if (pass === data.data.length) {
                             resolve(true)
                         }
                     })
                 }
-                if(pass===data.data.length){
+                if (pass === data.data.length) {
                     resolve(true)
                 }
             })
@@ -233,7 +234,7 @@ export class Chat {
                 });
             }
             //傳送者
-            const user = (
+            let user = (
                 await db.query(
                     `SELECT userID, userData
                      FROM \`${this.app}\`.t_user
@@ -241,6 +242,22 @@ export class Chat {
                     [room.user_id]
                 )
             )[0];
+            //判斷第三方進行UserData的覆蓋
+            if (room.user_id.startsWith('line')) {
+                user={
+                    userData:(await db.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`,[
+                        [room.user_id,'manager'].sort().join('-')
+                    ]))[0]['info']['line'],
+                    userID:-1
+                }
+            } else if (room.user_id.startsWith('fb')) {
+                user={
+                    userData:(await db.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`,[
+                        [room.user_id,'manager'].sort().join('-')
+                    ]))[0]['info']['fb'],
+                    userID:-1
+                }
+            }
             //參加者
             const particpant = await db.query(
                 `SELECT *
@@ -256,7 +273,8 @@ export class Chat {
             const insert = await db.query(
                 `
                     insert into \`${this.app}\`.\`t_chat_detail\`
-                        (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                        (chat_id, user_id, message, created_time)
+                    values (?, ?, ?, NOW())
                 `,
                 [
                     room.chat_id,
@@ -300,20 +318,21 @@ export class Chat {
                         const response = await new Promise(async (resolve, reject) => {
                             switch (b.user_id) {
                                 case 'writer':
-                                    resolve(await AiRobot.writer(this.app, room.message.text??""));
+                                    resolve(await AiRobot.writer(this.app, room.message.text ?? ""));
                                     return;
                                 case 'order_analysis':
-                                    resolve(await AiRobot.orderAnalysis(this.app, room.message.text??""));
+                                    resolve(await AiRobot.orderAnalysis(this.app, room.message.text ?? ""));
                                     return;
                                 case 'operation_guide':
-                                    resolve(await AiRobot.guide(this.app, room.message.text??""));
+                                    resolve(await AiRobot.guide(this.app, room.message.text ?? ""));
                                     return;
                             }
                         });
                         const insert = await db.query(
                             `
                                 insert into \`${this.app}\`.\`t_chat_detail\`
-                                    (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                                    (chat_id, user_id, message, created_time)
+                                values (?, ?, ?, NOW())
                             `,
                             [
                                 room.chat_id,
@@ -364,7 +383,8 @@ export class Chat {
                                     const insert = await db.query(
                                         `
                                             insert into \`${this.app}\`.\`t_chat_detail\`
-                                             (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                                                (chat_id, user_id, message, created_time)
+                                            values (?, ?, ?, NOW())
                                         `,
                                         [
                                             room.chat_id,
@@ -431,8 +451,8 @@ export class Chat {
                 []
             );
             //通知更新訊息紅點
-            particpant.map((dd:any)=>{
-                if(`${dd.user_id}` !== `${room.user_id}`){
+            particpant.map((dd: any) => {
+                if (`${dd.user_id}` !== `${room.user_id}`) {
                     (WebSocket.messageChangeMem[`${dd.user_id}`] ?? []).map((d2) => {
                         d2.callback({
                             type: 'update_message_count',
@@ -476,6 +496,7 @@ export class Chat {
                                     template.title,
                                     template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain)
                                 );
+                                const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
                             } else {
                                 await sendmail(`service@ncdesign.info`, dd.userData.email, '有人傳送訊息給您', this.templateWithCustomerMessage('收到匿名訊息', `有一則匿名訊息:`, room.message.text));
                             }
@@ -497,6 +518,20 @@ export class Chat {
                     template.title,
                     template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain)
                 );
+                await new Firebase(managerUser.brand).sendMessage({
+                    title: `收到客服訊息`,
+                    userID: managerUser.user_id,
+                    tag: 'message',
+                    link: `./?toggle-message=true`,
+                    body: room.message.image ? `${user.userData.name}傳送一張圖片給你`:`${user.userData.name}傳送一則訊息給你:「${(() => {
+                        let text = room.message.text ?? ""
+                        if (text.length > 25) {
+                            text = text?.substring(0, 25) + '...'
+                        }
+                        return text
+                    })()}」`,
+                    pass_store:true
+                });
             }
         } catch (e: any) {
             console.log(e);

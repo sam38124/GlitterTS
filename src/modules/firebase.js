@@ -8,6 +8,7 @@ const path_1 = __importDefault(require("path"));
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const config_1 = require("../config");
 const database_1 = __importDefault(require("../modules/database"));
+const web_socket_js_1 = require("../services/web-socket.js");
 class Firebase {
     constructor(app) {
         this.app = '';
@@ -64,6 +65,13 @@ class Firebase {
     }
     async sendMessage(cf) {
         cf.body = cf.body.replace(/<br\s*\/?>/gi, '\n');
+        if (cf.userID) {
+            web_socket_js_1.WebSocket.noticeChangeMem[cf.userID] && web_socket_js_1.WebSocket.noticeChangeMem[cf.userID].map((d2) => {
+                d2.callback({
+                    type: 'notice_count_change',
+                });
+            });
+        }
         return new Promise(async (resolve, reject) => {
             var _a;
             if (cf.userID) {
