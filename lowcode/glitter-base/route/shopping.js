@@ -40,6 +40,23 @@ export class ApiShop {
             }),
         });
     }
+    static setFEGuideable(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                key: 'FEguideable',
+                value: {
+                    view: true,
+                },
+            }),
+        });
+    }
     static getGuide() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guide`,

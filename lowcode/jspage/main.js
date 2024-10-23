@@ -687,8 +687,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             }
                             case 'user-editor': {
                                 ApiShop.getFEGuideable().then(r => {
-                                    console.log(" r--- ", r);
                                     if (!r.response.value || !r.response.value.view) {
+                                        let bgGuide = new BgGuide(gvc, 0, "user-editor", 0);
+                                        ApiShop.setFEGuideable({});
+                                        bgGuide.drawGuide();
                                     }
                                 });
                                 break;

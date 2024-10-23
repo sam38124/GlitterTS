@@ -99,11 +99,11 @@ export class BgGuide {
     ];
     private eventSet: any = [];
 
-    constructor(gvc: GVC, guide: number, type: string = 'backend-manger') {
+    constructor(gvc: GVC, guide: number, type: string = 'backend-manger' , step: number = 0) {
         this.guide = guide;
         this.gvc = gvc;
         this.type = type;
-        this.step = 0;
+        this.step = step;
     }
 
     public detectClickThrough(target: any, clickEvent: () => void) {
@@ -2248,6 +2248,7 @@ export class BgGuide {
                                 }
                             }, 500);
                         }
+                        target.scrollIntoView();
                         let rect = target.getBoundingClientRect();
                         let left = rect.left + iframeRect.left;
                         let top = rect.top + iframeRect.top;
@@ -2579,15 +2580,27 @@ export class BgGuide {
                         let target = this.findIframeDom(targetSelector);
                         if (!target) {
                             const timer = setInterval(() => {
+
                                 if (this.findIframeDom(targetSelector)) {
                                     clearInterval(timer);
+
                                     gvc.notifyDataChange(viewID);
                                 }
                             }, 400);
                         }
+                        if (target.querySelector('.open-box')){
+                            target.click();
+
+                            let timer2 = setInterval(()=>{
+                                clearInterval(timer2)
+                                gvc.notifyDataChange(viewID);
+
+                            },300)
+                            return ``
+                        }
                         this.detectClickThrough(target, () => {
                             BG.classList.remove('guide2-4');
-                            vm.step++;
+                            vm.step = 5;
                             gvc.notifyDataChange(`financeInit`);
                         });
                         target.parentElement.parentElement.scrollIntoView();
@@ -2752,10 +2765,10 @@ export class BgGuide {
                                                                         close();
                                                                         setTimeout(() => {
                                                                             this.findIframeDom('.guide2-4').scrollIntoView({});
-                                                                            vm.step--;
+                                                                            vm.step = 4;
 
                                                                             gvc.notifyDataChange('financeInit');
-                                                                        }, 400);
+                                                                        }, 600);
                                                                     })}"
                                                             >
                                                                 上一步

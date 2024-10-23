@@ -264,9 +264,7 @@ class FbMessage {
         async function downloadImageFromFacebook(imageUrl, accessToken) {
             try {
                 const response = await axios_1.default.get(imageUrl, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
+                    headers: {},
                     responseType: 'arraybuffer',
                 });
                 return Buffer.from(response.data);
@@ -324,7 +322,7 @@ class FbMessage {
                                 ]);
                                 DBdata = DBdata[0];
                                 const now = new Date();
-                                if (!DBdata.info.fb.update || new Date().getTime() + (1000 * 60 * 60 * 24) - DBdata.info.fb.update > (1000 * 60 * 60 * 24)) {
+                                if (!DBdata.info.fb.update || new Date().getTime() - DBdata.info.fb.update > (1000 * 60 * 60 * 24)) {
                                     await this.getFBInf({ fbID: event.recipient.id }, (data) => {
                                         chatData.info = {
                                             fb: {
@@ -346,7 +344,6 @@ class FbMessage {
                                         },
                                         chatData.chat_id
                                     ]);
-                                    console.log("update success !");
                                 }
                             }
                             else {
@@ -392,6 +389,7 @@ class FbMessage {
                                     attachments.forEach((attachment) => {
                                         if (attachment.type === 'image' && attachment.payload) {
                                             let imageUrl = attachment.payload.url;
+                                            console.log("accessToken -- ", accessToken);
                                             downloadImageFromFacebook(imageUrl, accessToken)
                                                 .then((buffer) => {
                                                 const fileExtension = getFileExtension(imageUrl);
@@ -411,8 +409,6 @@ class FbMessage {
                                     });
                                 }
                             }
-                        }
-                        else {
                         }
                     }
                 }

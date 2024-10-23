@@ -257,7 +257,7 @@ color: transparent;"
                                                          style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
                                                          data-bs-html="true" title="新手教學"
                                                          onclick="${gvc.event(() => {
-                                let bgGuide = new BgGuide(gvc, 0, "user-editor");
+                                let bgGuide = new BgGuide(gvc, 0, "user-editor", 1);
                                 bgGuide.drawGuide();
                             })}">
                                                         <div style="display: flex;width: 32px;height: 32px;padding: 7px;justify-content: center;align-items: center;border-radius: 5.833px;border: 1px solid #DDD;background: #FFF;">

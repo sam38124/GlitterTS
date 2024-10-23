@@ -367,11 +367,11 @@ export class FbMessage {
     }
 
     async listenMessage(body: any): Promise<{ result: boolean; message: string }> {
-        async function downloadImageFromFacebook(imageUrl: string, accessToken: string): Promise<Buffer> {
+        async function downloadImageFromFacebook(imageUrl: string): Promise<Buffer> {
             try {
                 const response = await axios.get(imageUrl, {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
+
                     },
                     responseType: 'arraybuffer', // 下載二進制資料
                 });
@@ -515,8 +515,7 @@ export class FbMessage {
                                     attachments.forEach((attachment: any) => {
                                         if (attachment.type === 'image' && attachment.payload) {
                                             let imageUrl = attachment.payload.url;
-
-                                            downloadImageFromFacebook(imageUrl, accessToken)
+                                            downloadImageFromFacebook(imageUrl)
                                                 .then((buffer) => {
                                                     const fileExtension = getFileExtension(imageUrl);
                                                     this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`,buffer)
