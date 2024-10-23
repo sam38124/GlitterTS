@@ -81,6 +81,7 @@ export class HtmlGenerate {
                             else if (key === 'loading') {
                                 dialog.dataLoading({ visible: (_a = (subData.visible)) !== null && _a !== void 0 ? _a : true, text: subData.title });
                             }
+                            resolve(true);
                             return;
                         }
                         GlobalEvent.getGlobalEvent({

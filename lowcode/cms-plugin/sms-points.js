@@ -206,7 +206,7 @@ export class SmsPoints {
                         }),
                         ...(() => {
                             if (vm.total) {
-                                return [BgWidget.greenNote(`此次儲值可獲得AI Points『 ${(vm.total * 10).toLocaleString()} 』`)];
+                                return [BgWidget.greenNote(`此次儲值可獲得SMS Points『 ${(vm.total * 10).toLocaleString()} 』`)];
                             }
                             else {
                                 return [];

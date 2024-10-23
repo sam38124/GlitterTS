@@ -9,7 +9,16 @@ export class WebSocket {
         }[]
     } = {}
 
+
+
     public static messageChangeMem: {
+        [userID: string]: {
+            id: any,
+            callback: (data: any) => void;
+        }[]
+    } = {}
+
+    public static noticeChangeMem: {
         [userID: string]: {
             id: any,
             callback: (data: any) => void;
@@ -60,6 +69,20 @@ export class WebSocket {
                     })
                     event.close.push(() => {
                         WebSocket.messageChangeMem[json.user_id as string] = WebSocket.messageChangeMem[json.user_id as string].filter((dd) => {
+                            return dd.id !== id
+                        })
+                    })
+                }else if(json.type==='notice_count_change'){
+                    json.user_id=`${json.user_id}`
+                    WebSocket.noticeChangeMem[json.user_id as string]=WebSocket.noticeChangeMem[json.user_id as string] ?? []
+                    WebSocket.noticeChangeMem[json.user_id as string].push({
+                        id: id,
+                        callback: (data) => {
+                            ws.send(JSON.stringify(data));
+                        }
+                    })
+                    event.close.push(() => {
+                        WebSocket.noticeChangeMem[json.user_id as string] = WebSocket.noticeChangeMem[json.user_id as string].filter((dd) => {
                             return dd.id !== id
                         })
                     })

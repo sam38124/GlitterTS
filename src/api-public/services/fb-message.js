@@ -261,12 +261,10 @@ class FbMessage {
         }
     }
     async listenMessage(body) {
-        async function downloadImageFromFacebook(imageUrl, accessToken) {
+        async function downloadImageFromFacebook(imageUrl) {
             try {
                 const response = await axios_1.default.get(imageUrl, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
+                    headers: {},
                     responseType: 'arraybuffer',
                 });
                 return Buffer.from(response.data);
@@ -291,7 +289,7 @@ class FbMessage {
                 for (const entry of body.entry) {
                     const messagingEvents = entry.messaging;
                     for (const event of messagingEvents) {
-                        if (event.message && event.message.text && ((`${event.sender.id}`) !== tokenData[0].value.fans_id)) {
+                        if (event.message) {
                             if (((`${event.sender.id}`) == tokenData[0].value.fans_id)) {
                                 const recipient = "fb_" + event.recipient.id;
                                 let chatData = {
@@ -333,10 +331,10 @@ class FbMessage {
                                     DBdata.info.fb.update = new Date().getTime();
                                     chatData.info = JSON.stringify(chatData.info);
                                     await database_js_1.default.query(`
-                                        UPDATE \`${this.app}\`.\`t_chat_list\`
-                                        SET ?
-                                        WHERE chat_id = ?
-                                    `, [
+                                            UPDATE \`${this.app}\`.\`t_chat_list\`
+                                            SET ?
+                                            WHERE chat_id = ?
+                                        `, [
                                         {
                                             info: chatData.info,
                                         },
@@ -365,10 +363,10 @@ class FbMessage {
                                 const result = await new chat_1.Chat(this.app).addChatRoom(chatData);
                                 if (!result.create) {
                                     await database_js_1.default.query(`
-                                        UPDATE \`${this.app}\`.\`t_chat_list\`
-                                        SET ?
-                                        WHERE chat_id = ?
-                                    `, [
+                                            UPDATE \`${this.app}\`.\`t_chat_list\`
+                                            SET ?
+                                            WHERE chat_id = ?
+                                        `, [
                                         {
                                             info: chatData.info,
                                         },
@@ -387,14 +385,14 @@ class FbMessage {
                                     attachments.forEach((attachment) => {
                                         if (attachment.type === 'image' && attachment.payload) {
                                             let imageUrl = attachment.payload.url;
-                                            downloadImageFromFacebook(imageUrl, `${tokenData[0].value.fans_token}`)
+                                            downloadImageFromFacebook(imageUrl)
                                                 .then((buffer) => {
                                                 const fileExtension = getFileExtension(imageUrl);
                                                 this.uploadFile(`line/${new Date().getTime()}.${fileExtension}`, buffer)
                                                     .then(async (data) => {
                                                     const senderId = "fb_" + event.sender.id;
                                                     chatData.message = {
-                                                        "image": imageUrl
+                                                        "image": data
                                                     };
                                                     await new chat_1.Chat(this.app).addMessage(chatData);
                                                 });

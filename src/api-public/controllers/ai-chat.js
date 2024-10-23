@@ -108,13 +108,13 @@ router.post('/sync-data', async (req, resp) => {
                     顧客姓名: orderData.customer_info.name,
                     顧客手機: orderData.customer_info.phone,
                     顧客信箱: orderData.customer_info.email,
-                    收件人姓名: orderData.user_info.name,
-                    收件人手機: orderData.user_info.phone,
-                    收件人信箱: orderData.user_info.email,
                     備註: (_c = orderData.user_info.note) !== null && _c !== void 0 ? _c : '',
                 });
             });
-            fs_1.default.writeFileSync(file1, JSON.stringify(exportData));
+            console.log(`exportData=>`, JSON.stringify(exportData));
+            fs_1.default.writeFileSync(file1, JSON.stringify({
+                order_list: exportData
+            }));
             const file = await openai.files.create({
                 file: fs_1.default.createReadStream(file1),
                 purpose: 'assistants',

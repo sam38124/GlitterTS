@@ -2,6 +2,7 @@ import path from "path";
 import admin from "firebase-admin";
 import {ConfigSetting} from "../config";
 import db from "../modules/database";
+import {WebSocket} from "../services/web-socket.js";
 
 export class Firebase {
     public app: string = ''
@@ -76,9 +77,17 @@ export class Firebase {
         tag: string,
         link: string,
         body: string,
-        app?: string
+        app?: string,
+        pass_store?:boolean
     }) {
         cf.body=cf.body.replace(/<br\s*\/?>/gi, '\n');
+        if(cf.userID){
+            WebSocket.noticeChangeMem[cf.userID] && WebSocket.noticeChangeMem[cf.userID].map((d2) => {
+                d2.callback({
+                    type: 'notice_count_change',
+                });
+            })
+        }
         return new Promise(async (resolve, reject) => {
             if (cf.userID) {
                 cf.token = (await db.query(`SELECT deviceToken
@@ -90,7 +99,7 @@ export class Firebase {
                                                    from \`${cf.app || this.app}\`.t_user_public_config
                                                    where \`key\` ='notify_setting' and user_id=?`, [cf.userID]))[0]) ?? {value: {}}).value;
                 if (`${user_cf[cf.tag]}` !== 'false') {
-                    if (cf.userID && cf.tag && cf.title && cf.body && cf.link) {
+                    if (cf.userID && cf.tag && cf.title && cf.body && cf.link && !cf.pass_store) {
                         await db.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id, tag, title, content, link)
                                         values (?, ?, ?, ?, ?)`, [
                             cf.userID,

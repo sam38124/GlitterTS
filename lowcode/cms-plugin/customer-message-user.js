@@ -490,9 +490,13 @@ export class CustomerMessageUser {
                                                     vm.close = false;
                                                     let targetElement = document.querySelector('.chatContainer');
                                                     if (vm.lastScroll === -1) {
-                                                        setTimeout(() => {
+                                                        const clock = gvc.glitter.ut.clock();
+                                                        const interval = setInterval(() => {
+                                                            if (clock.stop() > 1000) {
+                                                                clearInterval(interval);
+                                                            }
                                                             document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
-                                                        }, 100);
+                                                        }, 50);
                                                     }
                                                     else {
                                                         if (vm.prefixScroll) {
@@ -540,12 +544,15 @@ export class CustomerMessageUser {
                                                                     <div class="d-flex align-items-center w-100"
                                                                          style="overflow-x: scroll;gap: 5px;padding:10px 0;margin-bottom:10px;">
                                                                         ${(() => {
-                                                                return imageArray.map((url) => {
+                                                                return imageArray.map((url, index) => {
                                                                     return html `
                                                                                     <div class=""
                                                                                          style="position: relative;flex-shrink: 0;width: 25%;aspect-ratio: 1 / 1;background:50%/cover  url('${url}')">
                                                                                         <i class="fa-sharp fa-regular fa-circle-xmark bg-white"
-                                                                                           style="position: absolute;right: -6px;top: -6px;cursor:pointer;font-size: 20px"></i>
+                                                                                           style="position: absolute;right: -6px;top: -6px;cursor:pointer;font-size: 20px" onclick="${gvc.event(() => {
+                                                                        imageArray.splice(index, 1);
+                                                                        gvc.notifyDataChange('imageBox');
+                                                                    })}"></i>
                                                                                     </div>
                                                                                 `;
                                                                 });

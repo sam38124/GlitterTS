@@ -177,9 +177,25 @@ class Chat {
                 }, () => {
                 });
             }
-            const user = (await database_1.default.query(`SELECT userID, userData
+            let user = (await database_1.default.query(`SELECT userID, userData
                      FROM \`${this.app}\`.t_user
                      where userID = ?`, [room.user_id]))[0];
+            if (room.user_id.startsWith('line')) {
+                user = {
+                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [
+                        [room.user_id, 'manager'].sort().join('-')
+                    ]))[0]['info']['line'],
+                    userID: -1
+                };
+            }
+            else if (room.user_id.startsWith('fb')) {
+                user = {
+                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [
+                        [room.user_id, 'manager'].sort().join('-')
+                    ]))[0]['info']['fb'],
+                    userID: -1
+                };
+            }
             const particpant = await database_1.default.query(`SELECT *
                  FROM \`${this.app}\`.t_chat_participants
                  where chat_id = ?`, [room.chat_id]);
@@ -188,7 +204,8 @@ class Chat {
                             where chat_id = ?`, [room.chat_id]);
             const insert = await database_1.default.query(`
                     insert into \`${this.app}\`.\`t_chat_detail\`
-                        (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                        (chat_id, user_id, message, created_time)
+                    values (?, ?, ?, NOW())
                 `, [
                 room.chat_id,
                 room.user_id,
@@ -235,7 +252,8 @@ class Chat {
                         });
                         const insert = await database_1.default.query(`
                                 insert into \`${this.app}\`.\`t_chat_detail\`
-                                    (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                                    (chat_id, user_id, message, created_time)
+                                values (?, ?, ?, NOW())
                             `, [
                             room.chat_id,
                             b.user_id,
@@ -275,7 +293,8 @@ class Chat {
                                 if (d.ask === room.message.text) {
                                     const insert = await database_1.default.query(`
                                             insert into \`${this.app}\`.\`t_chat_detail\`
-                                             (chat_id,user_id,message,created_time) values (?,?,?,NOW())
+                                                (chat_id, user_id, message, created_time)
+                                            values (?, ?, ?, NOW())
                                         `, [
                                         room.chat_id,
                                         b.user_id,
@@ -360,6 +379,7 @@ class Chat {
                             else if (room.user_id === 'manager') {
                                 const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
                                 await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
+                                const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
                             }
                             else {
                                 await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, '有人傳送訊息給您', this.templateWithCustomerMessage('收到匿名訊息', `有一則匿名訊息:`, room.message.text));
@@ -374,6 +394,20 @@ class Chat {
                 room.user_id !== 'manager') {
                 const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
                 await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
+                await new firebase_js_1.Firebase(managerUser.brand).sendMessage({
+                    title: `收到客服訊息`,
+                    userID: managerUser.user_id,
+                    tag: 'message',
+                    link: `./?toggle-message=true`,
+                    body: `${user.userData.name}傳送一則訊息給你:「${(() => {
+                        var _a;
+                        let text = (_a = room.message.text) !== null && _a !== void 0 ? _a : "";
+                        if (text.length > 25) {
+                            text = (text === null || text === void 0 ? void 0 : text.substring(0, 25)) + '...';
+                        }
+                        return text;
+                    })()}」`,
+                });
             }
         }
         catch (e) {

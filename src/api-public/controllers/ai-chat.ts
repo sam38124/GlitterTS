@@ -115,14 +115,14 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                     顧客姓名: orderData.customer_info.name,
                     顧客手機: orderData.customer_info.phone,
                     顧客信箱: orderData.customer_info.email,
-                    收件人姓名: orderData.user_info.name,
-                    收件人手機: orderData.user_info.phone,
-                    收件人信箱: orderData.user_info.email,
                     備註: orderData.user_info.note ?? '',
                 });
             });
+            console.log(`exportData=>`,JSON.stringify(exportData))
             //寫入
-            fs.writeFileSync(file1, JSON.stringify(exportData));
+            fs.writeFileSync(file1, JSON.stringify({
+                order_list:exportData
+            }));
             //上傳訂單數據檔案
             const file = await openai.files.create({
                 file: fs.createReadStream(file1),

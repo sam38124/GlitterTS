@@ -120,9 +120,11 @@ export class BgCustomerMessage {
                                     gvc,
                                     title: '提示',
                                     innerHTML: () => {
-                                        return BgWidget.alertInfo([`<div class="fs-6 fw-500" style="white-space: normal;word-break: break-all;">請前往第三方整合設定，以同步Line與Facebook官方訊息。為確保訊息同步，請統一透過SHOPNEX後台發送訊息。</div>`].join('')) + ` <img class="w-100" src="https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2024-10-22 at 4.58.00 PM.jpg">`;
+                                        return `<div class="w-100" style="white-space:normal;word-break: break-all;">${BgWidget.grayNote([`*單一後台即可管理各渠道訊息`, `*前往第三方整合設定，設定Line與Facebook官方訊息串接`, `*為確保訊息同步，請統一透過SHOPNEX後台發送訊息`].map((dd) => {
+                                            return `<div style="letter-spacing: 1.2px;white-space:normal;word-break: break-all;">${dd}</div>`;
+                                        }).join('<div class="my-1"></div>'))}</div>`;
                                     },
-                                    width: 200
+                                    width: 250
                                 });
                             }))}
                         </div>
@@ -769,8 +771,15 @@ export class BgCustomerMessage {
                                                             </div>
                                                             <img
                                                                     src="${head}"
-                                                                    class="rounded-circle ${dd.chat_id.startsWith('line') ? '' : 'border'}"
-                                                                    style="border-radius: 50%;${dd.chat_id.startsWith('line') ? 'border:1px solid green' : ''}"
+                                                                    class="rounded-circle ${(dd.chat_id.startsWith('line') || dd.chat_id.startsWith('fb')) ? `` : `border`}"
+                                                                    style="border-radius: 50%;${(() => {
+                                                        if (dd.chat_id.startsWith('line')) {
+                                                            return `border:2px solid green;`;
+                                                        }
+                                                        else if (dd.chat_id.startsWith('fb')) {
+                                                            return `border:2px solid #0078ff;`;
+                                                        }
+                                                    })()}"
                                                                     width="40"
                                                                     alt="Devon Lane"
                                                             />
