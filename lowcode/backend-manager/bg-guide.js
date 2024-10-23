@@ -1,4 +1,5 @@
 import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ShareDialog } from "../dialog/ShareDialog.js";
 const html = String.raw;
 export class BgGuide {
     constructor(gvc, guide, type = 'backend-manger', step = 0) {
@@ -177,7 +178,8 @@ export class BgGuide {
                 return data.value === key;
             });
             target.finished = true;
-            ApiShop.setGuide(dataList);
+            ApiShop.setGuide(dataList).then(r => {
+            });
         });
     }
     drawMainRowBG(BG, vm, targetSelector, viewID, step, title) {
@@ -237,9 +239,12 @@ export class BgGuide {
     drawSecondRowBG(BG, vm, targetSelector, viewID, title, step) {
         BG.style.clipPath = ``;
         const gvc = this.gvc;
-        const target = document.querySelector(targetSelector);
-        const rect = target ? target.getBoundingClientRect() : '';
+        let target = document.querySelector(targetSelector);
+        let rect = target ? target.getBoundingClientRect() : '';
         if (rect) {
+            target.scrollIntoView();
+            target = document.querySelector(targetSelector);
+            rect = target.getBoundingClientRect();
             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
             this.detectClickThrough(target, () => {
                 vm.step = 3;
@@ -762,8 +767,8 @@ export class BgGuide {
                         `);
         this.detectClickThrough(target, () => {
             close();
-            this.leaveGuide(vm, 1);
             this.finGuide(key);
+            this.leaveGuide(vm, 0);
         });
         return html `
             <div class="d-flex flex-column"
@@ -1024,6 +1029,8 @@ export class BgGuide {
         };
         const that = this;
         let totalStep = 8;
+        let layer2Delay = true;
+        let themeNumbers = 0;
         return gvc.bindView({
             bind: 'layoutInit',
             dataList: [],
@@ -1065,6 +1072,16 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        let target = document.querySelector('.guide7-2');
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                target.scrollIntoView();
+                                gvc.notifyDataChange(viewID);
+                            }, 300);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide7-2`, viewID, '佈景主題', totalStep);
                     }
                     case 3: {
@@ -1097,7 +1114,7 @@ export class BgGuide {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(viewID);
                                 }
-                            }, 400);
+                            }, 600);
                         }
                         let content = html `
                             <div class="d-flex flex-wrap"
@@ -1166,13 +1183,26 @@ export class BgGuide {
                             height: 261,
                             title: '選擇主題',
                             content: content,
+                            next: true
                         });
                     }
                     case 7: {
                         let target = this.findIframeDom(`.guide8-5`);
+                        let themeRow = this.findPageIframe().contentWindow.document.querySelectorAll('.themeRow');
+                        if (themeNumbers == 0) {
+                            themeNumbers = themeRow.length;
+                        }
                         if (!target) {
                             const timer = setInterval(() => {
                                 if (this.findIframeDom(`.guide8-5`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400);
+                        }
+                        if (themeNumbers == this.findPageIframe().contentWindow.document.querySelectorAll('.themeRow').length) {
+                            const timer = setInterval(() => {
+                                if (themeNumbers != this.findPageIframe().contentWindow.document.querySelectorAll('.themeRow').length) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(viewID);
                                 }
@@ -1798,9 +1828,9 @@ export class BgGuide {
                                     </div>
                                     <div
                                             class="d-flex flex-column w-100"
-                                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                            style="white-space: normal;background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                                     >
-                                        開啟您要使用的配送方式
+                                        根據商品的特性決定運費要依照「材積」還是「重量」計算，靈活選擇每個商品的運費計算方式。
                                         <div class="d-flex align-items-center justify-content-between"
                                              style="margin-top: 24px;height:52px;">
                                             <div
@@ -1840,25 +1870,26 @@ export class BgGuide {
                         });
                     }
                     case 5: {
+                        this.detectClickThrough(this.findIframeDom('.guide4-5'), () => {
+                            vm.step++;
+                            setTimeout(() => {
+                                gvc.notifyDataChange('logisticsInit');
+                            }, 200);
+                        });
                         return this.drawBGwithBelowWindow(BG, vm, '.guide4-5', 'logisticsInit', 5, 8, {
                             width: 332,
                             height: 209,
                             title: '新增計算區間',
+                            next: true,
                             content: '點擊藍字即可新增一個計算區間',
                         });
                     }
                     case 6: {
-                        let target = this.findIframeDom('.guide4-6');
-                        const handleClick = (event) => {
-                            this.eventSet = this.eventSet.filter((d) => {
-                                return d !== handleClick;
-                            });
-                            target.removeEventListener('click', handleClick);
-                            return;
-                        };
-                        target.addEventListener('click', handleClick);
-                        this.eventSet.push(() => {
-                            target.removeEventListener('click', handleClick);
+                        let target = this.findPageIframe().contentWindow.document.querySelectorAll('.guide4-6');
+                        target = target[target.length - 1];
+                        this.detectClickThrough(target, () => {
+                            vm.step++;
+                            gvc.notifyDataChange('logisticsInit');
                         });
                         let content = html `
                             <div class="d-flex align-items-center" style="">
@@ -2318,7 +2349,7 @@ export class BgGuide {
                             let timer2 = setInterval(() => {
                                 clearInterval(timer2);
                                 gvc.notifyDataChange(viewID);
-                            }, 300);
+                            }, 500);
                             return ``;
                         }
                         this.detectClickThrough(target, () => {
@@ -2551,6 +2582,7 @@ export class BgGuide {
             bind: 'init',
             dataList: [{ key: 'step', obj: vm }],
             view: () => {
+                console.log(" vm.progress -- ", vm.progress);
                 if (vm.progress.length == 0) {
                     ApiShop.getGuide().then((r) => {
                         vm.progress = r.response.value;
@@ -2729,6 +2761,9 @@ export class BgGuide {
                         `;
                     }
                     case 0: {
+                        if (vm.progress.length == 0) {
+                            let dialog = new ShareDialog(gvc.glitter);
+                        }
                         return html `
                             <div class="d-flex flex-column"
                                  style="width:588px;border-radius: 10px;background-color: white;">

@@ -95,7 +95,7 @@ export class ShoppingFinanceSetting {
                                             gvc,
                                             tag: 'detail',
                                             title: payData.name + redDot,
-                                            openOnInit: true,
+                                            openOnInit: false,
                                             insideHTML: [
                                                 BgWidget.inlineCheckBox({
                                                     title: '串接路徑',
