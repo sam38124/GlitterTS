@@ -370,12 +370,35 @@ class Excel {
     }
 
     private saveAsExcelFile(buffer: any, fileName: string): void {
-        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-        const data: Blob = new Blob([buffer], { type: EXCEL_TYPE });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(data);
-        link.download = fileName;
-        link.click();
+        const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+        const dialog = new ShareDialog(this.gvc.glitter);
+        saasConfig.api.uploadFile(fileName).then((data: any) => {
+            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+            const blobData: Blob = new Blob([buffer], { type: EXCEL_TYPE });
+            const data1 = data.response;
+            dialog.dataLoading({ visible: true });
+            $.ajax({
+                url: data1.url,
+                type: 'put',
+                data: blobData,
+                processData: false,
+                headers: {
+                    'Content-Type': data1.type,
+                },
+                crossDomain: true,
+                success: () => {
+                    dialog.dataLoading({ visible: false });
+                    const link = document.createElement('a');
+                    link.href = data1.fullUrl;
+                    link.download = fileName;
+                    link.click();
+                },
+                error: () => {
+                    dialog.dataLoading({ visible: false });
+                    dialog.errorMessage({ text: '上傳失敗' });
+                },
+            });
+        });
     }
 
     // 透過位元組的大小，判斷內容文字的適合寬度計算

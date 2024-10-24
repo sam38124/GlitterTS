@@ -192,17 +192,35 @@ export class ShoppingOrderManager {
                 }
 
                 // 建立 Blob 物件
-                const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
 
-                // 建立下載連結
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.download = `order_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-                link.click();
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                }, 100);
+                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                const fileName = `訂單列表_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
+                saasConfig.api.uploadFile(fileName).then((data: any) => {
+                    const blobData = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+                    const data1 = data.response;
+                    dialog.dataLoading({ visible: true });
+                    $.ajax({
+                        url: data1.url,
+                        type: 'put',
+                        data: blobData,
+                        processData: false,
+                        headers: {
+                            'Content-Type': data1.type,
+                        },
+                        crossDomain: true,
+                        success: () => {
+                            dialog.dataLoading({ visible: false });
+                            const link = document.createElement('a');
+                            link.href = data1.fullUrl;
+                            link.download = fileName;
+                            link.click();
+                        },
+                        error: () => {
+                            dialog.dataLoading({ visible: false });
+                            dialog.errorMessage({ text: '上傳失敗' });
+                        },
+                    });
+                });
             }
         }
 

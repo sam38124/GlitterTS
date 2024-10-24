@@ -2596,7 +2596,7 @@ ${EditorElem.editeInput({
                                 return url.href;
                             })();
                             return BgWidget.greenNote(href, gvc.event(() => {
-                                window.parent.open(href, '_blank');
+                                gvc.glitter.openNewTab(href);
                             }));
                         })(),
                         html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,

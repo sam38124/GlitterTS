@@ -2811,7 +2811,7 @@ ${EditorElem.editeInput({
                                                     return BgWidget.greenNote(
                                                         href,
                                                         gvc.event(() => {
-                                                            window.parent.open(href, '_blank');
+                                                            gvc.glitter.openNewTab(href);
                                                         })
                                                     );
                                                 })(),

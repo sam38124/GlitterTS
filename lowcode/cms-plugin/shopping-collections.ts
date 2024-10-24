@@ -548,10 +548,11 @@ export class ShoppingCollections {
                                                             </div>`,
                                                             html` <div class="mt-2 mb-1">
                                                                 <span class="tx_normal me-1">網址預覽</span>
+
                                                                 ${BgWidget.greenNote(
                                                                     prefixURL + (vm.data.code ?? ''),
                                                                     gvc.event(() => {
-                                                                        window.parent.open(prefixURL + (vm.data.code ?? ''), '_blank');
+                                                                        gvc.glitter.openNewTab(prefixURL + (vm.data.code ?? ''));
                                                                     })
                                                                 )}
                                                             </div>`,

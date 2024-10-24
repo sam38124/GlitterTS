@@ -299,12 +299,35 @@ class Excel {
         });
     }
     saveAsExcelFile(buffer, fileName) {
-        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-        const data = new Blob([buffer], { type: EXCEL_TYPE });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(data);
-        link.download = fileName;
-        link.click();
+        const saasConfig = window.saasConfig;
+        const dialog = new ShareDialog(this.gvc.glitter);
+        saasConfig.api.uploadFile(fileName).then((data) => {
+            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+            const blobData = new Blob([buffer], { type: EXCEL_TYPE });
+            const data1 = data.response;
+            dialog.dataLoading({ visible: true });
+            $.ajax({
+                url: data1.url,
+                type: 'put',
+                data: blobData,
+                processData: false,
+                headers: {
+                    'Content-Type': data1.type,
+                },
+                crossDomain: true,
+                success: () => {
+                    dialog.dataLoading({ visible: false });
+                    const link = document.createElement('a');
+                    link.href = data1.fullUrl;
+                    link.download = fileName;
+                    link.click();
+                },
+                error: () => {
+                    dialog.dataLoading({ visible: false });
+                    dialog.errorMessage({ text: '上傳失敗' });
+                },
+            });
+        });
     }
     getByteLength(str) {
         let byteLength = 0;
