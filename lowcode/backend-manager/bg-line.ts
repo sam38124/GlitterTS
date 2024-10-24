@@ -11,7 +11,6 @@ import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting.js';
 import { BgListComponent } from './bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiLineMessage } from '../glitter-base/route/line.js';
 
 const html = String.raw;

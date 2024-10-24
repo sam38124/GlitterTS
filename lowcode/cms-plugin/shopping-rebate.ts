@@ -5,6 +5,8 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { UserList } from './user-list.js';
 import { Tool } from '../modules/tool.js';
+import { FilterOptions } from '../cms-plugin/filter-options.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 
 export class ShoppingRebate {
     public static main(gvc: GVC) {
@@ -36,6 +38,82 @@ export class ShoppingRebate {
             dataList: undefined,
             query: '',
         };
+        const dialog = new ShareDialog(gvc.glitter);
+
+        function showUsersDialog(defaultValue: string[], callback: (dataList: number[]) => void) {
+            BgWidget.selectDropDialog({
+                gvc: gvc,
+                title: '搜尋特定顧客',
+                tag: 'show_users_dialog',
+                updownOptions: FilterOptions.userOrderBy,
+                callback: (dataList, status) => {
+                    if (status === -1) {
+                        setTimeout(() => {
+                            showUsersDialog(dataList, callback);
+                        }, 100);
+                    }
+                    if (status === 1) {
+                        if (dataList.length === 0) {
+                            dialog.checkYesOrNot({
+                                callback: (bool) => {
+                                    if (bool) {
+                                        showUsersDialog(dataList, callback);
+                                    }
+                                },
+                                text: '您未勾選任何顧客<br />請問要重新選取嗎？',
+                            });
+                        } else {
+                            dialog.checkYesOrNot({
+                                callback: (bool) => {
+                                    if (bool) {
+                                        callback(dataList);
+                                    } else {
+                                        showUsersDialog(dataList, callback);
+                                    }
+                                },
+                                text: `總計勾選${dataList.length}名顧客<br />確定要發送購物金？`,
+                            });
+                        }
+                    }
+                },
+                default: defaultValue,
+                api: (data: { query: string; orderString: string }) => {
+                    return new Promise((resolve) => {
+                        ApiUser.getUserListOrders({
+                            page: 0,
+                            limit: 99999,
+                            search: data.query,
+                            orderString: data.orderString,
+                        }).then((dd) => {
+                            if (dd.response.data) {
+                                vm.dataList = dd.response.data
+                                    .filter((item: { account: string }) => {
+                                        return item.account && item.account.length > 0;
+                                    })
+                                    .map(
+                                        (item: {
+                                            userID: number;
+                                            account: string;
+                                            userData: {
+                                                name: string;
+                                                email: string;
+                                            };
+                                        }) => {
+                                            return {
+                                                key: item.userID,
+                                                value: item.userData.name ?? '（尚無姓名）',
+                                                note: item.account,
+                                            };
+                                        }
+                                    );
+                                resolve(vm.dataList);
+                            }
+                        });
+                    });
+                },
+                style: 'width: 100%;',
+            });
+        }
 
         return gvc.bindView(() => {
             return {
@@ -55,73 +133,36 @@ export class ShoppingRebate {
                                                 gvc: gvc,
                                                 saveButton: {
                                                     event: (obj) => {
-                                                        gvc.glitter.innerDialog((gvc3) => {
-                                                            let dataList: any = [];
-                                                            return BgWidget.container(
-                                                                BgWidget.mainCard(
-                                                                    [
-                                                                        html`
-                                                                            <div class="title-container">
-                                                                                ${BgWidget.goBack(
-                                                                                    gvc.event(() => {
-                                                                                        gvc3.closeDialog();
-                                                                                    })
-                                                                                )}
-                                                                                ${BgWidget.title('選擇變動對象')}
-                                                                                <div class="flex-fill"></div>
-                                                                                ${BgWidget.save(
-                                                                                    gvc.event(() => {
-                                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                                        if (dataList.length > 0) {
-                                                                                            dialog.dataLoading({
-                                                                                                text: '發送中...',
-                                                                                                visible: true,
-                                                                                            });
-                                                                                            ApiWallet.storeRebateByManager({
-                                                                                                userID: dataList.map((dd: any) => {
-                                                                                                    return dd.userID;
-                                                                                                }),
-                                                                                                total: (() => {
-                                                                                                    if (obj.type === 'add') {
-                                                                                                        return parseInt(obj.value, 10);
-                                                                                                    } else {
-                                                                                                        const minus = parseInt(obj.value, 10);
-                                                                                                        return minus ? minus * -1 : minus;
-                                                                                                    }
-                                                                                                })(),
-                                                                                                note: obj.note,
-                                                                                                rebateEndDay: obj.rebateEndDay,
-                                                                                            }).then((result) => {
-                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                if (result.response.result) {
-                                                                                                    dialog.successMessage({ text: `設定成功` });
-                                                                                                    gvc3.closeDialog();
-                                                                                                    setTimeout(() => {
-                                                                                                        gvc.notifyDataChange(vm.tableId);
-                                                                                                    }, 200);
-                                                                                                } else {
-                                                                                                    dialog.errorMessage({ text: result.response.msg });
-                                                                                                }
-                                                                                            });
-                                                                                        } else {
-                                                                                            dialog.errorMessage({ text: '請選擇變動對象' });
-                                                                                        }
-                                                                                    }),
-                                                                                    '確認並發送'
-                                                                                )}
-                                                                            </div>
-                                                                        `,
-                                                                        html`<div class="mx-n2">
-                                                                            ${UserList.userManager(gvc, 'select', (data) => {
-                                                                                console.log(data);
-                                                                                dataList = data;
-                                                                            })}
-                                                                            <div></div>
-                                                                        </div>`,
-                                                                    ].join('')
-                                                                )
-                                                            );
-                                                        }, 'email');
+                                                        showUsersDialog([], (dataList) => {
+                                                            dialog.dataLoading({
+                                                                text: '發送中...',
+                                                                visible: true,
+                                                            });
+                                                            ApiWallet.storeRebateByManager({
+                                                                userID: dataList,
+                                                                total: (() => {
+                                                                    if (obj.type === 'add') {
+                                                                        return parseInt(obj.value, 10);
+                                                                    } else {
+                                                                        const minus = parseInt(obj.value, 10);
+                                                                        return minus ? minus * -1 : minus;
+                                                                    }
+                                                                })(),
+                                                                note: obj.note,
+                                                                rebateEndDay: obj.rebateEndDay,
+                                                            }).then((result) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (result.response.result) {
+                                                                    dialog.successMessage({ text: `設定成功` });
+                                                                    gvc.closeDialog();
+                                                                    setTimeout(() => {
+                                                                        gvc.notifyDataChange(vm.tableId);
+                                                                    }, 200);
+                                                                } else {
+                                                                    dialog.errorMessage({ text: result.response.msg });
+                                                                }
+                                                            });
+                                                        });
                                                     },
                                                     text: '選擇顧客',
                                                 },

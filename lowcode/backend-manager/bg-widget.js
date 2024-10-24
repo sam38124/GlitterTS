@@ -2110,17 +2110,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         ? ''
                         : html ` <div class="c_dialog_bar">
                                               ${BgWidget.cancel(obj.gvc.event(() => {
-                            obj.callback([]);
+                            obj.callback([], -1);
                             gvc.closeDialog();
                         }), '清除全部')}
                                               ${BgWidget.cancel(obj.gvc.event(() => {
-                            obj.callback(vm.def);
+                            obj.callback(vm.def, 0);
                             gvc.closeDialog();
                         }))}
                                               ${BgWidget.save(obj.gvc.event(() => {
                             obj.callback(obj.default.filter((item) => {
                                 return vm.options.find((opt) => opt.key === item);
-                            }));
+                            }), 1);
                             gvc.closeDialog();
                         }), '確認')}
                                           </div>`}

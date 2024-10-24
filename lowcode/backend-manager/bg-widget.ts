@@ -2382,7 +2382,7 @@ ${obj.default ?? ''}</textarea
         default: string[];
         updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
-        callback: (value: any) => void;
+        callback: (value: any, status?: number) => void;
         style?: string;
         readonly?: boolean;
         custom_line_items?: (data: any) => string;
@@ -2508,14 +2508,14 @@ ${obj.default ?? ''}</textarea
                                         : html` <div class="c_dialog_bar">
                                               ${BgWidget.cancel(
                                                   obj.gvc.event(() => {
-                                                      obj.callback([]);
+                                                      obj.callback([], -1);
                                                       gvc.closeDialog();
                                                   }),
                                                   '清除全部'
                                               )}
                                               ${BgWidget.cancel(
                                                   obj.gvc.event(() => {
-                                                      obj.callback(vm.def);
+                                                      obj.callback(vm.def, 0);
                                                       gvc.closeDialog();
                                                   })
                                               )}
@@ -2524,7 +2524,8 @@ ${obj.default ?? ''}</textarea
                                                       obj.callback(
                                                           obj.default.filter((item) => {
                                                               return vm.options.find((opt: OptionsItem) => opt.key === item);
-                                                          })
+                                                          }),
+                                                          1
                                                       );
                                                       gvc.closeDialog();
                                                   }),
