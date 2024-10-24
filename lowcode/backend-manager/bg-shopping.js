@@ -283,7 +283,7 @@ export class BgShopping {
                         };
                         return BgWidget.container(html `
                                 <div class="d-flex">
-                                    ${BgWidget.container(html `<div class="d-flex w-100 align-items-center mb-3 ">
+                                    ${BgWidget.container(html `<div class="title-container">
                                                 ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
@@ -649,9 +649,9 @@ export class BgShopping {
                                                         </div>
                                                     `)}
                                                 </div>
-                                            </div> `, 1200)}
+                                            </div> `)}
                                 </div>
-                            `, 1200);
+                            `);
                     }
                     else {
                         return ``;
@@ -882,7 +882,7 @@ export class BgShopping {
                         }
                         `);
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
@@ -1499,7 +1499,7 @@ ${EditorElem.editeInput({
                           </div>
                       `
             : ``}
-            `, 700);
+            `);
     }
     static productManager(gvc) {
         const glitter = gvc.glitter;
@@ -1822,7 +1822,7 @@ ${EditorElem.editeInput({
                 },
                 divCreate: {},
             };
-        }), 800)}`;
+        }))}`;
     }
     static showListManager(obj) {
         let array = [];
@@ -2036,7 +2036,7 @@ ${EditorElem.editeInput({
                 },
                 divCreate: {},
             };
-        }), 800)}`;
+        }))}`;
     }
     static editProduct(obj) {
         let postMD = {
@@ -2060,7 +2060,7 @@ ${EditorElem.editeInput({
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
         return html ` <div class="d-flex">
-            ${BgWidget.container(html `<div class="d-flex w-100 align-items-center mb-3 ">
+            ${BgWidget.container(html `<div class="title-container">
                         ${BgWidget.goBack(obj.gvc.event(() => {
             obj.vm.status = 'list';
         }))}
@@ -2807,7 +2807,7 @@ ${EditorElem.editeInput({
                             </div>
                         </div>
                         <div></div>
-                    </div> `, 1100)}
+                    </div> `)}
         </div>`;
     }
     static postEvent(postMD, gvc, vm) {
@@ -3008,7 +3008,7 @@ ${EditorElem.editeInput({
                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
             };
         })}
-            `, undefined, 'width:calc(100% - 56px);');
+            `);
     }
     static invoice_setting(gvc) {
         const saasConfig = window.saasConfig;
@@ -3155,7 +3155,7 @@ ${EditorElem.editeInput({
                             })(),
                         ]);
                     })()}`)}
-                        `, 900);
+                        `);
                 },
                 divCreate: {
                     class: `d-flex justify-content-center w-100 flex-column align-items-center `,
@@ -3257,7 +3257,7 @@ ${EditorElem.editeInput({
                             };
                         });
                     })()}`)}
-                        `, 900);
+                        `);
                 },
                 divCreate: {
                     class: `d-flex justify-content-center w-100 flex-column align-items-center `,
@@ -3342,7 +3342,7 @@ ${EditorElem.editeInput({
                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
             };
         })}
-            `, 900);
+            `);
     }
 }
 window.glitter.setModule(import.meta.url, BgShopping);

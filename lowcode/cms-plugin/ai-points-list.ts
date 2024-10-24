@@ -117,70 +117,64 @@ export class AiPointsList {
                                                             onclick="${gvc.event(() => {
                                                                 gvc.glitter.innerDialog((gvc) => {
                                                                     let dataList: any = [];
-                                                                    return `
-                                                                <div>
-                                                                ${BgWidget.container(
-                                                                    BgWidget.card(
-                                                                        [
-                                                                            html`
-                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                    ${BgWidget.goBack(
-                                                                                        gvc.event(() => {
-                                                                                            gvc.closeDialog();
-                                                                                        })
-                                                                                    )}
-                                                                                    ${BgWidget.title(`選擇變動對象`)}
-                                                                                    <div class="flex-fill"></div>
-                                                                                    <button
-                                                                                        class="btn btn-primary-c"
-                                                                                        style="height:38px;font-size: 14px;"
-                                                                                        onclick="${gvc.event(() => {
-                                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                                            if (dataList.length > 0) {
+                                                                    return BgWidget.container(
+                                                                        html`
+                                                                            <div class="title-container">
+                                                                                ${BgWidget.goBack(
+                                                                                    gvc.event(() => {
+                                                                                        gvc.closeDialog();
+                                                                                    })
+                                                                                )}
+                                                                                ${BgWidget.title(`選擇變動對象`)}
+                                                                                <div class="flex-fill"></div>
+                                                                                <button
+                                                                                    class="btn btn-primary-c"
+                                                                                    style="height:38px;font-size: 14px;"
+                                                                                    onclick="${gvc.event(() => {
+                                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                                        if (dataList.length > 0) {
+                                                                                            dialog.dataLoading({
+                                                                                                text: '發送中...',
+                                                                                                visible: true,
+                                                                                            });
+                                                                                            ApiWallet.storeByManager({
+                                                                                                userID: dataList.map((dd: any) => {
+                                                                                                    return dd.userID;
+                                                                                                }),
+                                                                                                total: (() => {
+                                                                                                    if (vm.type === 'add') {
+                                                                                                        return parseInt(vm.value, 10);
+                                                                                                    } else {
+                                                                                                        const minus = parseInt(vm.value, 10);
+                                                                                                        return minus ? minus * -1 : minus;
+                                                                                                    }
+                                                                                                })(),
+                                                                                                note: vm.note,
+                                                                                            }).then(() => {
                                                                                                 dialog.dataLoading({
-                                                                                                    text: '發送中...',
-                                                                                                    visible: true,
+                                                                                                    visible: false,
                                                                                                 });
-                                                                                                ApiWallet.storeByManager({
-                                                                                                    userID: dataList.map((dd: any) => {
-                                                                                                        return dd.userID;
-                                                                                                    }),
-                                                                                                    total: (() => {
-                                                                                                        if (vm.type === 'add') {
-                                                                                                            return parseInt(vm.value, 10);
-                                                                                                        } else {
-                                                                                                            const minus = parseInt(vm.value, 10);
-                                                                                                            return minus ? minus * -1 : minus;
-                                                                                                        }
-                                                                                                    })(),
-                                                                                                    note: vm.note,
-                                                                                                }).then(() => {
-                                                                                                    dialog.dataLoading({
-                                                                                                        visible: false,
-                                                                                                    });
-                                                                                                    dialog.successMessage({ text: `設定成功!` });
-                                                                                                    gvc.closeDialog();
-                                                                                                    gvc2.closeDialog();
-                                                                                                    refresh();
-                                                                                                });
-                                                                                            } else {
-                                                                                                dialog.errorMessage({ text: '請選擇變動對象!' });
-                                                                                            }
-                                                                                        })}"
-                                                                                    >
-                                                                                        確認並發送
-                                                                                    </button>
-                                                                                </div>
-                                                                            ` +
-                                                                                `<div class="mx-n2">${UserList.userManager(gvc, 'select', (data) => {
+                                                                                                dialog.successMessage({ text: `設定成功!` });
+                                                                                                gvc.closeDialog();
+                                                                                                gvc2.closeDialog();
+                                                                                                refresh();
+                                                                                            });
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '請選擇變動對象!' });
+                                                                                        }
+                                                                                    })}"
+                                                                                >
+                                                                                    確認並發送
+                                                                                </button>
+                                                                            </div>
+                                                                            <div class="mx-n2">
+                                                                                ${UserList.userManager(gvc, 'select', (data) => {
                                                                                     dataList = data;
-                                                                                })}<div>`,
-                                                                        ].join('')
-                                                                    ),
-                                                                    900
-                                                                )}
-                                                                <div>
-                                                                `;
+                                                                                })}
+                                                                                <div></div>
+                                                                            </div>
+                                                                        `
+                                                                    );
                                                                 }, 'email');
                                                             })}"
                                                         >
@@ -738,8 +732,6 @@ export class AiPointsList {
             };
         });
     }
-
-
 }
 
 (window as any).glitter.setModule(import.meta.url, AiPointsList);

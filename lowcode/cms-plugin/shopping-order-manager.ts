@@ -213,8 +213,8 @@ export class ShoppingOrderManager {
                 if (vm.type === 'list') {
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('訂單列表')}
+                            <div class="title-container">
+                                ${BgWidget.title(query.isArchived ? '已封存訂單' : '訂單列表')}
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     <input
@@ -369,23 +369,25 @@ export class ShoppingOrderManager {
                                           )}
                                 </div>
                             </div>
-                            ${BgWidget.tab(
-                                query.isPOS
-                                    ? [
-                                          { title: 'POS訂單', key: 'pos' },
-                                          { title: '線上訂單', key: 'normal' },
-                                      ]
-                                    : [
-                                          { title: '線上訂單', key: 'normal' },
-                                          { title: 'POS訂單', key: 'pos' },
-                                      ],
-                                gvc,
-                                vm.filter_type,
-                                (text) => {
-                                    vm.filter_type = text as any;
-                                    gvc.notifyDataChange(vm.id);
-                                }
-                            )}
+                            <div class="title-container">
+                                ${BgWidget.tab(
+                                    query.isPOS
+                                        ? [
+                                              { title: 'POS訂單', key: 'pos' },
+                                              { title: '線上訂單', key: 'normal' },
+                                          ]
+                                        : [
+                                              { title: '線上訂單', key: 'normal' },
+                                              { title: 'POS訂單', key: 'pos' },
+                                          ],
+                                    gvc,
+                                    vm.filter_type,
+                                    (text) => {
+                                        vm.filter_type = text as any;
+                                        gvc.notifyDataChange(vm.id);
+                                    }
+                                )}
+                            </div>
                             ${BgWidget.mainCard(
                                 [
                                     (() => {
@@ -652,8 +654,8 @@ export class ShoppingOrderManager {
                                     }),
                                 ].join('')
                             )}
-                        `,
-                        BgWidget.getContainerWidth()
+                            ${BgWidget.mbContainer(240)}
+                        `
                     );
                 } else if (vm.type == 'replace') {
                     return this.replaceOrder(gvc, vm);
@@ -878,25 +880,24 @@ export class ShoppingOrderManager {
                     }
 
                     return BgWidget.container(
-                        html`
-                            <div class="d-flex flex-column">
-                                <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgWidget.goBack(
-                                        gvc.event(() => {
-                                            vm.type = 'list';
-                                        })
-                                    )}
-                                    <div class="d-flex flex-column">
-                                        <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">#${orderData.cart_token}</div>
-                                        ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
-                                    </div>
-                                    <div class="flex-fill"></div>
-                                    ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                        html`<div class="title-container">
+                                ${BgWidget.goBack(
+                                    gvc.event(() => {
+                                        vm.type = 'list';
+                                    })
+                                )}
+                                <div class="d-flex flex-column">
+                                    <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">#${orderData.cart_token}</div>
+                                    ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
                                 </div>
-                                ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                                <div class="d-flex flex-column flex-md-row p-0" style="max-width:calc(100vw - 20px); gap:24px;">
-                                    <div class="d-flex flex-column" style="width:100%; gap:24px;">
-                                        ${BgWidget.mainCard(
+                                <div class="flex-fill"></div>
+                                ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                            </div>
+                            ${document.body.clientWidth > 768 ? '' : html` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
+                            ${BgWidget.container1x2(
+                                {
+                                    html: [
+                                        BgWidget.mainCard(
                                             html`
                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                     <div class="tx_700">訂單狀態</div>
@@ -1020,8 +1021,8 @@ export class ShoppingOrderManager {
                                                         .join(BgWidget.mbContainer(18))}
                                                 </div>
                                             `
-                                        )}
-                                        ${BgWidget.mainCard(html`
+                                        ),
+                                        BgWidget.mainCard(html`
                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                 <div class="tx_700">付款狀態</div>
                                                 <div class="ms-auto w-100">
@@ -1061,8 +1062,8 @@ export class ShoppingOrderManager {
                                                 <div class="tx_normal">${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                             </div>
-                                        `)}
-                                        ${BgWidget.mainCard(
+                                        `),
+                                        BgWidget.mainCard(
                                             gvc.bindView(() => {
                                                 const vm: {
                                                     mode: 'edit' | 'read';
@@ -1244,8 +1245,8 @@ export class ShoppingOrderManager {
                                                     divCreate: { class: 'd-flex flex-column' },
                                                 };
                                             })
-                                        )}
-                                        ${BgWidget.mainCard(html`
+                                        ),
+                                        BgWidget.mainCard(html`
                                             <div class="tx_700">訂單備註</div>
                                             ${BgWidget.mbContainer(18)}
                                             <div style="position: relative;">
@@ -1259,8 +1260,8 @@ export class ShoppingOrderManager {
                                                     },
                                                 })}
                                             </div>
-                                        `)}
-                                        ${BgWidget.mainCard(html`
+                                        `),
+                                        BgWidget.mainCard(html`
                                             <div class="tx_700">訂單記錄</div>
                                             ${BgWidget.mbContainer(18)}
                                             <div class="d-flex flex-column" style="gap: 8px">
@@ -1284,281 +1285,285 @@ export class ShoppingOrderManager {
                                                     <div>訂單成立</div>
                                                 </div>
                                             </div>
-                                        `)}
-                                    </div>
-                                    <div style="width: 420px; max-width: 100%; position: sticky; right: 0; top: 20px; overflow: auto;">
-                                        ${BgWidget.mainCard(
-                                            html`
-                                                <div style="color: #393939;font-size: 16px;">
-                                                    <div class="d-flex align-items-center mb-3">
-                                                        <div class="tx_700">訂購人資料</div>
-                                                        <div class="flex-fill"></div>
-                                                    </div>
-                                                    <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
-                                                        ${[
-                                                            html` <div class="d-flex flex-column" style="gap:8px;">
-                                                                <div
-                                                                    class="d-flex align-items-center"
-                                                                    style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        child_vm.userID = userData.userID;
-                                                                        child_vm.type = 'user';
-                                                                    })}"
-                                                                >
-                                                                    ${userData?.userData?.name ?? '訪客'}
-                                                                    ${(() => {
-                                                                        if (userDataLoading) {
-                                                                            return BgWidget.secondaryInsignia('讀取中');
-                                                                        }
-                                                                        if (userData.member == undefined) {
-                                                                            return BgWidget.secondaryInsignia('訪客');
-                                                                        }
-                                                                        if (userData?.member.length > 0) {
-                                                                            for (let i = 0; i < userData.member.length; i++) {
-                                                                                if (userData.member[i].trigger) {
-                                                                                    return BgWidget.primaryInsignia(userData.member[i].tag_name);
-                                                                                }
-                                                                            }
-                                                                            return BgWidget.primaryInsignia('一般會員');
-                                                                        }
-                                                                        return BgWidget.secondaryInsignia('訪客');
-                                                                    })()}
-                                                                </div>
-                                                                <div style="color: #393939;font-weight: 400;">
-                                                                    ${userData?.userData?.phone ?? orderData.orderData.user_info.phone ?? '此會員未填手機'}
-                                                                </div>
-                                                                <div style="color: #393939;font-weight: 400;">${userData?.userData?.email ?? orderData.orderData.user_info.email}</div>
-                                                            </div>`,
-                                                            BgWidget.horizontalLine(),
-                                                            gvc.bindView({
-                                                                bind: `user_info`,
-                                                                view: () => {
-                                                                    return html`
-                                                                        <div style="font-size: 16px;font-weight: 700;color:#393939">收件人資料</div>
-                                                                        <div class="d-flex flex-column" style="gap:8px;">
-                                                                            <div style="color: #4D86DB;font-weight: 400;">${orderData.orderData.user_info.name}</div>
-                                                                            <div style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || '電話未填'}</div>
-                                                                        </div>
-                                                                        <div class="tx_700 mt-2">付款方式</div>
-                                                                        <div>${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
-                                                                        <div class="tx_700">配送方式</div>
-                                                                        <div class="tx_normal" style="line-height: 140%;">
-                                                                            ${(orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
-                                                                                return dd.value === orderData.orderData.user_info.shipment;
-                                                                            })?.name}
-                                                                        </div>
-                                                                        ${(() => {
-                                                                            switch (orderData.orderData.user_info.shipment) {
-                                                                                case 'FAMIC2C':
-                                                                                case 'HILIFEC2C':
-                                                                                case 'OKMARTC2C':
-                                                                                case 'UNIMARTC2C':
-                                                                                    return [
-                                                                                        html` <div class="d-flex flex-wrap w-100">
-                                                                                            <span class="me-2 fw-normal fs-6">門市名稱:</span>
-                                                                                            <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
-                                                                                                ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
-                                                                                            </div>
-                                                                                        </div>`,
-                                                                                        html` <div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
-                                                                                        html` <div class="fw-normal fs-6 w-100" style="white-space: normal;word-break: break-all;">
-                                                                                            地址: ${orderData.orderData.user_info.CVSAddress}
-                                                                                        </div>`,
-                                                                                    ].join('');
-                                                                                case 'normal':
-                                                                                    return [
-                                                                                        html` <div class="fw-normal fs-6" style="white-space: normal;">${orderData.orderData.user_info.address}</div>`,
-                                                                                    ].join('');
-                                                                                default:
-                                                                                    const formData: any = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find(
-                                                                                        (dd) => {
-                                                                                            return dd.value === orderData.orderData.user_info.shipment;
-                                                                                        }
-                                                                                    );
-                                                                                    if (formData.form) {
-                                                                                        return formData.form
-                                                                                            .map((dd: any) => {
-                                                                                                return `<div class="d-flex flex-wrap w-100">
-                                                                                            <span class="me-2 fw-normal fs-6">${dd.title}:</span>
-                                                                                            <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
-                                                                                                ${orderData.orderData.user_info.custom_form_delivery[dd.key]}
-                                                                                            </div>
-                                                                                        </div>`;
-                                                                                            })
-                                                                                            .join('');
-                                                                                    } else {
-                                                                                        return ``;
-                                                                                    }
-                                                                            }
-                                                                        })()}
-                                                                    `;
-                                                                },
-                                                                divCreate: {
-                                                                    style: 'gap:8px;',
-                                                                    class: 'd-flex flex-column',
-                                                                },
-                                                            }),
-                                                        ].join('')}
-                                                    </div>
-                                                </div>
-                                            `,
-                                            'p-0',
-                                            'padding: 20px !important; '
-                                        )}
-                                        <div style="margin-top: 24px;"></div>
-                                        ${BgWidget.mainCard(
-                                            gvc.bindView(() => {
-                                                const id = glitter.getUUID();
-                                                const vm: {
-                                                    mode: 'edit' | 'read';
-                                                } = {
-                                                    mode: 'read',
-                                                };
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return html`
-                                                            <div class="d-flex align-items-center ">
-                                                                <div class="tx_700">用戶備註</div>
-                                                                <div class="flex-fill"></div>
-                                                                <i
-                                                                    class="fa-solid fa-pencil d-none"
-                                                                    style="cursor:pointer;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
-                                                                        gvc.notifyDataChange(id);
-                                                                    })}"
-                                                                ></i>
-                                                            </div>
-
-                                                            <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
-                                                                ${((orderData.orderData.user_info.note ?? '') + (orderData.orderData.user_info.code_note || '') || '尚未填寫').replace(/\n/g, `<br>`)}
-                                                            </div>
-                                                        `;
-                                                    },
-                                                    divCreate: {
-                                                        class: ` fw-normal`,
-                                                    },
-                                                };
-                                            })
-                                        )}
-                                        <div style="margin-top: 24px;"></div>
-                                        ${BgWidget.mainCard(html`
-                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
-                                                <div class="tx_700">訂單備註</div>
-                                                <div style="color:#8D8D8D;font-size: 16px;font-weight: 400;line-height: 140%;">
-                                                    ${orderData.orderData.order_note ? orderData.orderData.order_note : '尚未輸入文字'}
-                                                </div>
-                                            </div>
-                                        `)}
-                                        ${(() => {
-                                            if (
-                                                orderData.orderData.custom_form_format &&
-                                                orderData.orderData.custom_form_format.filter((dd: any) => {
-                                                    return (orderData.orderData.custom_form_data as any)[dd.key];
-                                                }).length > 0
-                                            ) {
-                                                return (
-                                                    html` <div style="margin-top: 24px;"></div>` +
-                                                    BgWidget.mainCard(html`
-                                                        <div class="p-2" style="color: #393939;font-size: 16px;">
-                                                            ${orderData.orderData.custom_form_format
-                                                                .filter((dd: any) => {
-                                                                    return (orderData.orderData.custom_form_data as any)[dd.key];
-                                                                })
-                                                                .map((dd: any) => {
-                                                                    return html` <div class="d-flex align-items-center">
-                                                                            <div class="tx_700">${dd.title}</div>
-                                                                            <div class="flex-fill"></div>
-                                                                        </div>
-                                                                        <div style="color: #393939;font-weight: 400;">${(orderData.orderData.custom_form_data as any)[dd.key]}</div>`;
-                                                                })
-                                                                .join('')}
+                                        `),
+                                    ].join(BgWidget.mbContainer(24)),
+                                    ratio: 75,
+                                },
+                                {
+                                    html: html`<div class="summary-card">
+                                        ${[
+                                            BgWidget.mainCard(
+                                                html`
+                                                    <div style="color: #393939;font-size: 16px;">
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div class="tx_700">訂購人資料</div>
+                                                            <div class="flex-fill"></div>
                                                         </div>
-                                                    `)
-                                                );
-                                            } else {
-                                                return ``;
-                                            }
-                                        })()}
-                                    </div>
-                                </div>
-                                ${BgWidget.mbContainer(240)}
-                                <div class="update-bar-container">
-                                    ${BgWidget.cancel(
-                                        gvc.event(() => {
-                                            vm.type = 'list';
-                                        })
-                                    )}
-                                    ${BgWidget.save(
-                                        gvc.event(() => {
-                                            function writeEdit(origData: any, orderData: any) {
-                                                let editArray: any = [];
-                                                if (orderData.status != origData.status) {
-                                                    let text: any = {
-                                                        '1': '付款成功',
-                                                        '-2': '退款成功',
-                                                        '0': '修改為未付款',
+                                                        <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
+                                                            ${[
+                                                                html` <div class="d-flex flex-column" style="gap:8px;">
+                                                                    <div
+                                                                        class="d-flex align-items-center"
+                                                                        style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            child_vm.userID = userData.userID;
+                                                                            child_vm.type = 'user';
+                                                                        })}"
+                                                                    >
+                                                                        ${userData?.userData?.name ?? '訪客'}
+                                                                        ${(() => {
+                                                                            if (userDataLoading) {
+                                                                                return BgWidget.secondaryInsignia('讀取中');
+                                                                            }
+                                                                            if (userData.member == undefined) {
+                                                                                return BgWidget.secondaryInsignia('訪客');
+                                                                            }
+                                                                            if (userData?.member.length > 0) {
+                                                                                for (let i = 0; i < userData.member.length; i++) {
+                                                                                    if (userData.member[i].trigger) {
+                                                                                        return BgWidget.primaryInsignia(userData.member[i].tag_name);
+                                                                                    }
+                                                                                }
+                                                                                return BgWidget.primaryInsignia('一般會員');
+                                                                            }
+                                                                            return BgWidget.secondaryInsignia('訪客');
+                                                                        })()}
+                                                                    </div>
+                                                                    <div style="color: #393939;font-weight: 400;">
+                                                                        ${userData?.userData?.phone ?? orderData.orderData.user_info.phone ?? '此會員未填手機'}
+                                                                    </div>
+                                                                    <div style="color: #393939;font-weight: 400;">${userData?.userData?.email ?? orderData.orderData.user_info.email}</div>
+                                                                </div>`,
+                                                                BgWidget.horizontalLine(),
+                                                                gvc.bindView({
+                                                                    bind: `user_info`,
+                                                                    view: () => {
+                                                                        return html`
+                                                                            <div style="font-size: 16px;font-weight: 700;color:#393939">收件人資料</div>
+                                                                            <div class="d-flex flex-column" style="gap:8px;">
+                                                                                <div style="color: #4D86DB;font-weight: 400;">${orderData.orderData.user_info.name}</div>
+                                                                                <div style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || '電話未填'}</div>
+                                                                            </div>
+                                                                            <div class="tx_700 mt-2">付款方式</div>
+                                                                            <div>${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
+                                                                            <div class="tx_700">配送方式</div>
+                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                ${(orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                                                                    return dd.value === orderData.orderData.user_info.shipment;
+                                                                                })?.name}
+                                                                            </div>
+                                                                            ${(() => {
+                                                                                switch (orderData.orderData.user_info.shipment) {
+                                                                                    case 'FAMIC2C':
+                                                                                    case 'HILIFEC2C':
+                                                                                    case 'OKMARTC2C':
+                                                                                    case 'UNIMARTC2C':
+                                                                                        return [
+                                                                                            html` <div class="d-flex flex-wrap w-100">
+                                                                                                <span class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                                                <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
+                                                                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
+                                                                                                </div>
+                                                                                            </div>`,
+                                                                                            html` <div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
+                                                                                            html` <div class="fw-normal fs-6 w-100" style="white-space: normal;word-break: break-all;">
+                                                                                                地址: ${orderData.orderData.user_info.CVSAddress}
+                                                                                            </div>`,
+                                                                                        ].join('');
+                                                                                    case 'normal':
+                                                                                        return [
+                                                                                            html` <div class="fw-normal fs-6" style="white-space: normal;">
+                                                                                                ${orderData.orderData.user_info.address}
+                                                                                            </div>`,
+                                                                                        ].join('');
+                                                                                    default:
+                                                                                        const formData: any = (
+                                                                                            orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()
+                                                                                        ).find((dd) => {
+                                                                                            return dd.value === orderData.orderData.user_info.shipment;
+                                                                                        });
+                                                                                        if (formData.form) {
+                                                                                            return formData.form
+                                                                                                .map((dd: any) => {
+                                                                                                    return `<div class="d-flex flex-wrap w-100">
+                                                                                <span class="me-2 fw-normal fs-6">${dd.title}:</span>
+                                                                                <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
+                                                                                    ${orderData.orderData.user_info.custom_form_delivery[dd.key]}
+                                                                                </div>
+                                                                            </div>`;
+                                                                                                })
+                                                                                                .join('');
+                                                                                        } else {
+                                                                                            return ``;
+                                                                                        }
+                                                                                }
+                                                                            })()}
+                                                                        `;
+                                                                    },
+                                                                    divCreate: {
+                                                                        style: 'gap:8px;',
+                                                                        class: 'd-flex flex-column',
+                                                                    },
+                                                                }),
+                                                            ].join('')}
+                                                        </div>
+                                                    </div>
+                                                `
+                                            ),
+                                            BgWidget.mainCard(
+                                                gvc.bindView(() => {
+                                                    const id = glitter.getUUID();
+                                                    const vm: {
+                                                        mode: 'edit' | 'read';
+                                                    } = {
+                                                        mode: 'read',
                                                     };
-                                                    editArray.push({
-                                                        time: formatDateString(),
-                                                        record: text[orderData.status],
-                                                    });
-                                                }
-                                                if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
-                                                    let text: any = {
-                                                        '1': '訂單完成',
-                                                        '0': '訂單改為處理中',
-                                                        '-1': '訂單已取消',
-                                                    };
-                                                    editArray.push({
-                                                        time: formatDateString(),
-                                                        record: text[orderData.orderData.orderStatus],
-                                                    });
-                                                }
-                                                if (orderData.orderData.progress != origData.orderData.progress) {
-                                                    let text: any = {
-                                                        shipping: '訂單完成',
-                                                        wait: '訂單改為處理中',
-                                                        finish: '商品已取貨',
-                                                        returns: '商品已退貨',
-                                                        arrived: '商品已到貨',
-                                                    };
-                                                    editArray.push({
-                                                        time: formatDateString(),
-                                                        record: text[orderData.orderData.progress],
-                                                    });
-                                                }
-                                                if (orderData.orderData?.editRecord) {
-                                                    editArray.length && orderData.orderData.editRecord.push(...editArray);
-                                                } else {
-                                                    editArray.length && (orderData.orderData.editRecord = editArray);
-                                                }
-                                            }
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return html`
+                                                                <div class="d-flex align-items-center ">
+                                                                    <div class="tx_700">用戶備註</div>
+                                                                    <div class="flex-fill"></div>
+                                                                    <i
+                                                                        class="fa-solid fa-pencil d-none"
+                                                                        style="cursor:pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
+                                                                            gvc.notifyDataChange(id);
+                                                                        })}"
+                                                                    ></i>
+                                                                </div>
 
-                                            writeEdit(origData, orderData);
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.dataLoading({ text: '上傳中', visible: true });
-                                            ApiShop.putOrder({
-                                                id: `${orderData.id}`,
-                                                order_data: orderData.orderData,
-                                                status: orderData.status,
-                                            }).then((response) => {
-                                                dialog.dataLoading({ text: '上傳中', visible: false });
-                                                if (response.result) {
-                                                    dialog.successMessage({ text: '更新成功!' });
-                                                    gvc.notifyDataChange(mainViewID);
+                                                                <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
+                                                                    ${((orderData.orderData.user_info.note ?? '') + (orderData.orderData.user_info.code_note || '') || '尚未填寫').replace(
+                                                                        /\n/g,
+                                                                        `<br>`
+                                                                    )}
+                                                                </div>
+                                                            `;
+                                                        },
+                                                        divCreate: {
+                                                            class: ` fw-normal`,
+                                                        },
+                                                    };
+                                                })
+                                            ),
+                                            BgWidget.mainCard(html`
+                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
+                                                    <div class="tx_700">訂單備註</div>
+                                                    <div style="color:#8D8D8D;font-size: 16px;font-weight: 400;line-height: 140%;">
+                                                        ${orderData.orderData.order_note ? orderData.orderData.order_note : '尚未輸入文字'}
+                                                    </div>
+                                                </div>
+                                            `),
+                                            (() => {
+                                                if (
+                                                    orderData.orderData.custom_form_format &&
+                                                    orderData.orderData.custom_form_format.filter((dd: any) => {
+                                                        return (orderData.orderData.custom_form_data as any)[dd.key];
+                                                    }).length > 0
+                                                ) {
+                                                    return (
+                                                        html` <div style="margin-top: 24px;"></div>` +
+                                                        BgWidget.mainCard(html`
+                                                            <div class="p-2" style="color: #393939;font-size: 16px;">
+                                                                ${orderData.orderData.custom_form_format
+                                                                    .filter((dd: any) => {
+                                                                        return (orderData.orderData.custom_form_data as any)[dd.key];
+                                                                    })
+                                                                    .map((dd: any) => {
+                                                                        return html` <div class="d-flex align-items-center">
+                                                                                <div class="tx_700">${dd.title}</div>
+                                                                                <div class="flex-fill"></div>
+                                                                            </div>
+                                                                            <div style="color: #393939;font-weight: 400;">${(orderData.orderData.custom_form_data as any)[dd.key]}</div>`;
+                                                                    })
+                                                                    .join('')}
+                                                            </div>
+                                                        `)
+                                                    );
                                                 } else {
-                                                    dialog.errorMessage({ text: '更新異常!' });
+                                                    return ``;
                                                 }
-                                            });
-                                        })
-                                    )}
-                                </div>
-                            </div>
-                        `,
-                        BgWidget.getContainerWidth(),
-                        document.body.clientWidth < 768 ? `padding:0; padding-top:20px; margin:0;` : ''
+                                            })(),
+                                        ].join(BgWidget.mbContainer(24))}
+                                    </div>`,
+                                    ratio: 25,
+                                }
+                            )}
+                            ${BgWidget.mbContainer(240)}
+                            <div class="update-bar-container">
+                                ${BgWidget.cancel(
+                                    gvc.event(() => {
+                                        vm.type = 'list';
+                                    })
+                                )}
+                                ${BgWidget.save(
+                                    gvc.event(() => {
+                                        function writeEdit(origData: any, orderData: any) {
+                                            let editArray: any = [];
+                                            if (orderData.status != origData.status) {
+                                                let text: any = {
+                                                    '1': '付款成功',
+                                                    '-2': '退款成功',
+                                                    '0': '修改為未付款',
+                                                };
+                                                editArray.push({
+                                                    time: formatDateString(),
+                                                    record: text[orderData.status],
+                                                });
+                                            }
+                                            if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
+                                                let text: any = {
+                                                    '1': '訂單完成',
+                                                    '0': '訂單改為處理中',
+                                                    '-1': '訂單已取消',
+                                                };
+                                                editArray.push({
+                                                    time: formatDateString(),
+                                                    record: text[orderData.orderData.orderStatus],
+                                                });
+                                            }
+                                            if (orderData.orderData.progress != origData.orderData.progress) {
+                                                let text: any = {
+                                                    shipping: '訂單完成',
+                                                    wait: '訂單改為處理中',
+                                                    finish: '商品已取貨',
+                                                    returns: '商品已退貨',
+                                                    arrived: '商品已到貨',
+                                                };
+                                                editArray.push({
+                                                    time: formatDateString(),
+                                                    record: text[orderData.orderData.progress],
+                                                });
+                                            }
+                                            if (orderData.orderData?.editRecord) {
+                                                editArray.length && orderData.orderData.editRecord.push(...editArray);
+                                            } else {
+                                                editArray.length && (orderData.orderData.editRecord = editArray);
+                                            }
+                                        }
+
+                                        writeEdit(origData, orderData);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ text: '上傳中', visible: true });
+                                        ApiShop.putOrder({
+                                            id: `${orderData.id}`,
+                                            order_data: orderData.orderData,
+                                            status: orderData.status,
+                                        }).then((response) => {
+                                            dialog.dataLoading({ text: '上傳中', visible: false });
+                                            if (response.result) {
+                                                dialog.successMessage({ text: '更新成功!' });
+                                                gvc.notifyDataChange(mainViewID);
+                                            } else {
+                                                dialog.errorMessage({ text: '更新異常!' });
+                                            }
+                                        });
+                                    })
+                                )}
+                            </div>`
                     );
                 } catch (e) {
                     console.error(e);
@@ -2156,7 +2161,7 @@ export class ShoppingOrderManager {
         return BgWidget.container(
             html`
                 <!-- 標頭 --- 新增訂單標題和返回 -->
-                <div class="d-flex align-items-center" style="margin-bottom: 24px;">
+                <div class="title-container">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             vm.type = 'list';
@@ -3059,8 +3064,7 @@ export class ShoppingOrderManager {
                         })
                     )}
                 </div>
-            `,
-            BgWidget.getContainerWidth()
+            `
         );
     }
 

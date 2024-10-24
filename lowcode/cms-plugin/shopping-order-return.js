@@ -41,14 +41,15 @@ export class ShoppingOrderManager {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center  ">
+                                <div class="title-container">
                                     ${BgWidget.title('退貨單列表')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'addSearch';
                         }))}
                                 </div>
-                                ${BgWidget.tab([
+                                <div class="title-container">
+                                    ${BgWidget.tab([
                             {
                                 title: '一般列表',
                                 key: 'normal',
@@ -57,6 +58,7 @@ export class ShoppingOrderManager {
                             vm.filter_type = text;
                             gvc.notifyDataChange(vm.id);
                         })}
+                                </div>
                                 ${BgWidget.mainCard([
                             html `<div>
                                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -228,7 +230,7 @@ export class ShoppingOrderManager {
                                 ],
                             }),
                         ].join(''))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.replaceOrder(gvc, vm, id);
@@ -357,7 +359,7 @@ export class ShoppingOrderManager {
                     return BgWidget.container(html `
                             <div class="d-flex flex-column" style="">
                                 ${BgWidget.container(html `
-                                        <div class="d-flex w-100 align-items-center mb-3 ">
+                                        <div class="title-container">
                                             ${BgWidget.goBack(gvc.event(() => {
                         vm.type = 'list';
                     }))}
@@ -945,7 +947,7 @@ export class ShoppingOrderManager {
                                                 </div>
                                             `)}
                                         </div>
-                                    `, 1200, `position: relative;`)}
+                                    `)}
                                 ${BgWidget.mbContainer(240)}
                                 <div class="update-bar-container">
                                     ${BgWidget.danger(gvc.event(() => {
@@ -974,7 +976,7 @@ export class ShoppingOrderManager {
                     }), '送出')}
                                 </div>
                             </div>
-                        `, BgWidget.getContainerWidth());
+                        `);
                 }
                 catch (e) {
                     console.error(e);
@@ -997,8 +999,7 @@ export class ShoppingOrderManager {
         let detailShow = false;
         let detail2Show = false;
         return BgWidget.container(html `
-                <!--                                標頭 --- 新增訂單標題和返回  -->
-                <div class="d-flex align-items-center" style="margin-bottom: 24px;">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
@@ -1727,7 +1728,7 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
             },
             divCreate: {},
         })}
-            `, BgWidget.getContainerWidth());
+            `);
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingOrderManager);

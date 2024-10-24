@@ -194,9 +194,7 @@ export class UserLoginSetting {
                         },
                     };
                 })}
-            `,
-            undefined,
-            'width:calc(100% - 56px);min-height:calc(100vh);'
+            `
         );
     }
 
@@ -636,8 +634,7 @@ export class UserLoginSetting {
                         divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
                     };
                 })}
-            `,
-            900
+            `
         );
     }
 

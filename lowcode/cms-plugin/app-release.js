@@ -1,6 +1,6 @@
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
-import { ApiPageConfig } from "../api/pageConfig.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 export class AppRelease {
     static main(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -22,7 +22,7 @@ export class AppRelease {
             support_url: '',
             privacy_url: '',
             contact_email: '',
-            contact_phone: ''
+            contact_phone: '',
         };
         function save(delivery, model, callback) {
             const dialog = new ShareDialog(gvc.glitter);
@@ -43,7 +43,7 @@ export class AppRelease {
                     support_url: '請填寫支援URL',
                     privacy_url: '請填寫隱私權URL',
                     contact_email: '請填寫聯絡信箱',
-                    contact_phone: '請填寫聯絡電話'
+                    contact_phone: '請填寫聯絡電話',
                 };
                 for (const b of Object.keys(key)) {
                     if (!postMDRefer[b]) {
@@ -104,28 +104,28 @@ export class AppRelease {
                     if (loading) {
                         return BgWidget.spinner();
                     }
-                    return BgWidget.container([BgWidget.title((`<div class="d-flex align-items-center" style="gap: 10px;">
+                    return BgWidget.container([
+                        BgWidget.title(`<div class="d-flex align-items-center" style="gap: 10px;">
 APP管理
 ${(() => {
                             switch (postMDRefer.status) {
-                                case "no":
+                                case 'no':
                                     return ``;
-                                case "error":
+                                case 'error':
                                     return BgWidget.dangerInsignia(`審核未通過`);
-                                case "finish":
+                                case 'finish':
                                     return BgWidget.successInsignia(`審核通過`);
-                                case "wait":
+                                case 'wait':
                                     return BgWidget.warningInsignia('審核中');
                             }
                         })()}
-</div>`)),
-                        BgWidget.alertInfo(``, [
-                            `審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`
-                        ], {
+</div>`),
+                        BgWidget.alertInfo(``, [`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`], {
                             style: '',
-                            class: 'fs-6 fw-500'
+                            class: 'fs-6 fw-500',
                         }),
-                        [{
+                        [
+                            {
                                 title: '品牌內容',
                                 editor: (() => {
                                     let postMD = JSON.parse(JSON.stringify(postMDRefer));
@@ -169,21 +169,19 @@ ${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
                                                         gvc.notifyDataChange(id);
                                                     })}
 </div>`,
-                                                    html `
-                                                        <div class="w-100 d-flex align-items-center justify-content-end">
+                                                    html ` <div class="w-100 d-flex align-items-center justify-content-end">
                                                             ${BgWidget.cancel(gvc.event(() => {
-                                                        save(false, postMD, (result) => {
-                                                        });
+                                                        save(false, postMD, (result) => { });
                                                     }), '儲存')}
-                                                        </div>`
+                                                        </div>`,
                                                 ].join(`<div class="my-3"></div>`);
                                             },
                                             divCreate: {
-                                                class: ``
-                                            }
+                                                class: ``,
+                                            },
                                         };
                                     });
-                                })()
+                                })(),
                             },
                             {
                                 title: '上架資訊',
@@ -315,23 +313,23 @@ ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
                                                             callback: (text) => {
                                                                 postMD.privacy_url = text;
                                                             },
-                                                        })
+                                                        }),
                                                     ].join(`<div class="my-3"></div>`);
                                                 },
                                                 divCreate: {
-                                                    class: ``
-                                                }
+                                                    class: ``,
+                                                },
                                             };
                                         }),
                                         `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
                                                             ${BgWidget.cancel(gvc.event(() => {
-                                            save(false, postMD, (result) => {
-                                            });
+                                            save(false, postMD, (result) => { });
                                         }), '儲存')}
-                                                        </div>`
+                                                        </div>`,
                                     ].join(``);
-                                })()
-                            }, {
+                                })(),
+                            },
+                            {
                                 title: '聯絡資訊',
                                 editor: (() => {
                                     let postMD = JSON.parse(JSON.stringify(postMDRefer));
@@ -386,36 +384,37 @@ ${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                             },
-                                                        })
+                                                        }),
                                                     ].join(`<div class="my-3"></div>`);
                                                 },
                                                 divCreate: {
-                                                    class: ``
-                                                }
+                                                    class: ``,
+                                                },
                                             };
                                         }),
                                         `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
                                                             ${BgWidget.cancel(gvc.event(() => {
-                                            save(false, postMD, (result) => {
-                                            });
+                                            save(false, postMD, (result) => { });
                                         }), '儲存')}
-                                                        </div>`
+                                                        </div>`,
                                     ].join('');
-                                })()
-                            }
-                        ].map((dd) => {
+                                })(),
+                            },
+                        ]
+                            .map((dd) => {
                             return BgWidget.card(`<div class="d-flex flex-column">${BgWidget.title(dd.title, 'font-size:20px;')}
 <div class="flex-fill"></div>
 <div class="my-3">${dd.editor}</div>
 </div>`);
-                        }).join(`<div class="my-2"></div>`),
+                        })
+                            .join(`<div class="my-2"></div>`),
                         `<div class="w-100 d-flex align-items-center justify-content-end">
 ${BgWidget.save(gvc.event(() => {
-                            save(true, postMDRefer, () => {
-                            });
+                            save(true, postMDRefer, () => { });
                         }), '將APP提交審查')}
-</div>`].join(`<div class="my-3"></div>`), 800);
-                }
+</div>`,
+                    ].join(`<div class="my-3"></div>`));
+                },
             };
         });
     }

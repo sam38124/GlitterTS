@@ -172,7 +172,7 @@ export class MenusSetting {
                 bind: vm.id,
                 view: () => {
                     var _a;
-                    return html ` <div class="d-flex w-100 align-items-center">
+                    return html ` <div class="title-container">
                             ${BgWidget.goBack(cf.gvc.event(() => {
                         cf.goBack();
                     }))}${BgWidget.title((_a = cf.title) !== null && _a !== void 0 ? _a : '選單設定')}
@@ -430,7 +430,7 @@ export class MenusSetting {
                                         </div>
                                     </div>
                                 </div>
-                            </div>`, undefined, 'padding: 24px 0;')}
+                            </div>`)}
                         <div class="update-bar-container">
                             ${BgWidget.cancel(gvc.event(() => {
                         cf.goBack();

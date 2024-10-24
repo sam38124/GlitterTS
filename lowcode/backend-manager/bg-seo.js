@@ -7,26 +7,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "./bg-widget.js";
-import { PageEditor } from "../editor/page-editor.js";
-import { ApiPageConfig } from "../api/pageConfig.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { StoreHelper } from "../helper/store-helper.js";
+import { BgWidget } from './bg-widget.js';
+import { PageEditor } from '../editor/page-editor.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
+import { ShareDialog } from '../dialog/ShareDialog.js';
+import { StoreHelper } from '../helper/store-helper.js';
 const html = String.raw;
 export class BgSeo {
     static mainPage(gvc) {
         let selectTag = gvc.glitter.getUrlParameter('page');
         const leftID = gvc.glitter.getUUID();
         const rightID = gvc.glitter.getUUID();
-        let saveEvent = () => {
-        };
+        let saveEvent = () => { };
         return BgWidget.container(html `
             <div class="d-flex w-100 align-items-center pb-3 mb-2 border-bottom">
                 ${BgWidget.title(`SEO管理`)}
                 <div class="flex-fill"></div>
-                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+                <button
+                    class="btn btn-primary-c"
+                    style="height:38px;font-size: 14px;"
+                    onclick="${gvc.event(() => {
             saveEvent();
-        })}">儲存SEO設定
+        })}"
+                >
+                    儲存SEO設定
                 </button>
             </div>
             <div class="d-flex" style="gap:10px;">
@@ -42,15 +46,16 @@ export class BgSeo {
                         }, {
                             checkSelect: (data) => {
                                 return data.tag === selectTag;
-                            }
+                            },
                         }).then((data) => {
                             resolve(data.left);
                         });
                     });
                 },
                 divCreate: {
-                    class: `mx-n3 my-n2`, style: `max-height:calc(100vh - 200px);overflow-y:auto;`
-                }
+                    class: `mx-n3 my-n2`,
+                    style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
+                },
             };
         }))}
                 </div>
@@ -64,7 +69,7 @@ export class BgSeo {
                         dialog.dataLoading({ visible: true });
                         const selectItem = (yield ApiPageConfig.getPage({
                             appName: window.appName,
-                            tag: selectTag
+                            tag: selectTag,
                         })).response.result[0];
                         dialog.dataLoading({ visible: false });
                         saveEvent = () => __awaiter(this, void 0, void 0, function* () {
@@ -76,7 +81,7 @@ export class BgSeo {
                                 name: selectItem.name,
                                 config: selectItem.config,
                                 group: selectItem.group,
-                                page_config: selectItem.page_config
+                                page_config: selectItem.page_config,
                             });
                             const viewModel = gvc.glitter.share.editorViewModel;
                             viewModel.appConfig.homePage = viewModel.homePage;
@@ -106,23 +111,23 @@ export class BgSeo {
                                 },
                                 get dataList() {
                                     return gvc.glitter.share.editorViewModel.dataList;
-                                }
+                                },
                             },
                             style: {
                                 style: `width:100%;`,
-                                class: ``
+                                class: ``,
                             },
-                            hiddenDelete: true
+                            hiddenDelete: true,
                         }));
                     }));
                 },
                 divCreate: {
-                    style: `max-height:calc(100vh - 200px);overflow-y:auto;`
-                }
+                    style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
+                },
             };
         }), 'p-0 bg-white border rounded-3 shadow')}
                 </div>
             </div>
-        `, 1000);
+        `);
     }
 }

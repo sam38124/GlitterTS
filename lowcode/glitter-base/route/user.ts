@@ -125,14 +125,14 @@ export class ApiUser {
         });
     }
 
-    public static setSaasUserData(json:any) {
+    public static setSaasUserData(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'PUT',
             headers: {
-                'g-app':  (window as any).glitterBase,
+                'g-app': (window as any).glitterBase,
                 'Content-Type': 'application/json',
-                Authorization:  GlobalUser.saas_token,
+                Authorization: GlobalUser.saas_token,
             },
             data: JSON.stringify({
                 userData: json,
@@ -189,7 +189,7 @@ export class ApiUser {
             }),
         });
     }
-    public static emailVerify(email: string,app_name?:string) {
+    public static emailVerify(email: string, app_name?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/email-verify`,
             type: 'POST',
@@ -198,7 +198,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
-                email: email
+                email: email,
             }),
         });
     }
@@ -211,12 +211,12 @@ export class ApiUser {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
-                phone_number: phone_number
+                phone_number: phone_number,
             }),
         });
     }
 
-    public static registerFCM(userID: string, deviceToken: string,app_name?:string) {
+    public static registerFCM(userID: string, deviceToken: string, app_name?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/fcm`,
             type: 'POST',
@@ -477,7 +477,7 @@ export class ApiUser {
         return userData;
     }
 
-    public static deleteUser(json: { id?: string,email?:string,code?:string,app_name?:string}) {
+    public static deleteUser(json: { id?: string; email?: string; code?: string; app_name?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'DELETE',
@@ -586,7 +586,7 @@ export class ApiUser {
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization:  GlobalUser.token,
+                Authorization: GlobalUser.token,
             },
             data: JSON.stringify({
                 userData: json,
@@ -613,10 +613,10 @@ export class ApiUser {
         app_name?: string;
         account?: string;
         pwd?: string;
-        login_type?: 'fb' | 'normal' | 'line' | 'google'|'apple';
+        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple';
         google_token?: string;
         fb_token?: string;
-        token?:string;
+        token?: string;
         line_token?: string;
         redirect?: string;
     }) {
@@ -660,14 +660,13 @@ export class ApiUser {
         });
     }
 
-    public static getPublicConfig(key: string, user_id: string,appName:string=getConfig().config.appName) {
-
-        return new Promise<{result:boolean,response:any}>((resolve, reject)=>{
-            (window as any).glitter.share._public_config= (window as any).glitter.share._public_config??{}
-            const config=(window as any).glitter.share._public_config
-            if(config[key+user_id]){
-                resolve(config[key+user_id])
-                return
+    public static getPublicConfig(key: string, user_id: string, appName: string = getConfig().config.appName) {
+        return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
+            (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
+            const config = (window as any).glitter.share._public_config;
+            if (config[key + user_id]) {
+                resolve(config[key + user_id]);
+                return;
             }
             BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
@@ -675,20 +674,20 @@ export class ApiUser {
                 headers: {
                     'Content-Type': 'application/json',
                     'g-app': appName,
-                    Authorization:getConfig().config.token,
+                    Authorization: getConfig().config.token,
                 },
-            }).then((res)=>{
-                switch (key){
+            }).then((res) => {
+                switch (key) {
                     case 'collection':
                     case 'footer-setting':
                     case 'menu-setting':
                     case 'message_setting':
-                        config[key+user_id]=res
-                        break
+                        config[key + user_id] = res;
+                        break;
                 }
-                resolve(res)
-            })
-        })
+                resolve(res);
+            });
+        });
     }
 
     public static getUserGroupList(type?: string, tag?: string) {

@@ -905,6 +905,13 @@ h6 {
     box-shadow: 0px 0px 10px 0px var(--main-dark-alpha-08);
 }
 
+.title-container {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 0;
+}
+
 .summary-card {
     position: sticky;
     top: 24px;
@@ -1022,9 +1029,13 @@ h6 {
     }
 
     .main-card {
-        padding: 12px;
+        padding: 16px;
         border-radius: 0;
         box-shadow: none;
+    }
+
+    .title-container {
+        padding: 0 1rem;
     }
 }
 

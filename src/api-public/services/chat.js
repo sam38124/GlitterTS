@@ -399,7 +399,7 @@ class Chat {
                     userID: managerUser.user_id,
                     tag: 'message',
                     link: `./?toggle-message=true`,
-                    body: `${user.userData.name}傳送一則訊息給你:「${(() => {
+                    body: room.message.image ? `${user.userData.name}傳送一張圖片給你` : `${user.userData.name}傳送一則訊息給你:「${(() => {
                         var _a;
                         let text = (_a = room.message.text) !== null && _a !== void 0 ? _a : "";
                         if (text.length > 25) {
@@ -407,6 +407,7 @@ class Chat {
                         }
                         return text;
                     })()}」`,
+                    pass_store: true
                 });
             }
         }

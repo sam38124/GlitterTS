@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class ThirdPartyLine {
     static main(gvc) {
-        return BgWidget.container(gvc.bindView(() => {
+        return (BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const key = 'login_fb_setting';
             const vm = {
@@ -27,13 +27,13 @@ export class ThirdPartyLine {
                     secret_message: '',
                     id_message: '',
                     fans_id: '',
-                    fans_token: ''
+                    fans_token: '',
                 },
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
                 dd.response.value && (vm.data = dd.response.value);
-                console.log("vm.data -- ", vm.data);
+                console.log('vm.data -- ', vm.data);
                 gvc.notifyDataChange(id);
             });
             return {
@@ -65,7 +65,7 @@ export class ThirdPartyLine {
                                     placeHolder: '請前往META開發者後台取得應用程式編號',
                                     callback: (text) => {
                                         vm.data.id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -76,7 +76,7 @@ export class ThirdPartyLine {
                                     placeHolder: '請前往META開發者後台取得應用程式密鑰',
                                     callback: (text) => {
                                         vm.data.secret = text;
-                                    }
+                                    },
                                 }),
                                 `<div onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
@@ -91,7 +91,7 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain,
                                     placeHolder: '',
-                                    callback: (text) => { }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div onclick="${gvc.event(() => {
@@ -107,8 +107,7 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div onclick="${gvc.event(() => {
@@ -124,10 +123,9 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
-</div>`
+</div>`,
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700">臉書訊息綁定</div>`,
@@ -145,7 +143,7 @@ ${BgWidget.editeInput({
                                     placeHolder: '請輸入粉絲團ID',
                                     callback: (text) => {
                                         vm.data.fans_id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -156,14 +154,16 @@ ${BgWidget.editeInput({
                                     placeHolder: '請輸入粉絲團TOKEN',
                                     callback: (text) => {
                                         vm.data.fans_token = text;
-                                    }
+                                    },
                                 }),
-                                html `<div  onclick="${gvc.event(() => {
+                                html `<div
+                                                        onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     navigator.clipboard.writeText(`${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`);
                                     dialog.successMessage({ text: '已複製至剪貼簿' });
-                                })}">
-${BgWidget.editeInput({
+                                })}"
+                                                    >
+                                                        ${BgWidget.editeInput({
                                     readonly: true,
                                     gvc: gvc,
                                     title: `<div class="d-flex flex-column" style="gap:5px;">
@@ -171,10 +171,9 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
 </div>`,
                                     default: `${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`,
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
-</div>`,
+                                                    </div>`,
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700">臉書像素(Pixel)</div>`,
@@ -185,7 +184,7 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
                                     placeHolder: '請前往META開發者後台取得像素編號',
                                     callback: (text) => {
                                         vm.data.pixel = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -194,10 +193,10 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
                                     placeHolder: '請前往META開發者後台取得轉換 API token',
                                     callback: (text) => {
                                         vm.data.api_token = text;
-                                    }
-                                })
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
+                                    },
+                                }),
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                               ${BgWidget.container([
                             BgWidget.card([
                                 `<div class="tx_700">操作說明</div>`,
@@ -205,8 +204,8 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
                                 `<div class="tx_normal">前往 ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
                                     window.parent.glitter.openNewTab('https://shopnex.cc/blogs/fbapiconnect');
                                 }))} 查看串接設定流程</div>`,
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                                <div class="update-bar-container">
                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
@@ -229,11 +228,11 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
                             });
                         })))}
 </div>
-                                </div>`
+                                </div>`,
                     ].join('');
-                }
+                },
             };
-        }), BgWidget.getContainerWidth()) + BgWidget.mbContainer(120);
+        })) + BgWidget.mbContainer(120));
     }
 }
 window.glitter.setModule(import.meta.url, ThirdPartyLine);

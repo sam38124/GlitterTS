@@ -19,7 +19,7 @@ import { FormCheck } from '../cms-plugin/module/form-check.js';
 const html = String.raw;
 export class BgWidget {
     static title(title, style = '') {
-        return html ` <h3 class="my-auto tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
+        return html ` <h3 class="tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
     }
     static grayNote(text, style = '') {
         return html `<span style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
@@ -1334,12 +1334,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             };
         });
     }
-    static container(htmlString, width, style) {
-        return html ` <div
-            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
-            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
-        >
+    static container(htmlString, obj) {
+        var _a;
+        return html ` <div class="mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0'}" style="max-width: 100%; width: ${this.getContainerWidth()}px; ${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}">
             ${htmlString}
+        </div>`;
+    }
+    static container1x2(cont1, cont2) {
+        return html ` <div class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'}" style="gap: 24px;">
+            <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
+            <div style="width: ${document.body.clientWidth > 768 ? cont2.ratio : 100}%">${cont2.html}</div>
         </div>`;
     }
     static duringInputContainer(gvc, obj, def, callback) {
@@ -1561,8 +1565,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return html ` <div class="${classStyle}">${htmlString}</div>`;
     }
-    static mainCard(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+    static mainCard(htmlString) {
+        return html `<div class="main-card">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+    }
+    static summaryCard(htmlString) {
+        return html ` <div class="main-card summary-card">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
         return html ` <div
@@ -1820,7 +1827,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             const nav = navs[0];
                             nav.click();
                         }
-                    }, 100);
+                    }, 200);
                 }
             },
         });

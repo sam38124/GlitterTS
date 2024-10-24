@@ -208,7 +208,7 @@ export class MenusSetting {
             return {
                 bind: vm.id,
                 view: () => {
-                    return html` <div class="d-flex w-100 align-items-center">
+                    return html` <div class="title-container">
                             ${BgWidget.goBack(
                                 cf.gvc.event(() => {
                                     cf.goBack();
@@ -484,9 +484,7 @@ export class MenusSetting {
                                         </div>
                                     </div>
                                 </div>
-                            </div>`,
-                            undefined,
-                            'padding: 24px 0;'
+                            </div>`
                         )}
                         <div class="update-bar-container">
                             ${BgWidget.cancel(

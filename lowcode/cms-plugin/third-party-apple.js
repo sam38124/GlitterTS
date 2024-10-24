@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class ThirdPartyApple {
     static main(gvc) {
-        return BgWidget.container(gvc.bindView(() => {
+        return (BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const key = 'login_apple_setting';
             const vm = {
@@ -23,12 +23,12 @@ export class ThirdPartyApple {
                     id: '',
                     team_id: '',
                     secret: '',
-                    key_id: ''
+                    key_id: '',
                 },
                 ga: {
                     ga4: [],
-                    g_tag: []
-                }
+                    g_tag: [],
+                },
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
@@ -67,7 +67,7 @@ export class ThirdPartyApple {
                                     placeHolder: '請前往APPLE開發者後台取得應用程式編號',
                                     callback: (text) => {
                                         vm.data.id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.textArea({
                                     gvc: gvc,
@@ -78,7 +78,7 @@ export class ThirdPartyApple {
                                     placeHolder: '請前往APPLE開發者後台取得應用程式私鑰',
                                     callback: (text) => {
                                         vm.data.secret = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -89,7 +89,7 @@ export class ThirdPartyApple {
                                     placeHolder: '請前往META開發者後台取得團隊ID',
                                     callback: (text) => {
                                         vm.data.team_id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -100,7 +100,7 @@ Key ID
                                     placeHolder: '請前往META開發者後台取得Key ID',
                                     callback: (text) => {
                                         vm.data.key_id = text;
-                                    }
+                                    },
                                 }),
                                 `<div onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
@@ -115,8 +115,7 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain,
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div onclick="${gvc.event(() => {
@@ -132,8 +131,7 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div onclick="${gvc.event(() => {
@@ -149,18 +147,14 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
-</div>`
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
+</div>`,
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                               ${BgWidget.container([
-                            BgWidget.card([
-                                `<div class="tx_700">操作說明</div>`,
-                                `<div class="tx_normal">為啟用 Apple 登入功能，請前往 Apple 開發者後台，取得所需參數並完成設定。</div>`
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                            BgWidget.card([`<div class="tx_700">操作說明</div>`, `<div class="tx_normal">為啟用 Apple 登入功能，請前往 Apple 開發者後台，取得所需參數並完成設定。</div>`].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                                <div class="update-bar-container">
                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
@@ -188,11 +182,11 @@ ${BgWidget.editeInput({
                             });
                         })))}
 </div>
-                                </div>`
+                                </div>`,
                     ].join('');
-                }
+                },
             };
-        }), BgWidget.getContainerWidth()) + BgWidget.mbContainer(120);
+        })) + BgWidget.mbContainer(120));
     }
 }
 window.glitter.setModule(import.meta.url, ThirdPartyApple);

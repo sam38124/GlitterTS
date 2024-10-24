@@ -93,7 +93,7 @@ export class MemberTypeList {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('會員等級')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -184,8 +184,7 @@ export class MemberTypeList {
                                         })
                                     )
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'add') {
                         return this.userInformationDetail({
@@ -300,7 +299,7 @@ export class MemberTypeList {
                     }
                     return BgWidget.container(
                         [
-                            html` <div class="d-flex w-100 align-items-center mb-3 ">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         cf.callback();
@@ -309,9 +308,9 @@ export class MemberTypeList {
                                 ${BgWidget.title(vm.data.tag_name || '新增會員等級')}
                                 <div class="flex-fill"></div>
                             </div>`,
-                            html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${BgWidget.container(
-                                    gvc.bindView(() => {
+                            BgWidget.container1x2(
+                                {
+                                    html: gvc.bindView(() => {
                                         const id = glitter.getUUID();
                                         return {
                                             bind: id,
@@ -598,11 +597,10 @@ export class MemberTypeList {
                                             },
                                         };
                                     }),
-                                    undefined,
-                                    'padding: 0; margin: 0 !important; width: 65%;'
-                                )}
-                                ${BgWidget.container(
-                                    gvc.bindView(() => {
+                                    ratio: 65,
+                                },
+                                {
+                                    html: gvc.bindView(() => {
                                         return {
                                             bind: noteID,
                                             view: () => {
@@ -637,10 +635,9 @@ export class MemberTypeList {
                                             divCreate: { class: 'summary-card p-0' },
                                         };
                                     }),
-                                    undefined,
-                                    'padding: 0; margin: 0 !important; width: 35%;'
-                                )}
-                            </div>`,
+                                    ratio: 35,
+                                }
+                            ),
                             BgWidget.mbContainer(240),
                             html` <div class="update-bar-container">
                                 ${BgWidget.cancel(
@@ -671,9 +668,7 @@ export class MemberTypeList {
                                     })
                                 )}
                             </div>`,
-                        ].join('<div class="my-2"></div>'),
-                        BgWidget.getContainerWidth(),
-                        'position: relative'
+                        ].join('<div class="my-2"></div>')
                     );
                 },
             };

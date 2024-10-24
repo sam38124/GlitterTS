@@ -137,8 +137,7 @@ export class WebConfigSetting {
                                         ].join('')
                                     )
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'add') {
                         return this.formSettingDetail({
@@ -182,7 +181,7 @@ export class WebConfigSetting {
                     bind: id,
                     view: () => {
                         return [
-                            html` <div class="d-flex w-100 align-items-center mb-3 ">
+                            html`<div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         if (viewType === 'editor') {
@@ -303,8 +302,7 @@ export class WebConfigSetting {
                         ($('[data-bs-toggle="tooltip"]') as any).tooltip();
                     },
                 };
-            }),
-            800
+            })
         );
     }
     public static formSettingDetail(cf: { formID: string; gvc: GVC; vm: any }) {
@@ -335,7 +333,7 @@ export class WebConfigSetting {
                     bind: id,
                     view: () => {
                         return [
-                            html` <div class="d-flex w-100 align-items-center mb-3 ">
+                            html`<div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         if (viewType === 'preview') {
@@ -460,8 +458,7 @@ export class WebConfigSetting {
                         ($('[data-bs-toggle="tooltip"]') as any).tooltip();
                     },
                 };
-            }),
-            800
+            })
         );
     }
 }

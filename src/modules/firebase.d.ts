@@ -20,5 +20,6 @@ export declare class Firebase {
         link: string;
         body: string;
         app?: string;
+        pass_store?: boolean;
     }): Promise<unknown>;
 }

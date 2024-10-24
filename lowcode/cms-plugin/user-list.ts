@@ -108,7 +108,7 @@ export class UserList {
                 if (vm.type === 'list') {
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="title-container">
                                 ${(() => {
                                     if (obj && obj.group && obj.backButtonEvent) {
                                         return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
@@ -136,40 +136,42 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.tab(
-                                obj?.group?.type === 'subscriber'
-                                    ? [
-                                          {
-                                              title: '一般列表',
-                                              key: 'normal',
-                                          },
-                                          {
-                                              title: '黑名單',
-                                              key: 'block',
-                                          },
-                                          {
-                                              title: '未註冊',
-                                              key: 'notRegistered',
-                                          },
-                                      ]
-                                    : [
-                                          {
-                                              title: '一般列表',
-                                              key: 'normal',
-                                          },
-                                          {
-                                              title: '黑名單',
-                                              key: 'block',
-                                          },
-                                      ],
-                                gvc,
-                                vm.filter_type,
-                                (text) => {
-                                    vm.filter_type = text as any;
-                                    gvc.notifyDataChange(vm.id);
-                                },
-                                `margin:0;margin-top:24px;`
-                            )}
+                            <div class="title-container">
+                                ${BgWidget.tab(
+                                    obj?.group?.type === 'subscriber'
+                                        ? [
+                                              {
+                                                  title: '一般列表',
+                                                  key: 'normal',
+                                              },
+                                              {
+                                                  title: '黑名單',
+                                                  key: 'block',
+                                              },
+                                              {
+                                                  title: '未註冊',
+                                                  key: 'notRegistered',
+                                              },
+                                          ]
+                                        : [
+                                              {
+                                                  title: '一般列表',
+                                                  key: 'normal',
+                                              },
+                                              {
+                                                  title: '黑名單',
+                                                  key: 'block',
+                                              },
+                                          ],
+                                    gvc,
+                                    vm.filter_type,
+                                    (text) => {
+                                        vm.filter_type = text as any;
+                                        gvc.notifyDataChange(vm.id);
+                                    },
+                                    `margin:0;margin-top:24px;`
+                                )}
+                            </div>
                             ${BgWidget.container(
                                 (() => {
                                     if (vm.filter_type === 'notRegistered') {
@@ -310,8 +312,7 @@ export class UserList {
                                 })(),
                                 undefined
                             )}
-                        `,
-                        BgWidget.getContainerWidth()
+                        `
                     );
                 } else if (vm.type == 'replace') {
                     return this.userInformationDetail({
@@ -820,7 +821,7 @@ export class UserList {
                                 [
                                     // 上層導覽
                                     html`
-                                        <div class="d-flex align-items-center w-100 mb-3">
+                                        <div class="title-container">
                                             ${BgWidget.goBack(
                                                 gvc.event(() => {
                                                     cf.callback();
@@ -832,12 +833,12 @@ export class UserList {
                                             </div>
                                             ${document.body.clientWidth > 768 ? getButtonList() : ''}
                                         </div>
-                                        ${document.body.clientWidth > 768 ? '' : getButtonList()}
+                                        ${document.body.clientWidth > 768 ? '' : html` <div class="title-container mt-3">${getButtonList()}</div>`}
                                     `,
                                     // 左右容器
-                                    html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                        ${BgWidget.container(
-                                            [
+                                    BgWidget.container1x2(
+                                        {
+                                            html: [
                                                 // 顧客資料
                                                 gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
@@ -1291,13 +1292,11 @@ export class UserList {
                                                         },
                                                     };
                                                 }),
-                                            ].join(html` <div style="margin-top: 24px;"></div>`),
-                                            undefined,
-                                            'padding: 0 !important; margin: 0 !important; width: 73.5%;'
-                                        )}
-                                        ${BgWidget.container(
-                                            // 會員等級
-                                            gvc.bindView(() => {
+                                            ].join(BgWidget.mbContainer(24)),
+                                            ratio: 75,
+                                        },
+                                        {
+                                            html: gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -1376,14 +1375,13 @@ export class UserList {
                                                         );
                                                     },
                                                     divCreate: {
-                                                        class: 'p-0',
+                                                        class: 'summary-card p-0',
                                                     },
                                                 };
                                             }),
-                                            undefined,
-                                            'padding: 0 !important; margin: 0 !important; width: 26.5%;'
-                                        )}
-                                    </div>`,
+                                            ratio: 25,
+                                        }
+                                    ),
                                     // 空白容器
                                     BgWidget.mbContainer(240),
                                     // 儲存資料
@@ -1407,8 +1405,7 @@ export class UserList {
                                             })
                                         )}
                                     </div>`,
-                                ].join(html` <div style="margin-top: 24px;"></div>`),
-                                BgWidget.getContainerWidth()
+                                ].join(html` <div style="margin-top: 24px;"></div>`)
                             );
                     }
                 },
@@ -1442,7 +1439,7 @@ export class UserList {
             view: () => {
                 return BgWidget.container(
                     html`
-                        <div class="d-flex w-100 align-items-center">
+                        <div class="title-container">
                             ${BgWidget.goBack(
                                 gvc.event(() => {
                                     vm.type = 'list';
@@ -1600,12 +1597,10 @@ export class UserList {
                                             })
                                         )}
                                     </div>`,
-                                ].join(''),
-                                BgWidget.getContainerWidth()
+                                ].join('')
                             )}
                         </div>
-                    `,
-                    BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 2 : 1)
+                    `
                 );
             },
             divCreate: {},
@@ -1696,7 +1691,7 @@ export class UserList {
                                             gvc: gvc,
                                             getData: (vd) => {
                                                 vmi = vd;
-                                                const limit = 20;
+                                                const limit = type === 'select' ? 10 : 20;
                                                 ApiUser.getUserList({
                                                     page: vmi.page - 1,
                                                     limit: limit,
@@ -1715,6 +1710,11 @@ export class UserList {
                                                     vm.dataList[index].checked = !vm.dataList[index].checked;
                                                     vmi.data = getDatalist();
                                                     vmi.callback();
+                                                    console.log(
+                                                        vm.dataList.filter((dd: any) => {
+                                                            return dd.checked;
+                                                        })
+                                                    );
                                                     callback(
                                                         vm.dataList.filter((dd: any) => {
                                                             return dd.checked;
@@ -1759,9 +1759,7 @@ export class UserList {
                                         }),
                                     ].join('')
                                 )}
-                            `,
-                            undefined,
-                            'padding: 0 !important; margin: 0 !important;'
+                            `
                         );
                     } else if (vm.type == 'replace') {
                         return this.userInformationDetail({

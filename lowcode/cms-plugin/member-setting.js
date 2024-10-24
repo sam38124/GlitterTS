@@ -29,8 +29,7 @@ export class MemberSetting {
                 key: 'login_config',
                 value: vm.data,
                 user_id: 'manager',
-            }).then(() => {
-            });
+            }).then(() => { });
         }
         return gvc.bindView(() => {
             return {
@@ -41,101 +40,90 @@ export class MemberSetting {
                         return ``;
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="title-container">
                                 ${BgWidget.title('顧客設定')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${BgWidget.container([
                         BgWidget.mainCard([
-                            html `
-                                                        <div class="tx_normal fw-bolder mt-2"
-                                                             style="margin-bottom: 24px;">驗證方式
-                                                        </div>`,
-                            html `
-                                                        <div class="d-flex flex-column" style="gap:18px;">
-                                                            ${[BgWidget.multiCheckboxContainer(gvc, [{
-                                        key: 'true', name: `<div class="d-flex flex-column">是否驗證信箱
-${BgWidget.grayNote(`信箱是否需要驗證才能進行註冊或修改`)}
-</div>`
-                                    }], [`${(_a = vm.data.email_verify) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                            html ` <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 24px;">驗證方式</div>`,
+                            html ` <div class="d-flex flex-column" style="gap:18px;">
+                                                ${[
+                                BgWidget.multiCheckboxContainer(gvc, [
+                                    {
+                                        key: 'true',
+                                        name: html `<div class="d-flex flex-column">是否驗證信箱 ${BgWidget.grayNote(`信箱是否需要驗證才能進行註冊或修改`)}</div>`,
+                                    },
+                                ], [`${(_a = vm.data.email_verify) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
                                     vm.data.email_verify = !vm.data.email_verify;
                                     saveEvent();
                                 }),
-                                BgWidget.multiCheckboxContainer(gvc, [{
-                                        key: 'true', name: `<div class="d-flex flex-column">是否驗證電話
+                                BgWidget.multiCheckboxContainer(gvc, [
+                                    {
+                                        key: 'true',
+                                        name: `<div class="d-flex flex-column">是否驗證電話
 ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
-</div>`
-                                    }], [`${(_b = vm.data.phone_verify) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
+</div>`,
+                                    },
+                                ], [`${(_b = vm.data.phone_verify) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
                                     vm.data.phone_verify = !vm.data.phone_verify;
                                     saveEvent();
-                                })
+                                }),
                             ].join('')}
-                                                        </div>`,
-                            html `
-                                                        <div class="w-100 border-top my-3"></div>`,
-                            html `
-                                                        <div class="tx_normal fw-bolder mt-2"
-                                                             style="margin-bottom: 12px;">結帳設定
-                                                        </div>`,
-                            html `
-                                                        <div class="d-flex align-items-center w-100"
-                                                             style="gap:4px;margin-bottom: 12px;">
-                                                            <div class="tx_normal fw-bolder d-flex flex-column">允許訪客結帳
-                                                            </div>
-                                                            <div class="tx_normal ms-2">
-                                                                ${vm.data.login_in_to_order ? `關閉` : `開啟`}
-                                                            </div>
-                                                            <div class="cursor_pointer form-check form-switch m-0">
-                                                                <input
-                                                                        class="form-check-input"
-                                                                        type="checkbox"
-                                                                        onchange="${gvc.event((e, event) => {
+                                            </div>`,
+                            html ` <div class="w-100 border-top my-3"></div>`,
+                            html ` <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">結帳設定</div>`,
+                            html ` <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
+                                                <div class="tx_normal fw-bolder d-flex flex-column">允許訪客結帳</div>
+                                                <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `關閉` : `開啟`}</div>
+                                                <div class="cursor_pointer form-check form-switch m-0">
+                                                    <input
+                                                        class="form-check-input"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
                                 vm.data.login_in_to_order = !vm.data.login_in_to_order;
                                 saveEvent();
                                 gvc.notifyDataChange(vm.id);
                             })}"
-                                                                        ${vm.data.login_in_to_order ? `` : `checked`}
-                                                                />
-                                                            </div>
-                                                            <div class="flex-fill"></div>
-                                                        </div>`,
+                                                        ${vm.data.login_in_to_order ? `` : `checked`}
+                                                    />
+                                                </div>
+                                                <div class="flex-fill"></div>
+                                            </div>`,
                         ].join('')),
                         ...(() => {
-                            const form = BgWidget.customForm(gvc, [{
+                            const form = BgWidget.customForm(gvc, [
+                                {
                                     key: 'custom_form_register',
-                                    title: html `
-                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                         style="margin-bottom: 12px;">
-                                                        註冊頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
-                                                    </div>`
-                                }, {
+                                    title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                                    註冊頁面表單
+                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
+                                                </div>`,
+                                },
+                                {
                                     key: 'customer_form_user_setting',
-                                    title: html `
-                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                         style="margin-bottom: 12px;">
-                                                        設定頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客可填寫的額外資料</span>
-                                                    </div>`
+                                    title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                                    設定頁面表單
+                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客可填寫的額外資料</span>
+                                                </div>`,
                                 },
                             ]);
                             return [
                                 form.view,
-                                html `
-                                                    <div class="update-bar-container">
-                                                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                html ` <div class="update-bar-container">
+                                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.dataLoading({ visible: true });
                                     yield form.save();
                                     dialog.dataLoading({ visible: false });
                                     dialog.successMessage({ text: '設定成功' });
                                 })))}
-                                                    </div>`
+                                            </div>`,
                             ];
                         })(),
                         BgWidget.mbContainer(240),
                     ].join(BgWidget.mbContainer(24)))}
-                        `, BgWidget.getContainerWidth());
+                        `);
                 },
             };
         });
@@ -155,44 +143,43 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
         `);
         const gvc = it.gvc;
         const html = String.raw;
-        return html `
-            <div class="col-sm-4 col-12 mb-3">
-                ${it.gvc.bindView(() => {
+        return html ` <div class="col-sm-4 col-12 mb-3">
+            ${it.gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return html `
-                                <div class="d-flex align-items-center list_item position-relative">
-                                    <img class="icon" src="${it.icon}"/>
-                                    <div class="d-flex flex-column" style="gap:3px;">
-                                        <div class="fs-6 fw-500">${it.title}</div>
-                                        <div class=" d-flex align-items-center" style="gap:5px;">
-                                            <div class="fs-sm">${it.toggle ? `已啟用` : `已停用`}</div>
-                                            <i
-                                                    class="fa-sharp fa-solid ${it.toggle ? `fa-toggle-on` : `fa-toggle-off`} fs-4"
-                                                    style="cursor: pointer; color: ${it.toggle ? EditorConfig.editor_layout.main_color : `gray`};"
-                                                    onclick="${gvc.event(() => {
+                            <div class="d-flex align-items-center list_item position-relative">
+                                <img class="icon" src="${it.icon}" />
+                                <div class="d-flex flex-column" style="gap:3px;">
+                                    <div class="fs-6 fw-500">${it.title}</div>
+                                    <div class=" d-flex align-items-center" style="gap:5px;">
+                                        <div class="fs-sm">${it.toggle ? `已啟用` : `已停用`}</div>
+                                        <i
+                                            class="fa-sharp fa-solid ${it.toggle ? `fa-toggle-on` : `fa-toggle-off`} fs-4"
+                                            style="cursor: pointer; color: ${it.toggle ? EditorConfig.editor_layout.main_color : `gray`};"
+                                            onclick="${gvc.event(() => {
                         it.toggle = !it.toggle;
                         gvc.notifyDataChange(id);
                         it.toggle_event(it.toggle);
                     })}"
-                                            ></i>
-                                        </div>
-                                    </div>
-                                    <div class="ms-auto" style="right: 0px;top: 0px;">
-                                        <div
-                                                class="btn-sm bt_primary btn fs-sm fw-normal"
-                                                style="height:25px; width:25px;"
-                                                onclick="${gvc.event(() => {
-                        it.editor_preview_view();
-                    })}"
-                                        >
-                                            設定
-                                        </div>
+                                        ></i>
                                     </div>
                                 </div>
-                            `;
+                                <div class="ms-auto" style="right: 0px;top: 0px;">
+                                    <div
+                                        class="btn-sm bt_primary btn fs-sm fw-normal"
+                                        style="height:25px; width:25px;"
+                                        onclick="${gvc.event(() => {
+                        it.editor_preview_view();
+                    })}"
+                                    >
+                                        設定
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                 },
                 divCreate: {
                     class: 'p-3 bg-white',
@@ -200,7 +187,7 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                 },
             };
         })}
-            </div>`;
+        </div>`;
     }
 }
 window.glitter.setModule(import.meta.url, MemberSetting);

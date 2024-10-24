@@ -84,7 +84,7 @@ class Firebase {
                                                    from \`${cf.app || this.app}\`.t_user_public_config
                                                    where \`key\` ='notify_setting' and user_id=?`, [cf.userID]))[0])) !== null && _a !== void 0 ? _a : { value: {} }).value;
                 if (`${user_cf[cf.tag]}` !== 'false') {
-                    if (cf.userID && cf.tag && cf.title && cf.body && cf.link) {
+                    if (cf.userID && cf.tag && cf.title && cf.body && cf.link && !cf.pass_store) {
                         await database_1.default.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id, tag, title, content, link)
                                         values (?, ?, ?, ?, ?)`, [
                             cf.userID,

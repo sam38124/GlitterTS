@@ -35,7 +35,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
             view: () => {
                 if (vm.type === 'post') {
                     return BgWidget.container([
-                        html ` <div class="d-flex">
+                        html ` <div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
@@ -160,7 +160,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                 };
                             }),
                         ].join('')),
-                    ].join(`<div class="my-3"></div>`), 600);
+                    ].join(`<div class="my-3"></div>`));
                 }
                 else if (vm.type === 'replace') {
                     function updateEvent() {
@@ -200,7 +200,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                         port: vm.data.port,
                                     });
                                     resolve(BgWidget.container([
-                                        html ` <div class="d-flex">
+                                        html ` <div class="title-container">
                                                     ${BgWidget.goBack(gvc.event(() => {
                                             vm.type = 'list';
                                             gvc.notifyDataChange(id);
@@ -404,7 +404,7 @@ data-bs-title="下載專案壓縮檔"
                                             });
                                         })}">刪除專案</button>
 </div>`,
-                                    ].join(`<div class="my-3"></div>`), 600));
+                                    ].join(`<div class="my-3"></div>`)));
                                 }));
                             },
                         };

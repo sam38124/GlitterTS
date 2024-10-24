@@ -146,7 +146,7 @@ export class ShoppingRebateSetting {
                 }
                 if (vm.type === 'list') {
                     return BgWidget.container(
-                        html` <div class="d-flex w-100 align-items-center">
+                        html` <div class="title-container">
                                 ${BgWidget.title('購物金設定')}
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px; "></div>
@@ -154,9 +154,9 @@ export class ShoppingRebateSetting {
                             ${BgWidget.container(
                                 [
                                     // 主要內容
-                                    html`<div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                        ${BgWidget.container(
-                                            [
+                                    BgWidget.container1x2(
+                                        {
+                                            html: [
                                                 BgWidget.mainCard(html`<div>
                                                     <div style="margin-bottom: 18px;">
                                                         <span class="tx_700">購物金功能</span>
@@ -301,7 +301,9 @@ export class ShoppingRebateSetting {
                                                                                                                                     if (n === -1 || n === index) {
                                                                                                                                         item.id = text;
                                                                                                                                     } else {
-                                                                                                                                        dialog.infoMessage({ text: '列表存在此會員等級，請重新選擇' });
+                                                                                                                                        dialog.infoMessage({
+                                                                                                                                            text: '列表存在此會員等級，請重新選擇',
+                                                                                                                                        });
                                                                                                                                     }
                                                                                                                                     gvc.notifyDataChange(levelVM.id);
                                                                                                                                 },
@@ -560,12 +562,10 @@ export class ShoppingRebateSetting {
                                                     })()
                                                 ),
                                             ].join(html`<div style="margin-top: 24px;"></div>`),
-                                            undefined,
-                                            'padding: 0 !important; margin: 0 !important; width: 73.5%;'
-                                        )}
-                                        ${BgWidget.container(
-                                            // 摘要預覽
-                                            gvc.bindView(() => {
+                                            ratio: 65,
+                                        },
+                                        {
+                                            html: gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -598,10 +598,9 @@ export class ShoppingRebateSetting {
                                                     divCreate: { class: 'summary-card p-0' },
                                                 };
                                             }),
-                                            undefined,
-                                            'padding: 0 !important; margin: 0 !important; width: 26.5%;'
-                                        )}
-                                    </div>`,
+                                            ratio: 35,
+                                        }
+                                    ),
                                     // 空白容器
                                     BgWidget.mbContainer(240),
                                     // 儲存資料
@@ -641,8 +640,7 @@ export class ShoppingRebateSetting {
                                         )}
                                     </div>`,
                                 ].join('')
-                            )}`,
-                        BgWidget.getContainerWidth()
+                            )}`
                     );
                 }
                 return BgWidget.maintenance();

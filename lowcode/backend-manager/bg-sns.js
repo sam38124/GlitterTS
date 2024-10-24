@@ -129,7 +129,7 @@ export class BgSNS {
                                 },
                             ],
                         }),
-                    ].join('')), type === 'select' ? 850 : BgWidget.getContainerWidth(), 'padding: 0;');
+                    ].join('')));
                 },
             };
         });
@@ -232,7 +232,7 @@ export class BgSNS {
                             }),
                         ].join('')))}
                                 ${BgWidget.mbContainer(120)}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.emailEditor({
@@ -418,7 +418,7 @@ export class BgSNS {
                             }),
                         ].join('')))}
                                 ${BgWidget.mbContainer(120)}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     return this.emailEditor({
                         vm: vm,
@@ -442,7 +442,7 @@ export class BgSNS {
         };
         let pointCount = 1;
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
@@ -583,7 +583,7 @@ export class BgSNS {
                 },
                 divCreate: {},
             };
-        }), BgWidget.getContainerWidth(), 'padding: 0 !important; margin: 0 !important;')}
+        }))}
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${obj.type === 'replace' && !obj.readonly
@@ -671,7 +671,7 @@ export class BgSNS {
                 }
             }))}
                 </div>
-            `, BgWidget.getContainerWidth());
+            `);
     }
     static snsSender(gvc) {
         const glitter = gvc.glitter;
@@ -1448,7 +1448,7 @@ export class BgSNS {
                 },
                 divCreate: {},
             };
-        }), BgWidget.getContainerWidth(), 'padding: 0 !important; margin: 0 !important;')}
+        }))}
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${BgWidget.save(gvc.event(() => {
@@ -1497,7 +1497,7 @@ export class BgSNS {
             });
         }), '送出')}
                 </div>
-            `, BgWidget.getContainerWidth());
+            `);
     }
     static fcmEditor(obj) {
         var _a;
@@ -1512,7 +1512,7 @@ export class BgSNS {
             name: '',
         };
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
@@ -1632,7 +1632,7 @@ export class BgSNS {
             }
         }))}
                     </div>`)}
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static fcmDevice(gvc, type = 'list', callback = () => { }) {
         const vm = {
@@ -1757,7 +1757,7 @@ export class BgSNS {
                             ],
                         }),
                     ].join('')))}
-                        `, BgWidget.getContainerWidth());
+                        `);
                 },
                 divCreate: {
                     class: type === 'select' ? `m-n4` : ``,
@@ -1829,7 +1829,7 @@ export class BgSNS {
                                                                                         <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
                                                                                             ${BgWidget.container(BgWidget.card([
                                                                     html `
-                                                                                                            <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                            <div class="title-container">
                                                                                                                 ${BgWidget.goBack(gvc.event(() => {
                                                                         gvc.closeDialog();
                                                                     }))}
@@ -1891,7 +1891,7 @@ export class BgSNS {
                                                                         BgSNS.fcmDevice(gvc, 'select', (data) => {
                                                                             dataList = data;
                                                                         }),
-                                                                ].join('')), 900)}
+                                                                ].join('')))}
                                                                                             <div></div>
                                                                                         </div>
                                                                                     `;
@@ -1954,7 +1954,7 @@ export class BgSNS {
                                 ],
                             }),
                         ].join('')))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.fcmEditor({
@@ -2073,7 +2073,7 @@ export class BgSNS {
                     }
                     if (vm.type === 'replace') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                <div class="title-container">
                                     ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
@@ -2185,7 +2185,7 @@ export class BgSNS {
                             refresh: () => { },
                             formData: vm.data.content,
                         })}`)}
-                            `, 800);
+                            `);
                     }
                     return BgWidget.container(html `
                         <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
@@ -2392,7 +2392,7 @@ export class BgSNS {
                     }
                     if (vm.type === 'replace') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3 ">
+                               <div class="title-container">
                                     ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
@@ -2504,7 +2504,7 @@ export class BgSNS {
                             refresh: () => { },
                             formData: vm.data.content,
                         })}`)}
-                            `, 800);
+                            `);
                     }
                     return BgWidget.container(html `
                         <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">

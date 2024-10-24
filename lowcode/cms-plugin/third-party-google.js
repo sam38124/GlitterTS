@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class ThirdPartyGoggle {
     static main(gvc) {
-        return BgWidget.container(gvc.bindView(() => {
+        return (BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const key = 'login_google_setting';
             const vm = {
@@ -22,12 +22,12 @@ export class ThirdPartyGoggle {
                     id: '',
                     app_id: '',
                     secret: '',
-                    pixel: ''
+                    pixel: '',
                 },
                 ga: {
                     ga4: [],
-                    g_tag: []
-                }
+                    g_tag: [],
+                },
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
@@ -45,7 +45,9 @@ export class ThirdPartyGoggle {
                     }
                     const html = String.raw;
                     function renderCodeSelect(array) {
-                        return [array.map((dd, index) => {
+                        return [
+                            array
+                                .map((dd, index) => {
                                 return `<div class="col-12 col-sm-4  mb-2 ps-0" style="align-self: stretch;
     justify-content: flex-start;
     align-items: flex-start;
@@ -74,20 +76,24 @@ export class ThirdPartyGoggle {
     cursor: pointer;" onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.checkYesOrNot({
-                                        text: '是否確認刪除此追蹤編號?', callback: (response) => {
+                                        text: '是否確認刪除此追蹤編號?',
+                                        callback: (response) => {
                                             if (response) {
                                                 array.splice(index, 1);
                                                 gvc.notifyDataChange(id);
                                             }
-                                        }
+                                        },
                                     });
                                 })}"><div class="" style="" ><i class="fa-regular fa-trash-can" aria-hidden="true"></i></div></div></div>`;
-                            }).join(''), `<div class="col-12 col-sm-4  mb-2 ps-0" onclick="${gvc.event(() => {
+                            })
+                                .join(''),
+                            `<div class="col-12 col-sm-4  mb-2 ps-0" onclick="${gvc.event(() => {
                                 array.push({ code: '' });
                                 gvc.notifyDataChange(id);
                             })}">
 <div class="bt_orange">新增編號</div>
-</div>`].join(``);
+</div>`,
+                        ].join(``);
                     }
                     return [
                         BgWidget.title('Google串接設定'),
@@ -111,7 +117,7 @@ export class ThirdPartyGoggle {
                                     placeHolder: '請前往GOOGLE開發者後台取得客户端 ID',
                                     callback: (text) => {
                                         vm.data.id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -122,7 +128,7 @@ APP客户端 ID『 非必填 』
                                     placeHolder: '請前往Google Cloud後台取得客户端 ID',
                                     callback: (text) => {
                                         vm.data.app_id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -133,7 +139,7 @@ APP客户端 ID『 非必填 』
                                     placeHolder: '請前往GOOGLE開發者後台取得應用程式密鑰',
                                     callback: (text) => {
                                         vm.data.secret = text;
-                                    }
+                                    },
                                 }),
                                 `<div onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
@@ -148,8 +154,7 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div onclick="${gvc.event(() => {
@@ -165,10 +170,9 @@ ${BgWidget.editeInput({
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
-</div>`
+</div>`,
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700 d-flex align-items-center" style="gap:10px;"><img  style="width: 25px;height: 25px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718208842472-ic_analytics.svg">
@@ -177,7 +181,7 @@ ${BgWidget.editeInput({
                                 `<div class="tx_700">追蹤編號</div>`,
                                 `<div class="row m-0">
 ${renderCodeSelect(vm.ga.ga4)}
-</div>`
+</div>`,
                             ].join(BgWidget.mbContainer(12))),
                             BgWidget.card([
                                 `<div class="tx_700 d-flex align-items-center" style="gap:10px;"><img  style="width: 25px;height: 25px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718210156723-ic_tag_manager.svg">
@@ -186,9 +190,9 @@ ${renderCodeSelect(vm.ga.ga4)}
                                 `<div class="tx_700">追蹤編號含GTM</div>`,
                                 `<div class="row m-0">
 ${renderCodeSelect(vm.ga.g_tag)}
-</div>`
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
+</div>`,
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                               ${BgWidget.container([
                             BgWidget.card([
                                 `<div class="tx_700">操作說明</div>`,
@@ -196,8 +200,8 @@ ${renderCodeSelect(vm.ga.g_tag)}
                                 `<div class="tx_normal">前往 ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
                                     window.parent.glitter.openNewTab('https://shopnex.cc/blogs/googleapiconnect');
                                 }))} 查看串接設定流程</div>`,
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                                <div class="update-bar-container">
                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
@@ -225,11 +229,11 @@ ${renderCodeSelect(vm.ga.g_tag)}
                             });
                         })))}
 </div>
-                                </div>`
+                                </div>`,
                     ].join('');
-                }
+                },
             };
-        }), BgWidget.getContainerWidth()) + BgWidget.mbContainer(120);
+        })) + BgWidget.mbContainer(120));
     }
 }
 window.glitter.setModule(import.meta.url, ThirdPartyGoggle);

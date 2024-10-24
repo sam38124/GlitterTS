@@ -120,7 +120,7 @@ export class FormSetting {
                                 ],
                             }),
                         ].join('')))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
                         return this.formSettingDetail({ formID: '', gvc: gvc, vm: vm });
@@ -169,7 +169,7 @@ export class FormSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('表單收集')}
                                     <div class="flex-fill"></div>
                                 </div>
@@ -240,7 +240,7 @@ export class FormSetting {
                                 ],
                             }),
                         ].join('')))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
                         return this.formReadOnly({
@@ -307,7 +307,7 @@ export class FormSetting {
                     $('[data-bs-toggle="tooltip"]').tooltip();
                 },
             };
-        }), 800);
+        }));
     }
     static formSettingDetail(cf) {
         const postMd = cf.vm.type === 'add'
@@ -328,7 +328,7 @@ export class FormSetting {
                 bind: id,
                 view: () => {
                     return [
-                        html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                        html `<div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             if (viewType === 'preview') {
                                 viewType = 'editor';
@@ -504,7 +504,7 @@ export class FormSetting {
                     $('[data-bs-toggle="tooltip"]').tooltip();
                 },
             };
-        }), 800);
+        }));
     }
 }
 window.glitter.setModule(import.meta.url, FormSetting);

@@ -164,8 +164,7 @@ export class AutoReply {
                                 )
                             )}
                             ${BgWidget.mbContainer(240)}
-                        `,
-                        BgWidget.getContainerWidth()
+                        `
                     );
                 },
             };
@@ -184,7 +183,7 @@ export class AutoReply {
         let pointCount = 1;
         return html` ${BgWidget.container(
             [
-                html`<div class="d-flex align-items-center w-100">
+                html`<div class="title-container">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             back();
@@ -313,8 +312,7 @@ export class AutoReply {
                         })
                     )}
                 </div>`,
-            ].join(''),
-            BgWidget.getContainerWidth()
+            ].join('')
         )}`;
     }
 

@@ -194,7 +194,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
-                email: email
+                email: email,
             }),
         });
     }
@@ -207,7 +207,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
-                phone_number: phone_number
+                phone_number: phone_number,
             }),
         });
     }

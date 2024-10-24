@@ -125,44 +125,40 @@ export class ProductText {
                                     <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">新增一個文本</div>
                                     <i class="fa-solid fa-plus"></i>
                                 </div>`,
-                    ].join('')), BgWidget.getContainerWidth());
+                    ].join('')));
                 }
                 if (vm.type === 'text_edit') {
                     return BgWidget.container([
-                        html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${[
-                            BgWidget.container([
-                                html ` <div class="d-flex w-100 align-items-center mb-3">
-                                                ${BgWidget.goBack(gvc.event(() => {
-                                    vm.type = 'list';
-                                }))}
-                                                ${BgWidget.title(vm.data.title || '新增文本')}
-                                                <div class="flex-fill"></div>
-                                            </div>`,
-                                BgWidget.mainCard(BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: '文本標題',
-                                    default: vm.data.title,
-                                    placeHolder: '請輸入文本標題',
-                                    callback: (text) => {
-                                        vm.data.title = text;
-                                    },
-                                })),
-                                BgWidget.mainCard(html `<div>
-                                                    <div class="tx_normal fw-normal">文本說明</div>
-                                                    <div style="margin: 8px 0">
-                                                        ${EditorElem.richText({
-                                    gvc: gvc,
-                                    def: vm.data.data.content,
-                                    callback: (text) => {
-                                        vm.data.data.content = text;
-                                    },
-                                })}
-                                                    </div>
-                                                </div>`),
-                            ].join(BgWidget.mbContainer(12)), undefined, 'padding: 0; margin: 0 !important; width: 70%;'),
-                        ].join('')}
+                        html ` <div class="title-container">
+                                ${BgWidget.goBack(gvc.event(() => {
+                            vm.type = 'list';
+                        }))}
+                                ${BgWidget.title(vm.data.title || '新增文本')}
+                                <div class="flex-fill"></div>
                             </div>`,
+                        BgWidget.container([
+                            BgWidget.mainCard(BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '文本標題',
+                                default: vm.data.title,
+                                placeHolder: '請輸入文本標題',
+                                callback: (text) => {
+                                    vm.data.title = text;
+                                },
+                            })),
+                            BgWidget.mainCard(html `<div>
+                                            <div class="tx_normal fw-normal">文本說明</div>
+                                            <div style="margin: 8px 0">
+                                                ${EditorElem.richText({
+                                gvc: gvc,
+                                def: vm.data.data.content,
+                                callback: (text) => {
+                                    vm.data.data.content = text;
+                                },
+                            })}
+                                            </div>
+                                        </div>`),
+                        ].join(BgWidget.mbContainer(12))),
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${vm.data.id.length === 0
@@ -218,9 +214,9 @@ export class ProductText {
                             });
                         }))}
                             </div>`,
-                    ].join(''), BgWidget.getContainerWidth());
+                    ].join(''));
                 }
-                return BgWidget.container(BgWidget.mainCard(html `<div>tag_edit</div>`), BgWidget.getContainerWidth());
+                return BgWidget.container(BgWidget.mainCard(html `<div>tag_edit</div>`));
             },
         });
     }

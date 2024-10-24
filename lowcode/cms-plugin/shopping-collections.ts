@@ -150,24 +150,25 @@ export class ShoppingCollections {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center" style="gap: 14px;">
+                                <div class="title-container">
                                     ${BgWidget.title('商品分類')}
                                     <div class="flex-fill"></div>
-                                    ${BgWidget.grayButton(
-                                        '編輯順序',
-                                        gvc.event(() => {
-                                            return BgWidget.infoDialog({
-                                                gvc,
-                                                title: '編輯順序',
-                                                innerHTML: gvc.bindView(
-                                                    (() => {
-                                                        const id = glitter.getUUID();
-                                                        let loading = true;
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                if (loading) {
-                                                                    gvc.addStyle(`
+                                    <div class="d-flex gap-2">
+                                        ${BgWidget.grayButton(
+                                            '編輯順序',
+                                            gvc.event(() => {
+                                                return BgWidget.infoDialog({
+                                                    gvc,
+                                                    title: '編輯順序',
+                                                    innerHTML: gvc.bindView(
+                                                        (() => {
+                                                            const id = glitter.getUUID();
+                                                            let loading = true;
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    if (loading) {
+                                                                        gvc.addStyle(`
                                                                         .parent-container,
                                                                         .child-container {
                                                                             flex: 1;
@@ -212,134 +213,135 @@ export class ShoppingCollections {
                                                                             background-color: #dcdcdc;
                                                                         }
                                                                     `);
-                                                                    return '';
-                                                                } else {
-                                                                    return html`<div class="d-flex">
-                                                                        <div class="parent-container">
-                                                                            <div class="tx_title text-center mb-2">父層類別</div>
-                                                                            <ul class="ul-style" id="parent-list">
-                                                                                <!-- TS 生成的父層類別列表 -->
-                                                                            </ul>
-                                                                        </div>
-                                                                        <div class="child-container">
-                                                                            <div class="tx_title text-center mb-2">子層類別</div>
-                                                                            <ul class="ul-style" id="child-list">
-                                                                                <!-- TS 生成的子層類別列表 -->
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>`;
-                                                                }
-                                                            },
-                                                            divCreate: {},
-                                                            onCreate: () => {
-                                                                if (loading) {
-                                                                    gvc.addMtScript(
-                                                                        [
-                                                                            {
-                                                                                src: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
-                                                                            },
-                                                                        ],
-                                                                        () => {
-                                                                            const si = setInterval(() => {
-                                                                                if ((window as any).Sortable !== undefined) {
-                                                                                    loading = false;
-                                                                                    clearInterval(si);
-                                                                                    gvc.notifyDataChange(id);
-                                                                                }
-                                                                            }, 300);
-                                                                        },
-                                                                        () => {}
-                                                                    );
-                                                                } else {
-                                                                    // 建立列表項目
-                                                                    function createListItem(item: any, index: number): HTMLLIElement {
-                                                                        const li = document.createElement('li');
-                                                                        li.className = 'li-style';
-                                                                        li.setAttribute('data-index', index.toString());
-                                                                        li.setAttribute('data-parent', item.parentTitles[0] || 'root');
-                                                                        li.innerHTML = `<span class="drag-icon"></span><span class="tx_normal">${item.title}</span>`;
-                                                                        return li;
+                                                                        return '';
+                                                                    } else {
+                                                                        return html`<div class="d-flex">
+                                                                            <div class="parent-container">
+                                                                                <div class="tx_title text-center mb-2">父層類別</div>
+                                                                                <ul class="ul-style" id="parent-list">
+                                                                                    <!-- TS 生成的父層類別列表 -->
+                                                                                </ul>
+                                                                            </div>
+                                                                            <div class="child-container">
+                                                                                <div class="tx_title text-center mb-2">子層類別</div>
+                                                                                <ul class="ul-style" id="child-list">
+                                                                                    <!-- TS 生成的子層類別列表 -->
+                                                                                </ul>
+                                                                            </div>
+                                                                        </div>`;
                                                                     }
-
-                                                                    // 初始化 Sortable 功能
-                                                                    function initSortable(containerId: string) {
-                                                                        const el = document.querySelector(`#${containerId}`) as HTMLElement;
-                                                                        (window as any).Sortable.create(el, {
-                                                                            animation: 150,
-                                                                            onEnd: function () {
-                                                                                const items = [...el.children].map((child) => vm.dataList[parseInt(child.getAttribute('data-index') as string)]);
-                                                                                ApiShop.sortCollections({
-                                                                                    data: { list: items },
-                                                                                    token: (window.parent as any).config.token,
-                                                                                }).then((res) => {
-                                                                                    if (res.result && !res.response) {
-                                                                                        dialog.errorMessage({ text: '更改順序失敗' });
+                                                                },
+                                                                divCreate: {},
+                                                                onCreate: () => {
+                                                                    if (loading) {
+                                                                        gvc.addMtScript(
+                                                                            [
+                                                                                {
+                                                                                    src: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+                                                                                },
+                                                                            ],
+                                                                            () => {
+                                                                                const si = setInterval(() => {
+                                                                                    if ((window as any).Sortable !== undefined) {
+                                                                                        loading = false;
+                                                                                        clearInterval(si);
+                                                                                        gvc.notifyDataChange(id);
                                                                                     }
-                                                                                });
+                                                                                }, 300);
                                                                             },
-                                                                        });
-                                                                    }
+                                                                            () => {}
+                                                                        );
+                                                                    } else {
+                                                                        // 建立列表項目
+                                                                        function createListItem(item: any, index: number): HTMLLIElement {
+                                                                            const li = document.createElement('li');
+                                                                            li.className = 'li-style';
+                                                                            li.setAttribute('data-index', index.toString());
+                                                                            li.setAttribute('data-parent', item.parentTitles[0] || 'root');
+                                                                            li.innerHTML = `<span class="drag-icon"></span><span class="tx_normal">${item.title}</span>`;
+                                                                            return li;
+                                                                        }
 
-                                                                    function loadChildItems(parentTitle: string) {
-                                                                        const childContainer = document.getElementById('child-list') as HTMLElement;
-                                                                        childContainer.innerHTML = '';
+                                                                        // 初始化 Sortable 功能
+                                                                        function initSortable(containerId: string) {
+                                                                            const el = document.querySelector(`#${containerId}`) as HTMLElement;
+                                                                            (window as any).Sortable.create(el, {
+                                                                                animation: 150,
+                                                                                onEnd: function () {
+                                                                                    const items = [...el.children].map((child) => vm.dataList[parseInt(child.getAttribute('data-index') as string)]);
+                                                                                    ApiShop.sortCollections({
+                                                                                        data: { list: items },
+                                                                                        token: (window.parent as any).config.token,
+                                                                                    }).then((res) => {
+                                                                                        if (res.result && !res.response) {
+                                                                                            dialog.errorMessage({ text: '更改順序失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                },
+                                                                            });
+                                                                        }
 
+                                                                        function loadChildItems(parentTitle: string) {
+                                                                            const childContainer = document.getElementById('child-list') as HTMLElement;
+                                                                            childContainer.innerHTML = '';
+
+                                                                            vm.dataList.forEach((item: any, index: number) => {
+                                                                                if (item.parentTitles[0] === parentTitle) {
+                                                                                    childContainer.appendChild(createListItem(item, index));
+                                                                                }
+                                                                            });
+
+                                                                            initSortable('child-list');
+                                                                        }
+
+                                                                        const parentContainer = document.getElementById('parent-list') as HTMLElement;
+
+                                                                        // 初始化父層類別列表
                                                                         vm.dataList.forEach((item: any, index: number) => {
-                                                                            if (item.parentTitles[0] === parentTitle) {
-                                                                                childContainer.appendChild(createListItem(item, index));
+                                                                            if (item.parentTitles.length === 0) {
+                                                                                // 如果是父層類別
+                                                                                const li = createListItem(item, index);
+                                                                                li.addEventListener('click', () => {
+                                                                                    loadChildItems(item.title);
+                                                                                    document.querySelectorAll('#parent-list li').forEach((li) => li.classList.remove('selectCol'));
+                                                                                    li.classList.add('selectCol');
+                                                                                });
+                                                                                parentContainer.appendChild(li);
                                                                             }
                                                                         });
 
-                                                                        initSortable('child-list');
+                                                                        initSortable('parent-list');
                                                                     }
-
-                                                                    const parentContainer = document.getElementById('parent-list') as HTMLElement;
-
-                                                                    // 初始化父層類別列表
-                                                                    vm.dataList.forEach((item: any, index: number) => {
-                                                                        if (item.parentTitles.length === 0) {
-                                                                            // 如果是父層類別
-                                                                            const li = createListItem(item, index);
-                                                                            li.addEventListener('click', () => {
-                                                                                loadChildItems(item.title);
-                                                                                document.querySelectorAll('#parent-list li').forEach((li) => li.classList.remove('selectCol'));
-                                                                                li.classList.add('selectCol');
-                                                                            });
-                                                                            parentContainer.appendChild(li);
-                                                                        }
-                                                                    });
-
-                                                                    initSortable('parent-list');
-                                                                }
-                                                            },
-                                                        };
-                                                    })()
-                                                ),
-                                                closeCallback: () => {
-                                                    gvc.notifyDataChange(vm.id);
-                                                },
-                                            });
-                                        })
-                                    )}
-                                    ${BgWidget.darkButton(
-                                        '新增',
-                                        gvc.event(() => {
-                                            vm.data = {
-                                                title: '',
-                                                array: [],
-                                                product_id: [],
-                                                parentTitles: [],
-                                                subCollections: [],
-                                                checked: false,
-                                                seo_title: '',
-                                                seo_content: '',
-                                                seo_image: '',
-                                                code: '',
-                                                allCollections: vm.allParents,
-                                            };
-                                            vm.type = 'add';
-                                        })
-                                    )}
+                                                                },
+                                                            };
+                                                        })()
+                                                    ),
+                                                    closeCallback: () => {
+                                                        gvc.notifyDataChange(vm.id);
+                                                    },
+                                                });
+                                            })
+                                        )}
+                                        ${BgWidget.darkButton(
+                                            '新增',
+                                            gvc.event(() => {
+                                                vm.data = {
+                                                    title: '',
+                                                    array: [],
+                                                    product_id: [],
+                                                    parentTitles: [],
+                                                    subCollections: [],
+                                                    checked: false,
+                                                    seo_title: '',
+                                                    seo_content: '',
+                                                    seo_image: '',
+                                                    code: '',
+                                                    allCollections: vm.allParents,
+                                                };
+                                                vm.type = 'add';
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                                 ${BgWidget.container(
                                     BgWidget.mainCard(
@@ -443,8 +445,7 @@ export class ShoppingCollections {
                                     )
                                 )}
                                 ${BgWidget.mbContainer(120)}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'replace') {
                         return this.editorDetail({
@@ -479,7 +480,7 @@ export class ShoppingCollections {
                     return BgWidget.container(
                         [
                             // 上層導覽
-                            html` <div class="d-flex w-100 align-items-center">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -488,10 +489,10 @@ export class ShoppingCollections {
                                 ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
                             </div>`,
                             // 左右容器
-                            html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${BgWidget.container(
+                            BgWidget.container1x2(
+                                {
                                     // 左容器
-                                    [
+                                    html: [
                                         BgWidget.mainCard(html` <div class="tx_700" style="margin-bottom: 18px">分類標題</div>
                                             ${EditorElem.editeInput({
                                                 gvc: gvc,
@@ -736,13 +737,12 @@ export class ShoppingCollections {
                                             ].join(BgWidget.mbContainer(18))
                                         ),
                                     ].join(html` <div style="margin-top: 24px;"></div>`),
-                                    undefined,
-                                    'padding: 0 ; margin: 0 !important; width: 68.5%;'
-                                )}
-                                ${BgWidget.container(
+                                    ratio: 75,
+                                },
+                                {
                                     // 右容器
-                                    [
-                                        BgWidget.mainCard(
+                                    html: [
+                                        BgWidget.summaryCard(
                                             (() => {
                                                 if ((vm.data.allCollections && vm.data.allCollections.length > 0 && vm.data.parentTitles && vm.data.parentTitles.length > 0) || vm.type === 'add') {
                                                     return html` <div class="tx_700" style="margin-bottom: 18px">父層</div>
@@ -783,10 +783,9 @@ export class ShoppingCollections {
                                             })()
                                         ),
                                     ].join(html` <div style="margin-top: 24px;"></div>`),
-                                    undefined,
-                                    'padding: 0 ; margin: 0 !important; width: 26.5%;'
-                                )}
-                            </div>`,
+                                    ratio: 25,
+                                }
+                            ),
                             // 空白容器
                             BgWidget.mbContainer(240),
                             // 儲存資料
@@ -866,8 +865,7 @@ export class ShoppingCollections {
                                     })
                                 )}
                             </div>`,
-                        ].join(html` <div style="margin-top: 24px;"></div>`),
-                        BgWidget.getContainerWidth()
+                        ].join(BgWidget.mbContainer(24))
                     );
                 },
             };

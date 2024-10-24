@@ -88,8 +88,7 @@ export class WidgetManager {
                                     BgWidget.mbContainer(240),
                                 ].join(BgWidget.mbContainer(24))
                             )}
-                        `,
-                        BgWidget.getContainerWidth()
+                        `
                     );
                 },
             };

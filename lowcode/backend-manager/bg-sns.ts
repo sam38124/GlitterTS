@@ -167,9 +167,7 @@ export class BgSNS {
                                     ],
                                 }),
                             ].join('')
-                        ),
-                        type === 'select' ? 850 : BgWidget.getContainerWidth(),
-                        'padding: 0;'
+                        )
                     );
                 },
             };
@@ -291,8 +289,7 @@ export class BgSNS {
                                     )
                                 )}
                                 ${BgWidget.mbContainer(120)}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'replace') {
                         return this.emailEditor({
@@ -500,8 +497,7 @@ export class BgSNS {
                                     )
                                 )}
                                 ${BgWidget.mbContainer(120)}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     }
                     return this.emailEditor({
@@ -534,7 +530,7 @@ export class BgSNS {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             vm.type = 'list';
@@ -684,9 +680,7 @@ export class BgSNS {
                             },
                             divCreate: {},
                         };
-                    }),
-                    BgWidget.getContainerWidth(),
-                    'padding: 0 !important; margin: 0 !important;'
+                    })
                 )}
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
@@ -780,8 +774,7 @@ export class BgSNS {
                               })
                           )}
                 </div>
-            `,
-            BgWidget.getContainerWidth()
+            `
         );
     }
 
@@ -1625,9 +1618,7 @@ export class BgSNS {
                             },
                             divCreate: {},
                         };
-                    }),
-                    BgWidget.getContainerWidth(),
-                    'padding: 0 !important; margin: 0 !important;'
+                    })
                 )}
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
@@ -1684,8 +1675,7 @@ export class BgSNS {
                         '送出'
                     )}
                 </div>
-            `,
-            BgWidget.getContainerWidth()
+            `
         );
     }
 
@@ -1710,7 +1700,7 @@ export class BgSNS {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             vm.type = 'list';
@@ -1837,8 +1827,7 @@ export class BgSNS {
                             })
                         )}
                     </div>`)}
-            `,
-            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
+            `
         );
     }
 
@@ -1983,8 +1972,7 @@ export class BgSNS {
                                     ].join('')
                                 )
                             )}
-                        `,
-                        BgWidget.getContainerWidth()
+                        `
                     );
                 },
                 divCreate: {
@@ -2075,7 +2063,7 @@ export class BgSNS {
                                                                                                 BgWidget.card(
                                                                                                     [
                                                                                                         html`
-                                                                                                            <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                            <div class="title-container">
                                                                                                                 ${BgWidget.goBack(
                                                                                                                     gvc.event(() => {
                                                                                                                         gvc.closeDialog();
@@ -2139,8 +2127,7 @@ export class BgSNS {
                                                                                                                 dataList = data;
                                                                                                             }),
                                                                                                     ].join('')
-                                                                                                ),
-                                                                                                900
+                                                                                                )
                                                                                             )}
                                                                                             <div></div>
                                                                                         </div>
@@ -2206,8 +2193,7 @@ export class BgSNS {
                                         ].join('')
                                     )
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'replace') {
                         return this.fcmEditor({
@@ -2340,7 +2326,7 @@ export class BgSNS {
                     if (vm.type === 'replace') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                <div class="title-container">
                                     ${BgWidget.goBack(
                                         gvc.event(() => {
                                             vm.type = 'list';
@@ -2456,8 +2442,7 @@ export class BgSNS {
                                         formData: vm.data.content,
                                     })}`
                                 )}
-                            `,
-                            800
+                            `
                         );
                     }
                     return BgWidget.container(html`
@@ -2692,7 +2677,7 @@ export class BgSNS {
                     if (vm.type === 'replace') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3 ">
+                               <div class="title-container">
                                     ${BgWidget.goBack(
                                         gvc.event(() => {
                                             vm.type = 'list';
@@ -2808,8 +2793,7 @@ export class BgSNS {
                                         formData: vm.data.content,
                                     })}`
                                 )}
-                            `,
-                            800
+                            `
                         );
                     }
                     return BgWidget.container(html`

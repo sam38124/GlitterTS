@@ -141,8 +141,7 @@ export class BgGraphApi {
                                             ].join('')
                                         )
                                     )}
-                                `,
-                                BgWidget.getContainerWidth()
+                                `
                             );
                         case 'replace':
                             return BgGraphApi.editor({
@@ -193,7 +192,7 @@ export class BgGraphApi {
                 view: () => {
                     return BgWidget.container(
                         html`
-                            <div class="d-flex align-items-center">
+                            <div class="title-container">
                                 ${BgWidget.goBack(
                                     obj.gvc.event(() => {
                                         obj.vm.status = 'list';
@@ -281,8 +280,7 @@ export class BgGraphApi {
                                 )
                             )}
                             ${BgWidget.mbContainer(120)}
-                        `,
-                        BgWidget.getContainerWidth({ rate: { web: 0.6 } })
+                        `
                     );
                 },
             };

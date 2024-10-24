@@ -9,8 +9,6 @@ import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { FileItem } from '../modules/file-system.js';
-import { FileSystemGet } from '../modules/file-system-get.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
 
@@ -599,7 +597,7 @@ export class ShoppingProductSetting {
                                         }
                                         return BgWidget.container(
                                             html`
-                                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                                <div class="title-container">
                                                     ${BgWidget.title(
                                                         (() => {
                                                             switch (type) {
@@ -1141,304 +1139,305 @@ export class ShoppingProductSetting {
                                                         ].join('')}
                                                     </div>
                                                 </div>
-                                                ${BgWidget.mainCard(
-                                                    [
-                                                        (() => {
-                                                            const id = gvc.glitter.getUUID();
-                                                            return gvc.bindView({
-                                                                bind: id,
-                                                                view: () => {
-                                                                    const filterList = [
-                                                                        BgWidget.selectFilter({
-                                                                            gvc,
-                                                                            callback: (value: any) => {
-                                                                                vm.queryType = value;
-                                                                                gvc.notifyDataChange(vm.tableId);
-                                                                                gvc.notifyDataChange(id);
-                                                                            },
-                                                                            default: vm.queryType || 'title',
-                                                                            options: FilterOptions.productSelect,
-                                                                            style: 'min-width: 160px;',
-                                                                        }),
-                                                                        BgWidget.searchFilter(
-                                                                            gvc.event((e) => {
-                                                                                vm.query = e.value;
-                                                                                gvc.notifyDataChange(vm.tableId);
-                                                                                gvc.notifyDataChange(id);
+                                                ${BgWidget.container(
+                                                    BgWidget.mainCard(
+                                                        [
+                                                            (() => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                return gvc.bindView({
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        const filterList = [
+                                                                            BgWidget.selectFilter({
+                                                                                gvc,
+                                                                                callback: (value: any) => {
+                                                                                    vm.queryType = value;
+                                                                                    gvc.notifyDataChange(vm.tableId);
+                                                                                    gvc.notifyDataChange(id);
+                                                                                },
+                                                                                default: vm.queryType || 'title',
+                                                                                options: FilterOptions.productSelect,
+                                                                                style: 'min-width: 160px;',
                                                                             }),
-                                                                            vm.query || '',
-                                                                            '搜尋'
-                                                                        ),
-                                                                        BgWidget.funnelFilter({
-                                                                            gvc,
-                                                                            callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
-                                                                        }),
-                                                                        BgWidget.updownFilter({
-                                                                            gvc,
-                                                                            callback: (value: any) => {
-                                                                                vm.orderString = value;
-                                                                                gvc.notifyDataChange(vm.tableId);
-                                                                                gvc.notifyDataChange(id);
-                                                                            },
-                                                                            default: vm.orderString || 'default',
-                                                                            options: FilterOptions.productListOrderBy,
-                                                                        }),
-                                                                    ];
+                                                                            BgWidget.searchFilter(
+                                                                                gvc.event((e) => {
+                                                                                    vm.query = e.value;
+                                                                                    gvc.notifyDataChange(vm.tableId);
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }),
+                                                                                vm.query || '',
+                                                                                '搜尋'
+                                                                            ),
+                                                                            BgWidget.funnelFilter({
+                                                                                gvc,
+                                                                                callback: () => ListComp.showRightMenu(FilterOptions.productFunnel),
+                                                                            }),
+                                                                            BgWidget.updownFilter({
+                                                                                gvc,
+                                                                                callback: (value: any) => {
+                                                                                    vm.orderString = value;
+                                                                                    gvc.notifyDataChange(vm.tableId);
+                                                                                    gvc.notifyDataChange(id);
+                                                                                },
+                                                                                default: vm.orderString || 'default',
+                                                                                options: FilterOptions.productListOrderBy,
+                                                                            }),
+                                                                        ];
 
-                                                                    const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
+                                                                        const filterTags = ListComp.getFilterTags(FilterOptions.productFunnel);
 
-                                                                    if (document.body.clientWidth < 768) {
-                                                                        // 手機版
-                                                                        return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                                <div>${filterList[0]}</div>
-                                                                                <div style="display: flex;">
-                                                                                    <div class="me-2">${filterList[2]}</div>
-                                                                                    ${filterList[3]}
+                                                                        if (document.body.clientWidth < 768) {
+                                                                            // 手機版
+                                                                            return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                                    <div>${filterList[0]}</div>
+                                                                                    <div style="display: flex;">
+                                                                                        <div class="me-2">${filterList[2]}</div>
+                                                                                        ${filterList[3]}
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                                            <div>${filterTags}</div>`;
-                                                                    } else {
-                                                                        // 電腦版
-                                                                        return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                                            <div>${filterTags}</div>`;
-                                                                    }
-                                                                },
-                                                            });
-                                                        })(),
-                                                        gvc.bindView({
-                                                            bind: vm.tableId,
-                                                            view: () => {
-                                                                const limit = 20;
-                                                                return BgWidget.tableV3({
-                                                                    gvc: gvc,
-                                                                    getData: (vmi) => {
-                                                                        ApiShop.getProduct({
-                                                                            page: vmi.page - 1,
-                                                                            limit: limit,
-                                                                            search: vm.query || undefined,
-                                                                            searchType: vm.queryType || undefined,
-                                                                            orderBy: vm.orderString || undefined,
-                                                                            status: (() => {
-                                                                                if (vm.filter.status && vm.filter.status.length === 1) {
-                                                                                    switch (vm.filter.status[0]) {
-                                                                                        case 'active':
-                                                                                            return 'active';
-                                                                                        case 'draft':
-                                                                                            return 'draft';
-                                                                                    }
-                                                                                }
-                                                                                return undefined;
-                                                                            })(),
-                                                                            filter_visible: `${type !== 'hidden'}`,
-                                                                            collection: vm.filter.collection,
-                                                                            accurate_search_collection: true,
-                                                                            productType: type === 'hidden' ? 'product' : type,
-                                                                        }).then((data) => {
-                                                                            function getDatalist() {
-                                                                                return data.response.data.map((dd: any) => {
-                                                                                    return [
-                                                                                        {
-                                                                                            key: '商品',
-                                                                                            value: html` <div class="d-flex">
-                                                                                                ${BgWidget.validImageBox({
-                                                                                                    gvc: gvc,
-                                                                                                    image: dd.content.preview_image[0],
-                                                                                                    width: 40,
-                                                                                                    class: 'rounded border me-4',
-                                                                                                })}${Tool.truncateString(dd.content.title)}
-                                                                                            </div>`,
-                                                                                        },
-                                                                                        {
-                                                                                            key: '售價',
-                                                                                            value: (() => {
-                                                                                                const numArray = (dd.content.variants ?? [])
-                                                                                                    .map((dd: any) => {
-                                                                                                        return parseInt(`${dd.sale_price}`, 10);
-                                                                                                    })
-                                                                                                    .filter((dd: any) => {
-                                                                                                        return !isNaN(dd);
-                                                                                                    });
-                                                                                                if (numArray.length == 0) {
-                                                                                                    return '尚未設定';
-                                                                                                }
-                                                                                                return `$ ${Math.min(...numArray).toLocaleString()}`;
-                                                                                            })(),
-                                                                                        },
-                                                                                        {
-                                                                                            key: '庫存',
-                                                                                            value: (() => {
-                                                                                                if (!dd.content.variants || dd.content.variants.length === 0) {
-                                                                                                    return 0;
-                                                                                                }
-                                                                                                return Math.min(
-                                                                                                    ...dd.content.variants.map((dd: any) => {
-                                                                                                        return dd.stock;
-                                                                                                    })
-                                                                                                ).toLocaleString();
-                                                                                            })(),
-                                                                                        },
-                                                                                        {
-                                                                                            key: '已售出',
-                                                                                            value: (dd.total_sales ?? '0').toLocaleString(),
-                                                                                        },
-                                                                                        {
-                                                                                            key: '狀態',
-                                                                                            value: gvc.bindView(() => {
-                                                                                                const id = gvc.glitter.getUUID();
-                                                                                                return {
-                                                                                                    bind: id,
-                                                                                                    view: () =>
-                                                                                                        BgWidget.switchTextButton(
-                                                                                                            gvc,
-                                                                                                            dd.content.status === 'active',
-                                                                                                            { left: dd.content.status === 'active' ? '上架' : '下架' },
-                                                                                                            (bool) => {
-                                                                                                                dd.content.status = bool ? 'active' : 'draft';
-                                                                                                                ApiPost.put({
-                                                                                                                    postData: dd.content,
-                                                                                                                    token: (window.parent as any).config.token,
-                                                                                                                    type: 'manager',
-                                                                                                                }).then((res) => {
-                                                                                                                    res.result && gvc.notifyDataChange(id);
-                                                                                                                });
-                                                                                                            }
-                                                                                                        ),
-                                                                                                    divCreate: {
-                                                                                                        option: [
-                                                                                                            {
-                                                                                                                key: 'onclick',
-                                                                                                                value: gvc.event((e, event) => {
-                                                                                                                    event.stopPropagation();
-                                                                                                                }),
-                                                                                                            },
-                                                                                                        ],
-                                                                                                    },
-                                                                                                };
-                                                                                            }),
-                                                                                        },
-                                                                                    ].map((dd) => {
-                                                                                        dd.value = html` <div style="line-height:40px;">${dd.value}</div>`;
-                                                                                        return dd;
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                            vm.dataList = data.response.data;
-                                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                            vmi.originalData = vm.dataList;
-                                                                            vmi.tableData = getDatalist();
-                                                                            vmi.loading = false;
-                                                                            vmi.callback();
-                                                                        });
+                                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                                                <div>${filterTags}</div>`;
+                                                                        } else {
+                                                                            // 電腦版
+                                                                            return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                                                <div>${filterTags}</div>`;
+                                                                        }
                                                                     },
-                                                                    rowClick: (data, index) => {
-                                                                        vm.replaceData = vm.dataList[index].content;
-                                                                        vm.type = 'replace';
-                                                                    },
-                                                                    filter: [
-                                                                        {
-                                                                            name: '上架',
-                                                                            event: (checkedData) => {
-                                                                                const selCount = checkedData.length;
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                new Promise<void>((resolve) => {
-                                                                                    let n = 0;
-                                                                                    checkedData.map((dd: any) => {
-                                                                                        dd.content.status = 'active';
-
-                                                                                        async function run() {
-                                                                                            return ApiPost.put({
-                                                                                                postData: dd.content,
-                                                                                                token: (window.parent as any).config.token,
-                                                                                                type: 'manager',
-                                                                                            }).then((res) => {
-                                                                                                res.result ? n++ : run();
-                                                                                            });
-                                                                                        }
-
-                                                                                        run();
-                                                                                    });
-                                                                                    setInterval(() => {
-                                                                                        n === selCount && setTimeout(() => resolve(), 200);
-                                                                                    }, 500);
-                                                                                }).then(() => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                });
-                                                                            },
-                                                                            option: true,
-                                                                        },
-                                                                        {
-                                                                            name: '下架',
-                                                                            event: (checkedData) => {
-                                                                                const selCount = checkedData.length;
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                new Promise<void>((resolve) => {
-                                                                                    let n = 0;
-                                                                                    checkedData.map((dd: any) => {
-                                                                                        dd.content.status = 'draft';
-
-                                                                                        async function run() {
-                                                                                            return ApiPost.put({
-                                                                                                postData: dd.content,
-                                                                                                token: (window.parent as any).config.token,
-                                                                                                type: 'manager',
-                                                                                            }).then((res) => {
-                                                                                                res.result ? n++ : run();
-                                                                                            });
-                                                                                        }
-
-                                                                                        run();
-                                                                                    });
-                                                                                    setInterval(() => {
-                                                                                        n === selCount && setTimeout(() => resolve(), 200);
-                                                                                    }, 500);
-                                                                                }).then(() => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                });
-                                                                            },
-                                                                            option: true,
-                                                                        },
-                                                                        {
-                                                                            name: '刪除',
-                                                                            event: (checkedData) => {
-                                                                                dialog.checkYesOrNot({
-                                                                                    text: '是否確認刪除所選項目？',
-                                                                                    callback: (response) => {
-                                                                                        if (response) {
-                                                                                            dialog.dataLoading({ visible: true });
-                                                                                            ApiShop.delete({
-                                                                                                id: checkedData
-                                                                                                    .map((dd: any) => {
-                                                                                                        return dd.id;
-                                                                                                    })
-                                                                                                    .join(`,`),
-                                                                                            }).then((res) => {
-                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                if (res.result) {
-                                                                                                    vm.dataList = undefined;
-                                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                                } else {
-                                                                                                    dialog.errorMessage({
-                                                                                                        text: '刪除失敗',
-                                                                                                    });
-                                                                                                }
-                                                                                            });
-                                                                                        }
-                                                                                    },
-                                                                                });
-                                                                            },
-                                                                        },
-                                                                    ],
                                                                 });
-                                                            },
-                                                        }),
-                                                    ].join('')
+                                                            })(),
+                                                            gvc.bindView({
+                                                                bind: vm.tableId,
+                                                                view: () => {
+                                                                    const limit = 20;
+                                                                    return BgWidget.tableV3({
+                                                                        gvc: gvc,
+                                                                        getData: (vmi) => {
+                                                                            ApiShop.getProduct({
+                                                                                page: vmi.page - 1,
+                                                                                limit: limit,
+                                                                                search: vm.query || undefined,
+                                                                                searchType: vm.queryType || undefined,
+                                                                                orderBy: vm.orderString || undefined,
+                                                                                status: (() => {
+                                                                                    if (vm.filter.status && vm.filter.status.length === 1) {
+                                                                                        switch (vm.filter.status[0]) {
+                                                                                            case 'active':
+                                                                                                return 'active';
+                                                                                            case 'draft':
+                                                                                                return 'draft';
+                                                                                        }
+                                                                                    }
+                                                                                    return undefined;
+                                                                                })(),
+                                                                                filter_visible: `${type !== 'hidden'}`,
+                                                                                collection: vm.filter.collection,
+                                                                                accurate_search_collection: true,
+                                                                                productType: type === 'hidden' ? 'product' : type,
+                                                                            }).then((data) => {
+                                                                                function getDatalist() {
+                                                                                    return data.response.data.map((dd: any) => {
+                                                                                        return [
+                                                                                            {
+                                                                                                key: '商品',
+                                                                                                value: html` <div class="d-flex">
+                                                                                                    ${BgWidget.validImageBox({
+                                                                                                        gvc: gvc,
+                                                                                                        image: dd.content.preview_image[0],
+                                                                                                        width: 40,
+                                                                                                        class: 'rounded border me-4',
+                                                                                                    })}${Tool.truncateString(dd.content.title)}
+                                                                                                </div>`,
+                                                                                            },
+                                                                                            {
+                                                                                                key: '售價',
+                                                                                                value: (() => {
+                                                                                                    const numArray = (dd.content.variants ?? [])
+                                                                                                        .map((dd: any) => {
+                                                                                                            return parseInt(`${dd.sale_price}`, 10);
+                                                                                                        })
+                                                                                                        .filter((dd: any) => {
+                                                                                                            return !isNaN(dd);
+                                                                                                        });
+                                                                                                    if (numArray.length == 0) {
+                                                                                                        return '尚未設定';
+                                                                                                    }
+                                                                                                    return `$ ${Math.min(...numArray).toLocaleString()}`;
+                                                                                                })(),
+                                                                                            },
+                                                                                            {
+                                                                                                key: '庫存',
+                                                                                                value: (() => {
+                                                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                                                        return 0;
+                                                                                                    }
+                                                                                                    return Math.min(
+                                                                                                        ...dd.content.variants.map((dd: any) => {
+                                                                                                            return dd.stock;
+                                                                                                        })
+                                                                                                    ).toLocaleString();
+                                                                                                })(),
+                                                                                            },
+                                                                                            {
+                                                                                                key: '已售出',
+                                                                                                value: (dd.total_sales ?? '0').toLocaleString(),
+                                                                                            },
+                                                                                            {
+                                                                                                key: '狀態',
+                                                                                                value: gvc.bindView(() => {
+                                                                                                    const id = gvc.glitter.getUUID();
+                                                                                                    return {
+                                                                                                        bind: id,
+                                                                                                        view: () =>
+                                                                                                            BgWidget.switchTextButton(
+                                                                                                                gvc,
+                                                                                                                dd.content.status === 'active',
+                                                                                                                { left: dd.content.status === 'active' ? '上架' : '下架' },
+                                                                                                                (bool) => {
+                                                                                                                    dd.content.status = bool ? 'active' : 'draft';
+                                                                                                                    ApiPost.put({
+                                                                                                                        postData: dd.content,
+                                                                                                                        token: (window.parent as any).config.token,
+                                                                                                                        type: 'manager',
+                                                                                                                    }).then((res) => {
+                                                                                                                        res.result && gvc.notifyDataChange(id);
+                                                                                                                    });
+                                                                                                                }
+                                                                                                            ),
+                                                                                                        divCreate: {
+                                                                                                            option: [
+                                                                                                                {
+                                                                                                                    key: 'onclick',
+                                                                                                                    value: gvc.event((e, event) => {
+                                                                                                                        event.stopPropagation();
+                                                                                                                    }),
+                                                                                                                },
+                                                                                                            ],
+                                                                                                        },
+                                                                                                    };
+                                                                                                }),
+                                                                                            },
+                                                                                        ].map((dd) => {
+                                                                                            dd.value = html` <div style="line-height:40px;">${dd.value}</div>`;
+                                                                                            return dd;
+                                                                                        });
+                                                                                    });
+                                                                                }
+                                                                                vm.dataList = data.response.data;
+                                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                                vmi.originalData = vm.dataList;
+                                                                                vmi.tableData = getDatalist();
+                                                                                vmi.loading = false;
+                                                                                vmi.callback();
+                                                                            });
+                                                                        },
+                                                                        rowClick: (data, index) => {
+                                                                            vm.replaceData = vm.dataList[index].content;
+                                                                            vm.type = 'replace';
+                                                                        },
+                                                                        filter: [
+                                                                            {
+                                                                                name: '上架',
+                                                                                event: (checkedData) => {
+                                                                                    const selCount = checkedData.length;
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    new Promise<void>((resolve) => {
+                                                                                        let n = 0;
+                                                                                        checkedData.map((dd: any) => {
+                                                                                            dd.content.status = 'active';
+
+                                                                                            async function run() {
+                                                                                                return ApiPost.put({
+                                                                                                    postData: dd.content,
+                                                                                                    token: (window.parent as any).config.token,
+                                                                                                    type: 'manager',
+                                                                                                }).then((res) => {
+                                                                                                    res.result ? n++ : run();
+                                                                                                });
+                                                                                            }
+
+                                                                                            run();
+                                                                                        });
+                                                                                        setInterval(() => {
+                                                                                            n === selCount && setTimeout(() => resolve(), 200);
+                                                                                        }, 500);
+                                                                                    }).then(() => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    });
+                                                                                },
+                                                                                option: true,
+                                                                            },
+                                                                            {
+                                                                                name: '下架',
+                                                                                event: (checkedData) => {
+                                                                                    const selCount = checkedData.length;
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    new Promise<void>((resolve) => {
+                                                                                        let n = 0;
+                                                                                        checkedData.map((dd: any) => {
+                                                                                            dd.content.status = 'draft';
+
+                                                                                            async function run() {
+                                                                                                return ApiPost.put({
+                                                                                                    postData: dd.content,
+                                                                                                    token: (window.parent as any).config.token,
+                                                                                                    type: 'manager',
+                                                                                                }).then((res) => {
+                                                                                                    res.result ? n++ : run();
+                                                                                                });
+                                                                                            }
+
+                                                                                            run();
+                                                                                        });
+                                                                                        setInterval(() => {
+                                                                                            n === selCount && setTimeout(() => resolve(), 200);
+                                                                                        }, 500);
+                                                                                    }).then(() => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    });
+                                                                                },
+                                                                                option: true,
+                                                                            },
+                                                                            {
+                                                                                name: '刪除',
+                                                                                event: (checkedData) => {
+                                                                                    dialog.checkYesOrNot({
+                                                                                        text: '是否確認刪除所選項目？',
+                                                                                        callback: (response) => {
+                                                                                            if (response) {
+                                                                                                dialog.dataLoading({ visible: true });
+                                                                                                ApiShop.delete({
+                                                                                                    id: checkedData
+                                                                                                        .map((dd: any) => {
+                                                                                                            return dd.id;
+                                                                                                        })
+                                                                                                        .join(`,`),
+                                                                                                }).then((res) => {
+                                                                                                    dialog.dataLoading({ visible: false });
+                                                                                                    if (res.result) {
+                                                                                                        vm.dataList = undefined;
+                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                    } else {
+                                                                                                        dialog.errorMessage({
+                                                                                                            text: '刪除失敗',
+                                                                                                        });
+                                                                                                    }
+                                                                                                });
+                                                                                            }
+                                                                                        },
+                                                                                    });
+                                                                                },
+                                                                            },
+                                                                        ],
+                                                                    });
+                                                                },
+                                                            }),
+                                                        ].join('')
+                                                    )
                                                 )}
                                                 ${BgWidget.mbContainer(240)}
-                                            `,
-                                            BgWidget.getContainerWidth()
+                                            `
                                         );
                                     }
                                 },
@@ -1525,7 +1524,7 @@ export class ShoppingProductSetting {
         return html` <div class="d-flex" style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
             ${BgWidget.container(
                 html`
-                    <div class="d-flex w-100 align-items-center mb-3 ${obj.single ? `d-none` : ``}">
+                    <div class="title-container ${obj.single ? 'd-none' : ''}">
                         ${BgWidget.goBack(
                             obj.gvc.event(() => {
                                 checkStore(
@@ -1540,7 +1539,7 @@ export class ShoppingProductSetting {
                         ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
                         <div class="flex-fill"></div>
                     </div>
-                    <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row`} w-100 p-0" style="gap: 24px;">
+                    <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row mt-4`} w-100 p-0" style="gap: 24px;">
                         <div class="leftBigArea d-flex flex-column flex-fill" style="gap: 24px;">
                             ${!obj.single
                                 ? BgWidget.mainCard(
@@ -1900,10 +1899,11 @@ export class ShoppingProductSetting {
                                     </div>
                                 </div>
                             `)}
+                            ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
                         </div>
                         <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
-                            ${BgWidget.mainCard(html`
-                                ${gvc.bindView({
+                            ${BgWidget.summaryCard(
+                                gvc.bindView({
                                     bind: 'right',
                                     view: () => {
                                         let rightHTML = postMD.variants
@@ -1946,18 +1946,15 @@ export class ShoppingProductSetting {
 
                                         return html`
                                             <div style="font-weight: 700;">其他規格</div>
-                                            <div class="d-flex flex-column" style="gap:16px">${rightHTML}</div>
+                                            <div class="d-flex flex-column mt-3" style="gap:16px">${rightHTML}</div>
                                         `;
                                     },
-                                    divCreate: { style: 'gap:18px', class: `d-flex flex-column` },
-                                })}
-                            `)}
+                                })
+                            )}
                         </div>
                         ${obj.single ? '' : BgWidget.mbContainer(240)}
                     </div>
-                `,
-                obj.single ? 674 : 944,
-                obj.single ? `padding:0px;margin:0px;` : ``
+                `
             )}
             <div class="update-bar-container ${obj.single ? `d-none` : ``}">
                 ${BgWidget.cancel(
@@ -1967,12 +1964,6 @@ export class ShoppingProductSetting {
                                 ? obj.goBackEvent.cancel
                                 : () => {
                                       variant = orignData;
-
-                                      // if (obj.vm.from){
-                                      //     obj.vm.type = 'add';
-                                      // }else{
-                                      //     obj.vm.type = 'replace';
-                                      // }
                                       obj.vm.type = 'replace';
                                   }
                         );
@@ -2310,7 +2301,7 @@ export class ShoppingProductSetting {
                     return [
                         BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3" style="font-size: 16px; font-weight: 400;">
+                                <div class="title-container">
                                     ${BgWidget.goBack(
                                         obj.gvc.event(() => {
                                             obj.vm.type = 'list';
@@ -2327,9 +2318,9 @@ export class ShoppingProductSetting {
                                         { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
                                     )}
                                 </div>
-                                <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="${document.body.clientWidth < 768 ? '' : 'gap: 24px'}">
-                                    ${BgWidget.container(
-                                        [
+                                ${BgWidget.container1x2(
+                                    {
+                                        html: [
                                             BgWidget.mainCard(html`
                                                 <div class="d-flex flex-column guide5-4">
                                                     <div style="font-weight: 700;">商品名稱</div>
@@ -2451,11 +2442,11 @@ export class ShoppingProductSetting {
                                                                                                             if ((window as any).Sortable) {
                                                                                                                 try {
                                                                                                                     gvc.addStyle(`
-                                                                                                                        ul {
-                                                                                                                            list-style: none;
-                                                                                                                            padding: 0;
-                                                                                                                        }
-                                                                                                                    `);
+                                                                                                                                ul {
+                                                                                                                                    list-style: none;
+                                                                                                                                    padding: 0;
+                                                                                                                                }
+                                                                                                                            `);
                                                                                                                     function swapArr(arr: any, t1: number, t2: number) {
                                                                                                                         const data = arr[t1];
                                                                                                                         arr.splice(t1, 1);
@@ -2688,13 +2679,13 @@ export class ShoppingProductSetting {
                                                                                         view: () => {
                                                                                             if (editSpectPage[specIndex].type == 'show') {
                                                                                                 gvc.addStyle(`
-                                                                                                    .option {
-                                                                                                        background-color: #f7f7f7;
-                                                                                                    }
-                                                                                                    .pen {
-                                                                                                        display: none;
-                                                                                                    }
-                                                                                                `);
+                                                                                                            .option {
+                                                                                                                background-color: #f7f7f7;
+                                                                                                            }
+                                                                                                            .pen {
+                                                                                                                display: none;
+                                                                                                            }
+                                                                                                        `);
                                                                                                 return html` <div class="d-flex flex-column" style="gap:6px;align-items: flex-start;padding: 12px 0;">
                                                                                                     <div style="font-size: 16px;">${dd.title}</div>
                                                                                                     ${(() => {
@@ -3533,8 +3524,8 @@ export class ShoppingProductSetting {
                                                                                                       <i
                                                                                                           class="${selected.length ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
                                                                                                           style="width: 16px;height: 16px;margin-left:2px;margin-right:18px;cursor: pointer;
-color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
-"
+        color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
+        "
                                                                                                           onclick="${gvc.event(() => {
                                                                                                               postMD.variants.map((dd) => {
                                                                                                                   (dd as any).checked = !selected.length;
@@ -3639,7 +3630,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                   ></i>
                                                                                                                   <div
                                                                                                                       style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center;
-                                                                                                                      gap:${document.body.clientWidth < 800 ? 10 : 24}px;"
+                                                                                                                              gap:${document.body.clientWidth < 800 ? 10 : 24}px;"
                                                                                                                   >
                                                                                                                       ${BgWidget.validImageBox({
                                                                                                                           gvc,
@@ -4108,11 +4099,10 @@ ${postMD.seo.content ?? ''}</textarea
                                         ]
                                             .filter((str) => str.length > 0)
                                             .join(BgWidget.mbContainer(24)),
-                                        undefined,
-                                        `width: 73.5%; ${document.body.clientWidth > 768 ? 'padding-top: 0 !important; ' : ''}`
-                                    )}
-                                    ${BgWidget.container(
-                                        html` <div class="summary-card p-0">
+                                        ratio: 75,
+                                    },
+                                    {
+                                        html: html` <div class="summary-card p-0">
                                             ${[
                                                 BgWidget.mainCard(
                                                     html`<div style="font-weight: 700;" class="mb-2">商品類型</div>
@@ -4231,12 +4221,10 @@ ${postMD.seo.content ?? ''}</textarea
                                                 .filter((str) => str.length > 0)
                                                 .join(BgWidget.mbContainer(24))}
                                         </div>`,
-                                        undefined,
-                                        `width: 26.5%; padding-top: 0 !important;`
-                                    )}
-                                </div>
-                            `,
-                            944
+                                        ratio: 25,
+                                    }
+                                )}
+                            `
                         ),
                         html` <div class="update-bar-container">
                             ${obj.type === 'replace'

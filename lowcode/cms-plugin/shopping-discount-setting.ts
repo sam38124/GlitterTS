@@ -51,7 +51,7 @@ export class ShoppingDiscountSetting {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title(ShoppingDiscountSetting.getLabel(voucher_type))}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -176,8 +176,7 @@ export class ShoppingDiscountSetting {
                                     )
                                 )}
                                 ${BgWidget.mbContainer(120)}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type == 'replace') {
                         return this.voucherEditor({
@@ -365,7 +364,7 @@ export class ShoppingDiscountSetting {
                     return BgWidget.container(
                         [
                             // 上層導覽
-                            html` <div class="d-flex w-100 align-items-center">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -374,10 +373,10 @@ export class ShoppingDiscountSetting {
                                 ${BgWidget.title(obj.type === 'add' ? `新增${ShoppingDiscountSetting.getLabel(obj.reBackType)}` : `編輯${ShoppingDiscountSetting.getLabel(obj.reBackType)}`)}
                             </div>`,
                             // 左右容器
-                            html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${BgWidget.container(
+                            BgWidget.container1x2(
+                                {
                                     // 優惠券設定
-                                    [
+                                    html: [
                                         BgWidget.mainCard(
                                             [
                                                 html` <div class="tx_700">活動標題</div>
@@ -1476,12 +1475,11 @@ export class ShoppingDiscountSetting {
                                             })
                                         ),
                                     ].join(BgWidget.mbContainer(24)),
-                                    undefined,
-                                    'padding: 0 ; margin: 0 !important; width: 68.5%;'
-                                )}
-                                ${BgWidget.container(
+                                    ratio: 65,
+                                },
+                                {
                                     // 摘要預覽
-                                    gvc.bindView(() => {
+                                    html: gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         return {
                                             bind: id,
@@ -1516,10 +1514,9 @@ export class ShoppingDiscountSetting {
                                             },
                                         };
                                     }),
-                                    undefined,
-                                    'padding: 0; margin: 0 !important; width: 26.5%;'
-                                )}
-                            </div>`,
+                                    ratio: 35,
+                                }
+                            ),
                             // 空白容器
                             BgWidget.mbContainer(240),
                             // 儲存資料
@@ -1602,8 +1599,7 @@ export class ShoppingDiscountSetting {
                                     })
                                 )}
                             </div>`,
-                        ].join(BgWidget.mbContainer(24)),
-                        BgWidget.getContainerWidth()
+                        ].join(BgWidget.mbContainer(24))
                     );
                 },
             };

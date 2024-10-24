@@ -7,15 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class PosCheckoutSetting {
     static main(gvc) {
         return `<div>${PosCheckoutSetting.invoiceSetting(gvc)}</div>`;
     }
-    static paymentMethod() {
-    }
+    static paymentMethod() { }
     static invoiceSetting(gvc) {
         const saasConfig = window.parent.saasConfig;
         const glitter = window.glitter;
@@ -77,14 +76,12 @@ export class PosCheckoutSetting {
                                                     {
                                                         title: html ` <div class="d-flex flex-column">
                                                                                         開立發票
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">串接綠界電子發票系統進行發票開立</span>
-                                                                                         </div>`,
+                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">串接綠界電子發票系統進行發票開立</span>
+                                                                                    </div>`,
                                                         value: 'ecpay',
                                                     },
                                                     {
-                                                        title: html ` <div class="d-flex flex-column">
-                                                                                        不開立發票
-                                                                                          </div>`,
+                                                        title: html ` <div class="d-flex flex-column">不開立發票</div>`,
                                                         value: 'nouse',
                                                     },
                                                 ]
@@ -220,7 +217,7 @@ export class PosCheckoutSetting {
                     }))}
                                 </div>`,
                 ].join(''))}
-                    `, BgWidget.getContainerWidth());
+                    `);
             },
         });
     }

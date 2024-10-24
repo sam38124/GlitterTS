@@ -512,7 +512,7 @@ export class BgProject {
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, BgWidget.getContainerWidth());
+            `);
     }
     static userManager(gvc, type = 'list', callback = () => { }) {
         const glitter = gvc.glitter;
@@ -699,7 +699,7 @@ export class BgProject {
                     }
                     vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     return BgWidget.container([
-                        html `<div class="d-flex w-100 align-items-center mb-3 ">
+                        html `<div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             cf.callback();
                         }))}
@@ -838,7 +838,7 @@ export class BgProject {
                         ].join(html `<div class="w-100 border-bottom my-2"></div>`))}
                                 </div>
                             </div>`,
-                    ].join('<div class="my-2"></div>'), 800);
+                    ].join('<div class="my-2"></div>'));
                 },
             };
         });
@@ -1104,7 +1104,7 @@ export class BgProject {
                                     ],
                                 }),
                             ].join('')))}
-                                `, BgWidget.getContainerWidth());
+                                `);
                         case 'replace':
                             return BgProject.appReleaseForm(vm, gvc, type, replaceData);
                     }
@@ -1373,7 +1373,7 @@ export class BgProject {
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static appReleaseForm(vm, gvc, type, editorData) {
         const saasConfig = window.saasConfig;
@@ -1432,7 +1432,7 @@ export class BgProject {
             });
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.status = 'list';
         }))}
@@ -1654,7 +1654,7 @@ export class BgProject {
             save();
         }), editorData ? `再次送審` : `確認送審`)}
                 </div>
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static checkoutHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1714,7 +1714,7 @@ export class BgProject {
             };
         })}`)}
                 ${BgWidget.mbContainer(120)}
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static seoHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1772,7 +1772,7 @@ export class BgProject {
             }),
             BgWidget.mbContainer(120),
         ].join(html `<div style="margin-top: 18px;"></div>`))}
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static siteMapHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1830,7 +1830,7 @@ export class BgProject {
             }),
             BgWidget.mbContainer(120),
         ].join(html `<div style="margin-top: 18px;"></div>`))}
-            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
+            `);
     }
     static loginHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1891,7 +1891,7 @@ export class BgProject {
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, BgWidget.getContainerWidth());
+            `);
     }
 }
 window.glitter.setModule(import.meta.url, BgProject);

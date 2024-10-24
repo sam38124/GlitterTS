@@ -38,7 +38,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                 if (vm.type === 'post') {
                     return BgWidget.container(
                         [
-                            html` <div class="d-flex">
+                            html`<div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -150,8 +150,7 @@ onclick="${gvc.event(() => {
                                     };
                                 })
                             ),
-                        ].join(`<div class="my-3"></div>`),
-                        600
+                        ].join(`<div class="my-3"></div>`)
                     );
                 } else {
                     return BgWidget.container(html`

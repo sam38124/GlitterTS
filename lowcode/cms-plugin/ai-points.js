@@ -56,7 +56,7 @@ export class AiPoints {
                                 </div>
                             </div>`,
                 ].join(`<div class="my-2"></div>`)),
-            ].join(''), BgWidget.getContainerWidth()),
+            ].join('')),
             AiPoints.walletList(gvc),
         ].join('');
     }
@@ -148,7 +148,7 @@ export class AiPoints {
                             rowClick: () => { },
                             filter: [],
                         })}
-                            `), BgWidget.getContainerWidth());
+                            `));
                     }
                     else if (vm.type == 'replace') {
                         return ``;

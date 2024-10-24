@@ -88,7 +88,7 @@ export class BgRecommend {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('分銷連結')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -111,8 +111,7 @@ export class BgRecommend {
                                         })
                                     )
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type === 'add') {
                         return this.editorLink({
@@ -394,7 +393,7 @@ export class BgRecommend {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('推薦人列表')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -532,8 +531,7 @@ export class BgRecommend {
                                         ].join('')
                                     )
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
+                            `
                         );
                     } else if (vm.type === 'add') {
                         return this.editorUser({
@@ -629,7 +627,7 @@ export class BgRecommend {
                     }
                     return BgWidget.container(
                         [
-                            html` <div class="d-flex w-100 align-items-center mb-3 ">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         cf.callback();
@@ -638,9 +636,9 @@ export class BgRecommend {
                                 ${BgWidget.title(vm.data.title || '新增分銷連結')}
                                 <div class="flex-fill"></div>
                             </div>`,
-                            html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${BgWidget.container(
-                                    gvc.bindView(() => {
+                            BgWidget.container1x2(
+                                {
+                                    html: gvc.bindView(() => {
                                         const id = glitter.getUUID();
                                         return {
                                             bind: id,
@@ -689,7 +687,9 @@ export class BgRecommend {
                                                                                 : 'flex-direction: column; gap: 0px; '}"
                                                                             class="w-100"
                                                                         >
-                                                                            <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                            <div
+                                                                                style="width:100%;padding: 9px 18px;background: #EAEAEA; justify-content: flex-start; align-items: center; gap: 5px; display: flex"
+                                                                            >
                                                                                 <div
                                                                                     style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
                                                                                 >
@@ -1391,11 +1391,10 @@ export class BgRecommend {
                                             divCreate: { class: 'p-0' },
                                         };
                                     }),
-                                    undefined,
-                                    'padding: 0; margin: 0 !important; width: 65%;'
-                                )}
-                                ${BgWidget.container(
-                                    gvc.bindView(() => {
+                                    ratio: 65,
+                                },
+                                {
+                                    html: gvc.bindView(() => {
                                         return {
                                             bind: vm.noteId,
                                             dataList: [
@@ -1461,10 +1460,9 @@ export class BgRecommend {
                                             divCreate: { class: 'summary-card p-0' },
                                         };
                                     }),
-                                    undefined,
-                                    'padding: 0; margin: 0 !important; width: 35%;'
-                                )}
-                            </div>`,
+                                    ratio: 35,
+                                }
+                            ),
                             BgWidget.mbContainer(240),
                             html` <div class="update-bar-container">
                                 ${cf.data.id
@@ -1566,9 +1564,7 @@ export class BgRecommend {
                                     })
                                 )}
                             </div>`,
-                        ].join('<div class="my-2"></div>'),
-                        BgWidget.getContainerWidth(),
-                        'position: relative'
+                        ].join('<div class="my-2"></div>')
                     );
                 },
                 onCreate: () => {
@@ -1663,18 +1659,17 @@ export class BgRecommend {
                     if (vm.type === 'user') {
                         return BgWidget.container(
                             [
-                                html` <div class="d-flex flex-column mt-1">
-                                        <div class="d-flex w-100 align-items-center mb-2">
-                                            <div class="mt-1">
-                                                ${BgWidget.goBack(
-                                                    gvc.event(() => {
-                                                        cf.callback();
-                                                    })
-                                                )}
-                                            </div>
-                                            ${BgWidget.title(vm.data.name || '新增推薦人')}
+                                html` <div class="title-container">
+                                        <div class="mt-1">
+                                            ${BgWidget.goBack(
+                                                gvc.event(() => {
+                                                    cf.callback();
+                                                })
+                                            )}
                                         </div>
-                                        <div class="ms-3 mb-2">${cf.data.id ? BgWidget.grayNote(`建立時間: ${Tool.convertDateTimeFormat(cf.data.created_time)}`) : ''}</div>
+                                        <div>
+                                            ${BgWidget.title(vm.data.name || '新增推薦人')}${cf.data.id ? BgWidget.grayNote(`建立時間: ${Tool.convertDateTimeFormat(cf.data.created_time)}`) : ''}
+                                        </div>
                                     </div>
                                     <div class="flex-fill"></div>`,
                                 html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
@@ -1765,9 +1760,7 @@ export class BgRecommend {
                                                 },
                                                 divCreate: { class: 'p-0' },
                                             };
-                                        }),
-                                        BgWidget.getContainerWidth(),
-                                        'padding: 0; margin: 0 !important;'
+                                        })
                                     )}
                                 </div>`,
                                 BgWidget.mbContainer(240),
@@ -1847,9 +1840,7 @@ export class BgRecommend {
                                         })
                                     )}
                                 </div>`,
-                            ].join('<div class="my-2"></div>'),
-                            BgWidget.getContainerWidth(),
-                            'position: relative'
+                            ].join('<div class="my-2"></div>')
                         );
                     }
                     if (vm.type === 'link') {

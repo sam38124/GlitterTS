@@ -59,8 +59,7 @@ export class SmsPoints {
                             </div>`,
                         ].join(`<div class="my-2"></div>`)
                     ),
-                ].join(''),
-                BgWidget.getContainerWidth()
+                ].join('')
             ),
             SmsPoints.walletList(gvc),
         ].join('');
@@ -170,8 +169,7 @@ export class SmsPoints {
                                     rowClick: (data, index) => {},
                                     filter: [],
                                 })}
-                            `),
-                            BgWidget.getContainerWidth()
+                            `)
                         );
                     } else if (vm.type == 'replace') {
                         return ``;

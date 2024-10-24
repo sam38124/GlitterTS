@@ -52,7 +52,7 @@ export interface SelEventItem {
 export class BgWidget {
     // 文字
     static title(title: string, style: string = '') {
-        return html` <h3 class="my-auto tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
+        return html` <h3 class="tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
     }
 
     static grayNote(text: string, style: string = ''): string {
@@ -1612,12 +1612,30 @@ ${obj.default ?? ''}</textarea
         return width * rateForPhone;
     };
 
-    static container(htmlString: string, width?: number, style?: string) {
-        return html` <div
-            class="${document.body.clientWidth > 768 ? '' : 'row col-12 w-100'}"
-            style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
-        >
+    static container(
+        htmlString: string,
+        obj?: {
+            style?: string;
+        }
+    ) {
+        return html` <div class="mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0'}" style="max-width: 100%; width: ${this.getContainerWidth()}px; ${obj?.style ?? ''}">
             ${htmlString}
+        </div>`;
+    }
+
+    static container1x2(
+        cont1: {
+            html: string;
+            ratio: number;
+        },
+        cont2: {
+            html: string;
+            ratio: number;
+        }
+    ) {
+        return html` <div class="d-flex mt-4 mb-0 ${document.body.clientWidth > 768 ? 'mx-auto' : 'w-100 mx-0 flex-column'}" style="gap: 24px;">
+            <div style="width: ${document.body.clientWidth > 768 ? cont1.ratio : 100}%">${cont1.html}</div>
+            <div style="width: ${document.body.clientWidth > 768 ? cont2.ratio : 100}%">${cont2.html}</div>
         </div>`;
     }
 
@@ -1882,8 +1900,12 @@ ${obj.default ?? ''}</textarea
         return html` <div class="${classStyle}">${htmlString}</div>`;
     }
 
-    static mainCard(htmlString: string, classString?: string, styleString?: string) {
-        return html` <div class="main-card ${classString ?? ''}" style="${document.body.clientWidth > 768 ? '' : ''}${styleString ?? ''}">${htmlString ?? ''}</div>`;
+    static mainCard(htmlString: string) {
+        return html`<div class="main-card">${htmlString ?? ''}</div>`;
+    }
+
+    static summaryCard(htmlString: string) {
+        return html` <div class="main-card summary-card">${htmlString ?? ''}</div>`;
     }
 
     static tab(
@@ -2162,7 +2184,7 @@ ${obj.default ?? ''}</textarea
                             const nav = navs[0];
                             nav.click();
                         }
-                    }, 100);
+                    }, 200);
                 }
             },
         });

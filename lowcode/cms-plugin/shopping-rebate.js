@@ -33,7 +33,7 @@ export class ShoppingRebate {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('購物金紀錄')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增紀錄', gvc.event(() => {
@@ -45,11 +45,11 @@ export class ShoppingRebate {
                                             let dataList = [];
                                             return BgWidget.container(BgWidget.mainCard([
                                                 html `
-                                                                            <div class="d-flex w-100 align-items-center mb-3">
+                                                                            <div class="title-container">
                                                                                 ${BgWidget.goBack(gvc.event(() => {
                                                     gvc3.closeDialog();
                                                 }))}
-                                                                                ${BgWidget.title(`選擇變動對象`)}
+                                                                                ${BgWidget.title('選擇變動對象')}
                                                                                 <div class="flex-fill"></div>
                                                                                 ${BgWidget.save(gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -95,11 +95,12 @@ export class ShoppingRebate {
                                                                         `,
                                                 html `<div class="mx-n2">
                                                                             ${UserList.userManager(gvc, 'select', (data) => {
+                                                    console.log(data);
                                                     dataList = data;
                                                 })}
                                                                             <div></div>
                                                                         </div>`,
-                                            ].join('')), BgWidget.getContainerWidth(), 'max-height: 80vh; max-width: 92.5vh; overflow-y: auto; padding: 0;');
+                                            ].join('')));
                                         }, 'email');
                                     },
                                     text: '選擇顧客',
@@ -205,7 +206,7 @@ export class ShoppingRebate {
                                 },
                             }),
                         ].join('')) + BgWidget.mbContainer(120))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return UserList.userInformationDetail({

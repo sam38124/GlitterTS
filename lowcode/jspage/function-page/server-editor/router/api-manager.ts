@@ -36,7 +36,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                 if (vm.type === 'post') {
                     return BgWidget.container(
                         [
-                            html` <div class="d-flex">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -165,8 +165,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                                     }),
                                 ].join('')
                             ),
-                        ].join(`<div class="my-3"></div>`),
-                        600
+                        ].join(`<div class="my-3"></div>`)
                     );
                 } else if (vm.type === 'replace') {
                     async function updateEvent() {
@@ -208,7 +207,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                                     resolve(
                                         BgWidget.container(
                                             [
-                                                html` <div class="d-flex">
+                                                html` <div class="title-container">
                                                     ${BgWidget.goBack(
                                                         gvc.event(() => {
                                                             vm.type = 'list';
@@ -415,8 +414,7 @@ data-bs-title="下載專案壓縮檔"
                                                     });
                                                 })}">刪除專案</button>
 </div>`,
-                                            ].join(`<div class="my-3"></div>`),
-                                            600
+                                            ].join(`<div class="my-3"></div>`)
                                         )
                                     );
                                 });

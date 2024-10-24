@@ -168,7 +168,7 @@ export class PermissionSetting {
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
                 if (vm.type === 'list') {
-                    return BgWidget.container(html ` <div class="d-flex w-100 align-items-center mb-3 mb-sm-3" style="gap: 14px;">
+                    return BgWidget.container(html ` <div class="title-container">
                                 ${BgWidget.title('員工設定')}
                                 <div class="flex-fill"></div>
                                 ${BgWidget.darkButton('新增', gvc.event(() => {
@@ -176,8 +176,7 @@ export class PermissionSetting {
                         vm.type = 'add';
                     }))}
                             </div>
-
-                            ${BgWidget.mainCard([
+                            ${BgWidget.container(BgWidget.mainCard([
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
@@ -217,18 +216,18 @@ export class PermissionSetting {
                                     const filterTags = ListComp.getFilterTags(FilterOptions.permissionFunnel);
                                     if (document.body.clientWidth < 768) {
                                         return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                            <div>${filterList[0]}</div>
-                                                            <div style="display: flex;">
-                                                                <div class="me-2">${filterList[2]}</div>
-                                                                ${filterList[3]}
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">
+                                                                    <div class="me-2">${filterList[2]}</div>
+                                                                    ${filterList[3]}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                        <div>${filterTags}</div>`;
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                            <div>${filterTags}</div>`;
                                     }
                                     else {
                                         return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                        <div>${filterTags}</div>`;
+                                                            <div>${filterTags}</div>`;
                                     }
                                 },
                             });
@@ -311,7 +310,7 @@ export class PermissionSetting {
                                 });
                             },
                         }),
-                    ].join(''))}`, BgWidget.getContainerWidth());
+                    ].join('')))}`);
                 }
                 else if (vm.type == 'replace') {
                     if (edit_mode === 'pos') {
@@ -359,7 +358,7 @@ export class PermissionSetting {
                 view: () => {
                     var _a;
                     return BgWidget.container([
-                        html ` <div class="d-flex w-100 align-items-center ">
+                        html ` <div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
@@ -370,7 +369,7 @@ export class PermissionSetting {
                                 ? BgWidget.mainCard(html `
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2">
+                                          <div class="d-flex align-items-center gap-2 mb-2">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
@@ -513,7 +512,7 @@ export class PermissionSetting {
                             });
                         }))}
                             </div>`,
-                    ].join(html `<div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 1.25 : 1));
+                    ].join(html `<div style="margin-top: 24px;"></div>`));
                 },
             };
         });
@@ -530,7 +529,7 @@ export class PermissionSetting {
                 bind: viewID,
                 view: () => {
                     return BgWidget.container([
-                        html ` <div class="d-flex w-100 align-items-center ">
+                        html ` <div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
@@ -541,7 +540,7 @@ export class PermissionSetting {
                                 ? BgWidget.mainCard(html `
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2">
+                                          <div class="d-flex align-items-center gap-2 mb-2">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
@@ -717,7 +716,7 @@ export class PermissionSetting {
                             });
                         }))}
                             </div>`,
-                    ].join(html `<div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 1.25 : 1));
+                    ].join(html `<div style="margin-top: 24px;"></div>`));
                 },
             };
         });

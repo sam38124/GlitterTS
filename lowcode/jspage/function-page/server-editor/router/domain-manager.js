@@ -37,7 +37,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
             view: () => {
                 if (vm.type === 'post') {
                     return BgWidget.container([
-                        html ` <div class="d-flex">
+                        html `<div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
@@ -143,7 +143,7 @@ onclick="${gvc.event(() => {
                                 divCreate: { class: `p-2 position-relative mx-n2 my-n2`, style: `width:400px;` },
                             };
                         })),
-                    ].join(`<div class="my-3"></div>`), 600);
+                    ].join(`<div class="my-3"></div>`));
                 }
                 else {
                     return BgWidget.container(html `

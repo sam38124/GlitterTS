@@ -62,7 +62,7 @@ export class MemberTypeList {
                 view: () => {
                     if (vm.type === 'groupList') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('顧客分群')}
                                     <div class="flex-fill"></div>
                                 </div>
@@ -82,7 +82,7 @@ export class MemberTypeList {
                             rowClick: () => { },
                             filter: [],
                         })))}
-                            `, BgWidget.getContainerWidth());
+                            `);
                     }
                     else if (vm.type === 'subscriber') {
                         return UserList.main(gvc, {

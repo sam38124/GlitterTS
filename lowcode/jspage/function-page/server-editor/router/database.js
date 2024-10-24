@@ -7,9 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../../../../backend-manager/bg-widget.js";
-import { EditorElem } from "../../../../glitterBundle/plugins/editor-elem.js";
-import { BackendServer } from "../../../../api/backend-server.js";
+import { BgWidget } from '../../../../backend-manager/bg-widget.js';
+import { EditorElem } from '../../../../glitterBundle/plugins/editor-elem.js';
+import { BackendServer } from '../../../../api/backend-server.js';
 window.glitter.setModule(import.meta.url, (gvc) => {
     return gvc.bindView(() => {
         const id = gvc.glitter.getUUID();
@@ -31,7 +31,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 let vm = {
-                                    visible: false
+                                    visible: false,
                                 };
                                 return {
                                     bind: id,
@@ -53,13 +53,13 @@ ${(() => {
 </button>
 </div>`;
                                     },
-                                    divCreate: {}
+                                    divCreate: {},
                                 };
                             }),
-                        ].join(''))
-                    ].join('<div class="my-3"></div>'), 600));
+                        ].join('')),
+                    ].join('<div class="my-3"></div>')));
                 }));
-            }
+            },
         };
     });
 });

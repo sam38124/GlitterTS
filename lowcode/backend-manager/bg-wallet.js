@@ -120,7 +120,7 @@ export class BgWallet {
                                                                 <div>
                                                                 ${BgWidget.container(BgWidget.card([
                                             html `
-                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                <div class="title-container">
                                                                                     ${BgWidget.goBack(gvc.event(() => {
                                                 gvc.closeDialog();
                                             }))}
@@ -172,7 +172,7 @@ export class BgWallet {
                                                 `<div class="mx-n2">${BgProject.userManager(gvc, 'select', (data) => {
                                                     dataList = data;
                                                 })}<div>`,
-                                        ].join('')), 900)}
+                                        ].join('')))}
                                                                 <div>
                                                                 `;
                                     }, 'email');
@@ -734,7 +734,7 @@ export class BgWallet {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container">
                                 ${BgWidget.title('購物金紀錄')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -818,7 +818,7 @@ export class BgWallet {
                                                                 <div>
                                                                 ${BgWidget.container(BgWidget.card([
                                             html `
-                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                <div class="title-container">
                                                                                     ${BgWidget.goBack(gvc.event(() => {
                                                 gvc.closeDialog();
                                             }))}
@@ -870,7 +870,7 @@ export class BgWallet {
                                                 `<div class="mx-n2">${BgProject.userManager(gvc, 'select', (data) => {
                                                     dataList = data;
                                                 })}<div>`,
-                                        ].join('')), 900)}
+                                        ].join('')))}
                                                                 <div>
                                                                 `;
                                     }, 'email');

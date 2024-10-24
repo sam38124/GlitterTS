@@ -135,7 +135,7 @@ export class AutoReply {
                         filter: [],
                     })))}
                             ${BgWidget.mbContainer(240)}
-                        `, BgWidget.getContainerWidth());
+                        `);
                 },
             };
         });
@@ -146,7 +146,7 @@ export class AutoReply {
             loading: false,
         };
         return html ` ${BgWidget.container([
-            html `<div class="d-flex align-items-center w-100">
+            html `<div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
                 back();
             }))}${BgWidget.title((() => {
@@ -241,7 +241,7 @@ export class AutoReply {
                 });
             }))}
                 </div>`,
-        ].join(''), BgWidget.getContainerWidth())}`;
+        ].join(''))}`;
     }
     static getDefCompare(tag) {
         var _a;

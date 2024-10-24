@@ -57,7 +57,7 @@ export class SmsPoints {
                                 </div>
                             </div>`,
                 ].join(`<div class="my-2"></div>`)),
-            ].join(''), BgWidget.getContainerWidth()),
+            ].join('')),
             SmsPoints.walletList(gvc),
         ].join('');
     }
@@ -149,7 +149,7 @@ export class SmsPoints {
                             rowClick: (data, index) => { },
                             filter: [],
                         })}
-                            `), BgWidget.getContainerWidth());
+                            `));
                     }
                     else if (vm.type == 'replace') {
                         return ``;
@@ -206,7 +206,7 @@ export class SmsPoints {
                         }),
                         ...(() => {
                             if (vm.total) {
-                                return [BgWidget.greenNote(`此次儲值可獲得SMS Points『 ${(vm.total * 10).toLocaleString()} 』`)];
+                                return [BgWidget.greenNote(`此次儲值可獲得AI Points『 ${(vm.total * 10).toLocaleString()} 』`)];
                             }
                             else {
                                 return [];

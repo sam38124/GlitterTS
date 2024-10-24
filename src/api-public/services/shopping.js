@@ -253,8 +253,7 @@ class Shopping {
             });
             if (query.id_list) {
                 let tempData = [];
-                query.id_list
-                    .split(',').map((id) => {
+                query.id_list.split(',').map((id) => {
                     const find = products.data.find((product) => {
                         return `${product.id}` === `${id}`;
                     });
@@ -506,10 +505,11 @@ class Shopping {
             });
             shipment_setting.custom_delivery = (_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : [];
             for (const form of shipment_setting.custom_delivery) {
-                form.form = (await new user_js_1.User(this.app).getConfigV2({
-                    user_id: 'manager',
-                    key: `form_delivery_${form.id}`
-                })).list || [];
+                form.form =
+                    (await new user_js_1.User(this.app).getConfigV2({
+                        user_id: 'manager',
+                        key: `form_delivery_${form.id}`,
+                    })).list || [];
             }
             shipment_setting.support = (_b = shipment_setting.support) !== null && _b !== void 0 ? _b : [];
             const carData = {
@@ -524,30 +524,40 @@ class Shopping {
                 orderID: data.orderID || this.generateOrderID(),
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
-                shipment_selector: [{
-                        name: '一般宅配', value: 'normal'
+                shipment_selector: [
+                    {
+                        name: '一般宅配',
+                        value: 'normal',
                     },
                     {
-                        name: '全家店到店', value: 'FAMIC2C'
+                        name: '全家店到店',
+                        value: 'FAMIC2C',
                     },
                     {
-                        name: '萊爾富店到店', value: 'HILIFEC2C'
+                        name: '萊爾富店到店',
+                        value: 'HILIFEC2C',
                     },
                     {
-                        name: 'OK超商店到店', value: 'OKMARTC2C'
+                        name: 'OK超商店到店',
+                        value: 'OKMARTC2C',
                     },
                     {
-                        name: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+                        name: '7-ELEVEN超商交貨便',
+                        value: 'UNIMARTC2C',
                     },
                     {
-                        name: '實體門市取貨', value: 'shop'
-                    }].concat(((_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
+                        name: '實體門市取貨',
+                        value: 'shop',
+                    },
+                ]
+                    .concat(((_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
-                        value: dd.id
+                        value: dd.id,
                     };
-                })).filter((d1) => {
+                }))
+                    .filter((d1) => {
                     return shipment_setting.support.find((d2) => {
                         return d2 === d1.value;
                     });
@@ -561,7 +571,7 @@ class Shopping {
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away,
-                user_rebate_sum: 0
+                user_rebate_sum: 0,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -655,8 +665,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -723,8 +732,7 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
                 const gift_product = [];
@@ -982,12 +990,12 @@ class Shopping {
                     if (carData.customer_info.phone) {
                         let sns = new sms_js_1.SMS(this.app);
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
-                        console.log("訂單簡訊寄送成功");
+                        console.log('訂單簡訊寄送成功');
                     }
                     if (carData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-                        console.log("訂單line訊息寄送成功");
+                        console.log('訂單line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1507,24 +1515,24 @@ class Shopping {
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
-                        console.log("出貨簡訊寄送成功");
+                        console.log('出貨簡訊寄送成功');
                     }
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log("付款成功line訊息寄送成功");
+                        console.log('付款成功line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
-                        console.log("到貨簡訊寄送成功");
+                        console.log('到貨簡訊寄送成功');
                     }
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log("付款成功line訊息寄送成功");
+                        console.log('付款成功line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
@@ -1569,12 +1577,12 @@ class Shopping {
             if (orderData.customer_info.phone) {
                 let sns = new sms_js_1.SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
-                console.log("訂單待核款簡訊寄送成功");
+                console.log('訂單待核款簡訊寄送成功');
             }
             if (orderData.customer_info.lineID) {
                 let line = new line_message_1.LineMessage(this.app);
                 await line.sendCustomerLine('line-proof-purchase', order_id, orderData.customer_info.lineID);
-                console.log("付款成功line訊息寄送成功");
+                console.log('付款成功line訊息寄送成功');
             }
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
                  set orderData=?
@@ -1761,12 +1769,12 @@ class Shopping {
                 if (cartData.orderData.customer_info.phone) {
                     let sns = new sms_js_1.SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);
-                    console.log("付款成功簡訊寄送成功");
+                    console.log('付款成功簡訊寄送成功');
                 }
                 if (cartData.orderData.customer_info.lineID) {
                     let line = new line_message_1.LineMessage(this.app);
                     await line.sendCustomerLine('auto-line-payment-successful', order_id, cartData.orderData.customer_info.lineID);
-                    console.log("付款成功line訊息寄送成功");
+                    console.log('付款成功line訊息寄送成功');
                 }
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
@@ -2044,7 +2052,7 @@ class Shopping {
                 countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
             }
             return {
-                count_array: countArray
+                count_array: countArray,
             };
         }
         catch (e) {
@@ -2071,7 +2079,7 @@ class Shopping {
                 countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
             }
             return {
-                count_array: countArray
+                count_array: countArray,
             };
         }
         catch (e) {
@@ -2124,7 +2132,7 @@ class Shopping {
             return {
                 today: order[0]['count(1)'],
                 count_register: countArray,
-                count_2_weak_register: (await this.getRegister2weak()).countArray
+                count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
         }
         catch (e) {
@@ -2735,7 +2743,7 @@ class Shopping {
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',
-                code: '733'
+                code: '733',
             });
         }
         try {
@@ -2859,7 +2867,7 @@ class Shopping {
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',
-                code: '733'
+                code: '733',
             });
         }
         try {

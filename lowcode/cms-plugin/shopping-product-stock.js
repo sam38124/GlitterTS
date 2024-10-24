@@ -111,7 +111,7 @@ export class StockList {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="title-container">
                                 ${BgWidget.title(option.title)}
                                 <div class="flex-fill"></div>
                                 <div style="display: none; gap: 14px;">
@@ -302,7 +302,7 @@ export class StockList {
                             },
                         }),
                     ].join(''))}
-                        `, BgWidget.getContainerWidth());
+                        `);
                 }
                 else if (vm.type === 'editSpec') {
                     try {

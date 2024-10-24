@@ -265,7 +265,7 @@ export class PermissionSetting {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(
-                        html` <div class="d-flex w-100 align-items-center mb-3 mb-sm-3" style="gap: 14px;">
+                        html` <div class="title-container">
                                 ${BgWidget.title('員工設定')}
                                 <div class="flex-fill"></div>
                                 ${BgWidget.darkButton(
@@ -276,152 +276,152 @@ export class PermissionSetting {
                                     })
                                 )}
                             </div>
-
-                            ${BgWidget.mainCard(
-                                [
-                                    (() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return gvc.bindView({
-                                            bind: id,
-                                            view: () => {
-                                                const filterList = [
-                                                    BgWidget.selectFilter({
-                                                        gvc,
-                                                        callback: (value: any) => {
-                                                            vm.queryType = value;
-                                                            gvc.notifyDataChange(vm.tableId);
-                                                            gvc.notifyDataChange(id);
-                                                        },
-                                                        default: vm.queryType || 'name',
-                                                        options: FilterOptions.permissionSelect,
-                                                    }),
-                                                    BgWidget.searchFilter(
-                                                        gvc.event((e) => {
-                                                            vm.query = e.value;
-                                                            gvc.notifyDataChange(vm.tableId);
-                                                            gvc.notifyDataChange(id);
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    [
+                                        (() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return gvc.bindView({
+                                                bind: id,
+                                                view: () => {
+                                                    const filterList = [
+                                                        BgWidget.selectFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.queryType = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            default: vm.queryType || 'name',
+                                                            options: FilterOptions.permissionSelect,
                                                         }),
-                                                        vm.query || '',
-                                                        '搜尋所有員工'
-                                                    ),
-                                                    BgWidget.funnelFilter({
-                                                        gvc,
-                                                        callback: () => ListComp.showRightMenu(FilterOptions.permissionFunnel),
-                                                    }),
-                                                    BgWidget.updownFilter({
-                                                        gvc,
-                                                        callback: (value: any) => {
-                                                            vm.orderString = value;
-                                                            gvc.notifyDataChange(vm.tableId);
-                                                            gvc.notifyDataChange(id);
-                                                        },
-                                                        default: vm.orderString || 'default',
-                                                        options: FilterOptions.permissionOrderBy,
-                                                    }),
-                                                ];
+                                                        BgWidget.searchFilter(
+                                                            gvc.event((e) => {
+                                                                vm.query = e.value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            }),
+                                                            vm.query || '',
+                                                            '搜尋所有員工'
+                                                        ),
+                                                        BgWidget.funnelFilter({
+                                                            gvc,
+                                                            callback: () => ListComp.showRightMenu(FilterOptions.permissionFunnel),
+                                                        }),
+                                                        BgWidget.updownFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.orderString = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            default: vm.orderString || 'default',
+                                                            options: FilterOptions.permissionOrderBy,
+                                                        }),
+                                                    ];
 
-                                                const filterTags = ListComp.getFilterTags(FilterOptions.permissionFunnel);
+                                                    const filterTags = ListComp.getFilterTags(FilterOptions.permissionFunnel);
 
-                                                if (document.body.clientWidth < 768) {
-                                                    // 手機版
-                                                    return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                            <div>${filterList[0]}</div>
-                                                            <div style="display: flex;">
-                                                                <div class="me-2">${filterList[2]}</div>
-                                                                ${filterList[3]}
+                                                    if (document.body.clientWidth < 768) {
+                                                        // 手機版
+                                                        return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">
+                                                                    <div class="me-2">${filterList[2]}</div>
+                                                                    ${filterList[3]}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                        <div>${filterTags}</div>`;
-                                                } else {
-                                                    // 電腦版
-                                                    return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                        <div>${filterTags}</div>`;
-                                                }
-                                            },
-                                        });
-                                    })(),
-                                    gvc.bindView({
-                                        bind: vm.tableId,
-                                        view: () => {
-                                            return BgWidget.tableV3({
-                                                gvc: gvc,
-                                                getData: (vd) => {
-                                                    vmi = vd;
-                                                    const limit = 10;
-                                                    ApiUser.getPermission({
-                                                        page: vmi.page - 1,
-                                                        limit: limit,
-                                                        queryType: vm.queryType,
-                                                        query: vm.query,
-                                                        orderBy: vm.orderString,
-                                                        filter: vm.filter,
-                                                    }).then((data) => {
-                                                        vm.dataList = data.response.data;
-                                                        vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                        vmi.originalData = vm.dataList;
-                                                        vmi.tableData = getDatalist();
-                                                        vmi.loading = false;
-                                                        vmi.callback();
-                                                    });
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                            <div>${filterTags}</div>`;
+                                                    } else {
+                                                        // 電腦版
+                                                        return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                            <div>${filterTags}</div>`;
+                                                    }
                                                 },
-                                                rowClick: (data, index) => {
-                                                    vm.data = vm.dataList[index];
-                                                    vm.type = 'replace';
-                                                },
-                                                filter: [
-                                                    {
-                                                        name: '批量刪除',
-                                                        event: () => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.warningMessage({
-                                                                text: '您即將批量刪除所選員工的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                                                callback: (response) => {
-                                                                    if (response) {
-                                                                        let n = 0;
-                                                                        const emails = vm.dataList
-                                                                            .filter((dd: any) => {
-                                                                                return dd.checked;
-                                                                            })
-                                                                            .map((dd: any) => {
-                                                                                return dd.email || dd.config.verifyEmail;
-                                                                            });
-
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        new Promise<void>((resolve, reject) => {
-                                                                            for (const email of emails) {
-                                                                                ApiUser.deletePermission(email).then((res) => {
-                                                                                    if (res.result && res.response.result) {
-                                                                                        if (++n === emails.length) {
-                                                                                            resolve();
-                                                                                        }
-                                                                                    } else {
-                                                                                        dialog.dataLoading({ visible: false });
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                        reject();
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        }).then(() => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            dialog.successMessage({ text: '刪除成功' });
-                                                                            setTimeout(() => {
-                                                                                vm.dataList = undefined;
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            }, 300);
-                                                                        });
-                                                                    }
-                                                                },
-                                                            });
-                                                        },
-                                                    },
-                                                ],
                                             });
-                                        },
-                                    }),
-                                ].join('')
-                            )}`,
-                        BgWidget.getContainerWidth()
+                                        })(),
+                                        gvc.bindView({
+                                            bind: vm.tableId,
+                                            view: () => {
+                                                return BgWidget.tableV3({
+                                                    gvc: gvc,
+                                                    getData: (vd) => {
+                                                        vmi = vd;
+                                                        const limit = 10;
+                                                        ApiUser.getPermission({
+                                                            page: vmi.page - 1,
+                                                            limit: limit,
+                                                            queryType: vm.queryType,
+                                                            query: vm.query,
+                                                            orderBy: vm.orderString,
+                                                            filter: vm.filter,
+                                                        }).then((data) => {
+                                                            vm.dataList = data.response.data;
+                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                            vmi.originalData = vm.dataList;
+                                                            vmi.tableData = getDatalist();
+                                                            vmi.loading = false;
+                                                            vmi.callback();
+                                                        });
+                                                    },
+                                                    rowClick: (data, index) => {
+                                                        vm.data = vm.dataList[index];
+                                                        vm.type = 'replace';
+                                                    },
+                                                    filter: [
+                                                        {
+                                                            name: '批量刪除',
+                                                            event: () => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.warningMessage({
+                                                                    text: '您即將批量刪除所選員工的所有資料<br />此操作無法復原。確定要刪除嗎？',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            let n = 0;
+                                                                            const emails = vm.dataList
+                                                                                .filter((dd: any) => {
+                                                                                    return dd.checked;
+                                                                                })
+                                                                                .map((dd: any) => {
+                                                                                    return dd.email || dd.config.verifyEmail;
+                                                                                });
+
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            new Promise<void>((resolve, reject) => {
+                                                                                for (const email of emails) {
+                                                                                    ApiUser.deletePermission(email).then((res) => {
+                                                                                        if (res.result && res.response.result) {
+                                                                                            if (++n === emails.length) {
+                                                                                                resolve();
+                                                                                            }
+                                                                                        } else {
+                                                                                            dialog.dataLoading({ visible: false });
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                            reject();
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            }).then(() => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                dialog.successMessage({ text: '刪除成功' });
+                                                                                setTimeout(() => {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                }, 300);
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            },
+                                                        },
+                                                    ],
+                                                });
+                                            },
+                                        }),
+                                    ].join('')
+                                )
+                            )}`
                     );
                 } else if (vm.type == 'replace') {
                     if (edit_mode === 'pos') {
@@ -469,7 +469,7 @@ export class PermissionSetting {
                     return BgWidget.container(
                         [
                             // 上層導覽
-                            html` <div class="d-flex w-100 align-items-center ">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -482,7 +482,7 @@ export class PermissionSetting {
                                     ? BgWidget.mainCard(html`
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2">
+                                          <div class="d-flex align-items-center gap-2 mb-2">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                                   vm.data.status = (vm.data.status - 1) * -1;
@@ -634,8 +634,7 @@ export class PermissionSetting {
                                     })
                                 )}
                             </div>`,
-                        ].join(html`<div style="margin-top: 24px;"></div>`),
-                        BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 1.25 : 1)
+                        ].join(html`<div style="margin-top: 24px;"></div>`)
                     );
                 },
             };
@@ -656,7 +655,7 @@ export class PermissionSetting {
                     return BgWidget.container(
                         [
                             // 上層導覽
-                            html` <div class="d-flex w-100 align-items-center ">
+                            html` <div class="title-container">
                                 ${BgWidget.goBack(
                                     gvc.event(() => {
                                         vm.type = 'list';
@@ -669,7 +668,7 @@ export class PermissionSetting {
                                     ? BgWidget.mainCard(html`
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2">
+                                          <div class="d-flex align-items-center gap-2 mb-2">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                                   vm.data.status = (vm.data.status - 1) * -1;
@@ -853,8 +852,7 @@ export class PermissionSetting {
                                     })
                                 )}
                             </div>`,
-                        ].join(html`<div style="margin-top: 24px;"></div>`),
-                        BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 1.25 : 1)
+                        ].join(html`<div style="margin-top: 24px;"></div>`)
                     );
                 },
             };

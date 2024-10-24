@@ -122,7 +122,7 @@ export class BgGraphApi {
                                     ],
                                 }),
                             ].join('')))}
-                                `, BgWidget.getContainerWidth());
+                                `);
                         case 'replace':
                             return BgGraphApi.editor({
                                 gvc: gvc,
@@ -155,7 +155,7 @@ export class BgGraphApi {
                 bind: id,
                 view: () => {
                     return BgWidget.container(html `
-                            <div class="d-flex align-items-center">
+                            <div class="title-container">
                                 ${BgWidget.goBack(obj.gvc.event(() => {
                         obj.vm.status = 'list';
                     }))}
@@ -236,7 +236,7 @@ export class BgGraphApi {
                         }),
                     ].join(`<div class="my-2"></div>`)}`))}
                             ${BgWidget.mbContainer(120)}
-                        `, BgWidget.getContainerWidth({ rate: { web: 0.6 } }));
+                        `);
                 },
             };
         });

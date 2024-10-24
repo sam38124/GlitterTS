@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class ThirdPartyLine {
     static main(gvc) {
-        return BgWidget.container(gvc.bindView(() => {
+        return (BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const key = 'login_line_setting';
             const vm = {
@@ -21,7 +21,7 @@ export class ThirdPartyLine {
                     login_toggle: false,
                     id: '',
                     secret: '',
-                    message_token: ''
+                    message_token: '',
                 },
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
@@ -57,7 +57,7 @@ export class ThirdPartyLine {
                                     placeHolder: '請前往LINE開發者後台取得Channel ID',
                                     callback: (text) => {
                                         vm.data.id = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -68,7 +68,7 @@ export class ThirdPartyLine {
                                     placeHolder: '請前往LINE開發者後台取得Channel Secret',
                                     callback: (text) => {
                                         vm.data.secret = text;
-                                    }
+                                    },
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
@@ -79,7 +79,7 @@ export class ThirdPartyLine {
                                     placeHolder: '請前往LINE開發者後台取得Message Token',
                                     callback: (text) => {
                                         vm.data.message_token = text;
-                                    }
+                                    },
                                 }),
                                 `<div  onclick="${gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
@@ -94,8 +94,7 @@ Callback URL ${BgWidget.grayNote('點擊複製此連結至LINE開發者後台的
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div  onclick="${gvc.event(() => {
@@ -111,8 +110,7 @@ LINE LIFF ${BgWidget.grayNote('點擊複製此連結至LINE開發者後台的LIF
 </div>`,
                                     default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login?line_liff=true',
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
 </div>`,
                                 `<div  onclick="${gvc.event(() => {
@@ -128,12 +126,11 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至LINE開發者後台的M
 </div>`,
                                     default: `${window.parent.config.url}/api-public/v1/line_message/listenMessage?g-app=${window.parent.appName}`,
                                     placeHolder: '',
-                                    callback: (text) => {
-                                    }
+                                    callback: (text) => { },
                                 })}
-</div>`
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
+</div>`,
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                               ${BgWidget.container([
                             BgWidget.card([
                                 `<div class="tx_700">操作說明</div>`,
@@ -141,8 +138,8 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至LINE開發者後台的M
                                 `<div class="tx_normal">前往 ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
                                     window.parent.glitter.openNewTab('https://shopnex.cc/blogs/lineapiconnect');
                                 }))} 查看串接設定流程</div>`,
-                            ].join(BgWidget.mbContainer(12)))
-                        ].join(BgWidget.mbContainer(24)), undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                            ].join(BgWidget.mbContainer(12))),
+                        ].join(BgWidget.mbContainer(24)))}
                                <div class="update-bar-container">
                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
@@ -165,11 +162,11 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至LINE開發者後台的M
                             });
                         })))}
 </div>
-                                </div>`
+                                </div>`,
                     ].join('');
-                }
+                },
             };
-        }), BgWidget.getContainerWidth()) + BgWidget.mbContainer(120);
+        })) + BgWidget.mbContainer(120));
     }
 }
 window.glitter.setModule(import.meta.url, ThirdPartyLine);

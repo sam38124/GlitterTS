@@ -89,7 +89,7 @@ export class UserList {
                 var _a, _b;
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="title-container">
                                 ${(() => {
                         if (obj && obj.group && obj.backButtonEvent) {
                             return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
@@ -113,7 +113,8 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.tab(((_b = obj === null || obj === void 0 ? void 0 : obj.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
+                            <div class="title-container">
+                                ${BgWidget.tab(((_b = obj === null || obj === void 0 ? void 0 : obj.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
                         ? [
                             {
                                 title: '一般列表',
@@ -141,6 +142,7 @@ export class UserList {
                         vm.filter_type = text;
                         gvc.notifyDataChange(vm.id);
                     }, `margin:0;margin-top:24px;`)}
+                            </div>
                             ${BgWidget.container((() => {
                         if (vm.filter_type === 'notRegistered') {
                             return BgNotify.email(gvc, 'list', () => {
@@ -270,7 +272,7 @@ export class UserList {
                             }),
                         ].join(''));
                     })(), undefined)}
-                        `, BgWidget.getContainerWidth());
+                        `);
                 }
                 else if (vm.type == 'replace') {
                     return this.userInformationDetail({
@@ -745,7 +747,7 @@ export class UserList {
                             }
                             return BgWidget.container([
                                 html `
-                                        <div class="d-flex align-items-center w-100 mb-3">
+                                        <div class="title-container">
                                             ${BgWidget.goBack(gvc.event(() => {
                                     cf.callback();
                                 }))}
@@ -755,451 +757,453 @@ export class UserList {
                                             </div>
                                             ${document.body.clientWidth > 768 ? getButtonList() : ''}
                                         </div>
-                                        ${document.body.clientWidth > 768 ? '' : getButtonList()}
+                                        ${document.body.clientWidth > 768 ? '' : html ` <div class="title-container mt-3">${getButtonList()}</div>`}
                                     `,
-                                html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                        ${BgWidget.container([
-                                    gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        const vmi = {
-                                            mode: 'read',
-                                        };
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                BgWidget.container1x2({
+                                    html: [
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            const vmi = {
+                                                mode: 'read',
+                                            };
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                                     <span class="tx_700">顧客資訊</span>
                                                                     <div style="display: flex; gap: 8px;">
                                                                         ${BgWidget.grayButton(vmi.mode === 'edit' ? '關閉修改' : '啟用修改', gvc.event(() => {
-                                                    vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
-                                                    gvc.notifyDataChange(id);
-                                                }))}
+                                                        vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
+                                                        gvc.notifyDataChange(id);
+                                                    }))}
                                                                     </div>
                                                                 </div>` +
-                                                    gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                                    var _a;
-                                                                    let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {}).value;
-                                                                    if (!Array.isArray(data)) {
-                                                                        data = [];
-                                                                    }
-                                                                    function loopForm(data, refer_obj) {
-                                                                        let h = '';
-                                                                        data.map((item) => {
-                                                                            if (item.page) {
-                                                                                item.type = 'form_plugin_v2';
-                                                                                item.group = '';
-                                                                            }
-                                                                            if (item.group === '個人履歷') {
-                                                                                return '';
-                                                                            }
-                                                                            switch (item.page) {
-                                                                                case 'input':
-                                                                                    h += html ` <div>
+                                                        gvc.bindView(() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        var _a;
+                                                                        let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {}).value;
+                                                                        if (!Array.isArray(data)) {
+                                                                            data = [];
+                                                                        }
+                                                                        function loopForm(data, refer_obj) {
+                                                                            let h = '';
+                                                                            data.map((item) => {
+                                                                                if (item.page) {
+                                                                                    item.type = 'form_plugin_v2';
+                                                                                    item.group = '';
+                                                                                }
+                                                                                if (item.group === '個人履歷') {
+                                                                                    return '';
+                                                                                }
+                                                                                switch (item.page) {
+                                                                                    case 'input':
+                                                                                        h += html ` <div>
                                                                                                         <div class="tx_normal">${item.title}</div>
                                                                                                         <div>
                                                                                                             ${BgWidget.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: '',
-                                                                                        default: refer_obj[item.key] || '',
-                                                                                        placeHolder: `請輸入${item.title}`,
-                                                                                        callback: (text) => {
-                                                                                            refer_obj[item.key] = text;
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        },
-                                                                                        readonly: vmi.mode !== 'edit',
-                                                                                    })}
+                                                                                            gvc: gvc,
+                                                                                            title: '',
+                                                                                            default: refer_obj[item.key] || '',
+                                                                                            placeHolder: `請輸入${item.title}`,
+                                                                                            callback: (text) => {
+                                                                                                refer_obj[item.key] = text;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            },
+                                                                                            readonly: vmi.mode !== 'edit',
+                                                                                        })}
                                                                                                         </div>
                                                                                                     </div>`;
-                                                                                    break;
-                                                                                case 'multiple_line_text':
-                                                                                    h += html ` <div>
+                                                                                        break;
+                                                                                    case 'multiple_line_text':
+                                                                                        h += html ` <div>
                                                                                                         <div class="tx_normal">${item.title}</div>
                                                                                                         ${BgWidget.textArea({
-                                                                                        gvc: gvc,
-                                                                                        title: '',
-                                                                                        default: refer_obj[item.key] || '',
-                                                                                        placeHolder: `請輸入${item.title}`,
-                                                                                        callback: (text) => {
-                                                                                            refer_obj[item.key] = text;
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        },
-                                                                                        readonly: vmi.mode !== 'edit',
-                                                                                    })}
+                                                                                            gvc: gvc,
+                                                                                            title: '',
+                                                                                            default: refer_obj[item.key] || '',
+                                                                                            placeHolder: `請輸入${item.title}`,
+                                                                                            callback: (text) => {
+                                                                                                refer_obj[item.key] = text;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            },
+                                                                                            readonly: vmi.mode !== 'edit',
+                                                                                        })}
                                                                                                     </div>`;
-                                                                                    break;
-                                                                                default:
-                                                                                    h += FormWidget.editorView({
-                                                                                        gvc: gvc,
-                                                                                        array: [item],
-                                                                                        refresh: () => { },
-                                                                                        formData: refer_obj,
-                                                                                        readonly: vmi.mode === 'edit' ? 'write' : 'read',
-                                                                                    });
-                                                                                    break;
-                                                                            }
-                                                                        });
-                                                                        return h;
-                                                                    }
-                                                                    const form_array_view = [
-                                                                        html `<div style="display:flex; gap: 18px; flex-direction: column;">${loopForm(data, vm.data.userData)}</div>`,
-                                                                    ];
-                                                                    const form_formats = {};
-                                                                    const form_keys = ['custom_form_register', 'customer_form_user_setting'];
-                                                                    for (const b of form_keys) {
-                                                                        form_formats[b] = (yield ApiUser.getPublicConfig(b, 'manager')).response.value || { list: [] };
-                                                                        form_formats[b].list.map((dd) => {
-                                                                            dd.toggle = false;
-                                                                        });
-                                                                    }
-                                                                    form_formats['custom_form_register'].list.length > 0 &&
-                                                                        form_array_view.push([
-                                                                            html `<div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                                                                        break;
+                                                                                    default:
+                                                                                        h += FormWidget.editorView({
+                                                                                            gvc: gvc,
+                                                                                            array: [item],
+                                                                                            refresh: () => { },
+                                                                                            formData: refer_obj,
+                                                                                            readonly: vmi.mode === 'edit' ? 'write' : 'read',
+                                                                                        });
+                                                                                        break;
+                                                                                }
+                                                                            });
+                                                                            return h;
+                                                                        }
+                                                                        const form_array_view = [
+                                                                            html `<div style="display:flex; gap: 18px; flex-direction: column;">${loopForm(data, vm.data.userData)}</div>`,
+                                                                        ];
+                                                                        const form_formats = {};
+                                                                        const form_keys = ['custom_form_register', 'customer_form_user_setting'];
+                                                                        for (const b of form_keys) {
+                                                                            form_formats[b] = (yield ApiUser.getPublicConfig(b, 'manager')).response.value || { list: [] };
+                                                                            form_formats[b].list.map((dd) => {
+                                                                                dd.toggle = false;
+                                                                            });
+                                                                        }
+                                                                        form_formats['custom_form_register'].list.length > 0 &&
+                                                                            form_array_view.push([
+                                                                                html `<div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
                                                                                                         註冊頁面表單內容
                                                                                                     </div>
                                                                                                     ${loopForm(form_formats['custom_form_register'].list, vm.data.userData)}`,
-                                                                        ].join(''));
-                                                                    form_formats['customer_form_user_setting'].list.length > 0 &&
-                                                                        form_array_view.push([
-                                                                            html `<div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                                                            ].join(''));
+                                                                        form_formats['customer_form_user_setting'].list.length > 0 &&
+                                                                            form_array_view.push([
+                                                                                html `<div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
                                                                                                         設定頁面表單內容
                                                                                                     </div>
                                                                                                     ${loopForm(form_formats['customer_form_user_setting'].list, vm.data.userData)}`,
-                                                                        ].join(''));
-                                                                    resolve(form_array_view.join(`<div class="my-4 border"></div>`));
-                                                                }));
-                                                            },
-                                                        };
-                                                    }));
-                                            },
-                                            divCreate: {
-                                                class: 'p-0',
-                                            },
-                                        };
-                                    }),
-                                    BgWidget.mainCard([
-                                        [
-                                            html `<div class="tx_700">會員等級</div>`,
-                                            html `<div class="badge bg-dark fs-7" style="max-height: 34px;">${vm.data.member_level.tag_name}</div>`,
-                                        ].join(BgWidget.mbContainer(12)),
-                                        [
-                                            html `<div class="tx_700">升級方式</div>`,
-                                            BgWidget.multiCheckboxContainer(gvc, [
-                                                {
-                                                    key: 'auto',
-                                                    name: html `<div>
+                                                                            ].join(''));
+                                                                        resolve(form_array_view.join(`<div class="my-4 border"></div>`));
+                                                                    }));
+                                                                },
+                                                            };
+                                                        }));
+                                                },
+                                                divCreate: {
+                                                    class: 'p-0',
+                                                },
+                                            };
+                                        }),
+                                        BgWidget.mainCard([
+                                            [
+                                                html `<div class="tx_700">會員等級</div>`,
+                                                html `<div class="badge bg-dark fs-7" style="max-height: 34px;">${vm.data.member_level.tag_name}</div>`,
+                                            ].join(BgWidget.mbContainer(12)),
+                                            [
+                                                html `<div class="tx_700">升級方式</div>`,
+                                                BgWidget.multiCheckboxContainer(gvc, [
+                                                    {
+                                                        key: 'auto',
+                                                        name: html `<div>
                                                                             根據本站<span
                                                                                 style="color: #4D86DB; text-decoration: underline;"
                                                                                 onclick="${gvc.event((e, ev) => {
-                                                        ev.stopPropagation();
-                                                        BgWidget.infoDialog({
-                                                            gvc: gvc,
-                                                            title: '會員規則',
-                                                            innerHTML: BgWidget.tableV3({
+                                                            ev.stopPropagation();
+                                                            BgWidget.infoDialog({
                                                                 gvc: gvc,
-                                                                getData: (vd) => {
-                                                                    setTimeout(() => {
-                                                                        vd.tableData = vm.data.member.map((leadData, index) => {
-                                                                            return [
-                                                                                { key: '會員等級', value: leadData.tag_name },
-                                                                                {
-                                                                                    key: '升級條件',
-                                                                                    value: (() => {
-                                                                                        let text = '';
-                                                                                        const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
-                                                                                        const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
-                                                                                        if (leadData.og.duration.type === 'noLimit') {
-                                                                                            text = `${condition_type}消費額達 NT$${val}`;
-                                                                                        }
-                                                                                        else {
-                                                                                            text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
-                                                                                        }
-                                                                                        return text;
-                                                                                    })(),
-                                                                                },
-                                                                                {
-                                                                                    key: '有效期限',
-                                                                                    value: (() => {
-                                                                                        let dead_line = '';
-                                                                                        if (leadData.og.dead_line.type === 'date') {
-                                                                                            const day = [
-                                                                                                { title: '一個月', value: 30 },
-                                                                                                { title: '三個月', value: 90 },
-                                                                                                { title: '六個月', value: 180 },
-                                                                                                { title: '一年', value: 365 },
-                                                                                            ].find((item) => {
-                                                                                                return item.value == leadData.og.dead_line.value;
-                                                                                            });
-                                                                                            dead_line = day ? day.title : `${leadData.og.dead_line.value}天`;
-                                                                                        }
-                                                                                        if (leadData.og.dead_line.type === 'noLimit') {
-                                                                                            dead_line = '沒有期限';
-                                                                                        }
-                                                                                        return dead_line;
-                                                                                    })(),
-                                                                                },
-                                                                            ];
-                                                                        });
-                                                                        vd.originalData = vm.data.member;
-                                                                        vd.loading = false;
-                                                                        vd.callback();
-                                                                    }, 200);
-                                                                },
-                                                                filter: [],
-                                                                rowClick: () => { },
-                                                            }),
-                                                        });
-                                                    })}"
+                                                                title: '會員規則',
+                                                                innerHTML: BgWidget.tableV3({
+                                                                    gvc: gvc,
+                                                                    getData: (vd) => {
+                                                                        setTimeout(() => {
+                                                                            vd.tableData = vm.data.member.map((leadData, index) => {
+                                                                                return [
+                                                                                    { key: '會員等級', value: leadData.tag_name },
+                                                                                    {
+                                                                                        key: '升級條件',
+                                                                                        value: (() => {
+                                                                                            let text = '';
+                                                                                            const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
+                                                                                            const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
+                                                                                            if (leadData.og.duration.type === 'noLimit') {
+                                                                                                text = `${condition_type}消費額達 NT$${val}`;
+                                                                                            }
+                                                                                            else {
+                                                                                                text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
+                                                                                            }
+                                                                                            return text;
+                                                                                        })(),
+                                                                                    },
+                                                                                    {
+                                                                                        key: '有效期限',
+                                                                                        value: (() => {
+                                                                                            let dead_line = '';
+                                                                                            if (leadData.og.dead_line.type === 'date') {
+                                                                                                const day = [
+                                                                                                    { title: '一個月', value: 30 },
+                                                                                                    { title: '三個月', value: 90 },
+                                                                                                    { title: '六個月', value: 180 },
+                                                                                                    { title: '一年', value: 365 },
+                                                                                                ].find((item) => {
+                                                                                                    return item.value == leadData.og.dead_line.value;
+                                                                                                });
+                                                                                                dead_line = day ? day.title : `${leadData.og.dead_line.value}天`;
+                                                                                            }
+                                                                                            if (leadData.og.dead_line.type === 'noLimit') {
+                                                                                                dead_line = '沒有期限';
+                                                                                            }
+                                                                                            return dead_line;
+                                                                                        })(),
+                                                                                    },
+                                                                                ];
+                                                                            });
+                                                                            vd.originalData = vm.data.member;
+                                                                            vd.loading = false;
+                                                                            vd.callback();
+                                                                        }, 200);
+                                                                    },
+                                                                    filter: [],
+                                                                    rowClick: () => { },
+                                                                }),
+                                                            });
+                                                        })}"
                                                                                 >會員規則</span
                                                                             >自動升級
                                                                         </div>`,
-                                                },
-                                                {
-                                                    key: 'manual',
-                                                    name: '手動調整',
-                                                    innerHtml: gvc.bindView((() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        let loading = true;
-                                                        let options = [];
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                var _a;
-                                                                if (loading) {
-                                                                    return BgWidget.spinner();
-                                                                }
-                                                                else {
-                                                                    vm.data.userData.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
-                                                                    return html `
+                                                    },
+                                                    {
+                                                        key: 'manual',
+                                                        name: '手動調整',
+                                                        innerHtml: gvc.bindView((() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            let loading = true;
+                                                            let options = [];
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    var _a;
+                                                                    if (loading) {
+                                                                        return BgWidget.spinner();
+                                                                    }
+                                                                    else {
+                                                                        vm.data.userData.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
+                                                                        return html `
                                                                                                 ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級')}
                                                                                                 ${BgWidget.select({
-                                                                        gvc: gvc,
-                                                                        default: vm.data.userData.level_default,
-                                                                        callback: (key) => {
-                                                                            vm.data.userData.level_default = key;
-                                                                        },
-                                                                        options: options,
-                                                                        style: 'margin: 8px 0;',
-                                                                    })}
+                                                                            gvc: gvc,
+                                                                            default: vm.data.userData.level_default,
+                                                                            callback: (key) => {
+                                                                                vm.data.userData.level_default = key;
+                                                                            },
+                                                                            options: options,
+                                                                            style: 'margin: 8px 0;',
+                                                                        })}
                                                                                             `;
-                                                                }
-                                                            },
-                                                            divCreate: {},
-                                                            onCreate: () => {
-                                                                if (loading) {
-                                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
-                                                                        if (dd.result && dd.response.value) {
-                                                                            options = dd.response.value.levels.map((item) => {
-                                                                                return {
-                                                                                    key: `${item.id}`,
-                                                                                    value: item.tag_name,
-                                                                                };
-                                                                            });
-                                                                            loading = false;
-                                                                            gvc.notifyDataChange(id);
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        };
-                                                    })()),
-                                                },
-                                            ], [(_c = vm.data.userData.level_status) !== null && _c !== void 0 ? _c : 'auto'], (value) => {
-                                                vm.data.userData.level_status = value[0];
-                                            }, { single: true }),
-                                        ].join(BgWidget.mbContainer(12)),
-                                        [
-                                            html `<div class="tx_700">會員有效期</div>`,
-                                            html `<div class="tx_noraml">
+                                                                    }
+                                                                },
+                                                                divCreate: {},
+                                                                onCreate: () => {
+                                                                    if (loading) {
+                                                                        ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
+                                                                            if (dd.result && dd.response.value) {
+                                                                                options = dd.response.value.levels.map((item) => {
+                                                                                    return {
+                                                                                        key: `${item.id}`,
+                                                                                        value: item.tag_name,
+                                                                                    };
+                                                                                });
+                                                                                loading = false;
+                                                                                gvc.notifyDataChange(id);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                },
+                                                            };
+                                                        })()),
+                                                    },
+                                                ], [(_c = vm.data.userData.level_status) !== null && _c !== void 0 ? _c : 'auto'], (value) => {
+                                                    vm.data.userData.level_status = value[0];
+                                                }, { single: true }),
+                                            ].join(BgWidget.mbContainer(12)),
+                                            [
+                                                html `<div class="tx_700">會員有效期</div>`,
+                                                html `<div class="tx_noraml">
                                                                 ${((_d = vm.data.member_level.dead_line) === null || _d === void 0 ? void 0 : _d.length) > 0 ? Tool.convertDateTimeFormat(vm.data.member_level.dead_line) : '永久'}
                                                             </div>`,
-                                        ].join(BgWidget.mbContainer(12)),
-                                        [html `<div class="tx_700">註冊時間</div>`, Tool.convertDateTimeFormat(vm.data.created_time)].join(BgWidget.mbContainer(12)),
-                                    ].join(BgWidget.mbContainer(18))),
-                                    gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;">
+                                            ].join(BgWidget.mbContainer(12)),
+                                            [html `<div class="tx_700">註冊時間</div>`, Tool.convertDateTimeFormat(vm.data.created_time)].join(BgWidget.mbContainer(12)),
+                                        ].join(BgWidget.mbContainer(18))),
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;">
                                                                     <span class="tx_700">訂單記錄</span>
                                                                 </div>` +
-                                                    gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                const limit = 10;
-                                                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                                    const h = BgWidget.tableV3({
-                                                                        gvc: gvc,
-                                                                        getData: (vd) => {
-                                                                            ApiShop.getOrder({
-                                                                                page: vd.page - 1,
-                                                                                limit: limit,
-                                                                                data_from: 'manager',
-                                                                                email: vm.data.userData.email,
-                                                                                phone: vm.data.userData.phone,
-                                                                                status: 1,
-                                                                            }).then((data) => {
-                                                                                vm.dataList = data.response.data;
-                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
-                                                                                vd.originalData = vm.dataList;
-                                                                                vd.tableData = getOrderlist(vm.dataList);
-                                                                                vd.loading = false;
-                                                                                vd.callback();
-                                                                            });
-                                                                        },
-                                                                        rowClick: () => { },
-                                                                        filter: [],
-                                                                    });
-                                                                    resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
-                                                                }));
-                                                            },
-                                                        };
-                                                    }));
-                                            },
-                                            divCreate: {
-                                                class: 'p-0',
-                                            },
-                                        };
-                                    }),
-                                    gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        gvc.bindView(() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    const limit = 10;
+                                                                    return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        const h = BgWidget.tableV3({
+                                                                            gvc: gvc,
+                                                                            getData: (vd) => {
+                                                                                ApiShop.getOrder({
+                                                                                    page: vd.page - 1,
+                                                                                    limit: limit,
+                                                                                    data_from: 'manager',
+                                                                                    email: vm.data.userData.email,
+                                                                                    phone: vm.data.userData.phone,
+                                                                                    status: 1,
+                                                                                }).then((data) => {
+                                                                                    vm.dataList = data.response.data;
+                                                                                    vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                    vd.originalData = vm.dataList;
+                                                                                    vd.tableData = getOrderlist(vm.dataList);
+                                                                                    vd.loading = false;
+                                                                                    vd.callback();
+                                                                                });
+                                                                            },
+                                                                            rowClick: () => { },
+                                                                            filter: [],
+                                                                        });
+                                                                        resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                    }));
+                                                                },
+                                                            };
+                                                        }));
+                                                },
+                                                divCreate: {
+                                                    class: 'p-0',
+                                                },
+                                            };
+                                        }),
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center;">
                                                                     <span class="tx_700">購物金</span>
                                                                     <div>
                                                                         ${BgWidget.grayButton('添加購物金', gvc.event(() => {
-                                                    ShoppingRebate.newRebateDialog({
-                                                        gvc: gvc,
-                                                        saveButton: {
-                                                            event: (obj) => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.dataLoading({
-                                                                    text: '發送中...',
-                                                                    visible: true,
-                                                                });
-                                                                ApiWallet.storeRebateByManager({
-                                                                    userID: [vm.data.userID],
-                                                                    total: (() => {
-                                                                        if (obj.type === 'add') {
-                                                                            return parseInt(obj.value, 10);
+                                                        ShoppingRebate.newRebateDialog({
+                                                            gvc: gvc,
+                                                            saveButton: {
+                                                                event: (obj) => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.dataLoading({
+                                                                        text: '發送中...',
+                                                                        visible: true,
+                                                                    });
+                                                                    ApiWallet.storeRebateByManager({
+                                                                        userID: [vm.data.userID],
+                                                                        total: (() => {
+                                                                            if (obj.type === 'add') {
+                                                                                return parseInt(obj.value, 10);
+                                                                            }
+                                                                            else {
+                                                                                const minus = parseInt(obj.value, 10);
+                                                                                return minus ? minus * -1 : minus;
+                                                                            }
+                                                                        })(),
+                                                                        note: obj.note,
+                                                                        rebateEndDay: obj.rebateEndDay,
+                                                                    }).then((result) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        if (result.response.result) {
+                                                                            dialog.successMessage({ text: `設定成功` });
+                                                                            setTimeout(() => {
+                                                                                gvc.notifyDataChange(id);
+                                                                            }, 200);
                                                                         }
                                                                         else {
-                                                                            const minus = parseInt(obj.value, 10);
-                                                                            return minus ? minus * -1 : minus;
+                                                                            dialog.errorMessage({ text: result.response.msg });
                                                                         }
-                                                                    })(),
-                                                                    note: obj.note,
-                                                                    rebateEndDay: obj.rebateEndDay,
-                                                                }).then((result) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (result.response.result) {
-                                                                        dialog.successMessage({ text: `設定成功` });
-                                                                        setTimeout(() => {
-                                                                            gvc.notifyDataChange(id);
-                                                                        }, 200);
-                                                                    }
-                                                                    else {
-                                                                        dialog.errorMessage({ text: result.response.msg });
-                                                                    }
-                                                                });
+                                                                    });
+                                                                },
+                                                                text: '確認',
                                                             },
-                                                            text: '確認',
-                                                        },
-                                                    });
-                                                }))}
+                                                        });
+                                                    }))}
                                                                     </div>
                                                                 </div>` +
-                                                    html ` <div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
+                                                        html ` <div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
                                                                         <span class="tx_700">現有購物金</span>
                                                                         <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                             >${gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return new Promise((resolve, reject) => {
-                                                                    ApiWallet.getRebateSum({
-                                                                        userID: vm.data.userID,
-                                                                    }).then((data) => {
-                                                                        if (data.result) {
-                                                                            resolve(parseInt(data.response.sum, 10).toLocaleString());
-                                                                        }
-                                                                        resolve('發生錯誤');
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return new Promise((resolve, reject) => {
+                                                                        ApiWallet.getRebateSum({
+                                                                            userID: vm.data.userID,
+                                                                        }).then((data) => {
+                                                                            if (data.result) {
+                                                                                resolve(parseInt(data.response.sum, 10).toLocaleString());
+                                                                            }
+                                                                            resolve('發生錯誤');
+                                                                        });
                                                                     });
-                                                                });
-                                                            },
-                                                        };
-                                                    })}</span
+                                                                },
+                                                            };
+                                                        })}</span
                                                                         >
                                                                     </div>` +
-                                                    html ` <div style="display: flex; margin-bottom: 18px;">
+                                                        html ` <div style="display: flex; margin-bottom: 18px;">
                                                                         <span class="tx_700">購物金紀錄</span>
                                                                     </div>` +
-                                                    gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                const limit = 10;
-                                                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                                    const h = BgWidget.tableV3({
-                                                                        gvc: gvc,
-                                                                        getData: (vd) => {
-                                                                            ApiWallet.getRebate({
-                                                                                page: vd.page - 1,
-                                                                                limit: limit,
-                                                                                search: vm.data.userData.email,
-                                                                            }).then((data) => {
-                                                                                vm.dataList = data.response.data;
-                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
-                                                                                vd.originalData = vm.dataList;
-                                                                                vd.tableData = getRebatelist(vm.dataList);
-                                                                                vd.loading = false;
-                                                                                vd.callback();
-                                                                            });
-                                                                        },
-                                                                        rowClick: () => { },
-                                                                        filter: [],
-                                                                    });
-                                                                    resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
-                                                                }));
-                                                            },
-                                                        };
-                                                    }));
-                                            },
-                                            divCreate: {
-                                                class: 'p-0',
-                                            },
-                                        };
-                                    }),
-                                ].join(html ` <div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 !important; margin: 0 !important; width: 73.5%;')}
-                                        ${BgWidget.container(gvc.bindView(() => {
-                                    const id = gvc.glitter.getUUID();
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return BgWidget.mainCard(gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                            var _a;
-                                                            let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {})
-                                                                .value;
-                                                            if (!Array.isArray(data)) {
-                                                                data = [];
-                                                            }
-                                                            let h = html `
+                                                        gvc.bindView(() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    const limit = 10;
+                                                                    return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        const h = BgWidget.tableV3({
+                                                                            gvc: gvc,
+                                                                            getData: (vd) => {
+                                                                                ApiWallet.getRebate({
+                                                                                    page: vd.page - 1,
+                                                                                    limit: limit,
+                                                                                    search: vm.data.userData.email,
+                                                                                }).then((data) => {
+                                                                                    vm.dataList = data.response.data;
+                                                                                    vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                    vd.originalData = vm.dataList;
+                                                                                    vd.tableData = getRebatelist(vm.dataList);
+                                                                                    vd.loading = false;
+                                                                                    vd.callback();
+                                                                                });
+                                                                            },
+                                                                            rowClick: () => { },
+                                                                            filter: [],
+                                                                        });
+                                                                        resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                    }));
+                                                                },
+                                                            };
+                                                        }));
+                                                },
+                                                divCreate: {
+                                                    class: 'p-0',
+                                                },
+                                            };
+                                        }),
+                                    ].join(BgWidget.mbContainer(24)),
+                                    ratio: 75,
+                                }, {
+                                    html: gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return BgWidget.mainCard(gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                var _a;
+                                                                let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {})
+                                                                    .value;
+                                                                if (!Array.isArray(data)) {
+                                                                    data = [];
+                                                                }
+                                                                let h = html `
                                                                                 <div class="gray-bottom-line-18">
                                                                                     <div class="tx_700">會員等級</div>
                                                                                     <div style="margin-top: 12px">
@@ -1207,31 +1211,31 @@ export class UserList {
                                                                                     </div>
                                                                                 </div>
                                                                                 ${(() => {
-                                                                const id = gvc.glitter.getUUID();
-                                                                return gvc.bindView({
-                                                                    bind: id,
-                                                                    view: () => {
-                                                                        return new Promise((resolve, reject) => {
-                                                                            ApiShop.getOrder({
-                                                                                page: 0,
-                                                                                limit: 99999,
-                                                                                data_from: 'manager',
-                                                                                email: vm.data.userData.email,
-                                                                                phone: vm.data.userData.phone,
-                                                                                status: 1,
-                                                                            }).then((data) => {
-                                                                                let total_price = 0;
-                                                                                data.response.data.map((item) => {
-                                                                                    total_price += item.orderData.total;
-                                                                                });
-                                                                                const formatNum = (n) => parseInt(`${n}`, 10).toLocaleString();
-                                                                                resolve(html ` <div class="gray-bottom-line-18">
+                                                                    const id = gvc.glitter.getUUID();
+                                                                    return gvc.bindView({
+                                                                        bind: id,
+                                                                        view: () => {
+                                                                            return new Promise((resolve, reject) => {
+                                                                                ApiShop.getOrder({
+                                                                                    page: 0,
+                                                                                    limit: 99999,
+                                                                                    data_from: 'manager',
+                                                                                    email: vm.data.userData.email,
+                                                                                    phone: vm.data.userData.phone,
+                                                                                    status: 1,
+                                                                                }).then((data) => {
+                                                                                    let total_price = 0;
+                                                                                    data.response.data.map((item) => {
+                                                                                        total_price += item.orderData.total;
+                                                                                    });
+                                                                                    const formatNum = (n) => parseInt(`${n}`, 10).toLocaleString();
+                                                                                    resolve(html ` <div class="gray-bottom-line-18">
                                                                                                         <div class="tx_700">消費總金額</div>
                                                                                                         ${total_price === 0
-                                                                                    ? html ` <div style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;">
+                                                                                        ? html ` <div style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                   此顧客還沒有任何消費紀錄
                                                                                                               </div>`
-                                                                                    : html ` <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
+                                                                                        : html ` <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                   ${formatNum(total_price)}
                                                                                                               </div>`}
                                                                                                         <div class="tx_700" style="margin-top: 18px">消費次數</div>
@@ -1239,11 +1243,11 @@ export class UserList {
                                                                                                             ${formatNum(data.response.total)}
                                                                                                         </div>
                                                                                                     </div>`);
+                                                                                });
                                                                             });
-                                                                        });
-                                                                    },
-                                                                });
-                                                            })()}
+                                                                        },
+                                                                    });
+                                                                })()}
                                                                                 <div class="d-none">
                                                                                     <div class="tx_700">所屬分群</div>
                                                                                     <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
@@ -1252,18 +1256,19 @@ export class UserList {
                                                                                     </div>
                                                                                 </div>
                                                                             `;
-                                                            resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
-                                                        }));
-                                                    },
-                                                };
-                                            }));
-                                        },
-                                        divCreate: {
-                                            class: 'p-0',
-                                        },
-                                    };
-                                }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
-                                    </div>`,
+                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                            }));
+                                                        },
+                                                    };
+                                                }));
+                                            },
+                                            divCreate: {
+                                                class: 'summary-card p-0',
+                                            },
+                                        };
+                                    }),
+                                    ratio: 25,
+                                }),
                                 BgWidget.mbContainer(240),
                                 html ` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
@@ -1284,7 +1289,7 @@ export class UserList {
                                     });
                                 }))}
                                     </div>`,
-                            ].join(html ` <div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth());
+                            ].join(html ` <div style="margin-top: 24px;"></div>`));
                     }
                 },
                 onCreate: () => {
@@ -1315,7 +1320,7 @@ export class UserList {
             bind: viewID,
             view: () => {
                 return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center">
+                        <div class="title-container">
                             ${BgWidget.goBack(gvc.event(() => {
                     vm.type = 'list';
                 }))}
@@ -1453,9 +1458,9 @@ export class UserList {
                         });
                     }))}
                                     </div>`,
-                ].join(''), BgWidget.getContainerWidth())}
+                ].join(''))}
                         </div>
-                    `, BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 2 : 1));
+                    `);
             },
             divCreate: {},
         });
@@ -1532,7 +1537,7 @@ export class UserList {
                                 gvc: gvc,
                                 getData: (vd) => {
                                     vmi = vd;
-                                    const limit = 20;
+                                    const limit = type === 'select' ? 10 : 20;
                                     ApiUser.getUserList({
                                         page: vmi.page - 1,
                                         limit: limit,
@@ -1551,6 +1556,9 @@ export class UserList {
                                         vm.dataList[index].checked = !vm.dataList[index].checked;
                                         vmi.data = getDatalist();
                                         vmi.callback();
+                                        console.log(vm.dataList.filter((dd) => {
+                                            return dd.checked;
+                                        }));
                                         callback(vm.dataList.filter((dd) => {
                                             return dd.checked;
                                         }));
@@ -1594,7 +1602,7 @@ export class UserList {
                                 ],
                             }),
                         ].join(''))}
-                            `, undefined, 'padding: 0 !important; margin: 0 !important;');
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.userInformationDetail({

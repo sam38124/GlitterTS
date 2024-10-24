@@ -1,27 +1,27 @@
-import {GVC} from "../glitterBundle/GVController.js";
-import {BgWidget} from "../backend-manager/bg-widget.js";
-import {NormalPageEditor} from "../editor/normal-page-editor.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
-import {ApiPageConfig} from "../api/pageConfig.js";
+import { GVC } from '../glitterBundle/GVController.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { NormalPageEditor } from '../editor/normal-page-editor.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 
 interface AppReleaseModel {
-    name: string,
-    logo: string,
+    name: string;
+    logo: string;
     status: 'finish' | 'error' | 'wait' | 'no';
-    landing_page: string,
-    store_name: string
-    promote_img: string,
-    store_sub_title: string,
-    google_play_promote: string,
-    app_store_promote: string,
-    description: string,
-    copy_right: string,
-    keywords: string
-    support_url: string,
-    privacy_url: string,
-    contact_email: string,
-    contact_phone: string
+    landing_page: string;
+    store_name: string;
+    promote_img: string;
+    store_sub_title: string;
+    google_play_promote: string;
+    app_store_promote: string;
+    description: string;
+    copy_right: string;
+    keywords: string;
+    support_url: string;
+    privacy_url: string;
+    contact_email: string;
+    contact_phone: string;
 }
 
 export class AppRelease {
@@ -30,8 +30,8 @@ export class AppRelease {
             config: any;
             api: any;
         } = (window.parent as any).saasConfig;
-        const cId = gvc.glitter.getUUID()
-        let loading = true
+        const cId = gvc.glitter.getUUID();
+        let loading = true;
         let postMDRefer: AppReleaseModel = {
             name: '',
             logo: '',
@@ -48,8 +48,8 @@ export class AppRelease {
             support_url: '',
             privacy_url: '',
             contact_email: '',
-            contact_phone: ''
-        }
+            contact_phone: '',
+        };
 
         function save(delivery: boolean, model: AppReleaseModel, callback: (result: boolean) => void) {
             const dialog = new ShareDialog(gvc.glitter);
@@ -70,46 +70,46 @@ export class AppRelease {
                     support_url: '請填寫支援URL',
                     privacy_url: '請填寫隱私權URL',
                     contact_email: '請填寫聯絡信箱',
-                    contact_phone: '請填寫聯絡電話'
-                }
+                    contact_phone: '請填寫聯絡電話',
+                };
                 for (const b of Object.keys(key)) {
                     if (!(postMDRefer as any)[b]) {
-                        dialog.errorMessage({text: (key as any)[b]})
-                        return
+                        dialog.errorMessage({ text: (key as any)[b] });
+                        return;
                     }
                 }
-                dialog.dataLoading({visible: true})
-                postMDRefer.status = 'wait'
+                dialog.dataLoading({ visible: true });
+                postMDRefer.status = 'wait';
                 ApiPageConfig.setPrivateConfigV2({
                     key: 'glitter_app_release',
                     value: JSON.stringify(model),
                     appName: (window.parent as any).appName,
                 }).then((r: { response: any; result: boolean }) => {
-                    dialog.dataLoading({visible: false});
+                    dialog.dataLoading({ visible: false });
                     if (r.response) {
                         postMDRefer = model;
-                        callback(true)
-                        dialog.successMessage({text: '送審成功'});
+                        callback(true);
+                        dialog.successMessage({ text: '送審成功' });
                     } else {
-                        callback(false)
-                        dialog.errorMessage({text: '儲存失敗'});
+                        callback(false);
+                        dialog.errorMessage({ text: '儲存失敗' });
                     }
                 });
             } else {
-                dialog.dataLoading({visible: true})
+                dialog.dataLoading({ visible: true });
                 ApiPageConfig.setPrivateConfigV2({
                     key: 'glitter_app_release',
                     value: JSON.stringify(model),
                     appName: (window.parent as any).appName,
                 }).then((r: { response: any; result: boolean }) => {
-                    dialog.dataLoading({visible: false});
+                    dialog.dataLoading({ visible: false });
                     if (r.response) {
                         postMDRefer = model;
-                        callback(true)
-                        dialog.successMessage({text: '儲存成功'});
+                        callback(true);
+                        dialog.successMessage({ text: '儲存成功' });
                     } else {
-                        callback(false)
-                        dialog.errorMessage({text: '儲存失敗'});
+                        callback(false);
+                        dialog.errorMessage({ text: '儲存失敗' });
                     }
                 });
             }
@@ -117,105 +117,106 @@ export class AppRelease {
 
         saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_app_release').then((res: any) => {
             if (res.response.result[0]) {
-                postMDRefer = res.response.result[0].value
+                postMDRefer = res.response.result[0].value;
             }
-            loading = false
-            gvc.notifyDataChange(cId)
-        })
+            loading = false;
+            gvc.notifyDataChange(cId);
+        });
         return gvc.bindView(() => {
             return {
                 bind: cId,
                 view: () => {
                     if (loading) {
-                        return BgWidget.spinner()
+                        return BgWidget.spinner();
                     }
                     return BgWidget.container(
-                        [BgWidget.title((`<div class="d-flex align-items-center" style="gap: 10px;">
+                        [
+                            BgWidget.title(`<div class="d-flex align-items-center" style="gap: 10px;">
 APP管理
 ${(() => {
-                            switch (postMDRefer.status) {
-                                case "no":
-                                    return ``
-                                case "error":
-                                    return BgWidget.dangerInsignia(`審核未通過`)
-                                case "finish":
-                                    return BgWidget.successInsignia(`審核通過`)
-                                case "wait":
-                                    return BgWidget.warningInsignia('審核中')
-                            }
-                        })()}
-</div>`)),
-                            BgWidget.alertInfo(``, [
-                                `審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`
-                            ], {
+    switch (postMDRefer.status) {
+        case 'no':
+            return ``;
+        case 'error':
+            return BgWidget.dangerInsignia(`審核未通過`);
+        case 'finish':
+            return BgWidget.successInsignia(`審核通過`);
+        case 'wait':
+            return BgWidget.warningInsignia('審核中');
+    }
+})()}
+</div>`),
+                            BgWidget.alertInfo(``, [`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`], {
                                 style: '',
-                                class: 'fs-6 fw-500'
+                                class: 'fs-6 fw-500',
                             }),
-                            [{
-                                title: '品牌內容',
-                                editor: (() => {
-                                    let postMD = JSON.parse(JSON.stringify(postMDRefer))
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    const id = gvc.glitter.getUUID()
-                                    const html = String.raw
-                                    return gvc.bindView(() => {
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return [
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: `<div class="d-flex flex-column" style="gap:3px;">
+                            [
+                                {
+                                    title: '品牌內容',
+                                    editor: (() => {
+                                        let postMD = JSON.parse(JSON.stringify(postMDRefer));
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const id = gvc.glitter.getUUID();
+                                        const html = String.raw;
+                                        return gvc.bindView(() => {
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return [
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: `<div class="d-flex flex-column" style="gap:3px;">
 App 名稱
 ${BgWidget.grayNote('將展示於APP Logo下方，建議不要超過14個字元')}
 </div>`,
-                                                        default: postMD.name || '',
-                                                        placeHolder: '請輸入APP名稱',
-                                                        callback: (text) => {
-                                                            postMD.name = text;
-                                                        },
-                                                    }),
-                                                    `<div class="w-100">
+                                                            default: postMD.name || '',
+                                                            placeHolder: '請輸入APP名稱',
+                                                            callback: (text) => {
+                                                                postMD.name = text;
+                                                            },
+                                                        }),
+                                                        `<div class="w-100">
 <div class="d-flex flex-column mb-2" style="gap:3px;">
 APP Logo
 ${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}
 </div>
 ${BgWidget.imageSelector(gvc, postMD.logo, (text) => {
-                                                        postMD.logo = text
-                                                        gvc.notifyDataChange(id)
-                                                    })}
+    postMD.logo = text;
+    gvc.notifyDataChange(id);
+})}
 </div>`,
-                                                    `<div class="w-100">
+                                                        `<div class="w-100">
 <div class="d-flex flex-column mb-2" style="gap:3px;">
 APP啟動畫面
 ${BgWidget.grayNote('圖片上傳尺寸為1080 * 2400')}
 </div>
 ${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
-                                                        postMD.landing_page = text
-                                                        gvc.notifyDataChange(id)
-                                                    })}
+    postMD.landing_page = text;
+    gvc.notifyDataChange(id);
+})}
 </div>`,
-                                                    html`
-                                                        <div class="w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(gvc.event(() => {
-                                                                save(false, postMD, (result) => {
-                                                                })
-                                                            }),'儲存')}
-                                                        </div>`
-                                                ].join(`<div class="my-3"></div>`)
-                                            },
-                                            divCreate: {
-                                                class: ``
-                                            }
-                                        }
-                                    })
-                                })()
-                            },
+                                                        html` <div class="w-100 d-flex align-items-center justify-content-end">
+                                                            ${BgWidget.cancel(
+                                                                gvc.event(() => {
+                                                                    save(false, postMD, (result) => {});
+                                                                }),
+                                                                '儲存'
+                                                            )}
+                                                        </div>`,
+                                                    ].join(`<div class="my-3"></div>`);
+                                                },
+                                                divCreate: {
+                                                    class: ``,
+                                                },
+                                            };
+                                        });
+                                    })(),
+                                },
                                 {
                                     title: '上架資訊',
                                     editor: (() => {
-                                        let postMD = JSON.parse(JSON.stringify(postMDRefer))
-                                        const id = gvc.glitter.getUUID()
+                                        let postMD = JSON.parse(JSON.stringify(postMDRefer));
+                                        const id = gvc.glitter.getUUID();
                                         return [
                                             gvc.bindView(() => {
                                                 return {
@@ -253,9 +254,9 @@ ${BgWidget.grayNote('圖片上傳尺寸為1024 * 500')}
 </div>
 <div class="position-relative">
 ${BgWidget.imageSelector(gvc, postMD.promote_img, (text) => {
-                                                                postMD.promote_img = text
-                                                                gvc.notifyDataChange(id)
-                                                            })}
+    postMD.promote_img = text;
+    gvc.notifyDataChange(id);
+})}
 </div>
 </div>`,
                                                             BgWidget.textArea({
@@ -310,7 +311,9 @@ ${BgWidget.grayNote('請提供擁有 App 專有權的個人或公司名稱，格
                                                                 gvc: gvc,
                                                                 title: `<div class="d-flex flex-column" style="gap:3px;">
 應用程式搜尋關鍵詞
-${BgWidget.grayNote('請輸入描述 App 的一個或多個關鍵詞（每個關鍵詞至少包含兩個字符），並以逗號分隔。應注意，App 名稱和公司名稱已可被應用程式商店搜尋，因此無需在關鍵字中重複新增。此外，請避免使用其他 App 或公司的名稱。')}
+${BgWidget.grayNote(
+    '請輸入描述 App 的一個或多個關鍵詞（每個關鍵詞至少包含兩個字符），並以逗號分隔。應注意，App 名稱和公司名稱已可被應用程式商店搜尋，因此無需在關鍵字中重複新增。此外，請避免使用其他 App 或公司的名稱。'
+)}
 </div>`,
                                                                 default: postMD.keywords || '',
                                                                 placeHolder: '請輸入關鍵詞',
@@ -322,7 +325,9 @@ ${BgWidget.grayNote('請輸入描述 App 的一個或多個關鍵詞（每個關
                                                                 gvc: gvc,
                                                                 title: `<div class="d-flex flex-column" style="gap:3px;">
 App 支援網址（URL）
-${BgWidget.grayNote('如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.cc）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。')}
+${BgWidget.grayNote(
+    '如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.cc）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。'
+)}
 </div>`,
                                                                 default: postMD.support_url || '',
                                                                 placeHolder: '請輸入網址',
@@ -341,115 +346,122 @@ ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
                                                                 callback: (text) => {
                                                                     postMD.privacy_url = text;
                                                                 },
-                                                            })
-                                                        ].join(`<div class="my-3"></div>`)
+                                                            }),
+                                                        ].join(`<div class="my-3"></div>`);
                                                     },
                                                     divCreate: {
-                                                        class: ``
-                                                    }
-                                                }
+                                                        class: ``,
+                                                    },
+                                                };
                                             }),
                                             `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(gvc.event(() => {
-                                                save(false, postMD, (result) => {
-                                                })
-                                            }),'儲存')}
-                                                        </div>`
-                                        ].join(``)
-                                    })()
-                                }, {
-                                title: '聯絡資訊',
-                                editor: (()=>{
-                                    let postMD = JSON.parse(JSON.stringify(postMDRefer))
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    const id = gvc.glitter.getUUID()
-                                    return [
-                                        gvc.bindView(() => {
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    return [
-                                                        BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: `<div class="d-flex flex-column" style="gap:3px;">
+                                                            ${BgWidget.cancel(
+                                                                gvc.event(() => {
+                                                                    save(false, postMD, (result) => {});
+                                                                }),
+                                                                '儲存'
+                                                            )}
+                                                        </div>`,
+                                        ].join(``);
+                                    })(),
+                                },
+                                {
+                                    title: '聯絡資訊',
+                                    editor: (() => {
+                                        let postMD = JSON.parse(JSON.stringify(postMDRefer));
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const id = gvc.glitter.getUUID();
+                                        return [
+                                            gvc.bindView(() => {
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return [
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
 聯絡信箱
 ${BgWidget.grayNote('承辦人員會透過此信箱與您聯絡')}
 </div>`,
-                                                            default: postMD.contact_email || '',
-                                                            placeHolder: '請輸入信箱',
-                                                            callback: (text) => {
-                                                                function isValidEmail(email: string) {
-                                                                    // 定义一个简单的正则表达式模式来匹配常见的电子邮箱格式
-                                                                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                                                    return emailPattern.test(email);
-                                                                }
+                                                                default: postMD.contact_email || '',
+                                                                placeHolder: '請輸入信箱',
+                                                                callback: (text) => {
+                                                                    function isValidEmail(email: string) {
+                                                                        // 定义一个简单的正则表达式模式来匹配常见的电子邮箱格式
+                                                                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                                                        return emailPattern.test(email);
+                                                                    }
 
-                                                                if (isValidEmail(text)) {
-                                                                    postMD.contact_email = text;
-                                                                } else {
-                                                                    dialog.errorMessage({text: '請填寫正確的信箱格式'})
-                                                                    gvc.notifyDataChange(id)
-                                                                }
-
-                                                            },
-                                                        }),
-                                                        BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: `<div class="d-flex flex-column" style="gap:3px;">
+                                                                    if (isValidEmail(text)) {
+                                                                        postMD.contact_email = text;
+                                                                    } else {
+                                                                        dialog.errorMessage({ text: '請填寫正確的信箱格式' });
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                },
+                                                            }),
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
 聯絡電話
 ${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}
 </div>`,
-                                                            default: postMD.contact_phone || '',
-                                                            placeHolder: '請輸入電話',
-                                                            callback: (text) => {
-                                                                function isValidUSPhoneNumber(phoneNumber: string) {
-                                                                    // 定义一个正则表达式模式来匹配美国电话号码格式
-                                                                    const phonePattern = /^(\+1-?)?(\d{3})?-?\d{3}-?\d{4}$/;
-                                                                    return phonePattern.test(phoneNumber);
-                                                                }
+                                                                default: postMD.contact_phone || '',
+                                                                placeHolder: '請輸入電話',
+                                                                callback: (text) => {
+                                                                    function isValidUSPhoneNumber(phoneNumber: string) {
+                                                                        // 定义一个正则表达式模式来匹配美国电话号码格式
+                                                                        const phonePattern = /^(\+1-?)?(\d{3})?-?\d{3}-?\d{4}$/;
+                                                                        return phonePattern.test(phoneNumber);
+                                                                    }
 
-                                                                if (isValidUSPhoneNumber(text)) {
-                                                                    postMD.contact_phone = text;
-                                                                } else {
-                                                                    dialog.errorMessage({text: '請填寫正確的電話格式'})
-                                                                    gvc.notifyDataChange(id)
-                                                                }
-
-                                                            },
-                                                        })
-                                                    ].join(`<div class="my-3"></div>`)
-                                                },
-                                                divCreate: {
-                                                    class: ``
-                                                }
-                                            }
-                                        }),
-                                        `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(gvc.event(() => {
-                                            save(false, postMD, (result) => {
-                                            })
-                                        }),'儲存')}
-                                                        </div>`
-                                    ].join('')
-                                })()
-                            }
-                            ].map((dd) => {
-                                return BgWidget.card(`<div class="d-flex flex-column">${BgWidget.title(dd.title, 'font-size:20px;')}
+                                                                    if (isValidUSPhoneNumber(text)) {
+                                                                        postMD.contact_phone = text;
+                                                                    } else {
+                                                                        dialog.errorMessage({ text: '請填寫正確的電話格式' });
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                },
+                                                            }),
+                                                        ].join(`<div class="my-3"></div>`);
+                                                    },
+                                                    divCreate: {
+                                                        class: ``,
+                                                    },
+                                                };
+                                            }),
+                                            `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                                                            ${BgWidget.cancel(
+                                                                gvc.event(() => {
+                                                                    save(false, postMD, (result) => {});
+                                                                }),
+                                                                '儲存'
+                                                            )}
+                                                        </div>`,
+                                        ].join('');
+                                    })(),
+                                },
+                            ]
+                                .map((dd) => {
+                                    return BgWidget.card(`<div class="d-flex flex-column">${BgWidget.title(dd.title, 'font-size:20px;')}
 <div class="flex-fill"></div>
 <div class="my-3">${dd.editor}</div>
-</div>`)
-                            }).join(`<div class="my-2"></div>`),
-                            `<div class="w-100 d-flex align-items-center justify-content-end">
-${ BgWidget.save(gvc.event(() => {
-                                save(true, postMDRefer, () => {
+</div>`);
                                 })
-                            }), '將APP提交審查')}
-</div>`
+                                .join(`<div class="my-2"></div>`),
+                            `<div class="w-100 d-flex align-items-center justify-content-end">
+${BgWidget.save(
+    gvc.event(() => {
+        save(true, postMDRefer, () => {});
+    }),
+    '將APP提交審查'
+)}
+</div>`,
                         ].join(`<div class="my-3"></div>`)
-                        , 800)
-                }
-            }
-        })
+                    );
+                },
+            };
+        });
     }
 }
 

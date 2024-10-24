@@ -134,8 +134,8 @@ export class ShoppingOrderManager {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('訂單列表')}
+                            <div class="title-container">
+                                ${BgWidget.title(query.isArchived ? '已封存訂單' : '訂單列表')}
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     <input
@@ -282,7 +282,8 @@ export class ShoppingOrderManager {
                         }))}
                                 </div>
                             </div>
-                            ${BgWidget.tab(query.isPOS
+                            <div class="title-container">
+                                ${BgWidget.tab(query.isPOS
                         ? [
                             { title: 'POS訂單', key: 'pos' },
                             { title: '線上訂單', key: 'normal' },
@@ -294,6 +295,7 @@ export class ShoppingOrderManager {
                         vm.filter_type = text;
                         gvc.notifyDataChange(vm.id);
                     })}
+                            </div>
                             ${BgWidget.mainCard([
                         (() => {
                             const id = glitter.getUUID();
@@ -548,7 +550,8 @@ export class ShoppingOrderManager {
                             ],
                         }),
                     ].join(''))}
-                        `, BgWidget.getContainerWidth());
+                            ${BgWidget.mbContainer(240)}
+                        `);
                 }
                 else if (vm.type == 'replace') {
                     return this.replaceOrder(gvc, vm);
@@ -684,61 +687,59 @@ export class ShoppingOrderManager {
                     function getBadgeList() {
                         return html ` <div style="display:flex; gap:10px; justify-content:flex-end;">${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>`;
                     }
-                    return BgWidget.container(html `
-                            <div class="d-flex flex-column">
-                                <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgWidget.goBack(gvc.event(() => {
+                    return BgWidget.container(html `<div class="title-container">
+                                ${BgWidget.goBack(gvc.event(() => {
                         vm.type = 'list';
                     }))}
-                                    <div class="d-flex flex-column">
-                                        <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">#${orderData.cart_token}</div>
-                                        ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
-                                    </div>
-                                    <div class="flex-fill"></div>
-                                    ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                                <div class="d-flex flex-column">
+                                    <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">#${orderData.cart_token}</div>
+                                    ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
                                 </div>
-                                ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
-                                <div class="d-flex flex-column flex-md-row p-0" style="max-width:calc(100vw - 20px); gap:24px;">
-                                    <div class="d-flex flex-column" style="width:100%; gap:24px;">
-                                        ${BgWidget.mainCard(html `
+                                <div class="flex-fill"></div>
+                                ${document.body.clientWidth > 768 ? getBadgeList() : ''}
+                            </div>
+                            ${document.body.clientWidth > 768 ? '' : html ` <div class="mt-1 mb-3">${getBadgeList()}</div>`}
+                            ${BgWidget.container1x2({
+                        html: [
+                            BgWidget.mainCard(html `
                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                     <div class="tx_700">訂單狀態</div>
                                                     <div class="ms-auto w-100">
                                                         ${EditorElem.select({
-                        title: ``,
-                        gvc: gvc,
-                        def: (_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0',
-                        array: [
-                            {
-                                title: '變更訂單狀態',
-                                value: '',
-                            },
-                        ].concat(ApiShop.getOrderStatusArray()),
-                        callback: (text) => {
-                            orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
-                            if (text && text !== orderData.orderData.orderStatus) {
-                                orderData.orderData.orderStatus = text;
-                            }
-                        },
-                    })}
+                                title: ``,
+                                gvc: gvc,
+                                def: (_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0',
+                                array: [
+                                    {
+                                        title: '變更訂單狀態',
+                                        value: '',
+                                    },
+                                ].concat(ApiShop.getOrderStatusArray()),
+                                callback: (text) => {
+                                    orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
+                                    if (text && text !== orderData.orderData.orderStatus) {
+                                        orderData.orderData.orderStatus = text;
+                                    }
+                                },
+                            })}
                                                     </div>
                                                 </div>
                                                 <div class="tx_700 my-3">訂單明細</div>
                                                 ${BgWidget.horizontalLine()}
                                                 <div class="d-flex flex-column">
                                                     ${orderData.orderData.lineItems
-                        .map((dd) => {
-                        return gvc.bindView({
-                            bind: glitter.getUUID(),
-                            view: () => {
-                                return html ` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
+                                .map((dd) => {
+                                return gvc.bindView({
+                                    bind: glitter.getUUID(),
+                                    view: () => {
+                                        return html ` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
                                                                             ${BgWidget.validImageBox({
-                                    gvc,
-                                    image: dd.preview_image,
-                                    width: 60,
-                                    class: 'border rounded',
-                                    style: '',
-                                })}
+                                            gvc,
+                                            image: dd.preview_image,
+                                            width: 60,
+                                            class: 'border rounded',
+                                            style: '',
+                                        })}
                                                                             ${dd.is_add_on_items ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``}
                                                                         </div>
                                                                         <div class="d-flex flex-column" style="gap:2px;">
@@ -749,113 +750,113 @@ export class ShoppingOrderManager {
                                                                         <div class="flex-fill"></div>
                                                                         <div class="tx_normal_14">$${dd.sale_price.toLocaleString()} × ${dd.count}</div>
                                                                         <div class="tx_normal" style="display: flex;justify-content: end;width: 110px;">$${dd.sale_price.toLocaleString()}</div>`;
-                            },
-                            divCreate: { class: `d-flex align-items-center` },
-                        });
-                    })
-                        .join(BgWidget.horizontalLine({ color: '#f6f6f6' }))}
+                                    },
+                                    divCreate: { class: `d-flex align-items-center` },
+                                });
+                            })
+                                .join(BgWidget.horizontalLine({ color: '#f6f6f6' }))}
                                                     ${BgWidget.horizontalLine()}
                                                     ${[
-                        {
-                            title: '小計',
-                            description: `${orderData.orderData.lineItems
+                                {
+                                    title: '小計',
+                                    description: `${orderData.orderData.lineItems
+                                        .map((dd) => {
+                                        return parseInt(dd.count, 10);
+                                    })
+                                        .reduce((accumulator, currentValue) => accumulator + currentValue, 0)} 件商品`,
+                                    total: `$${(orderData.orderData.total +
+                                        orderData.orderData.discount -
+                                        orderData.orderData.shipment_fee +
+                                        orderData.orderData.use_rebate).toLocaleString()}`,
+                                },
+                                {
+                                    title: '運費',
+                                    description: '',
+                                    total: `$${orderData.orderData.shipment_fee.toLocaleString()}`,
+                                },
+                                ...(() => {
+                                    if (orderData.orderData.use_rebate) {
+                                        return [
+                                            {
+                                                title: '回饋金',
+                                                description: ``,
+                                                total: `- $${orderData.orderData.use_rebate.toLocaleString()}`,
+                                            },
+                                        ];
+                                    }
+                                    else {
+                                        return [];
+                                    }
+                                })(),
+                                ...(() => {
+                                    if (orderData.orderData.use_wallet) {
+                                        return [
+                                            {
+                                                title: '錢包',
+                                                description: `使用錢包扣款`,
+                                                total: `- $${orderData.orderData.use_wallet.toLocaleString()}`,
+                                            },
+                                        ];
+                                    }
+                                    else {
+                                        return [];
+                                    }
+                                })(),
+                                ...orderData.orderData.voucherList.map((dd) => {
+                                    return {
+                                        title: '折扣',
+                                        description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
+                                        total: `- $${orderData.orderData.discount.toLocaleString()}`,
+                                    };
+                                }),
+                                {
+                                    title: html `<span class="tx_700">總金額</span>`,
+                                    description: '',
+                                    total: html `<span class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
+                                },
+                            ]
                                 .map((dd) => {
-                                return parseInt(dd.count, 10);
-                            })
-                                .reduce((accumulator, currentValue) => accumulator + currentValue, 0)} 件商品`,
-                            total: `$${(orderData.orderData.total +
-                                orderData.orderData.discount -
-                                orderData.orderData.shipment_fee +
-                                orderData.orderData.use_rebate).toLocaleString()}`,
-                        },
-                        {
-                            title: '運費',
-                            description: '',
-                            total: `$${orderData.orderData.shipment_fee.toLocaleString()}`,
-                        },
-                        ...(() => {
-                            if (orderData.orderData.use_rebate) {
-                                return [
-                                    {
-                                        title: '回饋金',
-                                        description: ``,
-                                        total: `- $${orderData.orderData.use_rebate.toLocaleString()}`,
-                                    },
-                                ];
-                            }
-                            else {
-                                return [];
-                            }
-                        })(),
-                        ...(() => {
-                            if (orderData.orderData.use_wallet) {
-                                return [
-                                    {
-                                        title: '錢包',
-                                        description: `使用錢包扣款`,
-                                        total: `- $${orderData.orderData.use_wallet.toLocaleString()}`,
-                                    },
-                                ];
-                            }
-                            else {
-                                return [];
-                            }
-                        })(),
-                        ...orderData.orderData.voucherList.map((dd) => {
-                            return {
-                                title: '折扣',
-                                description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                total: `- $${orderData.orderData.discount.toLocaleString()}`,
-                            };
-                        }),
-                        {
-                            title: html `<span class="tx_700">總金額</span>`,
-                            description: '',
-                            total: html `<span class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
-                        },
-                    ]
-                        .map((dd) => {
-                        var _a;
-                        return html ` <div class="d-flex align-items-center justify-content-end">
+                                var _a;
+                                return html ` <div class="d-flex align-items-center justify-content-end">
                                                                 <div class="tx_normal_14">${dd.title} ${(_a = dd.description) !== null && _a !== void 0 ? _a : ''}</div>
                                                                 <div class="tx_normal" style="width: 114px;display: flex;justify-content: end;">${dd.total}</div>
                                                             </div>`;
-                    })
-                        .join(BgWidget.mbContainer(18))}
+                            })
+                                .join(BgWidget.mbContainer(18))}
                                                 </div>
-                                            `)}
-                                        ${BgWidget.mainCard(html `
+                                            `),
+                            BgWidget.mainCard(html `
                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                 <div class="tx_700">付款狀態</div>
                                                 <div class="ms-auto w-100">
                                                     ${EditorElem.select({
-                        title: ``,
-                        gvc: gvc,
-                        def: `${orderData.status}`,
-                        array: [
-                            {
-                                title: '變更付款狀態',
-                                value: '',
-                            },
-                            {
-                                title: '已付款',
-                                value: '1',
-                            },
-                            {
-                                title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                value: '0',
-                            },
-                            {
-                                title: '已退款',
-                                value: '-2',
-                            },
-                        ],
-                        callback: (text) => {
-                            if (text && text !== `${orderData.status}`) {
-                                orderData.status = parseInt(text, 10);
-                            }
-                        },
-                    })}
+                                title: ``,
+                                gvc: gvc,
+                                def: `${orderData.status}`,
+                                array: [
+                                    {
+                                        title: '變更付款狀態',
+                                        value: '',
+                                    },
+                                    {
+                                        title: '已付款',
+                                        value: '1',
+                                    },
+                                    {
+                                        title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
+                                        value: '0',
+                                    },
+                                    {
+                                        title: '已退款',
+                                        value: '-2',
+                                    },
+                                ],
+                                callback: (text) => {
+                                    if (text && text !== `${orderData.status}`) {
+                                        orderData.status = parseInt(text, 10);
+                                    }
+                                },
+                            })}
                                                 </div>
                                             </div>
                                             ${BgWidget.mbContainer(18)}
@@ -864,92 +865,92 @@ export class ShoppingOrderManager {
                                                 <div class="tx_normal">${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                             </div>
-                                        `)}
-                                        ${BgWidget.mainCard(gvc.bindView(() => {
-                        const vm = {
-                            mode: 'read',
-                        };
-                        return {
-                            bind: 'Edit',
-                            dataList: [{ obj: vm, key: 'mode' }],
-                            view: () => {
-                                return [
-                                    html ` <div class="tx_700">配送 / 收件人資訊</div>`,
-                                    html ` <div class="tx_700">配送狀態</div>
+                                        `),
+                            BgWidget.mainCard(gvc.bindView(() => {
+                                const vm = {
+                                    mode: 'read',
+                                };
+                                return {
+                                    bind: 'Edit',
+                                    dataList: [{ obj: vm, key: 'mode' }],
+                                    view: () => {
+                                        return [
+                                            html ` <div class="tx_700">配送 / 收件人資訊</div>`,
+                                            html ` <div class="tx_700">配送狀態</div>
                                                                 ${BgWidget.mbContainer(12)}
                                                                 <div class="ms-auto w-100">
                                                                     ${EditorElem.select({
-                                        title: ``,
-                                        gvc: gvc,
-                                        def: `${orderData.orderData.progress}`,
-                                        array: [
-                                            { title: '配送狀態', value: '' },
-                                            { title: '已出貨', value: 'shipping' },
-                                            { title: '未出貨', value: 'wait' },
-                                            { title: '已取貨', value: 'finish' },
-                                            { title: '已退貨', value: 'returns' },
-                                            { title: '已到貨', value: 'arrived' },
-                                        ],
-                                        callback: (text) => {
-                                            if (text && text !== `${orderData.orderData.progress}`) {
-                                                orderData.orderData.progress = text;
-                                            }
-                                        },
-                                    })}
+                                                title: ``,
+                                                gvc: gvc,
+                                                def: `${orderData.orderData.progress}`,
+                                                array: [
+                                                    { title: '配送狀態', value: '' },
+                                                    { title: '已出貨', value: 'shipping' },
+                                                    { title: '未出貨', value: 'wait' },
+                                                    { title: '已取貨', value: 'finish' },
+                                                    { title: '已退貨', value: 'returns' },
+                                                    { title: '已到貨', value: 'arrived' },
+                                                ],
+                                                callback: (text) => {
+                                                    if (text && text !== `${orderData.orderData.progress}`) {
+                                                        orderData.orderData.progress = text;
+                                                    }
+                                                },
+                                            })}
                                                                 </div>`,
-                                    html ` <div class="tx_700">配送方式</div>
+                                            html ` <div class="tx_700">配送方式</div>
                                                                 ${BgWidget.mbContainer(12)}
                                                                 <div class="d-flex w-100 align-items-center gap-2">
                                                                     <div style="tx_normal">
                                                                         ${(orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
-                                        return dd.value === orderData.orderData.user_info.shipment;
-                                    }).name}
+                                                return dd.value === orderData.orderData.user_info.shipment;
+                                            }).name}
                                                                     </div>
                                                                     ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(orderData.orderData.user_info.shipment)
-                                        ? BgWidget.customButton({
-                                            button: {
-                                                color: 'gray',
-                                                size: 'sm',
-                                            },
-                                            text: {
-                                                name: '列印托運單',
-                                            },
-                                            event: gvc.event(() => {
-                                                const delivery = orderData.orderData.deliveryData;
-                                                if (!delivery || !delivery.LogisticsSubType) {
-                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                    dialog.errorMessage({ text: '無法列印此托運單' });
-                                                    return '';
-                                                }
-                                                return this.printStoreOrderInfo({
-                                                    gvc,
-                                                    store: delivery.LogisticsSubType,
-                                                    deliverys: [
-                                                        {
-                                                            AllPayLogisticsID: delivery.AllPayLogisticsID,
-                                                            CVSPaymentNo: delivery.CVSPaymentNo,
-                                                            CVSValidationNo: delivery.CVSValidationNo,
-                                                        },
-                                                    ],
-                                                });
-                                            }),
-                                        })
-                                        : ''}
+                                                ? BgWidget.customButton({
+                                                    button: {
+                                                        color: 'gray',
+                                                        size: 'sm',
+                                                    },
+                                                    text: {
+                                                        name: '列印托運單',
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        const delivery = orderData.orderData.deliveryData;
+                                                        if (!delivery || !delivery.LogisticsSubType) {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            dialog.errorMessage({ text: '無法列印此托運單' });
+                                                            return '';
+                                                        }
+                                                        return this.printStoreOrderInfo({
+                                                            gvc,
+                                                            store: delivery.LogisticsSubType,
+                                                            deliverys: [
+                                                                {
+                                                                    AllPayLogisticsID: delivery.AllPayLogisticsID,
+                                                                    CVSPaymentNo: delivery.CVSPaymentNo,
+                                                                    CVSValidationNo: delivery.CVSValidationNo,
+                                                                },
+                                                            ],
+                                                        });
+                                                    }),
+                                                })
+                                                : ''}
                                                                 </div>`,
-                                    html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
-                                        ? html ` <div class="tx_700">配送資訊</div>
+                                            html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
+                                                ? html ` <div class="tx_700">配送資訊</div>
                                                                           ${BgWidget.mbContainer(12)}`
-                                        : ``}
+                                                : ``}
                                                                 <div class="d-flex flex-column tx_normal" style="gap: 4px;">
                                                                     ${(() => {
-                                        if (orderData.orderData.user_info.shipment == 'normal') {
-                                            return orderData.orderData.user_info.address;
-                                        }
-                                        const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
-                                            return dd.value === orderData.orderData.user_info.shipment;
-                                        });
-                                        if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
-                                            return html `
+                                                if (orderData.orderData.user_info.shipment == 'normal') {
+                                                    return orderData.orderData.user_info.address;
+                                                }
+                                                const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                                    return dd.value === orderData.orderData.user_info.shipment;
+                                                });
+                                                if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
+                                                    return html `
                                                                                 <div class="d-flex flex-wrap">
                                                                                     <span class="me-2">門市名稱:</span>
                                                                                     <div style="white-space: normal;word-break: break-all;">${orderData.orderData.user_info.CVSStoreName}</div>
@@ -959,327 +960,332 @@ export class ShoppingOrderManager {
                                                                                     地址: ${orderData.orderData.user_info.CVSAddress}
                                                                                 </div>
                                                                             `;
-                                        }
-                                        else if (formData.form) {
-                                            return formData.form
-                                                .map((dd) => {
-                                                return html ` <div class="d-flex flex-wrap">
+                                                }
+                                                else if (formData.form) {
+                                                    return formData.form
+                                                        .map((dd) => {
+                                                        return html ` <div class="d-flex flex-wrap">
                                                                                         <span class="me-2">${dd.title}:</span>
                                                                                         <div style="white-space: normal;word-break: break-all;">
                                                                                             ${orderData.orderData.user_info.custom_form_delivery[dd.key]}
                                                                                         </div>
                                                                                     </div>`;
-                                            })
-                                                .join('');
-                                        }
-                                        return '';
-                                    })()}
+                                                    })
+                                                        .join('');
+                                                }
+                                                return '';
+                                            })()}
                                                                 </div>`,
-                                    html ` <div class="d-flex w-100 align-items-center gap-2">
+                                            html ` <div class="d-flex w-100 align-items-center gap-2">
                                                                     <div class="tx_700">收件人資訊</div>
                                                                     ${vm.mode === 'edit'
-                                        ? BgWidget.customButton({
-                                            button: {
-                                                color: 'black',
-                                                size: 'sm',
-                                            },
-                                            text: {
-                                                name: '確認',
-                                            },
-                                            event: gvc.event(() => {
-                                                gvc.notifyDataChange('user_info');
-                                                vm.mode = 'read';
-                                            }),
-                                        })
-                                        : BgWidget.customButton({
-                                            button: {
-                                                color: 'gray',
-                                                size: 'sm',
-                                            },
-                                            text: {
-                                                name: '編輯',
-                                            },
-                                            event: gvc.event(() => {
-                                                vm.mode = 'edit';
-                                            }),
-                                        })}
+                                                ? BgWidget.customButton({
+                                                    button: {
+                                                        color: 'black',
+                                                        size: 'sm',
+                                                    },
+                                                    text: {
+                                                        name: '確認',
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        gvc.notifyDataChange('user_info');
+                                                        vm.mode = 'read';
+                                                    }),
+                                                })
+                                                : BgWidget.customButton({
+                                                    button: {
+                                                        color: 'gray',
+                                                        size: 'sm',
+                                                    },
+                                                    text: {
+                                                        name: '編輯',
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        vm.mode = 'edit';
+                                                    }),
+                                                })}
                                                                 </div>
                                                                 ${BgWidget.mbContainer(8)}
                                                                 <div class="tx_normal">
                                                                     ${(() => {
-                                        let viewModel = [
-                                            ['姓名', 'name'],
-                                            ['電話', 'phone'],
-                                            ['信箱', 'email'],
-                                        ];
-                                        if (vm.mode == 'read') {
-                                            return viewModel
-                                                .map((item) => {
-                                                return html ` <div>${item[0]}: ${orderData.orderData.user_info[item[1]] || '未填寫'}</div>
+                                                let viewModel = [
+                                                    ['姓名', 'name'],
+                                                    ['電話', 'phone'],
+                                                    ['信箱', 'email'],
+                                                ];
+                                                if (vm.mode == 'read') {
+                                                    return viewModel
+                                                        .map((item) => {
+                                                        return html ` <div>${item[0]}: ${orderData.orderData.user_info[item[1]] || '未填寫'}</div>
                                                                                         ${BgWidget.mbContainer(4)}`;
-                                            })
-                                                .join('');
-                                        }
-                                        else {
-                                            return viewModel
-                                                .map((item) => {
-                                                return html `
+                                                    })
+                                                        .join('');
+                                                }
+                                                else {
+                                                    return viewModel
+                                                        .map((item) => {
+                                                        return html `
                                                                                         <div class="d-flex flex-column w-100" style="gap:8px;">
                                                                                             <div style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">${item[0]}</div>
                                                                                             <input
                                                                                                 style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                 value="${orderData.orderData.user_info[item[1]]}"
                                                                                                 onchange="${gvc.event((e) => {
-                                                    orderData.orderData.user_info[item[1]] = e.value;
-                                                })}"
+                                                            orderData.orderData.user_info[item[1]] = e.value;
+                                                        })}"
                                                                                             />
                                                                                         </div>
                                                                                     `;
-                                            })
-                                                .join('');
-                                        }
-                                    })()}
+                                                    })
+                                                        .join('');
+                                                }
+                                            })()}
                                                                 </div>`,
-                                ].join(BgWidget.mbContainer(18));
-                            },
-                            divCreate: { class: 'd-flex flex-column' },
-                        };
-                    }))}
-                                        ${BgWidget.mainCard(html `
+                                        ].join(BgWidget.mbContainer(18));
+                                    },
+                                    divCreate: { class: 'd-flex flex-column' },
+                                };
+                            })),
+                            BgWidget.mainCard(html `
                                             <div class="tx_700">訂單備註</div>
                                             ${BgWidget.mbContainer(18)}
                                             <div style="position: relative;">
                                                 ${EditorElem.editeText({
-                        gvc: gvc,
-                        title: '',
-                        default: orderData.orderData.order_note,
-                        placeHolder: '',
-                        callback: (text) => {
-                            orderData.orderData.order_note = text;
-                        },
-                    })}
+                                gvc: gvc,
+                                title: '',
+                                default: orderData.orderData.order_note,
+                                placeHolder: '',
+                                callback: (text) => {
+                                    orderData.orderData.order_note = text;
+                                },
+                            })}
                                             </div>
-                                        `)}
-                                        ${BgWidget.mainCard(html `
+                                        `),
+                            BgWidget.mainCard(html `
                                             <div class="tx_700">訂單記錄</div>
                                             ${BgWidget.mbContainer(18)}
                                             <div class="d-flex flex-column" style="gap: 8px">
                                                 ${(() => {
-                        var _a;
-                        if (!((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord)) {
-                            return '';
-                        }
-                        let returnHTML = '';
-                        orderData.orderData.editRecord.map((record) => {
-                            returnHTML += html `
+                                var _a;
+                                if (!((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord)) {
+                                    return '';
+                                }
+                                let returnHTML = '';
+                                orderData.orderData.editRecord.map((record) => {
+                                    returnHTML += html `
                                                             <div class="d-flex" style="gap: 42px">
                                                                 <div>${formatDateString(record.time)}</div>
                                                                 <div>${record.record}</div>
                                                             </div>
                                                         `;
-                        });
-                        return returnHTML;
-                    })()}
+                                });
+                                return returnHTML;
+                            })()}
                                                 <div class="d-flex " style="gap: 42px">
                                                     <div>${formatDateString(orderData.created_time)}</div>
                                                     <div>訂單成立</div>
                                                 </div>
                                             </div>
-                                        `)}
-                                    </div>
-                                    <div style="width: 420px; max-width: 100%; position: sticky; right: 0; top: 20px; overflow: auto;">
-                                        ${BgWidget.mainCard(html `
-                                                <div style="color: #393939;font-size: 16px;">
-                                                    <div class="d-flex align-items-center mb-3">
-                                                        <div class="tx_700">訂購人資料</div>
-                                                        <div class="flex-fill"></div>
-                                                    </div>
-                                                    <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
-                                                        ${[
-                        html ` <div class="d-flex flex-column" style="gap:8px;">
-                                                                <div
-                                                                    class="d-flex align-items-center"
-                                                                    style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
-                                                                    onclick="${gvc.event(() => {
-                            child_vm.userID = userData.userID;
-                            child_vm.type = 'user';
-                        })}"
-                                                                >
-                                                                    ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '訪客'}
-                                                                    ${(() => {
-                            if (userDataLoading) {
-                                return BgWidget.secondaryInsignia('讀取中');
-                            }
-                            if (userData.member == undefined) {
-                                return BgWidget.secondaryInsignia('訪客');
-                            }
-                            if ((userData === null || userData === void 0 ? void 0 : userData.member.length) > 0) {
-                                for (let i = 0; i < userData.member.length; i++) {
-                                    if (userData.member[i].trigger) {
-                                        return BgWidget.primaryInsignia(userData.member[i].tag_name);
-                                    }
-                                }
-                                return BgWidget.primaryInsignia('一般會員');
-                            }
-                            return BgWidget.secondaryInsignia('訪客');
-                        })()}
-                                                                </div>
-                                                                <div style="color: #393939;font-weight: 400;">
-                                                                    ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
-                                                                </div>
-                                                                <div style="color: #393939;font-weight: 400;">${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email}</div>
-                                                            </div>`,
-                        BgWidget.horizontalLine(),
-                        gvc.bindView({
-                            bind: `user_info`,
-                            view: () => {
-                                var _a;
-                                return html `
-                                                                        <div style="font-size: 16px;font-weight: 700;color:#393939">收件人資料</div>
-                                                                        <div class="d-flex flex-column" style="gap:8px;">
-                                                                            <div style="color: #4D86DB;font-weight: 400;">${orderData.orderData.user_info.name}</div>
-                                                                            <div style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || '電話未填'}</div>
-                                                                        </div>
-                                                                        <div class="tx_700 mt-2">付款方式</div>
-                                                                        <div>${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
-                                                                        <div class="tx_700">配送方式</div>
-                                                                        <div class="tx_normal" style="line-height: 140%;">
-                                                                            ${(_a = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
-                                    return dd.value === orderData.orderData.user_info.shipment;
-                                })) === null || _a === void 0 ? void 0 : _a.name}
-                                                                        </div>
-                                                                        ${(() => {
-                                    switch (orderData.orderData.user_info.shipment) {
-                                        case 'FAMIC2C':
-                                        case 'HILIFEC2C':
-                                        case 'OKMARTC2C':
-                                        case 'UNIMARTC2C':
-                                            return [
-                                                html ` <div class="d-flex flex-wrap w-100">
-                                                                                            <span class="me-2 fw-normal fs-6">門市名稱:</span>
-                                                                                            <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
-                                                                                                ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
-                                                                                            </div>
-                                                                                        </div>`,
-                                                html ` <div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
-                                                html ` <div class="fw-normal fs-6 w-100" style="white-space: normal;word-break: break-all;">
-                                                                                            地址: ${orderData.orderData.user_info.CVSAddress}
-                                                                                        </div>`,
-                                            ].join('');
-                                        case 'normal':
-                                            return [
-                                                html ` <div class="fw-normal fs-6" style="white-space: normal;">${orderData.orderData.user_info.address}</div>`,
-                                            ].join('');
-                                        default:
-                                            const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
-                                                return dd.value === orderData.orderData.user_info.shipment;
-                                            });
-                                            if (formData.form) {
-                                                return formData.form
-                                                    .map((dd) => {
-                                                    return `<div class="d-flex flex-wrap w-100">
-                                                                                            <span class="me-2 fw-normal fs-6">${dd.title}:</span>
-                                                                                            <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
-                                                                                                ${orderData.orderData.user_info.custom_form_delivery[dd.key]}
-                                                                                            </div>
-                                                                                        </div>`;
-                                                })
-                                                    .join('');
-                                            }
-                                            else {
-                                                return ``;
-                                            }
-                                    }
-                                })()}
-                                                                    `;
-                            },
-                            divCreate: {
-                                style: 'gap:8px;',
-                                class: 'd-flex flex-column',
-                            },
-                        }),
-                    ].join('')}
-                                                    </div>
-                                                </div>
-                                            `, 'p-0', 'padding: 20px !important; ')}
-                                        <div style="margin-top: 24px;"></div>
-                                        ${BgWidget.mainCard(gvc.bindView(() => {
-                        const id = glitter.getUUID();
-                        const vm = {
-                            mode: 'read',
-                        };
-                        return {
-                            bind: id,
-                            view: () => {
-                                var _a;
-                                return html `
-                                                            <div class="d-flex align-items-center ">
-                                                                <div class="tx_700">用戶備註</div>
-                                                                <div class="flex-fill"></div>
-                                                                <i
-                                                                    class="fa-solid fa-pencil d-none"
-                                                                    style="cursor:pointer;"
-                                                                    onclick="${gvc.event(() => {
-                                    vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
-                                    gvc.notifyDataChange(id);
-                                })}"
-                                                                ></i>
-                                                            </div>
-
-                                                            <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
-                                                                ${(((_a = orderData.orderData.user_info.note) !== null && _a !== void 0 ? _a : '') + (orderData.orderData.user_info.code_note || '') || '尚未填寫').replace(/\n/g, `<br>`)}
-                                                            </div>
-                                                        `;
-                            },
-                            divCreate: {
-                                class: ` fw-normal`,
-                            },
-                        };
-                    }))}
-                                        <div style="margin-top: 24px;"></div>
-                                        ${BgWidget.mainCard(html `
-                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
-                                                <div class="tx_700">訂單備註</div>
-                                                <div style="color:#8D8D8D;font-size: 16px;font-weight: 400;line-height: 140%;">
-                                                    ${orderData.orderData.order_note ? orderData.orderData.order_note : '尚未輸入文字'}
-                                                </div>
-                                            </div>
-                                        `)}
-                                        ${(() => {
-                        if (orderData.orderData.custom_form_format &&
-                            orderData.orderData.custom_form_format.filter((dd) => {
-                                return orderData.orderData.custom_form_data[dd.key];
-                            }).length > 0) {
-                            return (html ` <div style="margin-top: 24px;"></div>` +
-                                BgWidget.mainCard(html `
-                                                        <div class="p-2" style="color: #393939;font-size: 16px;">
-                                                            ${orderData.orderData.custom_form_format
-                                    .filter((dd) => {
-                                    return orderData.orderData.custom_form_data[dd.key];
-                                })
-                                    .map((dd) => {
-                                    return html ` <div class="d-flex align-items-center">
-                                                                            <div class="tx_700">${dd.title}</div>
-                                                                            <div class="flex-fill"></div>
-                                                                        </div>
-                                                                        <div style="color: #393939;font-weight: 400;">${orderData.orderData.custom_form_data[dd.key]}</div>`;
-                                })
-                                    .join('')}
+                                        `),
+                        ].join(BgWidget.mbContainer(24)),
+                        ratio: 75,
+                    }, {
+                        html: html `<div class="summary-card">
+                                        ${[
+                            BgWidget.mainCard(html `
+                                                    <div style="color: #393939;font-size: 16px;">
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div class="tx_700">訂購人資料</div>
+                                                            <div class="flex-fill"></div>
                                                         </div>
-                                                    `));
-                        }
-                        else {
-                            return ``;
-                        }
-                    })()}
-                                    </div>
-                                </div>
-                                ${BgWidget.mbContainer(240)}
-                                <div class="update-bar-container">
-                                    ${BgWidget.cancel(gvc.event(() => {
+                                                        <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
+                                                            ${[
+                                html ` <div class="d-flex flex-column" style="gap:8px;">
+                                                                    <div
+                                                                        class="d-flex align-items-center"
+                                                                        style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                    child_vm.userID = userData.userID;
+                                    child_vm.type = 'user';
+                                })}"
+                                                                    >
+                                                                        ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '訪客'}
+                                                                        ${(() => {
+                                    if (userDataLoading) {
+                                        return BgWidget.secondaryInsignia('讀取中');
+                                    }
+                                    if (userData.member == undefined) {
+                                        return BgWidget.secondaryInsignia('訪客');
+                                    }
+                                    if ((userData === null || userData === void 0 ? void 0 : userData.member.length) > 0) {
+                                        for (let i = 0; i < userData.member.length; i++) {
+                                            if (userData.member[i].trigger) {
+                                                return BgWidget.primaryInsignia(userData.member[i].tag_name);
+                                            }
+                                        }
+                                        return BgWidget.primaryInsignia('一般會員');
+                                    }
+                                    return BgWidget.secondaryInsignia('訪客');
+                                })()}
+                                                                    </div>
+                                                                    <div style="color: #393939;font-weight: 400;">
+                                                                        ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
+                                                                    </div>
+                                                                    <div style="color: #393939;font-weight: 400;">${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email}</div>
+                                                                </div>`,
+                                BgWidget.horizontalLine(),
+                                gvc.bindView({
+                                    bind: `user_info`,
+                                    view: () => {
+                                        var _a;
+                                        return html `
+                                                                            <div style="font-size: 16px;font-weight: 700;color:#393939">收件人資料</div>
+                                                                            <div class="d-flex flex-column" style="gap:8px;">
+                                                                                <div style="color: #4D86DB;font-weight: 400;">${orderData.orderData.user_info.name}</div>
+                                                                                <div style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || '電話未填'}</div>
+                                                                            </div>
+                                                                            <div class="tx_700 mt-2">付款方式</div>
+                                                                            <div>${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
+                                                                            <div class="tx_700">配送方式</div>
+                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                ${(_a = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                            return dd.value === orderData.orderData.user_info.shipment;
+                                        })) === null || _a === void 0 ? void 0 : _a.name}
+                                                                            </div>
+                                                                            ${(() => {
+                                            switch (orderData.orderData.user_info.shipment) {
+                                                case 'FAMIC2C':
+                                                case 'HILIFEC2C':
+                                                case 'OKMARTC2C':
+                                                case 'UNIMARTC2C':
+                                                    return [
+                                                        html ` <div class="d-flex flex-wrap w-100">
+                                                                                                <span class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                                                <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
+                                                                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
+                                                                                                </div>
+                                                                                            </div>`,
+                                                        html ` <div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
+                                                        html ` <div class="fw-normal fs-6 w-100" style="white-space: normal;word-break: break-all;">
+                                                                                                地址: ${orderData.orderData.user_info.CVSAddress}
+                                                                                            </div>`,
+                                                    ].join('');
+                                                case 'normal':
+                                                    return [
+                                                        html ` <div class="fw-normal fs-6" style="white-space: normal;">
+                                                                                                ${orderData.orderData.user_info.address}
+                                                                                            </div>`,
+                                                    ].join('');
+                                                default:
+                                                    const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                                        return dd.value === orderData.orderData.user_info.shipment;
+                                                    });
+                                                    if (formData.form) {
+                                                        return formData.form
+                                                            .map((dd) => {
+                                                            return `<div class="d-flex flex-wrap w-100">
+                                                                                <span class="me-2 fw-normal fs-6">${dd.title}:</span>
+                                                                                <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;">
+                                                                                    ${orderData.orderData.user_info.custom_form_delivery[dd.key]}
+                                                                                </div>
+                                                                            </div>`;
+                                                        })
+                                                            .join('');
+                                                    }
+                                                    else {
+                                                        return ``;
+                                                    }
+                                            }
+                                        })()}
+                                                                        `;
+                                    },
+                                    divCreate: {
+                                        style: 'gap:8px;',
+                                        class: 'd-flex flex-column',
+                                    },
+                                }),
+                            ].join('')}
+                                                        </div>
+                                                    </div>
+                                                `),
+                            BgWidget.mainCard(gvc.bindView(() => {
+                                const id = glitter.getUUID();
+                                const vm = {
+                                    mode: 'read',
+                                };
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        var _a;
+                                        return html `
+                                                                <div class="d-flex align-items-center ">
+                                                                    <div class="tx_700">用戶備註</div>
+                                                                    <div class="flex-fill"></div>
+                                                                    <i
+                                                                        class="fa-solid fa-pencil d-none"
+                                                                        style="cursor:pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                            vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
+                                            gvc.notifyDataChange(id);
+                                        })}"
+                                                                    ></i>
+                                                                </div>
+
+                                                                <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
+                                                                    ${(((_a = orderData.orderData.user_info.note) !== null && _a !== void 0 ? _a : '') + (orderData.orderData.user_info.code_note || '') || '尚未填寫').replace(/\n/g, `<br>`)}
+                                                                </div>
+                                                            `;
+                                    },
+                                    divCreate: {
+                                        class: ` fw-normal`,
+                                    },
+                                };
+                            })),
+                            BgWidget.mainCard(html `
+                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
+                                                    <div class="tx_700">訂單備註</div>
+                                                    <div style="color:#8D8D8D;font-size: 16px;font-weight: 400;line-height: 140%;">
+                                                        ${orderData.orderData.order_note ? orderData.orderData.order_note : '尚未輸入文字'}
+                                                    </div>
+                                                </div>
+                                            `),
+                            (() => {
+                                if (orderData.orderData.custom_form_format &&
+                                    orderData.orderData.custom_form_format.filter((dd) => {
+                                        return orderData.orderData.custom_form_data[dd.key];
+                                    }).length > 0) {
+                                    return (html ` <div style="margin-top: 24px;"></div>` +
+                                        BgWidget.mainCard(html `
+                                                            <div class="p-2" style="color: #393939;font-size: 16px;">
+                                                                ${orderData.orderData.custom_form_format
+                                            .filter((dd) => {
+                                            return orderData.orderData.custom_form_data[dd.key];
+                                        })
+                                            .map((dd) => {
+                                            return html ` <div class="d-flex align-items-center">
+                                                                                <div class="tx_700">${dd.title}</div>
+                                                                                <div class="flex-fill"></div>
+                                                                            </div>
+                                                                            <div style="color: #393939;font-weight: 400;">${orderData.orderData.custom_form_data[dd.key]}</div>`;
+                                        })
+                                            .join('')}
+                                                            </div>
+                                                        `));
+                                }
+                                else {
+                                    return ``;
+                                }
+                            })(),
+                        ].join(BgWidget.mbContainer(24))}
+                                    </div>`,
+                        ratio: 25,
+                    })}
+                            ${BgWidget.mbContainer(240)}
+                            <div class="update-bar-container">
+                                ${BgWidget.cancel(gvc.event(() => {
                         vm.type = 'list';
                     }))}
-                                    ${BgWidget.save(gvc.event(() => {
+                                ${BgWidget.save(gvc.event(() => {
                         function writeEdit(origData, orderData) {
                             var _a;
                             let editArray = [];
@@ -1343,9 +1349,7 @@ export class ShoppingOrderManager {
                             }
                         });
                     }))}
-                                </div>
-                            </div>
-                        `, BgWidget.getContainerWidth(), document.body.clientWidth < 768 ? `padding:0; padding-top:20px; margin:0;` : '');
+                            </div>`);
                 }
                 catch (e) {
                     console.error(e);
@@ -1828,7 +1832,7 @@ export class ShoppingOrderManager {
         }
         return BgWidget.container(html `
                 <!-- 標頭 --- 新增訂單標題和返回 -->
-                <div class="d-flex align-items-center" style="margin-bottom: 24px;">
+                <div class="title-container">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
@@ -2711,7 +2715,7 @@ export class ShoppingOrderManager {
             }
         }))}
                 </div>
-            `, BgWidget.getContainerWidth());
+            `);
     }
     static getPaymentMethodText(key, orderData) {
         if (orderData.orderSource === 'POS') {
