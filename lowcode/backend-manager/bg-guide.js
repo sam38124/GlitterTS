@@ -3872,6 +3872,7 @@ export class BgGuide {
                                     ApiShop.getEditorGuide().then(r => {
                                         r.response.value.find((element) => element.title == "頁面編輯").finish = true;
                                         ApiShop.setEditorGuide(r.response.value);
+                                        this.leaveGuide(vm, 1);
                                     });
                                 }
                             });
@@ -3907,8 +3908,8 @@ export class BgGuide {
                     case 1: {
                         const className = 'guide-user-editor-11';
                         let clickTarget = document.querySelector(`.${className}-icon`);
-                        clickTarget.click();
                         if (!document.querySelector(`.${className}`)) {
+                            clickTarget.click();
                             const timer = setInterval(() => {
                                 if (document.querySelector(`.${className}`)) {
                                     clearInterval(timer);

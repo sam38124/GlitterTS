@@ -97,7 +97,11 @@ export class AiRobot {
         });
         //創建客服小姐
         const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。
-        另外請你注意，如果你無法理解我的對話、找不到相對應的資料或者無法解析檔案，請一律回答『對不起，我無法理解你的意思，如錯誤持續發生，請按下重置按鈕，能幫助我重新理解對話內容』`;
+        另外以下3點請注意
+        1.如果問題是有關消費金額的計算，僅計算已付款的訂單
+        2.我提供給你的檔案類型是csv，相同的order_id代表同一筆訂單
+        3.我所有問題都跟檔案內容有關，請不要回答無關內容
+        `;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',

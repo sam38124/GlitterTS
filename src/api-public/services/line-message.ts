@@ -185,18 +185,17 @@ export class LineMessage {
                     });
             }
             else{
+
                 let postData = {
                     "to": obj.lineID,
                     "messages":
                         [
                             {
                                 "type": "text",
-                                "text": obj.data
+                                "text": obj.data.text
                             }
                         ]
                 }
-
-
                 const urlConfig: Config = {
                     method: 'post',
                     url: "https://api.line.me/v2/bot/message/push",
@@ -214,6 +213,7 @@ export class LineMessage {
                             resolve(response.data)
                         })
                         .catch((error) => {
+                            console.log(error)
                             console.log("error -- ", error.data)
                             resolve(false)
                         });

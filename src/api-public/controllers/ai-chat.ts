@@ -13,13 +13,13 @@ import * as util from 'node:util';
 import moment from 'moment';
 import { Private_config } from '../../services/private_config.js';
 import {Ai} from "../../services/ai.js";
-
+import { Parser } from 'json2csv';
 const router: express.Router = express.Router();
 
 export = router;
 
 router.post('/sync-data', async (req: express.Request, resp: express.Response) => {
-    const file1 = tool.randomString(10) + '.json';
+    const file1 = tool.randomString(10) + '.csv';
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
@@ -53,21 +53,9 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                 const orderData = order.orderData;
                 orderData.customer_info=orderData.customer_info??{}
                 exportData.push({
-                    訂單編號: order.cart_token,
-                    訂單建立時間: moment(order.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
-                    會員信箱: order.email ?? 'none',
-                    訂單處理狀態: (() => {
-                        switch (orderData.orderStatus ?? '0') {
-                            case '-1':
-                                return '已取消';
-                            case '1':
-                                return '已完成';
-                            case '0':
-                            default:
-                                return '處理中';
-                        }
-                    })(),
-                    付款狀態: (() => {
+                    order_id: order.cart_token,
+                    order_date: moment(order.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
+                    payment_status: (() => {
                         switch (order.status ?? 0) {
                             case 1:
                                 return '已付款';
@@ -80,7 +68,7 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                                 return '未付款';
                         }
                     })(),
-                    出貨狀態: (() => {
+                    shipment_status: (() => {
                         switch (orderData.progress ?? 'wait') {
                             case 'shipping':
                                 return '已出貨';
@@ -95,34 +83,36 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                                 return '未出貨';
                         }
                     })(),
-                    訂單小計: orderData.total + orderData.discount - orderData.shipment_fee + orderData.use_rebate,
-                    訂單運費: orderData.shipment_fee,
-                    訂單使用優惠券: orderData.voucherList.map((voucher: any) => voucher.title).join(', '),
-                    訂單折扣: orderData.discount,
-                    訂單使用購物金: orderData.use_rebate,
-                    訂單總計: orderData.total,
-                    購買商品列表: orderData.lineItems.map((item: any) => {
-                        return {
-                            商品名稱: item.title,
-                            商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
-                            商品SKU: item.sku ?? '',
-                            商品購買數量: item.count,
-                            商品價格: item.sale_price,
-                            商品折扣: item.discount_price,
-                        };
+                    shipping_cost: orderData.shipment_fee,
+                    voucher_list: orderData.voucherList.map((voucher: any) => {
+                        return voucher.title
+                    }).join('|'),
+                    total_discount: orderData.discount,
+                    use_rebate: orderData.use_rebate,
+                    total_amount: orderData.total,
+                    items: orderData.lineItems.map((item:any)=>{
+return {
+    product_name: item.title,
+    spec: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
+    sku: item.sku ?? '',
+    quantity: item.count,
+    unit_price: item.sale_price,
+    discount: item.discount_price,
+}
                     }),
-                    // value by user
-                    顧客姓名: orderData.customer_info.name,
-                    顧客手機: orderData.customer_info.phone,
-                    顧客信箱: orderData.customer_info.email,
-                    備註: orderData.user_info.note ?? '',
+                    customer_name: orderData.customer_info.name,
+                    customer_phone: orderData.customer_info.phone,
+                    customer_email: orderData.customer_info.email,
+                    note: orderData.user_info.note ?? '',
                 });
+
+
             });
             console.log(`exportData=>`,JSON.stringify(exportData))
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(exportData);
             //寫入
-            fs.writeFileSync(file1, JSON.stringify({
-                order_list:exportData
-            }));
+            fs.writeFileSync(file1, csv);
             //上傳訂單數據檔案
             const file = await openai.files.create({
                 file: fs.createReadStream(file1),

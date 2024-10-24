@@ -24,8 +24,8 @@ exports.fakeOrder = (() => {
             return data;
         })();
         data.push([
-            orderID, 1, user.account, JSON.stringify({
-                "email": user.userData.name,
+            orderID, 1, user.userData.email, JSON.stringify({
+                "email": user.userData.email,
                 "total": total,
                 "method": "off_line",
                 "rebate": 0,

@@ -49,9 +49,9 @@ export class BgBlog {
                         key: '預覽',
                         value: html `
                             <div
-                                class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
-                                style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
-                                onclick="${gvc.event((e, event) => {
+                                    class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                    style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
+                                    onclick="${gvc.event((e, event) => {
                             const href = (() => {
                                 return `https://${window.parent.glitter.share.editorViewModel.domain}/${is_page
                                     ? (() => {
@@ -77,12 +77,25 @@ export class BgBlog {
                 ];
             });
         }
+        if (window.parent.glitter.getUrlParameter('page-id')) {
+            Article.get({
+                page: 0,
+                limit: 1,
+                id: window.parent.glitter.getUrlParameter('page-id')
+            }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                vm.data = data.response.data[0];
+                vm.type = 'replace';
+            }));
+        }
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
                 bind: id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
+                    if (window.parent.glitter.getUrlParameter('page-id') && vm.type !== 'replace') {
+                        return ``;
+                    }
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                                 <div class="title-container gap-4 ${type === 'select' ? `d-none` : ``}">
@@ -203,6 +216,7 @@ export class BgBlog {
                             `);
                     }
                     else if (vm.type == 'replace') {
+                        window.parent.glitter.setUrlParameter('page-id', vm.data.id);
                         return editor({
                             gvc: gvc,
                             vm: vm,
@@ -381,26 +395,26 @@ export class BgBlog {
                                             if (data.response.result.data.length === 0) {
                                                 if (!vm.search) {
                                                     return html `
-                                                                <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
-                                                                    <img src="./img/box-open-solid.svg" />
-                                                                    <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
-                                                                </div>
-                                                            `;
+                                                                    <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
+                                                                        <img src="./img/box-open-solid.svg" />
+                                                                        <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
+                                                                    </div>
+                                                                `;
                                                 }
                                                 else {
                                                     return html `
-                                                                <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
-                                                                    <img src="./img/box-open-solid.svg" />
-                                                                    <span class="color39 text-center">查無相關模塊</span>
-                                                                </div>
-                                                            `;
+                                                                    <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
+                                                                        <img src="./img/box-open-solid.svg" />
+                                                                        <span class="color39 text-center">查無相關模塊</span>
+                                                                    </div>
+                                                                `;
                                                 }
                                             }
                                             else {
                                                 return html `
-                                                            <div class="w-100" style="overflow-y: auto;">
-                                                                <div class="row m-0 pt-2 w-100">
-                                                                    ${data.response.result.data
+                                                                <div class="w-100" style="overflow-y: auto;">
+                                                                    <div class="row m-0 pt-2 w-100">
+                                                                        ${data.response.result.data
                                                     .sort((a, b) => {
                                                     if (a.tag === 'empty' || b.tag === 'empty') {
                                                         return b.tag === 'empty' ? 1 : -1;
@@ -412,29 +426,29 @@ export class BgBlog {
                                                     .map((dd, index) => {
                                                     var _a;
                                                     return html `<div class="col-6 col-sm-3 mb-3 rounded-3">
-                                                                                <div class="d-flex flex-column justify-content-center w-100 " style="gap:5px;cursor:pointer;">
-                                                                                    <div
-                                                                                        class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                                                                        style="padding-bottom: ${(800 / 600) * 100}%;"
-                                                                                    >
-                                                                                        <div
-                                                                                            class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
-                                                                                            style="overflow: hidden;"
-                                                                                        >
-                                                                                            <img
-                                                                                                class="w-100 "
-                                                                                                src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
-                                                                                            />
-                                                                                        </div>
+                                                                                        <div class="d-flex flex-column justify-content-center w-100 " style="gap:5px;cursor:pointer;">
+                                                                                            <div
+                                                                                                    class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
+                                                                                                    style="padding-bottom: ${(800 / 600) * 100}%;"
+                                                                                            >
+                                                                                                <div
+                                                                                                        class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
+                                                                                                        style="overflow: hidden;"
+                                                                                                >
+                                                                                                    <img
+                                                                                                            class="w-100 "
+                                                                                                            src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
+                                                                                                    />
+                                                                                                </div>
 
-                                                                                        <div
-                                                                                            class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
-                                                                                            style="background: rgba(0,0,0,0.5);gap:5px;"
-                                                                                        >
-                                                                                            <button
-                                                                                                class="btn btn-secondary d-flex align-items-center "
-                                                                                                style="height: 28px;width: 75px;gap:5px;"
-                                                                                                onclick="${gvc.event(() => {
+                                                                                                <div
+                                                                                                        class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                                                                        style="background: rgba(0,0,0,0.5);gap:5px;"
+                                                                                                >
+                                                                                                    <button
+                                                                                                            class="btn btn-secondary d-flex align-items-center "
+                                                                                                            style="height: 28px;width: 75px;gap:5px;"
+                                                                                                            onclick="${gvc.event(() => {
                                                         if (dd.tag === 'empty') {
                                                             const a = [];
                                                             a.name = '空白頁面';
@@ -456,36 +470,36 @@ export class BgBlog {
                                                             }
                                                         }
                                                     })}"
-                                                                                            >
-                                                                                                選擇
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center fw-500 mt-1">
-                                                                                        ${dd.template_config.name}
-                                                                                        <i
-                                                                                            class="fa-solid fa-eye ${dd.tag === 'empty' ? `d-none` : ``}"
-                                                                                            style="cursor:pointer;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                                    >
+                                                                                                        選擇
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center fw-500 mt-1">
+                                                                                                ${dd.template_config.name}
+                                                                                                <i
+                                                                                                        class="fa-solid fa-eye ${dd.tag === 'empty' ? `d-none` : ``}"
+                                                                                                        style="cursor:pointer;"
+                                                                                                        onclick="${gvc.event(() => {
                                                         window.parent.glitter.openNewTab(`${gvc.glitter.root_path}pages/${dd.tag}?appName=${dd.appName}`);
                                                     })}"
-                                                                                        ></i>
-                                                                                    </h3>
-                                                                                </div>
-                                                                            </div>`;
+                                                                                                ></i>
+                                                                                            </h3>
+                                                                                        </div>
+                                                                                    </div>`;
                                                 })
                                                     .join('')}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        `;
+                                                            `;
                                             }
                                         })();
                                     }
                                     else {
                                         return html ` <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column" style="gap: 10px;">
-                                                    <div class="spinner-border fs-5"></div>
-                                                    <div class="fs-6 fw-500">載入中...</div>
-                                                </div>`;
+                                                        <div class="spinner-border fs-5"></div>
+                                                        <div class="fs-6 fw-500">載入中...</div>
+                                                    </div>`;
                                     }
                                 },
                                 divCreate: {
@@ -566,9 +580,24 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         }, 100);
         return ``;
     }
+    const domainPrefix = `${cf.is_page
+        ? (() => {
+            switch (page_tab) {
+                case 'shopping':
+                    return 'shop';
+                case 'hidden':
+                    return 'hidden';
+                case 'page':
+                    return 'pages';
+                default:
+                    return '';
+            }
+        })()
+        : 'blogs'}`;
     return html `
         <div class="title-container">
             ${BgWidget.goBack(gvc.event(() => {
+        window.parent.glitter.setUrlParameter('page-id', undefined);
         vm.type = 'list';
     }))}
             ${BgWidget.title(cf.is_page
@@ -591,55 +620,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
     }))}
                 <div class="mx-1"></div>
                 ${BgWidget.grayButton('前往設計', gvc.event(() => {
-        localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
-        window.parent.glitter.innerDialog((gvc) => {
-            return gvc.bindView(() => {
-                const id = gvc.glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return html ` <iframe
-                                                class="rounded-3"
-                                                id="editor_dialog"
-                                                src="${(() => {
-                            const url = new URL(window.parent.location.href);
-                            url.searchParams.set('function', 'user-editor');
-                            return url.href;
-                        })()}"
-                                            ></iframe>`;
-                    },
-                    divCreate: {
-                        class: `vw-100 vh-100 p-2`,
-                        style: `background: rgba(0,0,0,0.5);`,
-                    },
-                    onCreate: () => {
-                        const interval = setInterval(() => {
-                            const iframe = window.parent.document.querySelector('#editor_dialog');
-                            if (iframe.contentWindow.glitter) {
-                                iframe.contentWindow.glitter.share.editor_vm = {
-                                    close: () => {
-                                        gvc.closeDialog();
-                                    },
-                                    callback: (cf) => {
-                                        vm.data.content.config = cf.config;
-                                        saveData(gvc, cf, vm, cVm, true);
-                                    },
-                                    page_data: {
-                                        config: JSON.parse(JSON.stringify(vm.data.content.config || [])),
-                                        page_config: {},
-                                        name: vm.data.content.name || '尚未設定頁面標題',
-                                    },
-                                    title: vm.data.content.name || '尚未設定頁面標題',
-                                };
-                                clearInterval(interval);
-                            }
-                        }, 100);
-                    },
-                };
-            });
-        }, '', {
-            dismiss: () => { },
-        });
+        window.parent.glitter.setUrlParameter('page-id', vm.data.id);
+        window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
     }))}
             </div>
         </div>
@@ -1331,44 +1313,44 @@ function setCollection(cf) {
             bind: vm.id,
             view: () => {
                 return html ` <div class="title-container">
-                        ${BgWidget.goBack(cf.gvc.event(() => {
+                    ${BgWidget.goBack(cf.gvc.event(() => {
                     cf.goBack();
                 }))}${BgWidget.title('分類設定')}
-                    </div>
-                    <div
+                </div>
+                <div
                         style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
-                    >
-                        <div style="width: 100%;  position: relative">
-                            <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
-                                <div
+                >
+                    <div style="width: 100%;  position: relative">
+                        <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
+                            <div
                                     class="w-100  ${getSelectCount({
                     items: vm.link,
                 }) > 0
                     ? ``
                     : `d-none`}"
                                     style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
-                                >
-                                    <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                            >
+                                <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                         已選取${getSelectCount({
                     items: vm.link,
                 })}項
-                                    </div>
-                                    <div
+                                </div>
+                                <div
                                         style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
-                                    >
-                                        <div
+                                >
+                                    <div
                                             style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
                                             onclick="${gvc.event(() => {
                     vm.link = deleteSelect(vm.link);
                     gvc.notifyDataChange(vm.id);
                 })}"
-                                        >
-                                            刪除
-                                        </div>
+                                    >
+                                        刪除
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
-                                    <div
+                            </div>
+                            <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
+                                <div
                                         class="${allSelect({
                     items: vm.link,
                     selected: !vm.link.find((dd) => {
@@ -1394,11 +1376,11 @@ function setCollection(cf) {
                     }
                     gvc.notifyDataChange(vm.id);
                 })}"
-                                    ></div>
-                                    <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱</div>
-                                </div>
-                                <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
-                                    ${(() => {
+                                ></div>
+                                <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱</div>
+                            </div>
+                            <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
+                                ${(() => {
                     function renderItems(array) {
                         const id = gvc.glitter.getUUID();
                         return (gvc.bindView(() => {
@@ -1409,20 +1391,20 @@ function setCollection(cf) {
                                         .map((dd, index) => {
                                         dd.items;
                                         const list = html `
-                                                                        <div
-                                                                            class=" w-100 "
-                                                                            style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
-                                                                            onclick="${cf.gvc.event(() => {
+                                                                            <div
+                                                                                    class=" w-100 "
+                                                                                    style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
+                                                                                    onclick="${cf.gvc.event(() => {
                                             if (dd.items && dd.items.length > 0) {
                                                 dd.toggle = !dd.toggle;
                                                 gvc.notifyDataChange(vm.id);
                                             }
                                         })}"
-                                                                        >
-                                                                            <div
-                                                                                class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                                style="color:#393939;width: 16px; height: 16px;"
-                                                                                onclick="${cf.gvc.event((e, event) => {
+                                                                            >
+                                                                                <div
+                                                                                        class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
+                                                                                        style="color:#393939;width: 16px; height: 16px;"
+                                                                                        onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             dd.selected = !dd.selected;
                                             if (dd.selected) {
@@ -1433,38 +1415,38 @@ function setCollection(cf) {
                                             }
                                             gvc.notifyDataChange(vm.id);
                                         })}"
-                                                                            ></div>
-                                                                            <div class="hoverF2 pe-2" style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                                                                <i
-                                                                                    class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
-                                                                                    style="cursor: pointer;width:25px;height: 25px;"
-                                                                                ></i>
-                                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
-                                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                                        <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                            ${dd.title}
-                                                                                        </div>
-                                                                                        ${dd.items && dd.items.length > 0
+                                                                                ></div>
+                                                                                <div class="hoverF2 pe-2" style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                                                                                    <i
+                                                                                            class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                            style="cursor: pointer;width:25px;height: 25px;"
+                                                                                    ></i>
+                                                                                    <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
+                                                                                        <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                ${dd.title}
+                                                                                            </div>
+                                                                                            ${dd.items && dd.items.length > 0
                                             ? !dd.toggle
                                                 ? `<i class="fa-solid fa-angle-down color39"></i>`
                                                 : `<i class="fa-solid fa-angle-up color39"></i>`
                                             : ``}
-                                                                                    </div>
-                                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                                        <div
-                                                                                            style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
-                                                                                        >
-                                                                                            ${dd.title}
                                                                                         </div>
-                                                                                        <div style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                            ${dd.link}
+                                                                                        <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            <div
+                                                                                                    style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
+                                                                                            >
+                                                                                                ${dd.title}
+                                                                                            </div>
+                                                                                            <div style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                ${dd.link}
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <div class="flex-fill"></div>
-                                                                                <div
-                                                                                    class="child me-2"
-                                                                                    onclick="${cf.gvc.event((e, event) => {
+                                                                                    <div class="flex-fill"></div>
+                                                                                    <div
+                                                                                            class="child me-2"
+                                                                                            onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             MenusSetting.collectionEvent({
                                                 link: '',
@@ -1483,12 +1465,12 @@ function setCollection(cf) {
                                                 }
                                             });
                                         })}"
-                                                                                >
-                                                                                    <i class="fa-solid fa-plus" style="color:#393939;"></i>
-                                                                                </div>
-                                                                                <div
-                                                                                    class="child"
-                                                                                    onclick="${cf.gvc.event((e, event) => {
+                                                                                    >
+                                                                                        <i class="fa-solid fa-plus" style="color:#393939;"></i>
+                                                                                    </div>
+                                                                                    <div
+                                                                                            class="child"
+                                                                                            onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             const og = JSON.parse(JSON.stringify(dd));
                                             MenusSetting.collectionEvent(dd, (data) => {
@@ -1504,19 +1486,19 @@ function setCollection(cf) {
                                                 }
                                             });
                                         })}"
-                                                                                >
-                                                                                    <i class="fa-solid fa-pencil" style="color:#393939;"></i>
+                                                                                    >
+                                                                                        <i class="fa-solid fa-pencil" style="color:#393939;"></i>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        ${dd.items && dd.items.length > 0
+                                                                            ${dd.items && dd.items.length > 0
                                             ? html `
-                                                                                  <div class=" w-100 ${dd.toggle ? `` : `d-none`}" style="padding-left: 35px;">
-                                                                                      ${renderItems(dd.items)}
-                                                                                  </div>
-                                                                              `
+                                                                                        <div class=" w-100 ${dd.toggle ? `` : `d-none`}" style="padding-left: 35px;">
+                                                                                            ${renderItems(dd.items)}
+                                                                                        </div>
+                                                                                    `
                                             : ``}
-                                                                    `;
+                                                                        `;
                                         return html ` <li class="w-100 ">${list}</li>`;
                                     })
                                         .join('');
@@ -1569,9 +1551,9 @@ function setCollection(cf) {
                             };
                         }) +
                             html ` <div
-                                                    class=""
-                                                    style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
-                                                    onclick="${cf.gvc.event(() => {
+                                                        class=""
+                                                        style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
+                                                        onclick="${cf.gvc.event(() => {
                                 MenusSetting.collectionEvent({
                                     link: '',
                                     title: '',
@@ -1590,7 +1572,7 @@ function setCollection(cf) {
                             })}"
                                                 >
                                                     <div
-                                                        style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex"
+                                                            style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex"
                                                     >
                                                         <i class="fa-solid fa-plus" style="color: #3366BB;font-size: 16px; "></i>
                                                         <div style="color: #3366BB; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">新增選單</div>
@@ -1599,18 +1581,18 @@ function setCollection(cf) {
                     }
                     return renderItems(vm.link);
                 })()}
-                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;left:0px;">
-                        ${BgWidget.cancel(gvc.event(() => {
+                </div>
+                <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;left:0px;">
+                    ${BgWidget.cancel(gvc.event(() => {
                     cf.goBack();
                 }))}
-                        ${BgWidget.save(gvc.event(() => {
+                    ${BgWidget.save(gvc.event(() => {
                     save();
                 }), '確認')}
-                    </div>`;
+                </div>`;
             },
             divCreate: {
                 style: `padding-bottom:60px;`,

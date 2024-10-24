@@ -1682,13 +1682,13 @@ ${obj.gvc.bindView({
                                                 }));
                                             },
                                             divCreate: {
-                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${widget.visible === false ? `display:none;` : ``}
+                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};
                                                   ${widget.code_style || ''}
                                                 `,
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}
-                                                                `,
+                                                                ${widget.visible === false ? ` hide-elem` : ``}`,
                                                 option: option.concat((() => {
                                                     if (root && isEditMode()) {
                                                         return [

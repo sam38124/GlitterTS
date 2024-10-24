@@ -245,13 +245,13 @@ export class Main_editor {
                                                                     document.querySelector('#editerCenter iframe').contentWindow.glitter
                                                                         .$(`.editor_it_${og_array[index].id}`)
                                                                         .parent()
-                                                                        .show();
+                                                                        .removeClass('hide-elem');
                                                                 }
                                                                 else {
                                                                     document.querySelector('#editerCenter iframe').contentWindow.glitter
                                                                         .$(`.editor_it_${og_array[index].id}`)
                                                                         .parent()
-                                                                        .hide();
+                                                                        .addClass('hide-elem');
                                                                 }
                                                             })}"
                                                                                 >

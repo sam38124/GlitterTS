@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;

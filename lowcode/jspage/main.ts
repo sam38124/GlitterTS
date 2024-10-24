@@ -33,6 +33,7 @@ import {AiPointsApi} from "../glitter-base/route/ai-points-api.js";
 import {ApiCart} from "../glitter-base/route/api-cart.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
+import {Article} from "../glitter-base/route/article.js";
 
 const html = String.raw;
 //
@@ -43,6 +44,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     const css = String.raw;
     gvc.addStyle(css`
+
         .hoverHidden div {
             display: none;
         }
@@ -196,13 +198,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     (window.parent as any).glitter.share.refreshMainRightEditor = () => {
         gvc.notifyDataChange('MainEditorRight');
     };
-    const dialog=new ShareDialog(glitter)
+    const dialog = new ShareDialog(glitter)
+
     //載入頁面資料
     async function lod() {
         if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
             glitter.share.loading_dialog.dataLoading({text: '模組加載中...', visible: true})
         } else {
-            dialog.dataLoading({visible:true})
+            dialog.dataLoading({visible: true})
         }
         glitter.share.top_inset = await new Promise((resolve, reject) => {
             glitter.runJsInterFace(
@@ -246,7 +249,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         })
 
 
-
         const waitGetData = [
             async () => {
                 return await new Promise(async (resolve, reject) => {
@@ -265,18 +267,31 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             },
             async () => {
                 return await new Promise(async (resolve) => {
+
+
                     viewModel.data = await new Promise((resolve, reject) => {
                         ((window as any).glitterInitialHelper).getPageData({
                             tag: glitter.getUrlParameter('page'),
                             appName: gBundle.appName
                         }, (d2: any) => {
-                            resolve(d2.response.result[0])
+                            if(glitter.getUrlParameter('page').startsWith('pages')){
+                                Article.get({
+                                    page: 0,
+                                    limit: 1,
+                                    tag: glitter.getUrlParameter('page').split('/')[1]
+                                }).then(async (data) => {
+                                    d2.response.result[0].config=data.response.data[0].content.config
+                                    resolve(d2.response.result[0])
+                                })
+                            }else{
+                                resolve(d2.response.result[0])
+                            }
                         })
                     })
                     if (!glitter.share.editor_vm) {
-                        if(glitter.getUrlParameter('function')==='backend-manger'){
+                        if (glitter.getUrlParameter('function') === 'backend-manger') {
                             resolve(true)
-return
+                            return
                         }
                         const data = await ApiPageConfig.getPage({
                             appName: gBundle.appName,
@@ -400,12 +415,12 @@ return
             await lod();
             return;
         }
-        dialog.dataLoading({visible:false})
+        dialog.dataLoading({visible: false})
         viewModel.loading = false;
         //推播訂閱
         gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
             if (response.token) {
-                ApiUser.registerFCM(viewModel.app_config_original.user,response.token,(window as any).glitterBase)
+                ApiUser.registerFCM(viewModel.app_config_original.user, response.token, (window as any).glitterBase)
             }
         }, {
             webFunction(data: any, callback: (data: any) => void): any {
@@ -414,16 +429,16 @@ return
         })
         gvc.notifyDataChange(editorContainerID);
     }
-console.log(`start-load:==>load`)
+
     lod().then(() => {
-        const dialog=new ShareDialog(gvc.glitter)
-        dialog.dataLoading({visible:false})
+        const dialog = new ShareDialog(gvc.glitter)
+        dialog.dataLoading({visible: false})
         //設定儲存事件
         glitter.htmlGenerate.saveEvent = (refresh: boolean = true, callback?: () => void) => {
             glitter.closeDiaLog();
             glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
 
-            dialog.dataLoading({visible:true,text:'更新中..'})
+            dialog.dataLoading({visible: true, text: '更新中..'})
 
             async function saveEvent() {
                 for (const b of Object.keys(glitter.share.editorViewModel.saveArray)) {
@@ -434,7 +449,6 @@ console.log(`start-load:==>load`)
                     async () => {
                         let haveID: string[] = [];
                         const config = JSON.parse(JSON.stringify((viewModel.data as any).config))
-
                         function getID(set: any) {
                             set.map((dd: any) => {
                                 dd.js = dd.js.replace(`${location.origin}/${(window as any).appName}/`, './');
@@ -457,7 +471,6 @@ console.log(`start-load:==>load`)
                                 }
                             });
                         }
-
                         getID(config);
                         if (glitter.share.editor_vm) {
                             return new Promise((resolve, reject) => {
@@ -466,20 +479,33 @@ console.log(`start-load:==>load`)
                         } else {
                             return new Promise(async (resolve) => {
                                 let result = true;
-                                ApiPageConfig.setPage({
-                                    id: (viewModel.data! as any).id,
-                                    appName: gBundle.appName,
-                                    tag: (viewModel.data! as any).tag,
-                                    name: (viewModel.data! as any).name,
-                                    config: config,
-                                    group: (viewModel.data! as any).group,
-                                    page_config: (viewModel.data! as any).page_config,
-                                    page_type: (viewModel.data! as any).page_type,
-                                    preview_image: (viewModel.data! as any).preview_image,
-                                    favorite: (viewModel.data! as any).favorite,
-                                }).then((api) => {
-                                    resolve(result && api.result);
-                                });
+                                if(glitter.getUrlParameter('page').startsWith('pages')){
+                                    Article.get({
+                                        page: 0,
+                                        limit: 1,
+                                        tag: glitter.getUrlParameter('page').split('/')[1]
+                                    }).then(async (data) => {
+                                        data.response.data[0].content.config=config
+                                        Article.put(data.response.data[0]).then((response)=>{
+                                            resolve(response && response.result);
+                                        })
+                                    })
+                                }else{
+                                    ApiPageConfig.setPage({
+                                        id: (viewModel.data! as any).id,
+                                        appName: gBundle.appName,
+                                        tag: (viewModel.data! as any).tag,
+                                        name: (viewModel.data! as any).name,
+                                        config: config,
+                                        group: (viewModel.data! as any).group,
+                                        page_config: (viewModel.data! as any).page_config,
+                                        page_type: (viewModel.data! as any).page_type,
+                                        preview_image: (viewModel.data! as any).preview_image,
+                                        favorite: (viewModel.data! as any).favorite,
+                                    }).then((api) => {
+                                        resolve(result && api.result);
+                                    });
+                                }
                             });
                         }
                     },
@@ -496,13 +522,13 @@ console.log(`start-load:==>load`)
                 ];
                 for (const a of waitSave) {
                     if (!(await a())) {
-                        dialog.dataLoading({visible:false})
-                        dialog.errorMessage({text:'伺服器錯誤'})
+                        dialog.dataLoading({visible: false})
+                        dialog.errorMessage({text: '伺服器錯誤'})
                         return;
                     }
                 }
-                dialog.dataLoading({visible:false})
-                dialog.successMessage({text:'儲存成功'})
+                dialog.dataLoading({visible: false})
+                dialog.successMessage({text: '儲存成功'})
                 if (refresh) {
                     viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     (window as any).preloadData = {};
@@ -659,13 +685,14 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                             //內容編輯模式不允許特定頁面，自動重導向。
                                                                             if (Storage.select_function === 'user-editor') {
                                                                                 if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
-                                                                                    const redirect = viewModel.dataList.find((dd: any) => {
-                                                                                        return dd.page_config && dd.page_config.support_editor === 'true';
-                                                                                    });
-                                                                                    if (redirect) {
-                                                                                        const url = new URL(glitter.root_path + `${redirect.tag}${location.search}`);
-                                                                                        location.href = url.href;
-                                                                                    }
+                                                                                    console.log(glitter.root_path)
+                                                                                    // const redirect = viewModel.dataList.find((dd: any) => {
+                                                                                    //     return dd.page_config && dd.page_config.support_editor === 'true';
+                                                                                    // });
+                                                                                    // if (redirect) {
+                                                                                    //     const url = new URL(glitter.root_path + `${redirect.tag}${location.search}`);
+                                                                                    //     location.href = url.href;
+                                                                                    // }
                                                                                 }
                                                                             }
                                                                             return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
@@ -738,7 +765,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         switch (Storage.select_function) {
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
-                                if (document.body.clientWidth>1000){
+                                if (document.body.clientWidth > 1000) {
 
                                     ApiShop.getGuideable().then(r => {
                                         if (!r.response.value || !r.response.value.view) {
@@ -749,14 +776,15 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                 break
                             }
                             case 'user-editor': {
-                                ApiShop.getFEGuideable().then(r => {
-                                    if (!r.response.value || !r.response.value.view) {
-                                        let bgGuide = new BgGuide(gvc, 0, "user-editor" , 0);
-                                        ApiShop.setFEGuideable({})
-                                        bgGuide.drawGuide();
-
-                                    }
-                                })
+                                if (document.body.clientWidth > 1000) {
+                                    ApiShop.getFEGuideable().then(r => {
+                                        if (!r.response.value || !r.response.value.view) {
+                                            let bgGuide = new BgGuide(gvc, 0, "user-editor" , 0);
+                                            ApiShop.setFEGuideable({})
+                                            bgGuide.drawGuide();
+                                        }
+                                    })
+                                }
                                 break
                             }
                         }
@@ -777,6 +805,21 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
 function initialEditor(gvc: GVC, viewModel: any) {
     const glitter = gvc.glitter;
+    //跳轉至編輯器頁面功能
+    glitter.share.switch_to_web_builder=(page:string)=>{
+        glitter.setUrlParameter('function','user-editor');
+        glitter.changePage(
+            'jspage/main.js',
+            page,
+            true,
+            {
+                appName: (window.parent as any).glitter.getUrlParameter('appName'),
+            },
+            {
+                backGroundColor: `transparent;`,
+            }
+        )
+    }
     //續費功能
     glitter.share.subscription = async (title: string) => {
         const dialog = new ShareDialog(glitter)
@@ -822,13 +865,13 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 case '旗艦電商方案':
                     return 'flagship-year'
             }
-            return  ``
+            return ``
         })()
         if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
             dialog.dataLoading({visible: true});
             gvc.glitter.runJsInterFace("in_app_product", {
-                total: `${sku.replace('-','_')}_apple`,
-                qty:(()=>{
+                total: `${sku.replace('-', '_')}_apple`,
+                qty: (() => {
                     switch (title) {
                         case '輕便電商方案':
                             return 1
@@ -845,11 +888,11 @@ function initialEditor(gvc: GVC, viewModel: any) {
             }, async (res) => {
                 console.log(`res.receipt_data=>`, res.receipt_data);
                 if (res.receipt_data) {
-                    await ApiShop.app_subscription(res.receipt_data,(window as any).appName);
+                    await ApiShop.app_subscription(res.receipt_data, (window as any).appName);
                     window.parent.location.reload();
                 } else {
                     dialog.dataLoading({visible: false});
-                    dialog.errorMessage({text:'儲值失敗'})
+                    dialog.errorMessage({text: '儲值失敗'})
                 }
             })
             return
@@ -975,7 +1018,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                                     window.parent.location.reload()
                                 })
                             } else {
-                                (window  as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                (window as any).$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                 (window as any).document.querySelector(`#${id} #submit`).click();
                             }
                             gvc.closeDialog()
@@ -1109,6 +1152,10 @@ function initialEditor(gvc: GVC, viewModel: any) {
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
         glitter.share.loading_dialog.dataLoading({text: '模組添加中...', visible: true})
+        if (gvc.glitter.getUrlParameter('toggle-message') === 'true') {
+            gvc.glitter.setUrlParameter('toggle-message', undefined)
+            BgCustomerMessage.toggle(true, gvc);
+        }
         if (!viewModel.selectContainer) {
             viewModel.selectContainer = glitter.share.editorViewModel.data.config
         }

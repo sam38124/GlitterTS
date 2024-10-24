@@ -744,7 +744,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             $("#Navigation").hide();
         }
         if (window.drawer === undefined) {
-            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
+            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url).href], () => {
                 callback();
                 $("#Navigation").html(src);
             }, () => {
@@ -830,7 +830,13 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 success();
                 return;
             }
-            var scritem = urlArray[index];
+            let scritem = urlArray[index];
+            if (typeof scritem === 'string') {
+                scritem = new URL(scritem, glitter.root_path).href;
+            }
+            else {
+                scritem.src = new URL(scritem.src, glitter.root_path).href;
+            }
             if (Glitter.glitter.share.scriptMemory.indexOf(((_a = scritem.src) !== null && _a !== void 0 ? _a : scritem)) !== -1) {
                 index++;
                 addScript();
@@ -1014,6 +1020,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             const head = document.head || document;
             function add(filePath) {
                 return __awaiter(this, void 0, void 0, function* () {
+                    filePath = new URL(filePath, glitter.root_path).href;
                     return new Promise((resolve, reject) => {
                         const id = glitter.getUUID();
                         let allLinks = document.querySelectorAll("link");
@@ -1102,7 +1109,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             });
             glitter.addMtScript([{
                     type: 'module',
-                    src: js
+                    src: new URL(js, this.root_path).href
                 }], () => {
             }, () => {
             }, [

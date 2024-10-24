@@ -496,8 +496,7 @@ export class Chat {
                                     template.title,
                                     template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain)
                                 );
-                                const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
-                            } else {
+                           } else {
                                 await sendmail(`service@ncdesign.info`, dd.userData.email, '有人傳送訊息給您', this.templateWithCustomerMessage('收到匿名訊息', `有一則匿名訊息:`, room.message.text));
                             }
                         }
@@ -522,7 +521,7 @@ export class Chat {
                     title: `收到客服訊息`,
                     userID: managerUser.user_id,
                     tag: 'message',
-                    link: `./?toggle-message=true`,
+                    link: `./?type=editor&appName=${this.app}&function=backend-manger&tab=home_page&toggle-message=true`,
                     body: room.message.image ? `${user.userData.name}傳送一張圖片給你`:`${user.userData.name}傳送一則訊息給你:「${(() => {
                         let text = room.message.text ?? ""
                         if (text.length > 25) {

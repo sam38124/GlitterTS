@@ -2165,15 +2165,15 @@ ${e.line}
                                                 });
                                             },
                                             divCreate: {
-                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${
-                                                    (widget as any).visible === false ? `display:none;` : ``
-                                                }
+                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};
                                                   ${widget.code_style || ''}
                                                 `,
                                                 class: `${cf.widget.class ?? ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}
-                                                                `,
+                                                                ${
+                                                    (widget as any).visible === false ? ` hide-elem` : ``
+                                                }`,
                                                 option: option.concat(
                                                     (() => {
                                                         if (root && isEditMode()) {

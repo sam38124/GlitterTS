@@ -137,7 +137,7 @@ class LineMessage {
                     "messages": [
                         {
                             "type": "text",
-                            "text": obj.data
+                            "text": obj.data.text
                         }
                     ]
                 };
@@ -157,6 +157,7 @@ class LineMessage {
                         resolve(response.data);
                     })
                         .catch((error) => {
+                        console.log(error);
                         console.log("error -- ", error.data);
                         resolve(false);
                     });

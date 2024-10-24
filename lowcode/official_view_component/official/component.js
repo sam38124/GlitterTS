@@ -1048,6 +1048,11 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                             const array_string = [html `
                                                                                                                                                     <div class="hoverF2 d-flex align-items-center p-3 guide-user-editor-8"
                                                                                                                                                          onclick="${gvc.event(() => {
+                                                                                                                                                    if (vm_c.toggle) {
+                                                                                                                                                        vm_c.toggle = false;
+                                                                                                                                                        gvc.notifyDataChange(vm_c.id);
+                                                                                                                                                        return;
+                                                                                                                                                    }
                                                                                                                                                     setting_option.map((dd) => {
                                                                                                                                                         if (dd.vm_c.toggle) {
                                                                                                                                                             dd.vm_c.toggle = false;

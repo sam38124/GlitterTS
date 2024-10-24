@@ -37,6 +37,7 @@ import { BgWidget } from "../backend-manager/bg-widget.js";
 import { ApiUser } from "../glitter-base/route/user.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
+import { Article } from "../glitter-base/route/article.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -44,6 +45,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter));
     const css = String.raw;
     gvc.addStyle(css `
+
         .hoverHidden div {
             display: none;
         }
@@ -230,7 +232,19 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 tag: glitter.getUrlParameter('page'),
                                 appName: gBundle.appName
                             }, (d2) => {
-                                resolve(d2.response.result[0]);
+                                if (glitter.getUrlParameter('page').startsWith('pages')) {
+                                    Article.get({
+                                        page: 0,
+                                        limit: 1,
+                                        tag: glitter.getUrlParameter('page').split('/')[1]
+                                    }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                                        d2.response.result[0].config = data.response.data[0].content.config;
+                                        resolve(d2.response.result[0]);
+                                    }));
+                                }
+                                else {
+                                    resolve(d2.response.result[0]);
+                                }
                             });
                         });
                         if (!glitter.share.editor_vm) {
@@ -369,7 +383,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             gvc.notifyDataChange(editorContainerID);
         });
     }
-    console.log(`start-load:==>load`);
     lod().then(() => {
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: false });
@@ -418,20 +431,34 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             else {
                                 return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                     let result = true;
-                                    ApiPageConfig.setPage({
-                                        id: viewModel.data.id,
-                                        appName: gBundle.appName,
-                                        tag: viewModel.data.tag,
-                                        name: viewModel.data.name,
-                                        config: config,
-                                        group: viewModel.data.group,
-                                        page_config: viewModel.data.page_config,
-                                        page_type: viewModel.data.page_type,
-                                        preview_image: viewModel.data.preview_image,
-                                        favorite: viewModel.data.favorite,
-                                    }).then((api) => {
-                                        resolve(result && api.result);
-                                    });
+                                    if (glitter.getUrlParameter('page').startsWith('pages')) {
+                                        Article.get({
+                                            page: 0,
+                                            limit: 1,
+                                            tag: glitter.getUrlParameter('page').split('/')[1]
+                                        }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                                            data.response.data[0].content.config = config;
+                                            Article.put(data.response.data[0]).then((response) => {
+                                                resolve(response && response.result);
+                                            });
+                                        }));
+                                    }
+                                    else {
+                                        ApiPageConfig.setPage({
+                                            id: viewModel.data.id,
+                                            appName: gBundle.appName,
+                                            tag: viewModel.data.tag,
+                                            name: viewModel.data.name,
+                                            config: config,
+                                            group: viewModel.data.group,
+                                            page_config: viewModel.data.page_config,
+                                            page_type: viewModel.data.page_type,
+                                            preview_image: viewModel.data.preview_image,
+                                            favorite: viewModel.data.favorite,
+                                        }).then((api) => {
+                                            resolve(result && api.result);
+                                        });
+                                    }
                                 }));
                             }
                         }),
@@ -604,13 +631,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                 case 'user-editor':
                                                     if (Storage.select_function === 'user-editor') {
                                                         if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
-                                                            const redirect = viewModel.dataList.find((dd) => {
-                                                                return dd.page_config && dd.page_config.support_editor === 'true';
-                                                            });
-                                                            if (redirect) {
-                                                                const url = new URL(glitter.root_path + `${redirect.tag}${location.search}`);
-                                                                location.href = url.href;
-                                                            }
+                                                            console.log(glitter.root_path);
                                                         }
                                                     }
                                                     return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
@@ -686,13 +707,15 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                 break;
                             }
                             case 'user-editor': {
-                                ApiShop.getFEGuideable().then(r => {
-                                    if (!r.response.value || !r.response.value.view) {
-                                        let bgGuide = new BgGuide(gvc, 0, "user-editor", 0);
-                                        ApiShop.setFEGuideable({});
-                                        bgGuide.drawGuide();
-                                    }
-                                });
+                                if (document.body.clientWidth > 1000) {
+                                    ApiShop.getFEGuideable().then(r => {
+                                        if (!r.response.value || !r.response.value.view) {
+                                            let bgGuide = new BgGuide(gvc, 0, "user-editor", 0);
+                                            ApiShop.setFEGuideable({});
+                                            bgGuide.drawGuide();
+                                        }
+                                    });
+                                }
                                 break;
                             }
                         }
@@ -707,6 +730,14 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 function initialEditor(gvc, viewModel) {
     var _a;
     const glitter = gvc.glitter;
+    glitter.share.switch_to_web_builder = (page) => {
+        glitter.setUrlParameter('function', 'user-editor');
+        glitter.changePage('jspage/main.js', page, true, {
+            appName: window.parent.glitter.getUrlParameter('appName'),
+        }, {
+            backGroundColor: `transparent;`,
+        });
+    };
     glitter.share.subscription = (title) => __awaiter(this, void 0, void 0, function* () {
         const dialog = new ShareDialog(glitter);
         const vm = {
@@ -1002,6 +1033,10 @@ function initialEditor(gvc, viewModel) {
     }
     glitter.share.addComponent = (data) => {
         glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
+        if (gvc.glitter.getUrlParameter('toggle-message') === 'true') {
+            gvc.glitter.setUrlParameter('toggle-message', undefined);
+            BgCustomerMessage.toggle(true, gvc);
+        }
         if (!viewModel.selectContainer) {
             viewModel.selectContainer = glitter.share.editorViewModel.data.config;
         }

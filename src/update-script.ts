@@ -27,9 +27,9 @@ export class UpdateScript {
         // }))
         // await this.migrateHomePageFooter(migrate_template)
         // await this.migrate_blogs_toPage()
-        for (const b of await db.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])){
-            await this.footer_migrate(b.appName)
-        }
+        // for (const b of await db.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])){
+        //     await this.footer_migrate(b.appName)
+        // }
 
     }
 

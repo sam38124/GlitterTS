@@ -68,17 +68,23 @@ export class Editor {
                 glitter.share.editor_vm.close();
             }
             else {
-                if (Storage.select_function !== 'backend-manger') {
-                    const url = new URL(location.href);
-                    url.searchParams.set('function', 'backend-manger');
-                    location.href = url.href;
+                if (glitter.pageConfig.length > 1) {
+                    glitter.setUrlParameter('function', 'backend-manger');
+                    glitter.goBack();
                 }
                 else {
-                    const url = new URL(location.href);
-                    url.searchParams.delete('appName');
-                    url.searchParams.delete('type');
-                    url.searchParams.set('page', 'backend_manager');
-                    location.href = url.href.replace(url.search, '');
+                    if (Storage.select_function !== 'backend-manger') {
+                        const url = new URL(location.href);
+                        url.searchParams.set('function', 'backend-manger');
+                        location.href = url.href;
+                    }
+                    else {
+                        const url = new URL(location.href);
+                        url.searchParams.delete('appName');
+                        url.searchParams.delete('type');
+                        url.searchParams.set('page', 'backend_manager');
+                        location.href = url.href.replace(url.search, '');
+                    }
                 }
             }
         }

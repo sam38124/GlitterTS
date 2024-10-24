@@ -35,9 +35,13 @@ export class FormWidget {
                         return new Promise((resolve) => {
                             window.glitter.getModule(glitter.root_path + `cms-plugin/module/form-module.js`, (module) => {
                                 var _a;
-                                resolve(module.editor(gvc, array, html ` <div class="tx_normal fw-bolder  d-flex flex-column" style="margin-bottom: 12px;">${(_a = obj.title) !== null && _a !== void 0 ? _a : '表單項目'}</div> `, () => {
+                                resolve(module.editor(gvc, array, html `
+                                        <div class="tx_normal fw-bolder  d-flex flex-column"
+                                             style="margin-bottom: 12px;">${(_a = obj.title) !== null && _a !== void 0 ? _a : '表單項目'}
+                                        </div> `, () => {
                                     refresh();
-                                }) + html `<div class="w-100 border-top my-3"></div>`);
+                                }) + html `
+                                            <div class="w-100 border-top my-3"></div>`);
                             });
                         });
                     },
@@ -75,9 +79,11 @@ export class FormWidget {
                                             view: () => {
                                                 const html = String.raw;
                                                 return html `${[
-                                                    html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 mt-n2 p-2 border-bottom shadow">
-                                                        <span class="fs-6 fw-bold " style="color:black;">表單插件設定</span>
-                                                    </div>`,
+                                                    html `
+                                                        <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 mt-n2 p-2 border-bottom shadow">
+                                                            <span class="fs-6 fw-bold "
+                                                                  style="color:black;">表單插件設定</span>
+                                                        </div>`,
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: 'Label名稱',
@@ -141,40 +147,47 @@ export class FormWidget {
                                                                     title: '選擇插件',
                                                                 });
                                                             })),
-                                                            html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
-                                                                <span class="fs-6 fw-bold " style="color:black;">表單設計</span>
-                                                            </div>`,
                                                             html `
-                                                                <div class="alert alert-info fs-6 fw-500" style="white-space: normal;">一列有12格，可自定義手機版與電腦版每列的顯示格數</div>
-                                                                <div class="d-flex align-items-center" style="gap:10px;">
+                                                                <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
+                                                                    <span class="fs-6 fw-bold " style="color:black;">表單設計</span>
+                                                                </div>`,
+                                                            html `
+                                                                <div class="alert alert-info fs-6 fw-500"
+                                                                     style="white-space: normal;">
+                                                                    一列有12格，可自定義手機版與電腦版每列的顯示格數
+                                                                </div>
+                                                                <div class="d-flex align-items-center"
+                                                                     style="gap:10px;">
                                                                     <div class="fs-6 fw-500">電腦版</div>
                                                                     <input
-                                                                        class="form-control flex-fill"
-                                                                        type="number"
-                                                                        placeholder=""
-                                                                        value="${dd.col}"
-                                                                        onchange="${obj.gvc.event((e, event) => {
+                                                                            class="form-control flex-fill"
+                                                                            type="number"
+                                                                            placeholder=""
+                                                                            value="${dd.col}"
+                                                                            onchange="${obj.gvc.event((e, event) => {
                                                                 dd.col = e.value;
                                                             })}"
                                                                     />
                                                                     <div class="fs-6 fw-500">手機版</div>
                                                                     <input
-                                                                        class="form-control flex-fill"
-                                                                        type="number"
-                                                                        value="${dd.col_sm}"
-                                                                        onchange="${obj.gvc.event((e, event) => {
+                                                                            class="form-control flex-fill"
+                                                                            type="number"
+                                                                            value="${dd.col_sm}"
+                                                                            onchange="${obj.gvc.event((e, event) => {
                                                                 dd.col_sm = e.value;
                                                             })}"
-                                                                        placeholder=""
+                                                                            placeholder=""
                                                                     />
                                                                 </div>
                                                             `,
                                                         ];
                                                         if (!obj.user_mode) {
                                                             config_array = config_array.concat([
-                                                                html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
-                                                                    <span class="fs-6 fw-bold " style="color:black;">進階設定</span>
-                                                                </div>`,
+                                                                html `
+                                                                    <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
+                                                                        <span class="fs-6 fw-bold "
+                                                                              style="color:black;">進階設定</span>
+                                                                    </div>`,
                                                                 EditorElem.editeInput({
                                                                     gvc: gvc,
                                                                     title: 'Key標籤',
@@ -239,16 +252,19 @@ export class FormWidget {
                                                                         })).response.result[0].page_config.formFormat;
                                                                         if (formFormat && formFormat.length > 0) {
                                                                             dd.form_config = dd.form_config || {};
-                                                                            resolve(html `<div
-                                                                                            class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow"
+                                                                            resolve(html `
+                                                                                        <div
+                                                                                                class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow"
                                                                                         >
-                                                                                            <span class="fs-6 fw-bold " style="color:black;">插件內容編輯</span>
+                                                                                            <span class="fs-6 fw-bold "
+                                                                                                  style="color:black;">插件內容編輯</span>
                                                                                         </div>
                                                                                         <div class="mx-n2">
                                                                                             ${FormWidget.editorView({
                                                                                 gvc: gvc,
                                                                                 array: formFormat,
-                                                                                refresh: (key) => { },
+                                                                                refresh: (key) => {
+                                                                                },
                                                                                 formData: dd.form_config,
                                                                             })}
                                                                                         </div>`);
@@ -363,7 +379,7 @@ export class FormWidget {
                 const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget, obj.subData);
                 const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);
                 const label = html `<label class="${labelCSS.class()}" style="${labelCSS.style()}"
-                            ><span class="text-danger  ${dd.require === 'true' ? `` : 'd-none'}"> * </span>${dd.title}</label
+                        ><span class="text-danger  ${dd.require === 'true' ? `` : 'd-none'}"> * </span>${dd.title}</label
                         >`;
                 const containerClass = `${dd.col ? `col-sm-${dd.col}` : 'col-sm-12'} ${dd.col_sm ? `col-${dd.col_sm}` : 'col-12'}  ${(_a = containerCss.class()) !== null && _a !== void 0 ? _a : ``}`;
                 const containerStyle = (_b = containerCss.style()) !== null && _b !== void 0 ? _b : ``;
@@ -379,9 +395,10 @@ export class FormWidget {
                 switch (dd.type) {
                     case 'textArea':
                         const textID = gvc.glitter.getUUID();
-                        return html ` <div class="${containerClass}" style="${containerStyle}">
-                                    ${label}
-                                    ${obj.gvc.bindView({
+                        return html `
+                                    <div class="${containerClass}" style="${containerStyle}">
+                                        ${label}
+                                        ${obj.gvc.bindView({
                             bind: textID,
                             view: () => {
                                 var _a;
@@ -413,7 +430,7 @@ export class FormWidget {
                                 autosize(obj.gvc.getBindViewElem(textID));
                             },
                         })}
-                                </div>`;
+                                    </div>`;
                     case 'array':
                         formData[dd.key] = Array.isArray(formData[dd.key]) ? formData[dd.key] : [];
                         return gvc.bindView(() => {
@@ -421,9 +438,10 @@ export class FormWidget {
                             return {
                                 bind: arrayViewID,
                                 view: () => {
-                                    return html ` <div class="${containerClass} mt-2" style="${containerStyle}">
-                                                ${label}
-                                                ${EditorElem.arrayItem({
+                                    return html `
+                                                <div class="${containerClass} mt-2" style="${containerStyle}">
+                                                    ${label}
+                                                    ${EditorElem.arrayItem({
                                         gvc: gvc,
                                         title: '',
                                         array: () => {
@@ -431,8 +449,9 @@ export class FormWidget {
                                                 return {
                                                     title: d2[dd.referTitile] || `選項:${index + 1}`,
                                                     innerHtml: (gvc) => {
-                                                        return html `<div class="my-2">
-                                                                        ${FormWidget.editorView({
+                                                        return html `
+                                                                            <div class="my-2">
+                                                                                ${FormWidget.editorView({
                                                             gvc: gvc,
                                                             array: dd.formList,
                                                             refresh: (key) => {
@@ -443,7 +462,7 @@ export class FormWidget {
                                                             formData: d2,
                                                             readonly: obj.readonly,
                                                         })}
-                                                                    </div>`;
+                                                                            </div>`;
                                                     },
                                                 };
                                             });
@@ -463,7 +482,7 @@ export class FormWidget {
                                             }),
                                         },
                                     })}
-                                            </div>`;
+                                                </div>`;
                                 },
                             };
                         });
@@ -507,30 +526,32 @@ export class FormWidget {
                             return dd.group !== 'glitter-article';
                         });
                     case 'fontawesome':
-                        return html `<div class="${containerClass}" style="${containerStyle}">
-                                    ${label}
-                                    <div class="alert alert-info p-2 mb-2" style="word-break: break-word;white-space: normal;">
-                                        前往<a
-                                            onclick="${gvc.event(() => {
+                        return html `
+                                    <div class="${containerClass}" style="${containerStyle}">
+                                        ${label}
+                                        <div class="alert alert-info p-2 mb-2"
+                                             style="word-break: break-word;white-space: normal;">
+                                            前往<a
+                                                onclick="${gvc.event(() => {
                             glitter.openNewTab('https://fontawesome.com');
                         })}"
-                                            style="cursor: pointer;"
-                                            class="mx-2 fw-bold mb-1"
-                                            >Fontawesome</a
+                                                style="cursor: pointer;"
+                                                class="mx-2 fw-bold mb-1"
+                                        >Fontawesome</a
                                         >官網，查找ICON標籤。
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value="${(_e = formData[dd.key]) !== null && _e !== void 0 ? _e : ''}"
-                                        class="${inputClass}"
-                                        style="${inputStyle}"
-                                        onchange="${gvc.event((e, event) => {
+                                        </div>
+                                        <input
+                                                type="text"
+                                                value="${(_e = formData[dd.key]) !== null && _e !== void 0 ? _e : ''}"
+                                                class="${inputClass}"
+                                                style="${inputStyle}"
+                                                onchange="${gvc.event((e, event) => {
                             formData[dd.key] = e.value;
                             obj.refresh(dd.key);
                         })}"
-                                        ${readonly ? `readonly` : ``}
-                                    />
-                                </div>`;
+                                                ${readonly ? `readonly` : ``}
+                                        />
+                                    </div>`;
                     case 'form_plugin':
                         return gvc.bindView(() => {
                             return {
@@ -554,7 +575,9 @@ export class FormWidget {
                             };
                         });
                     case 'form_plugin_v2':
-                        if (dd.hidden_code && dd.hidden_code.trim() && eval(`(() => { ${dd.hidden_code} })()`)) {
+                        if (dd.hidden_code && dd.hidden_code.trim() && eval(`(() => {
+                                    ${dd.hidden_code}
+                                })()`)) {
                             return ``;
                         }
                         return gvc.bindView(() => {
@@ -568,7 +591,8 @@ export class FormWidget {
                                     class: containerClass,
                                     style: containerStyle,
                                 },
-                                onCreate: () => { },
+                                onCreate: () => {
+                                },
                                 onInitial: () => {
                                     const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
                                     window.glitterInitialHelper.getPageData({
@@ -601,6 +625,8 @@ export class FormWidget {
                                                 });
                                             }
                                             loop(viewConfig);
+                                            console.log(`formPage==>`, dd.page);
+                                            console.log(`viewConfig===>`, viewConfig);
                                             return new glitter.htmlGenerate(viewConfig, [], {
                                                 root_form_data: obj.widget && obj.widget.formData,
                                                 root_widget: obj.widget,
@@ -615,14 +641,17 @@ export class FormWidget {
                                                 class: containerClass,
                                                 style: containerStyle,
                                                 containerID: id,
-                                                jsFinish: () => { },
-                                                onCreate: () => { },
+                                                jsFinish: () => {
+                                                },
+                                                onCreate: () => {
+                                                },
                                             }, createOption !== null && createOption !== void 0 ? createOption : {});
                                         }
                                         try {
                                             target && (target.outerHTML = getView());
                                         }
-                                        catch (e) { }
+                                        catch (e) {
+                                        }
                                     });
                                 },
                             };
@@ -633,16 +662,16 @@ export class FormWidget {
                             <div class=" ${containerClass}" style="${containerStyle}">
                                 ${label}
                                 <input
-                                    type="${dd.type}"
-                                    value="${(_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ''}"
-                                    class="${inputClass}"
-                                    style="${inputStyle}"
-                                    onchange="${gvc.event((e, event) => {
+                                        type="${dd.type}"
+                                        value="${(_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ''}"
+                                        class="${inputClass}"
+                                        style="${inputStyle}"
+                                        onchange="${gvc.event((e, event) => {
                     formData[dd.key] = e.value;
                     obj.refresh(dd.key);
                 })}"
-                                    placeholder="${(_g = dd.placeHolder) !== null && _g !== void 0 ? _g : ''}"
-                                    ${readonly ? `readonly` : ``}
+                                        placeholder="${(_g = dd.placeHolder) !== null && _g !== void 0 ? _g : ''}"
+                                        ${readonly ? `readonly` : ``}
                                 />
                             </div>
                         `;
@@ -658,26 +687,28 @@ export class FormWidget {
                 groupList[dd.group].push(dd);
             });
         }
-        return html `<div class="row m-0 p-0">
-            ${Object.keys(groupList)
+        return html `
+            <div class="row m-0 p-0">
+                ${Object.keys(groupList)
             .map((key) => {
             if (key) {
                 let toggle = {};
-                return html `<div class="mt-2">
-                            ${EditorElem.toggleExpand({
+                return html `
+                                    <div class="mt-2">
+                                        ${EditorElem.toggleExpand({
                     gvc: gvc,
                     title: key,
                     data: toggle,
                     innerText: getRaw(groupList[key]),
                 })}
-                        </div>`;
+                                    </div>`;
             }
             else {
                 return getRaw(groupList[key]);
             }
         })
             .join('')}
-        </div>`;
+            </div>`;
     }
 }
 Plugin.createComponent(import.meta.url, (glitter, editMode) => {
@@ -779,8 +810,9 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                         });
                                     }
                                     else {
-                                        return html `<div class="mx-n2">
-                                            ${FormWidget.settingView({
+                                        return html `
+                                            <div class="mx-n2">
+                                                ${FormWidget.settingView({
                                             gvc: gvc,
                                             array: config.array,
                                             refresh: () => {
@@ -789,7 +821,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                             widget: widget,
                                             subData: subData,
                                         })}
-                                        </div>`;
+                                            </div>`;
                                     }
                                 })(),
                             ].join('<div class="my-2"></div>');

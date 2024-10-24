@@ -171,8 +171,8 @@ export const widgetComponent = {
                                     style_user += widget.code_style || '';
                                     return {
                                         elem: elem,
-                                        class: classList.join(' '),
-                                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
+                                        class: classList.join(' ')+` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `hide-elem` : ``}` : ``}`,
+                                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${style_user}`,
                                         option: option.concat(htmlGenerate.option),
                                     }
                                 }

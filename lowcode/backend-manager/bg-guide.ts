@@ -4286,6 +4286,7 @@ export class BgGuide {
                                     ApiShop.getEditorGuide().then(r => {
                                         r.response.value.find((element: any) => element.title == "頁面編輯").finish = true;
                                         ApiShop.setEditorGuide(r.response.value)
+                                        this.leaveGuide(vm,1)
                                     })
                                 }
                             });
@@ -4322,9 +4323,8 @@ export class BgGuide {
                     case 1: {
                         const className: string = 'guide-user-editor-11';
                         let clickTarget = document.querySelector(`.${className}-icon`) as HTMLElement;
-                        clickTarget!.click();
                         if (!document.querySelector(`.${className}`)) {
-
+                            clickTarget!.click();
                             const timer = setInterval(() => {
                                 if (document.querySelector(`.${className}`)) {
                                     clearInterval(timer);
@@ -4333,7 +4333,6 @@ export class BgGuide {
                             }, 500)
                         }
                         let target = document.querySelector(`.${className}`);
-
                         if (target) {
                             //點擊完的icon會變色 也會是不同的dom元素
                             let clickTarget = document.querySelector(`.${className}-icon`) as HTMLElement;

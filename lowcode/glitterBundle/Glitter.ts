@@ -309,7 +309,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
 
         if ((window as any).drawer === undefined) {
-            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
+            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url).href], () => {
                 callback()
                 $("#Navigation").html(src);
             }, () => {
@@ -393,7 +393,13 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 success()
                 return
             }
-            var scritem: any = urlArray[index]
+            let scritem: any = urlArray[index]
+            if(typeof scritem==='string'){
+                scritem=new URL(scritem,glitter.root_path).href
+            }else{
+                scritem.src=new URL(scritem.src,glitter.root_path).href
+            }
+
             if (Glitter.glitter.share.scriptMemory.indexOf((scritem.src ?? scritem)) !== -1) {
                 index++
                 addScript()
@@ -603,6 +609,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const head = document.head || document;
 
         async function add(filePath: string) {
+            filePath=new URL(filePath,glitter.root_path).href
             return new Promise((resolve, reject) => {
                 const id = glitter.getUUID()
                 // 获取所有<a>标签
@@ -1158,7 +1165,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             glitter.addMtScript(
                 [{
                     type: 'module',
-                    src: js
+                    src: new URL(js, this.root_path).href
                 }],
                 () => {
                 },

@@ -8,6 +8,7 @@ import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 const html = String.raw;
 
 export class ColorSelector {
+
     public static main(cf: { gvc: GVC; formData: any; widget: any; key: string; callback: (data: any) => void }) {
         const globalValue = cf.gvc.glitter.share.editorViewModel.appConfig;
         globalValue.color_theme = globalValue.color_theme ?? [];
@@ -26,5 +27,4 @@ export class ColorSelector {
 
 
 }
-
 (window as any).glitter.setModule(import.meta.url, ColorSelector);

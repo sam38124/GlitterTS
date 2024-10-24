@@ -77,7 +77,7 @@ export class ArrayItems {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.dataLoading({ visible: true });
                                                         view.push(yield new Promise((resolve, reject) => {
-                                                            gvc.glitter.getModule(new URL('./official_view_component/official/form.js', location.href).href, (res) => {
+                                                            gvc.glitter.getModule(new URL('./official_view_component/official/form.js', gvc.glitter.root_path).href, (res) => {
                                                                 resolve(res.editorView({
                                                                     gvc: gvc,
                                                                     array: widget.bundle.form_config['form_array'] || [],

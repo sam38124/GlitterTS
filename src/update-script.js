@@ -7,9 +7,6 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        for (const b of await database_1.default.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])) {
-            await this.footer_migrate(b.appName);
-        }
     }
     static async footer_migrate(app_name) {
         const cf = (await database_1.default.query(`SELECT *

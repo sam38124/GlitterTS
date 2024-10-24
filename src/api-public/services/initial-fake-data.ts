@@ -20,7 +20,7 @@ await this.insertFakeUser()
         await db.query(`insert into \`${this.app_name}\`.t_user
                             (userID, account,userData,created_time,online_time,pwd) VALUES ?`,[
                                 fakeUser.map((dd)=>{
-                                    return [dd.userID,dd.account,JSON.stringify(dd.userData),dd.created_time,dd.online_time,dd.pwd]
+                                    return [dd.userID,dd.userData.email,JSON.stringify(dd.userData),dd.created_time,dd.online_time,dd.pwd]
                                 })
             ]
         )

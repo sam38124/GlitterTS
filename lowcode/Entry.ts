@@ -6,7 +6,6 @@ import {BaseApi} from './glitterBundle/api/base.js';
 import {GlobalUser} from './glitter-base/global/global-user.js';
 import {EditorConfig} from './editor-config.js';
 import {ShareDialog} from "./glitterBundle/dialog/ShareDialog.js";
-import {ApiUser} from "./glitter-base/route/user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -49,6 +48,9 @@ export class Entry {
                     scroll-behavior: auto !important;
                 }
             }
+              .hide-elem {
+            display: none !important;
+        }
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
@@ -56,7 +58,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_13.3.6";
+        glitter.share.editerVersion = "V_13.5.0";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;

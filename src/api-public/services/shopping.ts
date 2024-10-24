@@ -2952,6 +2952,7 @@ export class Shopping {
             const countArray = [];
 
             for (let index = 0; index < 14; index++) {
+
                 const orderCountSQL = `
                     SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout
@@ -3053,7 +3054,6 @@ export class Shopping {
                 });
                 countArray.unshift(total);
             }
-
             return { countArray };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);

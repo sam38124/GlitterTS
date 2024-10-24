@@ -74,6 +74,9 @@ router.get('/manager', async (req, resp) => {
             loop(collection_list_value);
         }
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_manager_post`).querySql(query, req.query);
+        if (!Array.isArray(data.data)) {
+            data.data = [data.data];
+        }
         data.data.map((dd) => {
             dd.content.collection = dd.content.collection || [];
             dd.content.collection = collection_title_map.filter((d1) => {
