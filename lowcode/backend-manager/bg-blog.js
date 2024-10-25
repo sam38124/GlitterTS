@@ -1320,7 +1320,7 @@ function setCollection(cf) {
                     cf.goBack();
                 }))}${BgWidget.title('分類設定')}
                     </div>
-                    <div
+                    ${BgWidget.container(html `<div
                         style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
                     >
                         <div style="width: 100%;  position: relative">
@@ -1587,8 +1587,8 @@ function setCollection(cf) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;left:0px;">
+                    </div>`)}
+                    <div class="update-bar-container">
                         ${BgWidget.cancel(gvc.event(() => {
                     cf.goBack();
                 }))}

@@ -258,7 +258,11 @@ export class ProductText {
                                     ),
                                     BgWidget.mainCard(
                                         html`<div>
-                                            <div class="tx_normal fw-normal">文本說明</div>
+                                            <div class="title-container">
+                                                <div class="tx_normal fw-normal">文本說明</div>
+                                                <div class="flex-fill"></div>
+                                                ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
+                                            </div>
                                             <div style="margin: 8px 0">
                                                 ${EditorElem.richText({
                                                     gvc: gvc,

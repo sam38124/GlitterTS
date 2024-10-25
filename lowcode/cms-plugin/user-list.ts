@@ -1293,7 +1293,7 @@ export class UserList {
                                                     };
                                                 }),
                                             ].join(BgWidget.mbContainer(24)),
-                                            ratio: 75,
+                                            ratio: 78,
                                         },
                                         {
                                             html: gvc.bindView(() => {
@@ -1379,7 +1379,7 @@ export class UserList {
                                                     },
                                                 };
                                             }),
-                                            ratio: 25,
+                                            ratio: 22,
                                         }
                                     ),
                                     // 空白容器

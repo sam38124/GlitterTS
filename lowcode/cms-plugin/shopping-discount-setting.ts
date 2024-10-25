@@ -1475,7 +1475,7 @@ export class ShoppingDiscountSetting {
                                             })
                                         ),
                                     ].join(BgWidget.mbContainer(24)),
-                                    ratio: 65,
+                                    ratio: 68,
                                 },
                                 {
                                     // 摘要預覽
@@ -1514,7 +1514,7 @@ export class ShoppingDiscountSetting {
                                             },
                                         };
                                     }),
-                                    ratio: 35,
+                                    ratio: 32,
                                 }
                             ),
                             // 空白容器

@@ -441,7 +441,15 @@ export class ShoppingFinanceSetting {
             id: gvc.glitter.getUUID(),
             loading: true,
             data: {},
-            delivery: {},
+            delivery: {
+                Action: 'test',
+                toggle: 'false',
+                HASH_IV: '',
+                HASH_KEY: '',
+                SenderName: '',
+                MERCHANT_ID: '',
+                SenderCellPhone: '',
+            },
         };
         saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
             if (r.response.result[0]) {
@@ -499,12 +507,12 @@ export class ShoppingFinanceSetting {
                                                         height: 350,
                                                     }),
                                                     ...(() => {
-                                                        vm.delivery.toggle = vm.delivery.toggle || 'false';
+                                                        var _a, _b, _c, _d, _e, _f, _g;
                                                         let array = [
                                                             BgWidget.inlineCheckBox({
                                                                 title: '啟用狀態',
                                                                 gvc: gvc,
-                                                                def: vm.delivery.toggle,
+                                                                def: (_a = vm.delivery.toggle) !== null && _a !== void 0 ? _a : 'false',
                                                                 array: [
                                                                     {
                                                                         title: '關閉',
@@ -519,6 +527,7 @@ export class ShoppingFinanceSetting {
                                                                     vm.delivery.toggle = text;
                                                                     gvc.notifyDataChange(id);
                                                                 },
+                                                                type: 'single',
                                                             }),
                                                         ];
                                                         if (vm.delivery.toggle === 'true') {
@@ -526,7 +535,7 @@ export class ShoppingFinanceSetting {
                                                                 BgWidget.inlineCheckBox({
                                                                     title: '串接路徑',
                                                                     gvc: gvc,
-                                                                    def: vm.delivery.Action,
+                                                                    def: (_b = vm.delivery.Action) !== null && _b !== void 0 ? _b : 'test',
                                                                     array: [
                                                                         {
                                                                             title: '正式站',
@@ -540,11 +549,12 @@ export class ShoppingFinanceSetting {
                                                                     callback: (text) => {
                                                                         vm.delivery.Action = text;
                                                                     },
+                                                                    type: 'single',
                                                                 }),
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '寄件人名稱',
-                                                                    default: vm.delivery.SenderName,
+                                                                    default: (_c = vm.delivery.SenderName) !== null && _c !== void 0 ? _c : '',
                                                                     callback: (text) => {
                                                                         vm.delivery.SenderName = text;
                                                                     },
@@ -553,7 +563,7 @@ export class ShoppingFinanceSetting {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '寄件人手機',
-                                                                    default: vm.delivery.SenderCellPhone,
+                                                                    default: (_d = vm.delivery.SenderCellPhone) !== null && _d !== void 0 ? _d : '',
                                                                     callback: (text) => {
                                                                         vm.delivery.SenderCellPhone = text;
                                                                     },
@@ -562,7 +572,7 @@ export class ShoppingFinanceSetting {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '特店編號',
-                                                                    default: vm.delivery.MERCHANT_ID,
+                                                                    default: (_e = vm.delivery.MERCHANT_ID) !== null && _e !== void 0 ? _e : '',
                                                                     callback: (text) => {
                                                                         vm.delivery.MERCHANT_ID = text;
                                                                     },
@@ -571,7 +581,7 @@ export class ShoppingFinanceSetting {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: 'HASH KEY',
-                                                                    default: vm.delivery.HASH_KEY,
+                                                                    default: (_f = vm.delivery.HASH_KEY) !== null && _f !== void 0 ? _f : '',
                                                                     callback: (text) => {
                                                                         vm.delivery.HASH_KEY = text;
                                                                     },
@@ -580,7 +590,7 @@ export class ShoppingFinanceSetting {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: 'HASH IV',
-                                                                    default: vm.delivery.HASH_IV,
+                                                                    default: (_g = vm.delivery.HASH_IV) !== null && _g !== void 0 ? _g : '',
                                                                     callback: (text) => {
                                                                         vm.delivery.HASH_IV = text;
                                                                     },
@@ -597,9 +607,14 @@ export class ShoppingFinanceSetting {
                                         onCreate: () => {
                                             if (loading) {
                                                 ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
-                                                    if (res.result) {
-                                                        vm.delivery = res.response.result[0].value;
-                                                    }
+                                                    vm.delivery = (() => {
+                                                        try {
+                                                            return res.response.result[0].value;
+                                                        }
+                                                        catch (error) {
+                                                            return vm.delivery;
+                                                        }
+                                                    })();
                                                     loading = false;
                                                     gvc.notifyDataChange(id);
                                                 });

@@ -1307,7 +1307,7 @@ export class ShoppingDiscountSetting {
                                     };
                                 })),
                             ].join(BgWidget.mbContainer(24)),
-                            ratio: 65,
+                            ratio: 68,
                         }, {
                             html: gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -1340,7 +1340,7 @@ export class ShoppingDiscountSetting {
                                     },
                                 };
                             }),
-                            ratio: 35,
+                            ratio: 32,
                         }),
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">

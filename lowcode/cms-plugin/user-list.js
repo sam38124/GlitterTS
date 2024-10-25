@@ -1184,7 +1184,7 @@ export class UserList {
                                             };
                                         }),
                                     ].join(BgWidget.mbContainer(24)),
-                                    ratio: 75,
+                                    ratio: 78,
                                 }, {
                                     html: gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
@@ -1267,7 +1267,7 @@ export class UserList {
                                             },
                                         };
                                     }),
-                                    ratio: 25,
+                                    ratio: 22,
                                 }),
                                 BgWidget.mbContainer(240),
                                 html ` <div class="update-bar-container">
