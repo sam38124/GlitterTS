@@ -309,14 +309,12 @@ class ManagerNotify {
             await this.sendEmail(saas.userData.email, '您有一筆新的訂單', body, link);
         }
         if (this.findSetting(settings, 'sms', setKey)) {
-            console.log('SMS here');
-            console.log({ data: body, phone: saas.userData.phone });
             new sms_js_1.SMS(this.app_name).sendSNS({ data: body, phone: saas.userData.phone }, () => { });
         }
         if (this.findSetting(settings, 'line', setKey)) {
             new line_message_js_1.LineMessage(saas.brand).sendLine({
                 data: {
-                    text: '123' + body,
+                    text: body,
                     attachment: '',
                 },
                 lineID: saas.userData.lineID,

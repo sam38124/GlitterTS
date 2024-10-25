@@ -454,7 +454,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                         },
                                                     })}
                                                                     </div>
-                                                                    <div class="w-100 border-bottom mt-2 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"></div>
+                                                                    <div class="w-100 border-bottom mt-2"></div>
                                                                     <ul class="list-group list-group-flush mt-2">
                                                                         ${(() => {
                                                         return gvc.bindView(() => {
