@@ -361,8 +361,8 @@ export class FilterOptions {
             type: 'multi_checkbox',
             name: '寄件類型',
             data: [
-                { key: 'auto-email-payment-successful', name: '訂單付款成功' },
                 { key: 'auto-email-order-create', name: '訂單成立' },
+                { key: 'auto-email-payment-successful', name: '訂單付款成功' },
                 { key: 'proof-purchase', name: '訂單待核款' },
                 // { key: 'auto-email-order-cancel-success', name: '取消訂單成功' },
                 // { key: 'auto-email-order-cancel-false', name: '取消訂單失敗' },

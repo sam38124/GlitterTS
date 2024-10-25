@@ -16,6 +16,7 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const ai_robot_js_1 = require("./ai-robot.js");
 const fb_message_js_1 = require("./fb-message.js");
 const line_message_js_1 = require("./line-message.js");
+const notify_js_1 = require("./notify.js");
 const Jimp = require('jimp');
 class Chat {
     async addChatRoom(room) {
@@ -67,14 +68,14 @@ class Chat {
                     ]);
                 }
                 return {
-                    result: "OK",
-                    create: true
+                    result: 'OK',
+                    create: true,
                 };
             }
             else {
                 return {
-                    result: "OK",
-                    create: false
+                    result: 'OK',
+                    create: false,
                 };
             }
         }
@@ -126,8 +127,7 @@ class Chat {
                                     try {
                                         b.user_data = (_b = ((_a = (await new user_js_1.User(this.app).getUserData(user, 'userID'))) !== null && _a !== void 0 ? _a : {}).userData) !== null && _b !== void 0 ? _b : {};
                                     }
-                                    catch (e) {
-                                    }
+                                    catch (e) { }
                                 }
                             }
                             resolve(true);
@@ -162,38 +162,32 @@ class Chat {
                 throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
             if (room.chat_id.startsWith('line') && room.user_id == 'manager') {
-                const newChatId = room.chat_id.slice(5).split("-")[0];
+                const newChatId = room.chat_id.slice(5).split('-')[0];
                 await new line_message_js_1.LineMessage(this.app).sendLine({
                     data: room.message,
-                    lineID: newChatId
-                }, () => {
-                });
+                    lineID: newChatId,
+                }, () => { });
             }
-            if (room.chat_id.startsWith('fb') && room.user_id == "manager") {
-                const newChatId = room.chat_id.slice(3).split("-")[0];
+            if (room.chat_id.startsWith('fb') && room.user_id == 'manager') {
+                const newChatId = room.chat_id.slice(3).split('-')[0];
                 await new fb_message_js_1.FbMessage(this.app).sendMessage({
                     data: room.message,
-                    fbID: newChatId
-                }, () => {
-                });
+                    fbID: newChatId,
+                }, () => { });
             }
             let user = (await database_1.default.query(`SELECT userID, userData
                      FROM \`${this.app}\`.t_user
                      where userID = ?`, [room.user_id]))[0];
             if (room.user_id.startsWith('line')) {
                 user = {
-                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [
-                        [room.user_id, 'manager'].sort().join('-')
-                    ]))[0]['info']['line'],
-                    userID: -1
+                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['line'],
+                    userID: -1,
                 };
             }
             else if (room.user_id.startsWith('fb')) {
                 user = {
-                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [
-                        [room.user_id, 'manager'].sort().join('-')
-                    ]))[0]['info']['fb'],
-                    userID: -1
+                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['fb'],
+                    userID: -1,
                 };
             }
             const particpant = await database_1.default.query(`SELECT *
@@ -206,11 +200,7 @@ class Chat {
                     insert into \`${this.app}\`.\`t_chat_detail\`
                         (chat_id, user_id, message, created_time)
                     values (?, ?, ?, NOW())
-                `, [
-                room.chat_id,
-                room.user_id,
-                JSON.stringify(room.message)
-            ]);
+                `, [room.chat_id, room.user_id, JSON.stringify(room.message)]);
             for (const dd of (_a = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _a !== void 0 ? _a : []) {
                 await this.updateLastRead(dd.user_id, room.chat_id);
                 const userData = (await database_1.default.query(`select userData
@@ -240,13 +230,13 @@ class Chat {
                             var _a, _b, _c;
                             switch (b.user_id) {
                                 case 'writer':
-                                    resolve(await ai_robot_js_1.AiRobot.writer(this.app, (_a = room.message.text) !== null && _a !== void 0 ? _a : ""));
+                                    resolve(await ai_robot_js_1.AiRobot.writer(this.app, (_a = room.message.text) !== null && _a !== void 0 ? _a : ''));
                                     return;
                                 case 'order_analysis':
-                                    resolve(await ai_robot_js_1.AiRobot.orderAnalysis(this.app, (_b = room.message.text) !== null && _b !== void 0 ? _b : ""));
+                                    resolve(await ai_robot_js_1.AiRobot.orderAnalysis(this.app, (_b = room.message.text) !== null && _b !== void 0 ? _b : ''));
                                     return;
                                 case 'operation_guide':
-                                    resolve(await ai_robot_js_1.AiRobot.guide(this.app, (_c = room.message.text) !== null && _c !== void 0 ? _c : ""));
+                                    resolve(await ai_robot_js_1.AiRobot.guide(this.app, (_c = room.message.text) !== null && _c !== void 0 ? _c : ''));
                                     return;
                             }
                         });
@@ -254,11 +244,7 @@ class Chat {
                                 insert into \`${this.app}\`.\`t_chat_detail\`
                                     (chat_id, user_id, message, created_time)
                                 values (?, ?, ?, NOW())
-                            `, [
-                            room.chat_id,
-                            b.user_id,
-                            JSON.stringify(response)
-                        ]);
+                            `, [room.chat_id, b.user_id, JSON.stringify(response)]);
                         for (const dd of (_c = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _c !== void 0 ? _c : []) {
                             const userData = (await database_1.default.query(`select userData
                                      from \`${this.app}\`.t_user
@@ -300,7 +286,7 @@ class Chat {
                                         b.user_id,
                                         JSON.stringify({
                                             text: d.response,
-                                        })
+                                        }),
                                     ]);
                                     for (const dd of (_g = web_socket_js_1.WebSocket.chatMemory[this.app + room.chat_id]) !== null && _g !== void 0 ? _g : []) {
                                         const userData = (await database_1.default.query(`select userData
@@ -392,21 +378,12 @@ class Chat {
             }) &&
                 room.user_id !== 'manager') {
                 const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
-                await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
-                await new firebase_js_1.Firebase(managerUser.brand).sendMessage({
-                    title: `收到客服訊息`,
-                    userID: managerUser.user_id,
-                    tag: 'message',
-                    link: `./?type=editor&appName=${this.app}&function=backend-manger&tab=home_page&toggle-message=true`,
-                    body: room.message.image ? `${user.userData.name}傳送一張圖片給你` : `${user.userData.name}傳送一則訊息給你:「${(() => {
-                        var _a;
-                        let text = (_a = room.message.text) !== null && _a !== void 0 ? _a : "";
-                        if (text.length > 25) {
-                            text = (text === null || text === void 0 ? void 0 : text.substring(0, 25)) + '...';
-                        }
-                        return text;
-                    })()}」`,
-                    pass_store: true
+                await new notify_js_1.ManagerNotify(this.app).customerMessager({
+                    title: template.title,
+                    content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
+                    user_name: user.userData.name,
+                    room_image: room.message.image,
+                    room_text: room.message.text,
                 });
             }
         }

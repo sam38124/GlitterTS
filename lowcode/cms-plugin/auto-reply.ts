@@ -122,8 +122,8 @@ export class AutoReply {
                                             vm.dataList = [
                                                 'auto-email-shipment-arrival',
                                                 'auto-email-shipment',
-                                                'auto-email-payment-successful',
                                                 'auto-email-order-create',
+                                                'auto-email-payment-successful',
                                                 'proof-purchase',
                                                 // 'auto-email-order-cancel-success',
                                                 // 'auto-email-order-cancel-false',
@@ -308,19 +308,19 @@ export class AutoReply {
                 toggle: true,
             },
             {
-                tag: 'auto-email-payment-successful',
-                tag_name: '訂單付款成功',
-                name: '@{{app_name}}',
-                title: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
-                content: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
-                toggle: true,
-            },
-            {
                 tag: 'auto-email-order-create',
                 tag_name: '訂單成立',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
                 content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+                toggle: true,
+            },
+            {
+                tag: 'auto-email-payment-successful',
+                tag_name: '訂單付款成功',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 付款狀態 更新為: 已付款',
                 toggle: true,
             },
             {

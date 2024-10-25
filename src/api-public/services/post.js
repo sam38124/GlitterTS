@@ -52,8 +52,6 @@ class Post {
             }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
-            console.log('content');
-            console.log(content);
             await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                  SET ?
                  WHERE id = ${data.insertId}`, [content]);
@@ -75,7 +73,6 @@ class Post {
             const sql = (() => {
                 return eval(sq.sql);
             })().replaceAll('$app', `\`${this.app}\``);
-            console.log(`sqlApi:`, sql);
             await database_1.default.query(sql, []);
         }
         catch (e) {
@@ -143,7 +140,7 @@ class Post {
                             });
                         }
                         catch (e) {
-                            console.log(e);
+                            console.error(e);
                             reject(e);
                         }
                     });
@@ -274,7 +271,6 @@ class Post {
                                 query += getQueryString(dd);
                             });
                         }
-                        console.log(`query---`, query);
                         if (content.selectOnly) {
                             content.selectOnly = JSON.parse(content.selectOnly);
                             content.selectOnly.map((dd, index) => {
@@ -306,7 +302,6 @@ class Post {
                                     order by id desc ${(0, database_1.limit)(content)}`;
                     }
                 })();
-                console.log(`sql---${sql.replace('$countIndex', '')}`);
                 const data = await v.query(sql.replace('$countIndex', ''), []);
                 for (const dd of data) {
                     if (!dd.userID) {
@@ -334,15 +329,13 @@ class Post {
                     }
                 })();
                 countText = countText.substring(0, (_a = countText.indexOf(' order ')) !== null && _a !== void 0 ? _a : countText.length);
-                console.log(`countText:${countText}`);
-                console.log(`countSql:${countSql}`);
                 return {
                     data: data,
                     count: countSql ? (await v.query(countSql, [content]))[0]['count(1)'] : (await v.query(countText, [content]))[0]['count(1)'],
                 };
             }
             catch (e) {
-                console.log(e);
+                console.error(e);
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
             }
         });

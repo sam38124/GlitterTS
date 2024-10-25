@@ -1004,11 +1004,11 @@ export class SaasViewModel {
                         status: true,
                     },
                     {
-                        key: 'auto-email-payment-successful',
+                        key: 'auto-email-order-create',
                         status: true,
                     },
                     {
-                        key: 'auto-email-order-create',
+                        key: 'auto-email-payment-successful',
                         status: true,
                     },
                     {
@@ -1016,7 +1016,7 @@ export class SaasViewModel {
                         status: true,
                     },
                     {
-                        key: 'auto-email-birthday',
+                        key: 'user-register',
                         status: true,
                     },
                     {
@@ -1082,14 +1082,14 @@ export class SaasViewModel {
                                                                         return '商品出貨';
                                                                     case 'auto-email-shipment-arrival':
                                                                         return '商品到貨';
-                                                                    case 'auto-email-payment-successful':
-                                                                        return '訂單付款成功';
                                                                     case 'auto-email-order-create':
                                                                         return '訂單成立';
+                                                                    case 'auto-email-payment-successful':
+                                                                        return '訂單付款成功';
                                                                     case 'proof-purchase':
                                                                         return '訂單待核款';
-                                                                    case 'auto-email-birthday':
-                                                                        return '顧客生日祝福';
+                                                                    case 'user-register':
+                                                                        return '顧客新註冊通知';
                                                                     case 'get-customer-message':
                                                                         return '客服訊息';
                                                                     case 'form-receive':

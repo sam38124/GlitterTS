@@ -2020,7 +2020,7 @@ export class Shopping {
                 // 商品到貨信件通知（消費者）
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
+                        await sns.sendCustomerSns('auto-sns-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('到貨簡訊寄送成功');
                     }
                     if (data.orderData.customer_info.lineID) {
@@ -2029,7 +2029,6 @@ export class Shopping {
                         console.log('付款成功line訊息寄送成功');
                     }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
-                    // await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
 
                 if (origin[0].status !== 1 && update.status === 1) {
@@ -2952,7 +2951,6 @@ export class Shopping {
             const countArray = [];
 
             for (let index = 0; index < 14; index++) {
-
                 const orderCountSQL = `
                     SELECT count(1) as c
                     FROM \`${this.app}\`.t_checkout

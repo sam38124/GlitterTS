@@ -1,10 +1,7 @@
 import db, { limit, queryLambada } from '../../modules/database';
 import exception from '../../modules/exception';
-import tool from '../../services/tool';
-import UserUtil from '../../utils/UserUtil';
 import { IToken } from '../models/Auth.js';
 import { App } from '../../services/app.js';
-import { sendMessage } from '../../firebase/message.js';
 import { Shopping } from './shopping.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { ManagerNotify } from './notify.js';
@@ -37,8 +34,6 @@ export class Post {
             }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
-            console.log('content');
-            console.log(content);
             await db.query(
                 `update \`${this.app}\`.\`${tb}\`
                  SET ?
@@ -64,7 +59,6 @@ export class Post {
             const sql = (() => {
                 return eval(sq.sql);
             })().replaceAll('$app', `\`${this.app}\``);
-            console.log(`sqlApi:`, sql);
             await db.query(sql, []);
         } catch (e) {
             console.error(e);
@@ -146,7 +140,7 @@ export class Post {
                                         resolve({ result: false, message: e });
                                     });
                             } catch (e) {
-                                console.log(e);
+                                console.error(e);
                                 reject(e);
                             }
                         });
@@ -276,7 +270,6 @@ export class Post {
                                 });
                             }
 
-                            console.log(`query---`, query);
                             if (content.selectOnly) {
                                 content.selectOnly = JSON.parse(content.selectOnly);
                                 content.selectOnly.map((dd: any, index: number) => {
@@ -309,7 +302,6 @@ export class Post {
                                     order by id desc ${limit(content)}`;
                         }
                     })();
-                    console.log(`sql---${sql.replace('$countIndex', '')}`);
 
                     const data = await v.query(sql.replace('$countIndex', ''), []);
                     for (const dd of data) {
@@ -330,7 +322,6 @@ export class Post {
                         }
                         dd.userData = userData[dd.userID];
                     }
-                    // console.log(`sql:${sql}`)
                     let countText = (() => {
                         if (sql.indexOf('$countIndex') !== -1) {
                             const index = sql.indexOf('$countIndex');
@@ -342,14 +333,12 @@ export class Post {
                         }
                     })();
                     countText = countText.substring(0, countText.indexOf(' order ') ?? countText.length);
-                    console.log(`countText:${countText}`);
-                    console.log(`countSql:${countSql}`);
                     return {
                         data: data,
                         count: countSql ? (await v.query(countSql, [content]))[0]['count(1)'] : (await v.query(countText, [content]))[0]['count(1)'],
                     };
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                     throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
                 }
             }

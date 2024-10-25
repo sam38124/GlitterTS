@@ -111,8 +111,8 @@ export class AutoReply {
                             vmi = vmk;
                             vmi.pageSize = Math.ceil(1);
                             vm.dataList = [
-                                'auto-line-shipment-arrival',
                                 'auto-line-shipment',
+                                'auto-line-shipment-arrival',
                                 'auto-line-payment-successful',
                                 'auto-line-order-create',
                                 'line-proof-purchase',

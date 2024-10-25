@@ -576,7 +576,7 @@ export class ShoppingFinanceSetting {
                                                                                     '5. 寄件人手機應為09開頭的格式',
                                                                                 ])}
                                                                             </div>`,
-                                                                            height: 350,
+                                                                            height: document.body.clientWidth > 768 ? 300 : 385,
                                                                         }),
                                                                         ...(() => {
                                                                             let array: any = [

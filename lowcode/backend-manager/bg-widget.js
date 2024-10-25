@@ -1632,7 +1632,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         }
         return html ` <div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
-            ${messageList && messageList.length > 0 ? `<div class="mt-2">${h}</div>` : ``}
+            ${messageList && messageList.length > 0 ? html `<div class="mt-2" style="white-space: normal;">${h}</div>` : ``}
         </div>`;
     }
     static selNavbar(data) {

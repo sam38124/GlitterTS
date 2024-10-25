@@ -1526,7 +1526,7 @@ class Shopping {
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns('auto-email-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
+                        await sns.sendCustomerSns('auto-sns-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('到貨簡訊寄送成功');
                     }
                     if (data.orderData.customer_info.lineID) {

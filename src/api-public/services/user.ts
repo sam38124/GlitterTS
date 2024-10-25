@@ -21,7 +21,6 @@ import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { saasConfig } from '../../config';
 import { SMS } from './sms.js';
-import { BadRequestError } from 'openai/error.js';
 import { FormCheck } from './form-check.js';
 import { LoginTicket } from 'google-auth-library/build/src/auth/loginticket.js';
 
@@ -283,8 +282,7 @@ export class User {
         }
 
         //發送用戶註冊通知
-        const manager = new ManagerNotify(this.app);
-        manager.userRegister({ user_id: userID });
+        new ManagerNotify(this.app).userRegister({ user_id: userID });
     }
 
     public async updateAccount(account: string, userID: string): Promise<any> {
@@ -293,9 +291,10 @@ export class User {
             switch (configAd.verify) {
                 case 'mail':
                     const checkToken = getUUID();
-                    const url = `<h1>${configAd.name}</h1><p>
-<a href="${config.domain}/api-public/v1/user/checkMail/updateAccount?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a>
-</p>`;
+                    const url = `<h1>${configAd.name}</h1>
+                        <p>
+                            <a href="${config.domain}/api-public/v1/user/checkMail/updateAccount?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a>
+                        </p>`;
                     await sendmail(`service@ncdesign.info`, account, `信箱認證`, url);
                     return {
                         type: 'mail',

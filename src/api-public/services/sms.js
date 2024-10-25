@@ -17,14 +17,14 @@ class SMS {
     }
     async chunkSendSNS(data, id, date) {
         try {
-            let msgid = "";
+            let msgid = '';
             for (const b of chunkArray(Array.from(new Set(data.phone)), 10)) {
                 let check = b.length;
                 await new Promise((resolve) => {
                     for (const d of b) {
                         this.sendSNS({ data: data.content, phone: d, date: date }, (res) => {
                             check--;
-                            console.log(" res -- ", res);
+                            console.log(' res -- ', res);
                             if (check === 0) {
                                 database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers SET status = ${date ? 0 : 1} , content = JSON_SET(content, '$.name', '${res.msgid}') WHERE id = ?;`, [id]);
                                 resolve(true);
@@ -43,28 +43,32 @@ class SMS {
         try {
             if (await this.checkPoints(obj.data, 1)) {
                 let snsData = {
-                    username: (_a = config_1.default.SNSAccount) !== null && _a !== void 0 ? _a : "",
-                    password: (_b = config_1.default.SNSPWD) !== null && _b !== void 0 ? _b : "",
+                    username: (_a = config_1.default.SNSAccount) !== null && _a !== void 0 ? _a : '',
+                    password: (_b = config_1.default.SNSPWD) !== null && _b !== void 0 ? _b : '',
                     dstaddr: obj.phone,
                     smsPointFlag: 1,
-                    smbody: obj.data
+                    smbody: obj.data.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''),
                 };
                 if (obj.date) {
                     snsData.dlvtime = obj.date;
                 }
                 const urlConfig = {
                     method: 'post',
-                    url: config_1.default.SNS_URL + "/api/mtk/SmSend?CharsetURL=UTF8",
+                    url: config_1.default.SNS_URL + '/api/mtk/SmSend?CharsetURL=UTF8',
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    data: snsData
+                    data: snsData,
                 };
                 await this.usePoints({
-                    message: obj.data, user_count: 1, order_id: obj.order_id, phone: obj.phone
+                    message: obj.data,
+                    user_count: 1,
+                    order_id: obj.order_id,
+                    phone: obj.phone,
                 });
                 return new Promise((resolve, reject) => {
-                    axios_1.default.request(urlConfig)
+                    axios_1.default
+                        .request(urlConfig)
                         .then((response) => {
                         let result = response.data.split('\r\n');
                         let snsResponse = {
@@ -78,7 +82,7 @@ class SMS {
                         resolve(response.data);
                     })
                         .catch((error) => {
-                        console.log("error -- ", error);
+                        console.error('error -- ', error);
                         resolve(false);
                     });
                 });
@@ -97,18 +101,19 @@ class SMS {
                 method: 'post',
                 url: config_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_1.default.SNSAccount}&password=${config_1.default.SNSPWD}&msgid=${obj.id}`,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                data: []
+                data: [],
             };
             return new Promise((resolve, reject) => {
-                axios_1.default.request(urlConfig)
+                axios_1.default
+                    .request(urlConfig)
                     .then((response) => {
                     callback(response.data);
                     resolve(response.data);
                 })
                     .catch((error) => {
-                    console.log("error -- ", error);
+                    console.log('error -- ', error);
                     resolve(false);
                 });
             });
@@ -172,12 +177,12 @@ class SMS {
         }
     }
     async postSns(data) {
-        if (!await this.checkPoints(data.content, data.phone.length)) {
+        if (!(await this.checkPoints(data.content, data.phone.length))) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'No_Points', {
-                message: '餘額不足'
+                message: '餘額不足',
             });
         }
-        data.msgid = "";
+        data.msgid = '';
         try {
             if (Boolean(data.sendTime)) {
                 if (isLater(data.sendTime)) {
@@ -230,8 +235,7 @@ class SMS {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(await this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => {
-                }));
+                resolve(await this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => { }));
             });
         }
     }
@@ -241,7 +245,7 @@ class SMS {
                      FROM \`${brandAndMemberType.brand}\`.t_sms_points
                      WHERE status in (1, 2)
                        and userID = ?`, [brandAndMemberType.user_id]))[0]['sum(money)'] || 0;
-        return sum > (this.getUsePoints(message, user_count));
+        return sum > this.getUsePoints(message, user_count);
     }
     async usePoints(obj) {
         if (!obj.phone) {
@@ -258,9 +262,9 @@ class SMS {
                 status: 1,
                 note: JSON.stringify({
                     message: obj.message,
-                    phone: obj.phone
-                })
-            }
+                    phone: obj.phone,
+                }),
+            },
         ]);
         return total * -1;
     }

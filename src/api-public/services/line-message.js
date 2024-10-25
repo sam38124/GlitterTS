@@ -48,27 +48,28 @@ class LineMessage {
         try {
             const post = new user_js_1.User(this.app, this.token);
             let tokenData = await post.getConfig({
-                key: "login_line_setting",
-                user_id: "manager",
+                key: 'login_line_setting',
+                user_id: 'manager',
             });
             let token = `Bearer ${tokenData[0].value.message_token}`;
             const urlConfig = {
                 method: 'get',
                 url: `https://api.line.me/v2/bot/profile/${obj.lineID}`,
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": token
+                    'Content-Type': 'application/json',
+                    Authorization: token,
                 },
-                data: {}
+                data: {},
             };
             return new Promise((resolve, reject) => {
-                axios_1.default.request(urlConfig)
+                axios_1.default
+                    .request(urlConfig)
                     .then((response) => {
                     callback(response.data);
                     resolve(response.data);
                 })
                     .catch((error) => {
-                    console.log("error -- ", error.data);
+                    console.log('error -- ', error.data);
                     resolve(false);
                 });
             });
@@ -79,20 +80,22 @@ class LineMessage {
     }
     async sendLine(obj, callback) {
         try {
+            obj.data.text = obj.data.text ? obj.data.text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '') : undefined;
             const post = new user_js_1.User(this.app, this.token);
             let tokenData = await post.getConfig({
-                key: "login_line_setting",
-                user_id: "manager",
+                key: 'login_line_setting',
+                user_id: 'manager',
             });
             let token = `${tokenData[0].value.message_token}`;
             if (obj.data.image) {
                 const imageUrl = obj.data.image;
                 const outputFilePath = 'image_cropped.jpeg';
-                axios_1.default.get(imageUrl, { responseType: 'arraybuffer' })
-                    .then(response => jimp_1.Jimp.read(Buffer.from(response.data)))
+                axios_1.default
+                    .get(imageUrl, { responseType: 'arraybuffer' })
+                    .then((response) => jimp_1.Jimp.read(Buffer.from(response.data)))
                     .then(async (image) => {
-                    const small = await image.clone().scaleToFit({ w: 240, h: 240 }).getBuffer("image/jpeg");
-                    const large = await image.clone().scaleToFit({ w: 1024, h: 1024 }).getBuffer("image/jpeg");
+                    const small = await image.clone().scaleToFit({ w: 240, h: 240 }).getBuffer('image/jpeg');
+                    const large = await image.clone().scaleToFit({ w: 1024, h: 1024 }).getBuffer('image/jpeg');
                     return [small, large];
                 })
                     .then((base64) => {
@@ -104,61 +107,63 @@ class LineMessage {
                                     {
                                         type: 'image',
                                         originalContentUrl: largeUrl,
-                                        previewImageUrl: smallUrl
-                                    }
-                                ]
+                                        previewImageUrl: smallUrl,
+                                    },
+                                ],
                             };
                             return new Promise((resolve, reject) => {
-                                axios_1.default.post('https://api.line.me/v2/bot/message/push', message, {
+                                axios_1.default
+                                    .post('https://api.line.me/v2/bot/message/push', message, {
                                     headers: {
                                         'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${token}`
-                                    }
+                                        Authorization: `Bearer ${token}`,
+                                    },
                                 })
-                                    .then(response => {
+                                    .then((response) => {
                                     console.log('圖片消息已成功發送:', response.data);
                                     callback(response);
                                     resolve(response.data);
                                 })
-                                    .catch(error => {
+                                    .catch((error) => {
                                     console.error('發送圖片消息時發生錯誤:', error.response ? error.response.data : error.message);
                                 });
                             });
                         });
                     });
                 })
-                    .catch(err => {
+                    .catch((err) => {
                     console.error('處理圖片時發生錯誤:', err);
                 });
             }
             else {
                 let postData = {
-                    "to": obj.lineID,
-                    "messages": [
+                    to: obj.lineID,
+                    messages: [
                         {
-                            "type": "text",
-                            "text": obj.data.text
-                        }
-                    ]
+                            type: 'text',
+                            text: obj.data.text,
+                        },
+                    ],
                 };
                 const urlConfig = {
                     method: 'post',
-                    url: "https://api.line.me/v2/bot/message/push",
+                    url: 'https://api.line.me/v2/bot/message/push',
                     headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
                     },
-                    data: JSON.stringify(postData)
+                    data: JSON.stringify(postData),
                 };
                 return new Promise((resolve, reject) => {
-                    axios_1.default.request(urlConfig)
+                    axios_1.default
+                        .request(urlConfig)
                         .then((response) => {
                         callback(response);
                         resolve(response.data);
                     })
                         .catch((error) => {
                         console.log(error);
-                        console.log("error -- ", error.data);
+                        console.log('error -- ', error.data);
                         resolve(false);
                     });
                 });
@@ -174,18 +179,19 @@ class LineMessage {
                 method: 'post',
                 url: config_js_1.default.SNS_URL + `/api/mtk/SmCancel?username=${config_js_1.default.SNSAccount}&password=${config_js_1.default.SNSPWD}&msgid=${obj.id}`,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                data: []
+                data: [],
             };
             return new Promise((resolve, reject) => {
-                axios_1.default.request(urlConfig)
+                axios_1.default
+                    .request(urlConfig)
                     .then((response) => {
                     callback(response.data);
                     resolve(response.data);
                 })
                     .catch((error) => {
-                    console.log("error -- ", error);
+                    console.log('error -- ', error);
                     resolve(false);
                 });
             });
@@ -251,7 +257,7 @@ class LineMessage {
         }
     }
     async postLine(data) {
-        data.msgid = "";
+        data.msgid = '';
         try {
             if (Boolean(data.sendTime)) {
                 if (isLater(data.sendTime)) {
@@ -307,20 +313,20 @@ class LineMessage {
     async listenMessage(data) {
         try {
             let message = data.events[0].message;
-            let userID = "line_" + data.events[0].source.userId;
+            let userID = 'line_' + data.events[0].source.userId;
             let chatData = {
-                chat_id: [userID, "manager"].sort().join(''),
-                type: "user",
+                chat_id: [userID, 'manager'].sort().join(''),
+                type: 'user',
                 info: {},
                 user_id: userID,
-                participant: [userID, "manager"]
+                participant: [userID, 'manager'],
             };
             await this.getLineInf({ lineID: data.events[0].source.userId }, (data) => {
                 chatData.info = {
                     line: {
                         name: data.displayName,
-                        head: data.pictureUrl
-                    }
+                        head: data.pictureUrl,
+                    },
                 };
                 chatData.info = JSON.stringify(chatData.info);
             });
@@ -336,24 +342,24 @@ class LineMessage {
                     },
                     {
                         chat_id: chatData.chat_id,
-                    }
+                    },
                 ]);
             }
             if (message.type == 'image') {
                 const post = new user_js_1.User(this.app, this.token);
                 let tokenData = await post.getConfig({
-                    key: "login_line_setting",
-                    user_id: "manager",
+                    key: 'login_line_setting',
+                    user_id: 'manager',
                 });
                 let token = `${tokenData[0].value.message_token}`;
                 let imageUrl = await this.getImageContent(message.id, token);
                 chatData.message = {
-                    "image": imageUrl
+                    image: imageUrl,
                 };
             }
             else {
                 chatData.message = {
-                    "text": message.text
+                    text: message.text,
                 };
             }
             await new chat_js_1.Chat(this.app).addMessage(chatData);
@@ -369,9 +375,8 @@ class LineMessage {
             await new Promise(async (resolve) => {
                 resolve(await this.sendLine({
                     data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    lineID: lineID
-                }, (res) => {
-                }));
+                    lineID: lineID,
+                }, (res) => { }));
             });
         }
     }
@@ -383,7 +388,7 @@ class LineMessage {
                 },
                 responseType: 'arraybuffer',
             });
-            console.log("response.data -- ", response.data);
+            console.log('response.data -- ', response.data);
             return await this.uploadFile(`line/${messageId}/${new Date().getTime()}.png`, response.data);
         }
         catch (error) {
@@ -408,7 +413,7 @@ class LineMessage {
                 else {
                     return mime.getType(fullUrl.split('.').pop());
                 }
-            })()
+            })(),
         };
         return new Promise((resolve, reject) => {
             AWSLib_js_1.default.getSignedUrl('putObject', params, async (err, url) => {
@@ -423,12 +428,14 @@ class LineMessage {
                         url: url,
                         data: fileData,
                         headers: {
-                            "Content-Type": params.ContentType
-                        }
-                    }).then(() => {
+                            'Content-Type': params.ContentType,
+                        },
+                    })
+                        .then(() => {
                         console.log(fullUrl);
                         resolve(fullUrl);
-                    }).catch(() => {
+                    })
+                        .catch(() => {
                         console.log(`convertError:${fullUrl}`);
                     });
                 }
@@ -441,7 +448,7 @@ class LineMessage {
                      FROM \`${brandAndMemberType.brand}\`.t_sms_points
                      WHERE status in (1, 2)
                        and userID = ?`, [brandAndMemberType.user_id]))[0]['sum(money)'] || 0;
-        return sum > (this.getUsePoints(message, user_count));
+        return sum > this.getUsePoints(message, user_count);
     }
     async usePoints(obj) {
         if (!obj.phone) {
@@ -458,9 +465,9 @@ class LineMessage {
                 status: 1,
                 note: JSON.stringify({
                     message: obj.message,
-                    phone: obj.phone
-                })
-            }
+                    phone: obj.phone,
+                }),
+            },
         ]);
         return total * -1;
     }

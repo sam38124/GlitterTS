@@ -209,8 +209,7 @@ class User {
                 deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
             });
         }
-        const manager = new notify_js_1.ManagerNotify(this.app);
-        manager.userRegister({ user_id: userID });
+        new notify_js_1.ManagerNotify(this.app).userRegister({ user_id: userID });
     }
     async updateAccount(account, userID) {
         try {
@@ -218,9 +217,10 @@ class User {
             switch (configAd.verify) {
                 case 'mail':
                     const checkToken = (0, tool_1.getUUID)();
-                    const url = `<h1>${configAd.name}</h1><p>
-<a href="${config_js_1.default.domain}/api-public/v1/user/checkMail/updateAccount?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a>
-</p>`;
+                    const url = `<h1>${configAd.name}</h1>
+                        <p>
+                            <a href="${config_js_1.default.domain}/api-public/v1/user/checkMail/updateAccount?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a>
+                        </p>`;
                     await (0, ses_js_1.sendmail)(`service@ncdesign.info`, account, `信箱認證`, url);
                     return {
                         type: 'mail',
