@@ -44,170 +44,181 @@ export class ThirdPartyLine {
                         return BgWidget.spinner();
                     }
                     return [
-                        BgWidget.title('臉書串接設定'),
+                        html `<div class="title-container">
+                                    ${BgWidget.title('臉書串接設定')}
+                                    <div class="flex-fill"></div>
+                                </div>`,
                         BgWidget.mbContainer(18),
-                        `<div class="d-flex justify-content-center mx-sm-n3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                                     style="gap: 24px">
-                                    ${BgWidget.container([
-                            BgWidget.card([
-                                `<div class="tx_700">臉書登入設定</div>`,
-                                `<div class="d-flex align-items-center" style="gap:10px;">
-啟用臉書登入${BgWidget.switchButton(gvc, vm.data.facebook_toggle, () => {
-                                    vm.data.facebook_toggle = !vm.data.facebook_toggle;
-                                    gvc.notifyDataChange(id);
-                                })}</div>`,
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式編號
-</div>`,
-                                    default: vm.data.id,
-                                    placeHolder: '請前往META開發者後台取得應用程式編號',
-                                    callback: (text) => {
-                                        vm.data.id = text;
-                                    },
-                                }),
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `<div class="d-flex align-items-center" style="gap:10px;">
-應用程式密鑰
-</div>`,
-                                    default: vm.data.secret,
-                                    placeHolder: '請前往META開發者後台取得應用程式密鑰',
-                                    callback: (text) => {
-                                        vm.data.secret = text;
-                                    },
-                                }),
-                                `<div onclick="${gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain);
-                                    dialog.successMessage({ text: '已複製至剪貼簿' });
-                                })}">
-${BgWidget.editeInput({
-                                    readonly: true,
-                                    gvc: gvc,
-                                    title: `<div class="d-flex flex-column" style="gap:5px;">
-允許網域 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的Javascript允許網域')}
-</div>`,
-                                    default: `https://` + window.parent.glitter.share.editorViewModel.domain,
-                                    placeHolder: '',
-                                    callback: (text) => { },
-                                })}
-</div>`,
-                                `<div onclick="${gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/login');
-                                    dialog.successMessage({ text: '已複製至剪貼簿' });
-                                })}">
-${BgWidget.editeInput({
-                                    readonly: true,
-                                    gvc: gvc,
-                                    title: `<div class="d-flex flex-column" style="gap:5px;">
-重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
-</div>`,
-                                    default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
-                                    placeHolder: '',
-                                    callback: (text) => { },
-                                })}
-</div>`,
-                                `<div onclick="${gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/register');
-                                    dialog.successMessage({ text: '已複製至剪貼簿' });
-                                })}">
-${BgWidget.editeInput({
-                                    readonly: true,
-                                    gvc: gvc,
-                                    title: `<div class="d-flex flex-column" style="gap:5px;">
-重新導向URI『 註冊頁 』  ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
-</div>`,
-                                    default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
-                                    placeHolder: '',
-                                    callback: (text) => { },
-                                })}
-</div>`,
-                            ].join(BgWidget.mbContainer(12))),
-                            BgWidget.card([
-                                `<div class="tx_700">臉書訊息綁定</div>`,
-                                `<div class="d-flex align-items-center" style="gap:10px;">
-                                        啟用臉書訊息綁定${BgWidget.switchButton(gvc, vm.data.message_toggle, () => {
-                                    vm.data.message_toggle = !vm.data.message_toggle;
-                                    gvc.notifyDataChange(id);
-                                })}</div>`,
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `<div class="d-flex align-items-center" style="gap:10px;">
-粉絲團ID
-</div>`,
-                                    default: vm.data.fans_id,
-                                    placeHolder: '請輸入粉絲團ID',
-                                    callback: (text) => {
-                                        vm.data.fans_id = text;
-                                    },
-                                }),
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `<div class="d-flex align-items-center" style="gap:10px;">
-粉絲團TOKEN
-</div>`,
-                                    default: vm.data.fans_token,
-                                    placeHolder: '請輸入粉絲團TOKEN',
-                                    callback: (text) => {
-                                        vm.data.fans_token = text;
-                                    },
-                                }),
-                                html `<div
+                        BgWidget.container1x2({
+                            html: [
+                                BgWidget.mainCard([
+                                    html `<div class="tx_700">臉書登入設定</div>`,
+                                    html `<div class="d-flex align-items-center" style="gap:10px;">
+                                                        啟用臉書登入${BgWidget.switchButton(gvc, vm.data.facebook_toggle, () => {
+                                        vm.data.facebook_toggle = !vm.data.facebook_toggle;
+                                        gvc.notifyDataChange(id);
+                                    })}
+                                                    </div>`,
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex align-items-center" style="gap:10px;">應用程式編號</div>`,
+                                        default: vm.data.id,
+                                        placeHolder: '請前往META開發者後台取得應用程式編號',
+                                        callback: (text) => {
+                                            vm.data.id = text;
+                                        },
+                                    }),
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex align-items-center" style="gap:10px;">應用程式密鑰</div>`,
+                                        default: vm.data.secret,
+                                        placeHolder: '請前往META開發者後台取得應用程式密鑰',
+                                        callback: (text) => {
+                                            vm.data.secret = text;
+                                        },
+                                    }),
+                                    html `<div
                                                         onclick="${gvc.event(() => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    navigator.clipboard.writeText(`${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`);
-                                    dialog.successMessage({ text: '已複製至剪貼簿' });
-                                })}"
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain);
+                                        dialog.successMessage({ text: '已複製至剪貼簿' });
+                                    })}"
                                                     >
                                                         ${BgWidget.editeInput({
-                                    readonly: true,
-                                    gvc: gvc,
-                                    title: `<div class="d-flex flex-column" style="gap:5px;">
-Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Messaging API 中的設定 Webhooks -> 編輯 -> 回呼網址，並將"my_secret_token"填入驗證權杖欄位中')}
-</div>`,
-                                    default: `${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`,
-                                    placeHolder: '',
-                                    callback: (text) => { },
-                                })}
+                                        readonly: true,
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex flex-column" style="gap:5px;">
+                                                                允許網域 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的Javascript允許網域')}
+                                                            </div>`,
+                                        default: `https://` + window.parent.glitter.share.editorViewModel.domain,
+                                        placeHolder: '',
+                                        callback: (text) => { },
+                                    })}
                                                     </div>`,
-                            ].join(BgWidget.mbContainer(12))),
-                            BgWidget.card([
-                                `<div class="tx_700">臉書像素(Pixel)</div>`,
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `透過臉書像素來追蹤你的廣告成效`,
-                                    default: vm.data.pixel,
-                                    placeHolder: '請前往META開發者後台取得像素編號',
-                                    callback: (text) => {
-                                        vm.data.pixel = text;
-                                    },
-                                }),
-                                BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: `轉換API token`,
-                                    default: vm.data.api_token,
-                                    placeHolder: '請前往META開發者後台取得轉換 API token',
-                                    callback: (text) => {
-                                        vm.data.api_token = text;
-                                    },
-                                }),
-                            ].join(BgWidget.mbContainer(12))),
-                        ].join(BgWidget.mbContainer(24)))}
-                              ${BgWidget.container([
-                            BgWidget.card([
-                                `<div class="tx_700">操作說明</div>`,
-                                `<div class="tx_normal">設定FACEBOOK串接，實現臉書登入、訊息同步，與用戶行為追蹤</div>`,
-                                `<div class="tx_normal">前往 ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
-                                    window.parent.glitter.openNewTab('https://shopnex.cc/blogs/fbapiconnect');
-                                }))} 查看串接設定流程</div>`,
-                            ].join(BgWidget.mbContainer(12))),
-                        ].join(BgWidget.mbContainer(24)))}
-                               <div class="update-bar-container">
-                               ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                    html `<div
+                                                        onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/login');
+                                        dialog.successMessage({ text: '已複製至剪貼簿' });
+                                    })}"
+                                                    >
+                                                        ${BgWidget.editeInput({
+                                        readonly: true,
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex flex-column" style="gap:5px;">
+                                                                重新導向URI『 登入頁 』 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
+                                                            </div>`,
+                                        default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/login',
+                                        placeHolder: '',
+                                        callback: (text) => { },
+                                    })}
+                                                    </div>`,
+                                    html `<div
+                                                        onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        navigator.clipboard.writeText(`https://` + window.parent.glitter.share.editorViewModel.domain + '/register');
+                                        dialog.successMessage({ text: '已複製至剪貼簿' });
+                                    })}"
+                                                    >
+                                                        ${BgWidget.editeInput({
+                                        readonly: true,
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex flex-column" style="gap:5px;">
+                                                                重新導向URI『 註冊頁 』 ${BgWidget.grayNote('點擊複製此連結至FACEBOOK開發者後台的OAuth重新導向URI')}
+                                                            </div>`,
+                                        default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/register',
+                                        placeHolder: '',
+                                        callback: (text) => { },
+                                    })}
+                                                    </div>`,
+                                ].join(BgWidget.mbContainer(12))),
+                                BgWidget.mainCard([
+                                    html `<div class="tx_700">臉書訊息綁定</div>`,
+                                    html `<div class="d-flex align-items-center" style="gap:10px;">
+                                                        啟用臉書訊息綁定${BgWidget.switchButton(gvc, vm.data.message_toggle, () => {
+                                        vm.data.message_toggle = !vm.data.message_toggle;
+                                        gvc.notifyDataChange(id);
+                                    })}
+                                                    </div>`,
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex align-items-center" style="gap:10px;">粉絲團ID</div>`,
+                                        default: vm.data.fans_id,
+                                        placeHolder: '請輸入粉絲團ID',
+                                        callback: (text) => {
+                                            vm.data.fans_id = text;
+                                        },
+                                    }),
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex align-items-center" style="gap:10px;">粉絲團TOKEN</div>`,
+                                        default: vm.data.fans_token,
+                                        placeHolder: '請輸入粉絲團TOKEN',
+                                        callback: (text) => {
+                                            vm.data.fans_token = text;
+                                        },
+                                    }),
+                                    html `<div
+                                                        onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        navigator.clipboard.writeText(`${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`);
+                                        dialog.successMessage({ text: '已複製至剪貼簿' });
+                                    })}"
+                                                    >
+                                                        ${BgWidget.editeInput({
+                                        readonly: true,
+                                        gvc: gvc,
+                                        title: html `<div class="d-flex flex-column" style="gap:5px;">
+                                                                Webhook URL
+                                                                ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Messaging API 中的設定 Webhooks -> 編輯 -> 回呼網址，並將"my_secret_token"填入驗證權杖欄位中')}
+                                                            </div>`,
+                                        default: `${window.parent.config.url}/api-public/v1/fb_message/listenMessage?g-app=${window.parent.appName}`,
+                                        placeHolder: '',
+                                        callback: (text) => { },
+                                    })}
+                                                    </div>`,
+                                ].join(BgWidget.mbContainer(12))),
+                                BgWidget.mainCard([
+                                    html `<div class="tx_700">臉書像素(Pixel)</div>`,
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: `透過臉書像素來追蹤你的廣告成效`,
+                                        default: vm.data.pixel,
+                                        placeHolder: '請前往META開發者後台取得像素編號',
+                                        callback: (text) => {
+                                            vm.data.pixel = text;
+                                        },
+                                    }),
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: `轉換API token`,
+                                        default: vm.data.api_token,
+                                        placeHolder: '請前往META開發者後台取得轉換 API token',
+                                        callback: (text) => {
+                                            vm.data.api_token = text;
+                                        },
+                                    }),
+                                ].join(BgWidget.mbContainer(12))),
+                            ].join(BgWidget.mbContainer(24)),
+                            ratio: 70,
+                        }, {
+                            html: [
+                                BgWidget.summaryCard([
+                                    html `<div class="tx_700">操作說明</div>`,
+                                    html `<div class="tx_normal">設定FACEBOOK串接，實現臉書登入、訊息同步，與用戶行為追蹤</div>`,
+                                    html `<div class="tx_normal">
+                                                        前往
+                                                        ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
+                                        window.parent.glitter.openNewTab('https://shopnex.cc/blogs/fbapiconnect');
+                                    }))}
+                                                        查看串接設定流程
+                                                    </div>`,
+                                ].join(BgWidget.mbContainer(12))),
+                            ].join(BgWidget.mbContainer(24)),
+                            ratio: 30,
+                        }),
+                        html `<div class="update-bar-container">
+                                    ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ visible: true });
                             const cf = (yield ApiUser.getPublicConfig('login_config', 'manager')).response.value || {};
@@ -227,7 +238,6 @@ Webhook URL ${BgWidget.grayNote('點擊複製此連結至FB開發者後台的Mes
                                 gvc.closeDialog();
                             });
                         })))}
-</div>
                                 </div>`,
                     ].join('');
                 },

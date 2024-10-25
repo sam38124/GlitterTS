@@ -60,7 +60,7 @@ export class BgProject {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`登入認證`)}
                     <div class="flex-fill"></div>
                     <button
@@ -593,7 +593,7 @@ export class BgProject {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                            <div class="title-container ${type === 'select' ? `d-none` : ``}">
                                 ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -1270,7 +1270,7 @@ export class BgProject {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`模板發佈`)}
                     ${(() => {
                         return (() => {
@@ -1857,7 +1857,7 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.title('結帳事件')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
@@ -1927,7 +1927,7 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.title('SEO 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
@@ -1997,7 +1997,7 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.title('SiteMap 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
@@ -2067,7 +2067,7 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`登入觸發事件`)}
                     <div class="flex-fill"></div>
                     <button

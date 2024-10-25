@@ -55,7 +55,7 @@ export class WebConfigSetting {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('網站配置檔')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(

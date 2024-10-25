@@ -33,7 +33,7 @@ export class BgShopping {
                     var _a, _b;
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title(' 訂單管理')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -677,7 +677,7 @@ export class BgShopping {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title('折扣管理')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -1530,7 +1530,7 @@ ${EditorElem.editeInput({
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="title-container">
                                     ${BgWidget.title('商品管理')}
                                     <div class="flex-fill"></div>
                                     <button
@@ -1730,7 +1730,7 @@ ${EditorElem.editeInput({
             return {
                 bind: id,
                 view: () => {
-                    return html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                    return html ` <div class="title-container ">
                                 ${BgWidget.title('商品系列管理')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -1841,7 +1841,7 @@ ${EditorElem.editeInput({
             return {
                 bind: id,
                 view: () => {
-                    return html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                    return html ` <div class="title-container ">
                                 ${BgWidget.title('商品顯示區塊')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -2872,7 +2872,7 @@ ${EditorElem.editeInput({
             });
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`金流設定`)}
                     <div class="flex-fill"></div>
                     <button
@@ -3036,7 +3036,7 @@ ${EditorElem.editeInput({
                         </div>`;
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title(`電子發票設定`)}
                                 <div class="flex-fill"></div>
                                 <button
@@ -3189,7 +3189,7 @@ ${EditorElem.editeInput({
                         </div>`;
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title(`物流設定`)}
                                 <div class="flex-fill"></div>
                                 <button
@@ -3287,7 +3287,7 @@ ${EditorElem.editeInput({
             });
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`運費設定`)}
                     <div class="flex-fill"></div>
                     <button

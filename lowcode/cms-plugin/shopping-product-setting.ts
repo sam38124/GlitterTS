@@ -1860,8 +1860,8 @@ export class ShoppingProductSetting {
                             `)}
                             ${BgWidget.mainCard(html`
                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                    <div class="d-flex w-100 align-items-center" style="font-size: 16px;font-weight: 700;">
-                                        商品管理
+                                    <div class="title-container px-0">
+                                        <div style="color:#393939;font-weight: 700;">商品管理</div>
                                         <div class="flex-fill"></div>
                                         ${BgWidget.grayButton(
                                             '商品條碼',
@@ -2384,7 +2384,6 @@ export class ShoppingProductSetting {
                                                                         ${BgWidget.aiChatButton({
                                                                             gvc,
                                                                             select: 'writer',
-                                                                            title: '使用AI文案寫手',
                                                                         })}
                                                                         <div class="flex-fill"></div>
                                                                         <div

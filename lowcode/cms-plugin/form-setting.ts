@@ -58,7 +58,7 @@ export class FormSetting {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('表單設定')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -313,7 +313,7 @@ export class FormSetting {
                     view: () => {
                         try {
                             return [
-                                html` <div class="d-flex w-100 align-items-center mb-3 ">
+                                html` <div class="title-container ">
                                     ${BgWidget.goBack(
                                         gvc.event(() => {
                                             if (viewType === 'preview') {

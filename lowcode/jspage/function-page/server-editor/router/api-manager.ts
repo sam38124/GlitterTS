@@ -423,7 +423,7 @@ data-bs-title="下載專案壓縮檔"
                     });
                 } else {
                     return BgWidget.container(html`
-                        <div class="d-flex w-100 align-items-center mb-3 ">
+                        <div class="title-container ">
                             ${BgWidget.title('專案部署')}
                             <div class="flex-fill"></div>
                             <button

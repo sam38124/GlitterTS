@@ -192,7 +192,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('信件樣式')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -332,7 +332,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('寄件紀錄')}
                                     <div class="flex-fill"></div>
                                 </div>
@@ -507,6 +507,7 @@ export class BgNotify {
     public static emailEditor(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any; readonly?: boolean }) {
         const gvc = obj.gvc;
         const vm = obj.vm;
+        const dialog = new ShareDialog(gvc.glitter);
         const postData: {
             id: string;
             content: string;
@@ -650,17 +651,38 @@ export class BgNotify {
                                         })
                                     ),
                                     BgWidget.mainCard(
-                                        html`<div class="d-flex align-items-center mb-3">
+                                        html`<div class="d-flex w-100 align-items-center justify-content-between p-0 mb-2">
                                                 <div class="tx_normal fw-normal me-2">信件內文</div>
-                                                ${obj.readonly
-                                                    ? ''
-                                                    : BgWidget.selEventButton(
-                                                          '範例',
-                                                          obj.gvc.event(() => {
-                                                              postData.content = defaultEmailText();
-                                                              obj.gvc.notifyDataChange(bi);
-                                                          })
-                                                      )}
+                                                <div class="d-flex align-items-center gap-2">
+                                                    ${obj.readonly
+                                                        ? ''
+                                                        : BgWidget.customButton({
+                                                              button: {
+                                                                  color: 'snow',
+                                                                  size: 'md',
+                                                              },
+                                                              text: {
+                                                                  name: '範例',
+                                                              },
+                                                              event: obj.gvc.event(() => {
+                                                                  if (postData.content.length > 0) {
+                                                                      dialog.checkYesOrNot({
+                                                                          callback: (bool) => {
+                                                                              if (bool) {
+                                                                                  postData.content = defaultEmailText();
+                                                                                  obj.gvc.notifyDataChange(bi);
+                                                                              }
+                                                                          },
+                                                                          text: '此操作會覆蓋當前的內文，<br />確定要執行嗎？',
+                                                                      });
+                                                                  } else {
+                                                                      postData.content = defaultEmailText();
+                                                                      obj.gvc.notifyDataChange(bi);
+                                                                  }
+                                                              }),
+                                                          })}
+                                                    ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
+                                                </div>
                                             </div>
                                             ${obj.readonly
                                                 ? html`<div class="p-1">${postData.content}</div>`
@@ -1192,7 +1214,7 @@ export class BgNotify {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center">
+                <div class="title-container">
                     ${BgWidget.title('手動寄件')}
                     <div class="flex-fill"></div>
                 </div>
@@ -1461,15 +1483,36 @@ export class BgNotify {
                                                                 postData.title = text;
                                                             },
                                                         }),
-                                                        html`<div class="d-flex align-items-center mb-3">
+                                                        html`<div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
                                                                 <div class="tx_normal fw-normal me-2">信件內文</div>
-                                                                ${BgWidget.selEventButton(
-                                                                    '範例',
-                                                                    gvc.event(() => {
-                                                                        postData.content = defaultEmailText();
-                                                                        gvc.notifyDataChange(vm.containerId);
-                                                                    })
-                                                                )}
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    ${BgWidget.customButton({
+                                                                        button: {
+                                                                            color: 'snow',
+                                                                            size: 'md',
+                                                                        },
+                                                                        text: {
+                                                                            name: '範例',
+                                                                        },
+                                                                        event: gvc.event(() => {
+                                                                            if (postData.content.length > 0) {
+                                                                                dialog.checkYesOrNot({
+                                                                                    callback: (bool) => {
+                                                                                        if (bool) {
+                                                                                            postData.content = defaultEmailText();
+                                                                                            gvc.notifyDataChange(vm.containerId);
+                                                                                        }
+                                                                                    },
+                                                                                    text: '此操作會覆蓋當前的內文，<br />確定要執行嗎？',
+                                                                                });
+                                                                            } else {
+                                                                                postData.content = defaultEmailText();
+                                                                                gvc.notifyDataChange(vm.containerId);
+                                                                            }
+                                                                        }),
+                                                                    })}
+                                                                    ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
+                                                                </div>
                                                             </div>
                                                             ${EditorElem.richText({
                                                                 gvc: gvc,
@@ -1798,7 +1841,7 @@ export class BgNotify {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
+                            <div class="title-container ${type === 'select' ? `d-none` : ``}">
                                 ${BgWidget.title('已訂閱裝置')}
                                 <div class="flex-fill"></div>
                             </div>
@@ -1912,7 +1955,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('推播訊息管理')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -2289,7 +2332,7 @@ export class BgNotify {
                         );
                     }
                     return BgWidget.container(html`
-                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('回饋信件')}
                             <div class="flex-fill"></div>
                         </div>
@@ -2609,7 +2652,7 @@ export class BgNotify {
                         );
                     }
                     return BgWidget.container(html`
-                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('客服訊息')}
                             <div class="flex-fill"></div>
                             <button

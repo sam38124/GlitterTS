@@ -287,7 +287,19 @@ export class BgWidget {
         </div>`;
     }
 
-    static aiChatButton(obj: { gvc: GVC; select: 'writer' | 'order_analysis' | 'operation_guide'; title: string }) {
+    static aiChatButton(obj: { gvc: GVC; select: 'writer' | 'order_analysis' | 'operation_guide'; title?: string }) {
+        const text =
+            obj.title ??
+            (() => {
+                switch (obj.select) {
+                    case 'writer':
+                        return '使用AI文案寫手';
+                    case 'order_analysis':
+                        return '使用AI分析工具';
+                    case 'operation_guide':
+                        return '使用AI操作導引';
+                }
+            })();
         return html`<div
             class="bt_orange_lin"
             onclick="${obj.gvc.event(() => {
@@ -295,7 +307,7 @@ export class BgWidget {
                 (window.parent as any).glitter.share.ai_message.toggle(true);
             })}"
         >
-            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-1" style="width: 24px; height: 24px;" />${obj.title}
+            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-1" style="width: 24px; height: 24px;" />${text}
         </div>`;
     }
 
@@ -1897,11 +1909,12 @@ ${obj.default ?? ''}</textarea
     }
 
     static card(htmlString: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100') {
-        return html` <div class="${classStyle}">${htmlString}</div>`;
+        // return html` <div class="${classStyle}">${htmlString}</div>`;
+        return this.mainCard(htmlString);
     }
 
     static mainCard(htmlString: string) {
-        return html`<div class="main-card">${htmlString ?? ''}</div>`;
+        return html`<div class="main-card">${htmlString}</div>`;
     }
 
     static summaryCard(htmlString: string) {
@@ -1969,7 +1982,7 @@ ${obj.default ?? ''}</textarea
                 h += html`<p class="mb-1">${str}</p>`;
             });
         }
-        return html` <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal;word-break: break-all;${css.style} ">
+        return html` <div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
             ${messageList && messageList.length > 0 ? `<div class="mt-2">${h}</div>` : ``}
         </div>`;

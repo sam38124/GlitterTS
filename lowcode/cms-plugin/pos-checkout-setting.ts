@@ -46,7 +46,7 @@ export class PosCheckoutSetting {
             view: () => {
                 return BgWidget.container(
                     html`
-                        <div class="d-flex w-100 align-items-center">
+                        <div class="title-container">
                             ${BgWidget.title(`發票設定`)}
                             <div class="flex-fill"></div>
                         </div>

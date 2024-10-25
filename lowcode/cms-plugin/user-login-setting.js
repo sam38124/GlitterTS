@@ -41,7 +41,7 @@ export class UserLoginSetting {
             });
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`自動發信`)}
                     <div class="flex-fill"></div>
                 </div>
@@ -212,7 +212,7 @@ export class UserLoginSetting {
             });
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="title-container ">
                     ${BgWidget.title(`登入認證ㄉ`)}
                     <div class="flex-fill"></div>
                     <button

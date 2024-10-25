@@ -100,8 +100,8 @@ export class AutoReply {
                         });
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('LINE自動發送訊息')}
+                            <div class="title-container">
+                                ${BgWidget.title('LINE 自動發送訊息')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
@@ -205,9 +205,9 @@ export class AutoReply {
                                 placeHolder: '請輸入寄件者名稱',
                             }),
                             html `
-                                        <div class="d-flex mt-3 mb-2">
-                                            <div class="d-flex" style="color: #393939;font-size: 15px;">簡訊內容</div>
-                                            <div class="d-flex align-items-end ms-3" style="font-size: 12px;color: #8D8D8D">預計每則簡訊花費${pointCount * this.ticket}點</div>
+                                        <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
+                                            <div class="d-flex align-items-center gap-2">${EditorElem.h3('簡訊內文')} ${BgWidget.grayNote(`預計每則簡訊花費${pointCount * this.ticket}點`)}</div>
+                                            <div>${BgWidget.aiChatButton({ gvc, select: 'writer' })}</div>
                                         </div>
                                     `,
                             EditorElem.editeText({

@@ -150,7 +150,7 @@ export class BgLine {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('訊息定型文')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
@@ -271,7 +271,7 @@ export class BgLine {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('寄件紀錄')}
                                     <div class="flex-fill"></div>
                                 </div>
@@ -1054,8 +1054,8 @@ export class BgLine {
             ].join(BgWidget.mbContainer(18));
         }
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center">
-                    ${BgWidget.title('line手動發送')}
+                <div class="title-container">
+                    ${BgWidget.title('LINE手動發送')}
                     <div class="flex-fill"></div>
                 </div>
                 ${BgWidget.mbContainer(18)}
@@ -1298,12 +1298,37 @@ export class BgLine {
                                 view: () => {
                                     return [
                                         html `
-                                                            <div class="d-flex align-items-center mb-3">
-                                                                <div class="tx_normal fw-normal me-2 d-flex">訊息內容</div>
-                                                                ${BgWidget.selEventButton('範例', gvc.event(() => {
-                                            postData.content = defaultEmailText();
-                                            gvc.notifyDataChange(vm.containerId);
-                                        }))}
+                                                            <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
+                                                                <div class="tx_normal fw-normal">訊息內容</div>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    ${BgWidget.customButton({
+                                            button: {
+                                                color: 'snow',
+                                                size: 'md',
+                                            },
+                                            text: {
+                                                name: '範例',
+                                            },
+                                            event: gvc.event(() => {
+                                                if (postData.content.length > 0) {
+                                                    dialog.checkYesOrNot({
+                                                        callback: (bool) => {
+                                                            if (bool) {
+                                                                postData.content = defaultEmailText();
+                                                                gvc.notifyDataChange(vm.containerId);
+                                                            }
+                                                        },
+                                                        text: '此操作會覆蓋當前的內文，<br />確定要執行嗎？',
+                                                    });
+                                                }
+                                                else {
+                                                    postData.content = defaultEmailText();
+                                                    gvc.notifyDataChange(vm.containerId);
+                                                }
+                                            }),
+                                        })}
+                                                                    ${BgWidget.aiChatButton({ gvc, select: 'writer' })}
+                                                                </div>
                                                             </div>
                                                             ${EditorElem.editeText({
                                             gvc: gvc,
@@ -1597,7 +1622,7 @@ export class BgLine {
                         });
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
+                            <div class="title-container ${type === 'select' ? `d-none` : ``}">
                                 ${BgWidget.title('已訂閱裝置')}
                                 <div class="flex-fill"></div>
                             </div>
@@ -1693,7 +1718,7 @@ export class BgLine {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center">
+                                <div class="title-container">
                                     ${BgWidget.title('推播訊息管理')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增推播', gvc.event(() => {
@@ -1738,7 +1763,7 @@ export class BgLine {
                                                                 let dataList = [];
                                                                 return html `
                                                                                         <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
-                                                                                            ${BgWidget.container(BgWidget.card([
+                                                                                            ${BgWidget.container(BgWidget.mainCard([
                                                                     html `
                                                                                                             <div class="title-container">
                                                                                                                 ${BgWidget.goBack(gvc.event(() => {
@@ -1935,7 +1960,7 @@ export class BgLine {
                                     ${BgWidget.title(`用戶回饋內容`)}
                                     <div class="flex-fill"></div>
                                 </div>
-                                ${BgWidget.card(` ${FormWidget.editorView({
+                                ${BgWidget.mainCard(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
@@ -2042,7 +2067,7 @@ export class BgLine {
                             `);
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('回饋信件')}
                             <div class="flex-fill"></div>
                         </div>
@@ -2178,7 +2203,7 @@ export class BgLine {
                                     ${BgWidget.title(`客服訊息`)}
                                     <div class="flex-fill"></div>
                                 </div>
-                                ${BgWidget.card(` ${FormWidget.editorView({
+                                ${BgWidget.mainCard(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
@@ -2285,7 +2310,7 @@ export class BgLine {
                             `);
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('客服訊息')}
                             <div class="flex-fill"></div>
                             <button

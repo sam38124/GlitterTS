@@ -7,8 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiShop } from "../glitter-base/route/shopping.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 const html = String.raw;
 export class DataAnalyze {
     static main(gvc) {
@@ -16,13 +16,13 @@ export class DataAnalyze {
             const id = gvc.glitter.getUUID();
             const vm = {
                 loading: true,
-                data: {}
+                data: {},
             };
-            gvc.glitter.addMtScript([{
-                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js'
-                }], () => {
-            }, () => {
-            });
+            gvc.glitter.addMtScript([
+                {
+                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
+                },
+            ], () => { }, () => { });
             ApiShop.ecDataAnalyze('active_recent_year,active_recent_2weak,order_today,order_avg_sale_price_year,hot_products_today,recent_register,sales_per_month_2_weak,sales,orders,orders_per_month,recent_active_user,recent_sales,recent_orders,hot_products,order_avg_sale_price,sales_per_month_1_year,orders_per_month_2_weak,orders_per_month_1_year'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
                 vm.loading = false;
                 vm.data = res.response;
@@ -36,64 +36,78 @@ export class DataAnalyze {
                     }
                     return html `
                         <div class="row m-0">
-                            <div class="col-12"
-                                 style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 24px;"
+                            <div
+                                class="col-12"
+                                style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 24px;"
                             >
-                                <div class="d-flex flex-column flex-xl-row"
-                                     style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
+                                <div
+                                    class="d-flex flex-column flex-xl-row"
+                                    style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
                                 >
-                                    <div class=""
-                                         style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;"
-                                    >
-                                        <div class=""
-                                             style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
-                                        >營運狀況總覽
-                                        </div>
-                                        <div class=""
-                                             style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;"
-                                        >查看目前的業務情形
+                                    <div class="" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
+                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
+                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">
+                                            查看目前的業務情形
                                         </div>
                                         ${BgWidget.aiChatButton({
                         gvc,
                         select: 'order_analysis',
-                        title: '使用AI分析工具',
                     })}
                                     </div>
-                                    <div class="row p-0"
-                                         style="width: 896px;    max-width: 100%; gap:15px 0px; "
-                                    >
+                                    <div class="row p-0" style="width: 896px;    max-width: 100%; gap:15px 0px; ">
                                         ${[
                         {
                             title: '今日瀏覽人數',
-                            value: `${vm.data.active_recent_2weak.count_array.map((dd) => { return dd; }).reverse()[0].toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.active_recent_year.count_array.map((dd) => { return dd; }).reverse()[0].toLocaleString()})`, 'font-weight: 500;')}`,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/users-duotone-solid.svg`
+                            value: `${vm.data.active_recent_2weak.count_array
+                                .map((dd) => {
+                                return dd;
+                            })
+                                .reverse()[0]
+                                .toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.active_recent_year.count_array
+                                .map((dd) => {
+                                return dd;
+                            })
+                                .reverse()[0]
+                                .toLocaleString()})`, 'font-weight: 500;')}`,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/users-duotone-solid.svg`,
                         },
                         {
                             title: '今日會員註冊',
-                            value: `${vm.data.recent_register['today'].toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.recent_register['count_register'].map((dd) => { return dd; }).reverse()[0].toLocaleString()})`, 'font-weight: 500;')}`,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/user-group-crown-solid.svg`
+                            value: `${vm.data.recent_register['today'].toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.recent_register['count_register']
+                                .map((dd) => {
+                                return dd;
+                            })
+                                .reverse()[0]
+                                .toLocaleString()})`, 'font-weight: 500;')}`,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/user-group-crown-solid.svg`,
                         },
                         {
                             title: '今日成交總額',
-                            value: `${vm.data.order_today.total_amount.toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.sales_per_month_1_year.countArray.map((dd) => { return dd; }).reverse()[0].toLocaleString()})`, 'font-weight: 500;')}`,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg`
+                            value: `${vm.data.order_today.total_amount.toLocaleString()} ${BgWidget.grayNote(`(本月:${vm.data.sales_per_month_1_year.countArray
+                                .map((dd) => {
+                                return dd;
+                            })
+                                .reverse()[0]
+                                .toLocaleString()})`, 'font-weight: 500;')}`,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg`,
                         },
                         {
                             title: '今日成交訂單',
                             value: vm.data.order_today.total_count,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg`
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg`,
                         },
                         {
                             title: '未出貨訂單',
                             value: vm.data.order_today.un_shipment,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg`
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg`,
                         },
                         {
                             title: '未付款訂單',
                             value: vm.data.order_today.un_pay,
-                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg`
-                        }
-                    ].map((dd) => {
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg`,
+                        },
+                    ]
+                        .map((dd) => {
                         return `<div class="w-100 px-3 py-3"
                                              style="align-self: stretch; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
                                         >
@@ -116,9 +130,11 @@ export class DataAnalyze {
                                                      src="${dd.icon}">
                                             </div>
                                         </div>`;
-                    }).map((dd) => {
+                    })
+                        .map((dd) => {
                         return `<div class="col-sm-4 col-lg-4 col-12  px-0 px-sm-2">${dd}</div>`;
-                    }).join('')}
+                    })
+                        .join('')}
                                     </div>
                                 </div>
                             </div>
@@ -154,10 +170,12 @@ export class DataAnalyze {
                                             chart: { height: 388, type: 'bar', toolbar: { show: !0 } },
                                             plotOptions: { bar: { horizontal: !0 } },
                                             dataLabels: { enabled: !1 },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '銷售數量',
-                                                    data: (_a = vm.data.hot_products_today.series) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.hot_products_today.series) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             colors: colors,
                                             xaxis: { categories: (_b = vm.data.hot_products_today.categories) !== null && _b !== void 0 ? _b : [] },
                                             states: { hover: { filter: 'none' } },
@@ -168,8 +186,8 @@ export class DataAnalyze {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -200,10 +218,12 @@ export class DataAnalyze {
                                             chart: { height: 388, type: 'bar', toolbar: { show: !0 } },
                                             plotOptions: { bar: { horizontal: !0 } },
                                             dataLabels: { enabled: !1 },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '銷售數量',
-                                                    data: (_a = vm.data.hot_products.series) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.hot_products.series) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             colors: colors,
                                             xaxis: { categories: (_b = vm.data.hot_products.categories) !== null && _b !== void 0 ? _b : [] },
                                             states: { hover: { filter: 'none' } },
@@ -214,8 +234,8 @@ export class DataAnalyze {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -248,27 +268,31 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '銷售額',
-                                                    data: (_a = vm.data.sales_per_month_2_weak.countArray) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.sales_per_month_2_weak.countArray) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastDays(14) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -301,27 +325,31 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '銷售額',
-                                                    data: (_a = vm.data.sales_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.sales_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastMonths(12) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -356,12 +384,14 @@ export class DataAnalyze {
                                                 width: [3, 5, 3],
                                                 curve: 'smooth',
                                                 dashArray: [0, 8, 5],
-                                                colors: ['#507FC5']
+                                                colors: ['#507FC5'],
                                             },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '平均消費金額',
-                                                    data: vm.data.order_avg_sale_price.countArray
-                                                }],
+                                                    data: vm.data.order_avg_sale_price.countArray,
+                                                },
+                                            ],
                                             markers: { size: 0, style: 'hollow' },
                                             xaxis: { categories: getPastDays(14) },
                                             colors: colors,
@@ -374,8 +404,8 @@ export class DataAnalyze {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -410,12 +440,14 @@ export class DataAnalyze {
                                                 width: [3, 5, 3],
                                                 curve: 'smooth',
                                                 dashArray: [0, 8, 5],
-                                                colors: ['#507FC5']
+                                                colors: ['#507FC5'],
                                             },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '平均消費金額',
-                                                    data: vm.data.order_avg_sale_price_year.countArray
-                                                }],
+                                                    data: vm.data.order_avg_sale_price_year.countArray,
+                                                },
+                                            ],
                                             markers: { size: 0, style: 'hollow' },
                                             xaxis: { categories: getPastMonths(12) },
                                             colors: colors,
@@ -428,8 +460,8 @@ export class DataAnalyze {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -461,28 +493,32 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             colors: colors,
                                             stroke: { width: [4], curve: 'smooth' },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '訂單量',
-                                                    data: (_a = vm.data.orders_per_month_2_weak.countArray) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.orders_per_month_2_weak.countArray) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             grid: {
                                                 row: { colors: ['transparent', 'transparent'], opacity: 0.2 },
-                                                borderColor: '#f1f3fa'
+                                                borderColor: '#f1f3fa',
                                             },
                                             xaxis: { categories: getPastDays(14) },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -514,28 +550,32 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             colors: colors,
                                             stroke: { width: [4], curve: 'smooth' },
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '訂單量',
-                                                    data: (_a = vm.data.orders_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.orders_per_month_1_year.countArray) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             grid: {
                                                 row: { colors: ['transparent', 'transparent'], opacity: 0.2 },
-                                                borderColor: '#f1f3fa'
+                                                borderColor: '#f1f3fa',
                                             },
                                             xaxis: { categories: getPastMonths(12) },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -568,27 +608,31 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '會員數量',
-                                                    data: (_a = vm.data.recent_register.count_2_weak_register) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.recent_register.count_2_weak_register) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastDays(14) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -621,27 +665,31 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '會員數量',
-                                                    data: (_a = vm.data.recent_register.count_register) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.recent_register.count_register) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastMonths(12) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -674,27 +722,31 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '每日不重複瀏覽人數',
-                                                    data: (_a = vm.data.active_recent_2weak.count_array) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.active_recent_2weak.count_array) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastDays(14) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -727,35 +779,40 @@ export class DataAnalyze {
                                             dataLabels: { enabled: !1 },
                                             stroke: { width: 3, curve: 'smooth' },
                                             colors: colors,
-                                            series: [{
+                                            series: [
+                                                {
                                                     name: '每月不重複瀏覽人數',
-                                                    data: (_a = vm.data.active_recent_year.count_array) !== null && _a !== void 0 ? _a : []
-                                                }],
+                                                    data: (_a = vm.data.active_recent_year.count_array) !== null && _a !== void 0 ? _a : [],
+                                                },
+                                            ],
                                             title: { text: '', align: 'center' },
                                             xaxis: { categories: getPastMonths(12) },
                                             yaxis: { opposite: !1 },
                                             legend: { horizontalAlign: 'left' },
                                             grid: { borderColor: '#f1f3fa' },
-                                            responsive: [{
+                                            responsive: [
+                                                {
                                                     breakpoint: 600,
-                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } }
-                                                }],
+                                                    options: { chart: { toolbar: { show: !1 } }, legend: { show: !1 } },
+                                                },
+                                            ],
                                         }, chart = new window.ApexCharts(document.querySelector(class_name), options);
                                         chart.render();
                                     }
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                         </div>
                     `;
                 },
                 divCreate: {
-                    class: `mx-auto`, style: `width:100%;`
-                }
+                    class: `mx-auto`,
+                    style: `width:100%;`,
+                },
             };
         });
     }

@@ -58,6 +58,7 @@ export class SmsPoints {
                             </div>`,
                 ].join(`<div class="my-2"></div>`)),
             ].join('')),
+            BgWidget.mbContainer(24),
             SmsPoints.walletList(gvc),
         ].join('');
     }
@@ -91,7 +92,6 @@ export class SmsPoints {
                             vm.select = text;
                             gvc.notifyDataChange(id);
                         })}
-                                <div class="border-bottom mb-2 w-100"></div>
                                 ${BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vmi) => {
@@ -151,16 +151,11 @@ export class SmsPoints {
                         })}
                             `));
                     }
-                    else if (vm.type == 'replace') {
-                        return ``;
-                    }
                     else {
                         return ``;
                     }
                 },
-                divCreate: {
-                    class: `mt-n4`,
-                },
+                divCreate: {},
             };
         });
     }

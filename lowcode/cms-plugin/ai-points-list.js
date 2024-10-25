@@ -35,7 +35,7 @@ export class AiPointsList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title('用戶錢包紀錄')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -377,7 +377,7 @@ export class AiPointsList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
+                            <div class="title-container ">
                                 ${BgWidget.title('用戶提領請求')}
                                 <div class="flex-fill"></div>
                             </div>

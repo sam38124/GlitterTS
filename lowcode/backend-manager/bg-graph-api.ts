@@ -43,7 +43,7 @@ export class BgGraphApi {
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(
                                 html`
-                                    <div class="d-flex w-100 align-items-center">
+                                    <div class="title-container">
                                         ${BgWidget.title('GraphQL API')}
                                         <div class="flex-fill"></div>
                                         ${BgWidget.darkButton(

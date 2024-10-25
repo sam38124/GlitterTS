@@ -542,7 +542,8 @@ h6 {
 
 .btn-gray {
     display: flex;
-    padding: 6px 18px;
+    padding: 8px 14px;
+    max-height: 36px;
     justify-content: center;
     align-items: center;
     gap: 8px;
@@ -550,7 +551,6 @@ h6 {
     border-radius: 10px;
     background: var(--main-gray-1);
     cursor: pointer;
-    max-height: 40px;
 }
 
 .btn-gray:hover {
@@ -559,7 +559,8 @@ h6 {
 
 .btn-black {
     display: flex;
-    padding: 6px 18px;
+    padding: 8px 14px;
+    max-height: 36px;
     justify-content: center;
     align-items: center;
     gap: 8px;
@@ -567,7 +568,6 @@ h6 {
     border-radius: 10px;
     background: var(--main-black);
     cursor: pointer;
-    max-height: 40px;
 }
 
 .btn-black:hover {
@@ -576,7 +576,8 @@ h6 {
 
 .btn-red {
     display: flex;
-    padding: 6px 18px;
+    padding: 8px 14px;
+    max-height: 36px;
     justify-content: center;
     align-items: center;
     gap: 8px;
@@ -584,7 +585,6 @@ h6 {
     border-radius: 10px;
     background: var(--item-danger);
     cursor: pointer;
-    max-height: 40px;
 }
 
 .btn-red:hover {
@@ -593,7 +593,8 @@ h6 {
 
 .btn-snow {
     display: flex;
-    padding: 6px 18px;
+    padding: 8px 14px;
+    max-height: 36px;
     justify-content: center;
     align-items: center;
     gap: 8px;

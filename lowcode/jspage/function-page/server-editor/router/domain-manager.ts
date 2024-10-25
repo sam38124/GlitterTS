@@ -154,7 +154,7 @@ onclick="${gvc.event(() => {
                     );
                 } else {
                     return BgWidget.container(html`
-                        <div class="d-flex w-100 align-items-center mb-3 ">
+                        <div class="title-container ">
                             ${BgWidget.title('網域配置管理')}
                             <div class="flex-fill"></div>
                             <button

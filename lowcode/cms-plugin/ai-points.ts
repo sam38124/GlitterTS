@@ -110,7 +110,6 @@ export class AiPoints {
                                         gvc.notifyDataChange(id);
                                     }
                                 )}
-                                <div class="border-bottom mb-2 w-100"></div>
                                 ${BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vmi) => {
@@ -176,9 +175,7 @@ export class AiPoints {
                         return ``;
                     }
                 },
-                divCreate: {
-                    class: `mt-n4`,
-                },
+                divCreate: {},
             };
         });
     }

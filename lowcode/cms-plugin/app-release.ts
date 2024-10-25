@@ -1,7 +1,5 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { NormalPageEditor } from '../editor/normal-page-editor.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 
@@ -31,6 +29,7 @@ export class AppRelease {
             api: any;
         } = (window.parent as any).saasConfig;
         const cId = gvc.glitter.getUUID();
+        const html = String.raw;
         let loading = true;
         let postMDRefer: AppReleaseModel = {
             name: '',
@@ -131,21 +130,23 @@ export class AppRelease {
                     }
                     return BgWidget.container(
                         [
-                            BgWidget.title(`<div class="d-flex align-items-center" style="gap: 10px;">
-APP管理
-${(() => {
-    switch (postMDRefer.status) {
-        case 'no':
-            return ``;
-        case 'error':
-            return BgWidget.dangerInsignia(`審核未通過`);
-        case 'finish':
-            return BgWidget.successInsignia(`審核通過`);
-        case 'wait':
-            return BgWidget.warningInsignia('審核中');
-    }
-})()}
-</div>`),
+                            html`<div class="title-container">
+                                ${BgWidget.title(html`<div class="d-flex align-items-center" style="gap: 10px;">
+                                    APP管理
+                                    ${(() => {
+                                        switch (postMDRefer.status) {
+                                            case 'no':
+                                                return ``;
+                                            case 'error':
+                                                return BgWidget.dangerInsignia(`審核未通過`);
+                                            case 'finish':
+                                                return BgWidget.successInsignia(`審核通過`);
+                                            case 'wait':
+                                                return BgWidget.warningInsignia('審核中');
+                                        }
+                                    })()}
+                                </div>`)}
+                            </div>`,
                             BgWidget.alertInfo(``, [`審核通過時間約莫在7-14天，請確實填寫所有內容，已加快審核進度`], {
                                 style: '',
                                 class: 'fs-6 fw-500',
@@ -165,36 +166,29 @@ ${(() => {
                                                     return [
                                                         BgWidget.editeInput({
                                                             gvc: gvc,
-                                                            title: `<div class="d-flex flex-column" style="gap:3px;">
-App 名稱
-${BgWidget.grayNote('將展示於APP Logo下方，建議不要超過14個字元')}
-</div>`,
+                                                            title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                App 名稱 ${BgWidget.grayNote('將展示於APP Logo下方，建議不要超過14個字元')}
+                                                            </div>`,
                                                             default: postMD.name || '',
                                                             placeHolder: '請輸入APP名稱',
                                                             callback: (text) => {
                                                                 postMD.name = text;
                                                             },
                                                         }),
-                                                        `<div class="w-100">
-<div class="d-flex flex-column mb-2" style="gap:3px;">
-APP Logo
-${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}
-</div>
-${BgWidget.imageSelector(gvc, postMD.logo, (text) => {
-    postMD.logo = text;
-    gvc.notifyDataChange(id);
-})}
-</div>`,
-                                                        `<div class="w-100">
-<div class="d-flex flex-column mb-2" style="gap:3px;">
-APP啟動畫面
-${BgWidget.grayNote('圖片上傳尺寸為1080 * 2400')}
-</div>
-${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
-    postMD.landing_page = text;
-    gvc.notifyDataChange(id);
-})}
-</div>`,
+                                                        html`<div class="w-100">
+                                                            <div class="d-flex flex-column mb-2" style="gap:3px;">APP Logo ${BgWidget.grayNote('圖片上傳尺寸為1024 * 1024')}</div>
+                                                            ${BgWidget.imageSelector(gvc, postMD.logo, (text) => {
+                                                                postMD.logo = text;
+                                                                gvc.notifyDataChange(id);
+                                                            })}
+                                                        </div>`,
+                                                        html`<div class="w-100">
+                                                            <div class="d-flex flex-column mb-2" style="gap:3px;">APP啟動畫面 ${BgWidget.grayNote('圖片上傳尺寸為1080 * 2400')}</div>
+                                                            ${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
+                                                                postMD.landing_page = text;
+                                                                gvc.notifyDataChange(id);
+                                                            })}
+                                                        </div>`,
                                                         html` <div class="w-100 d-flex align-items-center justify-content-end">
                                                             ${BgWidget.cancel(
                                                                 gvc.event(() => {
@@ -225,10 +219,9 @@ ${BgWidget.imageSelector(gvc, postMD.landing_page, (text) => {
                                                         return [
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-App 名稱
-${BgWidget.grayNote('顯示在 Apple Store 與 Google Play 商城上的APP名稱')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                    App 名稱 ${BgWidget.grayNote('顯示在 Apple Store 與 Google Play 商城上的APP名稱')}
+                                                                </div>`,
                                                                 default: postMD.store_name || '',
                                                                 placeHolder: '請輸入APP名稱',
                                                                 callback: (text) => {
@@ -237,34 +230,30 @@ ${BgWidget.grayNote('顯示在 Apple Store 與 Google Play 商城上的APP名稱
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-App 副標題
-${BgWidget.grayNote('請輸入APP副標題')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">App 副標題 ${BgWidget.grayNote('請輸入APP副標題')}</div>`,
                                                                 default: postMD.store_sub_title || '',
                                                                 placeHolder: '請輸入副標題',
                                                                 callback: (text) => {
                                                                     postMD.store_sub_title = text;
                                                                 },
                                                             }),
-                                                            `<div class="w-100">
-<div class="d-flex flex-column mb-2" style="gap:3px;">
-應用程式商店宣傳圖片
-${BgWidget.grayNote('圖片上傳尺寸為1024 * 500')}
-</div>
-<div class="position-relative">
-${BgWidget.imageSelector(gvc, postMD.promote_img, (text) => {
-    postMD.promote_img = text;
-    gvc.notifyDataChange(id);
-})}
-</div>
-</div>`,
+                                                            html`<div class="w-100">
+                                                                <div class="d-flex flex-column mb-2" style="gap:3px;">應用程式商店宣傳圖片 ${BgWidget.grayNote('圖片上傳尺寸為1024 * 500')}</div>
+                                                                <div class="position-relative">
+                                                                    ${BgWidget.imageSelector(gvc, postMD.promote_img, (text) => {
+                                                                        postMD.promote_img = text;
+                                                                        gvc.notifyDataChange(id);
+                                                                    })}
+                                                                </div>
+                                                            </div>`,
                                                             BgWidget.textArea({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px; ">
-Google Play 簡短說明
-${BgWidget.grayNote('「App 的簡短說明」是使用者在 Play 商店瀏覽應用程式時首先看到的文字介紹，讓他們快速了解您的 App 特點。使用者可點擊展開以閱讀完整說明，深入了解更多細節。')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px; ">
+                                                                    Google Play 簡短說明
+                                                                    ${BgWidget.grayNote(
+                                                                        '「App 的簡短說明」是使用者在 Play 商店瀏覽應用程式時首先看到的文字介紹，讓他們快速了解您的 App 特點。使用者可點擊展開以閱讀完整說明，深入了解更多細節。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.google_play_promote || '',
                                                                 placeHolder: '請輸入説明內文',
                                                                 callback: (text) => {
@@ -273,10 +262,12 @@ ${BgWidget.grayNote('「App 的簡短說明」是使用者在 Play 商店瀏覽�
                                                             }),
                                                             BgWidget.textArea({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px; ">
-APP Store 簡短說明
-${BgWidget.grayNote('「App 的簡短說明」是使用者在 App Store 瀏覽應用程式詳情時首先看到的文字介紹，讓他們快速了解您的 App 核心功能。使用者可以點擊展開以閱讀完整說明，獲取更多資訊。')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px; ">
+                                                                    APP Store 簡短說明
+                                                                    ${BgWidget.grayNote(
+                                                                        '「App 的簡短說明」是使用者在 App Store 瀏覽應用程式詳情時首先看到的文字介紹，讓他們快速了解您的 App 核心功能。使用者可以點擊展開以閱讀完整說明，獲取更多資訊。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.app_store_promote || '',
                                                                 placeHolder: '請輸入説明內文',
                                                                 callback: (text) => {
@@ -285,10 +276,12 @@ ${BgWidget.grayNote('「App 的簡短說明」是使用者在 App Store 瀏覽�
                                                             }),
                                                             BgWidget.textArea({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px; ">
-描述
-${BgWidget.grayNote('此段描述將用來詳細介紹 App 的特性和功能，幫助使用者更好地了解您的應用程式提供的價值。請確保內容為純文字格式，無法支援 HTML 標籤或格式化功能。')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px; ">
+                                                                    描述
+                                                                    ${BgWidget.grayNote(
+                                                                        '此段描述將用來詳細介紹 App 的特性和功能，幫助使用者更好地了解您的應用程式提供的價值。請確保內容為純文字格式，無法支援 HTML 標籤或格式化功能。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.description || '',
                                                                 placeHolder: '請輸入描述',
                                                                 callback: (text) => {
@@ -297,10 +290,12 @@ ${BgWidget.grayNote('此段描述將用來詳細介紹 App 的特性和功能，
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-版權標示
-${BgWidget.grayNote('請提供擁有 App 專有權的個人或公司名稱，格式為獲得專有權的年份加上名稱（例如：“2024 SHOPNEX, Inc.”）。版權符號將會自動添加。')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                    版權標示
+                                                                    ${BgWidget.grayNote(
+                                                                        '請提供擁有 App 專有權的個人或公司名稱，格式為獲得專有權的年份加上名稱（例如：“2024 SHOPNEX, Inc.”）。版權符號將會自動添加。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.copy_right || '',
                                                                 placeHolder: '版權內容',
                                                                 callback: (text) => {
@@ -309,12 +304,12 @@ ${BgWidget.grayNote('請提供擁有 App 專有權的個人或公司名稱，格
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-應用程式搜尋關鍵詞
-${BgWidget.grayNote(
-    '請輸入描述 App 的一個或多個關鍵詞（每個關鍵詞至少包含兩個字符），並以逗號分隔。應注意，App 名稱和公司名稱已可被應用程式商店搜尋，因此無需在關鍵字中重複新增。此外，請避免使用其他 App 或公司的名稱。'
-)}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                    應用程式搜尋關鍵詞
+                                                                    ${BgWidget.grayNote(
+                                                                        '請輸入描述 App 的一個或多個關鍵詞（每個關鍵詞至少包含兩個字符），並以逗號分隔。應注意，App 名稱和公司名稱已可被應用程式商店搜尋，因此無需在關鍵字中重複新增。此外，請避免使用其他 App 或公司的名稱。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.keywords || '',
                                                                 placeHolder: '請輸入關鍵詞',
                                                                 callback: (text) => {
@@ -323,12 +318,12 @@ ${BgWidget.grayNote(
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-App 支援網址（URL）
-${BgWidget.grayNote(
-    '如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.cc）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。'
-)}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                    App 支援網址（URL）
+                                                                    ${BgWidget.grayNote(
+                                                                        '如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.cc）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。'
+                                                                    )}
+                                                                </div>`,
                                                                 default: postMD.support_url || '',
                                                                 placeHolder: '請輸入網址',
                                                                 callback: (text) => {
@@ -337,10 +332,9 @@ ${BgWidget.grayNote(
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-隱私政策網址（URL）
-${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">
+                                                                    隱私政策網址（URL） ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
+                                                                </div>`,
                                                                 default: postMD.privacy_url || '',
                                                                 placeHolder: '請輸入網址',
                                                                 callback: (text) => {
@@ -354,14 +348,14 @@ ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
                                                     },
                                                 };
                                             }),
-                                            `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(
-                                                                gvc.event(() => {
-                                                                    save(false, postMD, (result) => {});
-                                                                }),
-                                                                '儲存'
-                                                            )}
-                                                        </div>`,
+                                            html`<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                                                ${BgWidget.cancel(
+                                                    gvc.event(() => {
+                                                        save(false, postMD, (result) => {});
+                                                    }),
+                                                    '儲存'
+                                                )}
+                                            </div>`,
                                         ].join(``);
                                     })(),
                                 },
@@ -379,10 +373,7 @@ ${BgWidget.grayNote('連結到你公司隱私政策的網址（URL）')}
                                                         return [
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-聯絡信箱
-${BgWidget.grayNote('承辦人員會透過此信箱與您聯絡')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">聯絡信箱 ${BgWidget.grayNote('承辦人員會透過此信箱與您聯絡')}</div>`,
                                                                 default: postMD.contact_email || '',
                                                                 placeHolder: '請輸入信箱',
                                                                 callback: (text) => {
@@ -402,10 +393,7 @@ ${BgWidget.grayNote('承辦人員會透過此信箱與您聯絡')}
                                                             }),
                                                             BgWidget.editeInput({
                                                                 gvc: gvc,
-                                                                title: `<div class="d-flex flex-column" style="gap:3px;">
-聯絡電話
-${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}
-</div>`,
+                                                                title: html`<div class="d-flex flex-column" style="gap:3px;">聯絡電話 ${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}</div>`,
                                                                 default: postMD.contact_phone || '',
                                                                 placeHolder: '請輸入電話',
                                                                 callback: (text) => {
@@ -430,33 +418,35 @@ ${BgWidget.grayNote('承辦人員會透過此電話與您聯絡')}
                                                     },
                                                 };
                                             }),
-                                            `<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
-                                                            ${BgWidget.cancel(
-                                                                gvc.event(() => {
-                                                                    save(false, postMD, (result) => {});
-                                                                }),
-                                                                '儲存'
-                                                            )}
-                                                        </div>`,
+                                            html`<div class="mt-3 w-100 d-flex align-items-center justify-content-end">
+                                                ${BgWidget.cancel(
+                                                    gvc.event(() => {
+                                                        save(false, postMD, (result) => {});
+                                                    }),
+                                                    '儲存'
+                                                )}
+                                            </div>`,
                                         ].join('');
                                     })(),
                                 },
                             ]
                                 .map((dd) => {
-                                    return BgWidget.card(`<div class="d-flex flex-column">${BgWidget.title(dd.title, 'font-size:20px;')}
-<div class="flex-fill"></div>
-<div class="my-3">${dd.editor}</div>
-</div>`);
+                                    return BgWidget.card(html`<div class="d-flex flex-column">
+                                        ${BgWidget.title(dd.title, 'font-size:20px;')}
+                                        <div class="flex-fill"></div>
+                                        <div class="my-3">${dd.editor}</div>
+                                    </div>`);
                                 })
-                                .join(`<div class="my-2"></div>`),
-                            `<div class="w-100 d-flex align-items-center justify-content-end">
-${BgWidget.save(
-    gvc.event(() => {
-        save(true, postMDRefer, () => {});
-    }),
-    '將APP提交審查'
-)}
-</div>`,
+                                .join(BgWidget.mbContainer(24)),
+                            html`<div class="w-100 d-flex align-items-center justify-content-end">
+                                ${BgWidget.save(
+                                    gvc.event(() => {
+                                        save(true, postMDRefer, () => {});
+                                    }),
+                                    '將APP提交審查'
+                                )}
+                            </div>`,
+                            BgWidget.mbContainer(120),
                         ].join(`<div class="my-3"></div>`)
                     );
                 },

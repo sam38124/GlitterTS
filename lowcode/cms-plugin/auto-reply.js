@@ -94,7 +94,7 @@ export class AutoReply {
                         });
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="title-container">
                                 ${BgWidget.title('自動寄件')}
                                 <div class="flex-fill"></div>
                             </div>
@@ -193,7 +193,7 @@ export class AutoReply {
                         return [
                             EditorElem.editeInput({
                                 gvc: gvc,
-                                title: '寄件者名稱',
+                                title: html `<div class="my-3">寄件者名稱</div>`,
                                 default: vm.data.name || '',
                                 callback: (text) => {
                                     vm.data.name = text;
@@ -202,14 +202,20 @@ export class AutoReply {
                             }),
                             EditorElem.editeInput({
                                 gvc: gvc,
-                                title: '信件標題',
+                                title: html `<div class="my-3">信件標題</div>`,
                                 default: vm.data.title || '',
                                 callback: (text) => {
                                     vm.data.title = text;
                                 },
                                 placeHolder: '請輸入信件標題',
                             }),
-                            EditorElem.h3('信件內容'),
+                            html `<div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
+                                        ${EditorElem.h3('信件內容')}
+                                        ${BgWidget.aiChatButton({
+                                gvc,
+                                select: 'writer',
+                            })}
+                                    </div>`,
                             EditorElem.richText({
                                 gvc: gvc,
                                 def: vm.data.content || '',

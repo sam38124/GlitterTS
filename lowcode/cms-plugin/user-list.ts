@@ -1661,7 +1661,7 @@ export class UserList {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                                <div class="title-container ${type === 'select' ? `d-none` : ``}">
                                     ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
                                     <div class="flex-fill"></div>
                                     <button
