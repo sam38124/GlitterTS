@@ -1,3 +1,5 @@
+import {EditorConfig} from "../../editor-config.js";
+
 export const Storage:{
     //編輯模式
     editor_mode:'user'|'dev',
@@ -65,7 +67,7 @@ export const Storage:{
         localStorage.setItem('select_add_btn',value)
     },
     get select_function(){
-        return (window as any).glitter.getUrlParameter('function')
+        return EditorConfig.backend_page()
         // if((window as any).glitter.getUrlParameter('function')){
         //
         // }else{

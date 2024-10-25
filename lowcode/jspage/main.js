@@ -174,7 +174,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     const dialog = new ShareDialog(glitter);
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+            if (EditorConfig.backend_page() !== 'backend-manger') {
                 glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
             }
             else {
@@ -214,7 +214,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         ApiPageConfig.getAppConfig().then((res) => {
                             viewModel.app_config_original = res.response.result[0];
-                            if (gvc.glitter.getUrlParameter('function') === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
+                            if (EditorConfig.backend_page() === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
                                 glitter.setUrlParameter('appName', viewModel.app_config_original.refer_app);
                                 location.reload();
                                 return;
@@ -527,7 +527,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     else {
                         let view = [];
-                        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+                        if (EditorConfig.backend_page() !== 'backend-manger') {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
                             view.push(PageSettingView.leftNav(gvc));
@@ -725,17 +725,38 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
         },
         onCreate: () => {
         },
+        onResume: () => {
+            setTimeout(() => {
+                gvc.notifyDataChange('MainEditorLeft');
+            }, 100);
+        }
     };
 });
 function initialEditor(gvc, viewModel) {
     var _a;
     const glitter = gvc.glitter;
-    glitter.share.switch_to_web_builder = (page) => {
-        glitter.setUrlParameter('function', 'user-editor');
+    setTimeout(() => {
+        if (EditorConfig.backend_page() === 'backend-manger' && (glitter.getUrlParameter('page') !== 'cms')) {
+            setTimeout(() => {
+                glitter.setUrlParameter('page', 'cms');
+            }, 100);
+        }
+        glitter.setUrlParameter('function', EditorConfig.backend_page());
+    }, 50);
+    glitter.share.switch_to_web_builder = (page, device) => {
+        glitter.closeDrawer();
         glitter.changePage('jspage/main.js', page, true, {
             appName: window.parent.glitter.getUrlParameter('appName'),
         }, {
             backGroundColor: `transparent;`,
+            carry_search: [
+                {
+                    key: 'device', value: device
+                },
+                {
+                    key: 'function', value: 'user-editor'
+                }
+            ]
         });
     };
     glitter.share.subscription = (title) => __awaiter(this, void 0, void 0, function* () {
@@ -1135,10 +1156,6 @@ function initialEditor(gvc, viewModel) {
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
-    if (glitter.getUrlParameter('blogEditor') === 'true') {
-        glitter.share.blogEditor = true;
-        glitter.share.blogPage = glitter.getUrlParameter('page');
-    }
     shortCutKey(gvc);
 }
 function shortCutKey(gvc) {

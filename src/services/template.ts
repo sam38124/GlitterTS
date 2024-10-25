@@ -215,6 +215,10 @@ export class Template {
         if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
             page = 'products'
         }
+        //當判斷是CMS頁面時
+        if (query_page === 'cms') {
+            page = 'index'
+        }
         return page
     }
     public async getPage(config: {

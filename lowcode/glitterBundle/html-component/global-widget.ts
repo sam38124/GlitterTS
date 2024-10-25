@@ -176,6 +176,11 @@ export class GlobalWidget {
         toggle_visible?: (result: boolean) => void,
         hide_selector?:boolean
     }) {
+        GlobalWidget.glitter_view_type=ViewType.desktop
+        if(Storage.view_type==='mobile'){
+            GlobalWidget.glitter_view_type=ViewType.mobile
+        }
+
         if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
             GlobalWidget.glitter_view_type = obj.gvc.glitter.getCookieByName('ViewType')
         }

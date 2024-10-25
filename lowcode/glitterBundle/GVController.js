@@ -456,6 +456,11 @@ export function init(metaURL, fun) {
             }
         };
         if (cf.pageConfig.type === GVCType.Page) {
+            PageManager.setHistory(cf.pageConfig.tag, cf.c_type);
+            cf.pageConfig.carry_search.map((dd) => {
+                gvc.glitter.setUrlParameter(dd.key, dd.value);
+            });
+            gvc.glitter.setUrlParameter('page', cf.pageConfig.tag);
             $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
 background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;" class="page-box">
 ${lifeCycle.onCreateView()}
@@ -470,6 +475,5 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig);
         lifeCycle.onCreate();
         gvc.glitter.defaultSetting.pageLoadingFinish();
-        PageManager.setHistory(cf.pageConfig.tag, cf.c_type);
     };
 }

@@ -21,6 +21,7 @@ export var GVCType;
 export class PageConfig {
     constructor(par) {
         this.scrollTop = 0;
+        this.carry_search = par.carry_search || [];
         this.initial = false;
         this.search = par.search || '';
         this.tag = par.tag;
@@ -89,7 +90,9 @@ export class PageManager {
             (PageManager.hiddenElement[glitter.pageConfig[index].id] &&
                 document.getElementById('glitterPage').appendChild(PageManager.hiddenElement[glitter.pageConfig[index].id]));
             glitter.pageConfig[index].createResource();
-            glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
+            if (glitter.pageConfig[index].type === GVCType.Page) {
+                window.history.replaceState({}, document.title, glitter.pageConfig[index].search);
+            }
         }
         catch (e) {
         }
@@ -110,7 +113,9 @@ export class PageManager {
     }
     static setHome(url, tag, obj, option = {}) {
         const glitter = Glitter.glitter;
-        const now_page = glitter.pageConfig.filter((dd) => { return dd.type === GVCType.Page; }).reverse()[1];
+        const now_page = glitter.pageConfig.filter((dd) => {
+            return dd.type === GVCType.Page;
+        }).reverse()[1];
         glitter.htmlGenerate.loadScript(glitter, [
             {
                 src: PageManager.getRelativeUrl(url),
@@ -130,6 +135,7 @@ export class PageManager {
                             goBack: true,
                             src: url,
                             tag: tag,
+                            carry_search: option.carry_search,
                             deleteResource: () => {
                             },
                             createResource: () => {
@@ -152,7 +158,10 @@ export class PageManager {
                         glitter.pageConfig.push(pageConfig);
                         glitter.defaultSetting.pageLoading();
                         if (window.gtag && GVC.initial) {
-                            window.gtag('event', 'page_view', { 'page_title': document.title, page_location: document.location.href });
+                            window.gtag('event', 'page_view', {
+                                'page_title': document.title,
+                                page_location: document.location.href
+                            });
                         }
                         GVC.initial = true;
                         gvFunction({
@@ -239,7 +248,10 @@ export class PageManager {
     static changePage(url, tag, goBack, obj, option = {}) {
         const glitter = Glitter.glitter;
         console.log(`changePage-time:`, window.renderClock.stop());
-        const now_page = glitter.pageConfig.filter((dd) => { return dd.type === GVCType.Page; }).reverse()[0];
+        const now_page = glitter.pageConfig.filter((dd) => {
+            return dd.type === GVCType.Page;
+        }).reverse()[0];
+        now_page.search = location.href;
         now_page && (now_page.scrollTop = window.scrollY);
         glitter.window.history.replaceState({}, glitter.document.title, location.href);
         setTimeout(() => {
@@ -260,7 +272,8 @@ export class PageManager {
                 dismiss: (_b = option.dismiss) !== null && _b !== void 0 ? _b : (() => {
                 }),
                 renderFinish: () => {
-                }
+                },
+                carry_search: option.carry_search
             });
             glitter.pageConfig.push(pageConfig);
             glitter.defaultSetting.pageLoading();
@@ -268,7 +281,6 @@ export class PageManager {
                 {
                     src: PageManager.getRelativeUrl(url),
                     callback: (gvFunction) => {
-                        glitter.setUrlParameter('page', tag);
                         if (glitter.pageConfig.find((dd) => {
                             return dd === pageConfig;
                         })) {
@@ -279,7 +291,10 @@ export class PageManager {
                             });
                         }
                         if (window.gtag) {
-                            window.gtag('event', 'page_view', { 'page_title': document.title, page_location: document.location.href });
+                            window.gtag('event', 'page_view', {
+                                'page_title': document.title,
+                                page_location: document.location.href
+                            });
                         }
                     }
                 }
@@ -314,7 +329,8 @@ export class PageManager {
             animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.defaultSetting.dialogAnimation,
             dismiss: (_c = option.dismiss) !== null && _c !== void 0 ? _c : (() => {
             }),
-            renderFinish: () => { }
+            renderFinish: () => {
+            }
         });
         glitter.pageConfig.push(pageConfig);
         glitter.defaultSetting.pageLoading();

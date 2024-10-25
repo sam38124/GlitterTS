@@ -705,8 +705,6 @@ export class FormWidget {
                                                             });
                                                         }
                                                         loop(viewConfig);
-                                                        console.log(`formPage==>`,(dd as any).page)
-                                                        console.log(`viewConfig===>`,viewConfig)
                                                         return new glitter.htmlGenerate(viewConfig, [], {
                                                             root_form_data: obj.widget && obj.widget.formData,
                                                             root_widget: obj.widget,

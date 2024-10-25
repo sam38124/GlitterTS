@@ -193,6 +193,9 @@ class Template {
         if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
             page = 'products';
         }
+        if (query_page === 'cms') {
+            page = 'index';
+        }
         return page;
     }
     async getPage(config) {

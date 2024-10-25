@@ -1,3 +1,4 @@
+import { EditorConfig } from "../../editor-config.js";
 export const Storage = {
     get editor_mode() {
         return 'dev';
@@ -34,7 +35,7 @@ export const Storage = {
         localStorage.setItem('select_add_btn', value);
     },
     get select_function() {
-        return window.glitter.getUrlParameter('function');
+        return EditorConfig.backend_page();
     },
     set select_function(value) {
         window.glitter.setUrlParameter('router', ``);

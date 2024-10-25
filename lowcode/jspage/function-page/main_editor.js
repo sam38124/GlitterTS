@@ -990,7 +990,7 @@ export class Main_editor {
             return {
                 bind: 'iframe_center',
                 view: () => {
-                    if (gvc.glitter.getUrlParameter('function') === 'backend-manger') {
+                    if (EditorConfig.backend_page() === 'backend-manger') {
                         return html `
                             <div class="position-relative"
                                  style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
@@ -1005,13 +1005,14 @@ export class Main_editor {
                                 <iframe class="w-100 h-100  bg-white iframe_view"
                                         sandbox="allow-same-origin allow-scripts"
                                         src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
-                            </div>`;
+                            </div>
+                        `;
                     }
                 },
                 divCreate: () => {
                     return {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column `,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     };

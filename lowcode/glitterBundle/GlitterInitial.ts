@@ -242,6 +242,7 @@ Entry.onCreate(glitter);
 function glitterInitial() {
     if (glitter.deviceType !== glitter.deviceTypeEnum.Android) {
         window.addEventListener('popstate', function (e) {
+            console.log(`popstate=>>`)
             glitter.goBack();
         });
     }

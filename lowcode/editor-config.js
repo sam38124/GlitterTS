@@ -14,7 +14,7 @@ export class EditorConfig {
         }
     }
     static paymentInfo(gvc) {
-        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+        if (EditorConfig.backend_page() !== 'backend-manger') {
             return ``;
         }
         const plan = EditorConfig.getPaymentStatus();
@@ -58,6 +58,12 @@ export class EditorConfig {
             plan: planText,
             dead_line: config.dead_line,
         };
+    }
+    static backend_page() {
+        if (window.glitter.getUrlParameter('page') === 'cms') {
+            return 'backend-manger';
+        }
+        return window.glitter.getUrlParameter('function');
     }
 }
 EditorConfig.page_type_list = [

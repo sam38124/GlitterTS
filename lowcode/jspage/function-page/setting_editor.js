@@ -206,14 +206,9 @@ export class Setting_editor {
                                                             }
                                                             else {
                                                                 if (items[parseInt(dd.index)].page === 'app-design') {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    window.parent.glitter.setUrlParameter('function', 'user-editor');
-                                                                    window.parent.glitter.setUrlParameter('device', 'mobile');
-                                                                    window.parent.glitter.setUrlParameter('page', 'index-mobile');
                                                                     localStorage.setItem('lastSelect', '');
                                                                     localStorage.setItem('ViewType', 'mobile');
-                                                                    window.parent.location.reload();
+                                                                    glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                                     return;
                                                                 }
                                                                 if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {

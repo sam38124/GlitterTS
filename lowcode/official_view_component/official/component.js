@@ -751,13 +751,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                 ]
                                                                                                             }
                                                                                                         };
-                                                                                                    })}
-                                                                                                                <div class="ps-2">
-                                                                                                                    ${GlobalWidget.showCaseBar(gvc, widget, () => {
-                                                                                                        vm.page = 'editor';
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    })}
-                                                                                                                </div>`;
+                                                                                                    })}`;
                                                                                                 case "setting":
                                                                                                     return html `
                                                                                                                 <div
@@ -946,6 +940,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                 });
                                                                                                                 try {
                                                                                                                     if (vm.page === 'editor') {
+                                                                                                                        const array_items = yield filterFormat((dd) => {
+                                                                                                                            if (!oWidget[`${type}_editable`].find((d1) => {
+                                                                                                                                return d1 === dd.key;
+                                                                                                                            })) {
+                                                                                                                                refer_form[dd.key] = JSON.parse(JSON.stringify(oWidget.data.refer_form_data[dd.key] || ''));
+                                                                                                                            }
+                                                                                                                            return dd.page !== 'color_theme' && dd.category !== 'style';
+                                                                                                                        });
                                                                                                                         return [
                                                                                                                             type === 'def' ? `` : html `
                                                                                                                                         <div class="my-2 mx-3 guide-user-editor-6 "
@@ -954,11 +956,15 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                 const cGvc = gvc;
                                                                                                                                 BgWidget.settingDialog({
                                                                                                                                     gvc: gvc,
-                                                                                                                                    title: '設置自定義選項',
+                                                                                                                                    title: `${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義選項`,
                                                                                                                                     innerHTML: (gvc) => {
                                                                                                                                         return html `
-                                                                                                                                                         <div class="p-3">
-                                                                                                                                                             ${[
+                                                                                                                                                             <div class="px-3 pb-3">
+                                                                                                                                                                 ${[
+                                                                                                                                            BgWidget.alertInfo(``, [`勾選自定義選項，將會於${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}顯示獨特內容，而不會影響到其他尺寸的呈現樣式`], {
+                                                                                                                                                style: 'white-space:normal;word-break:break-all;',
+                                                                                                                                                class: 'fs-6 fw-500',
+                                                                                                                                            }),
                                                                                                                                             BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
                                                                                                                                                 return {
                                                                                                                                                     key: dd.key,
@@ -977,8 +983,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                             ]), oWidget[`${type}_editable`] || [], (select) => {
                                                                                                                                                 oWidget[`${type}_editable`] = select;
                                                                                                                                             }, {})
-                                                                                                                                        ].join('')}
-                                                                                                                                                         </div>`;
+                                                                                                                                        ].join('<div class="my-3"></div>')}
+                                                                                                                                                             </div>`;
                                                                                                                                     },
                                                                                                                                     footer_html: (gvc) => {
                                                                                                                                         return ` <div class="d-flex justify-content-end"
@@ -997,22 +1003,22 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                 });
                                                                                                                             })}">
                                                                                                                                             <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                                                                                                                設置自定義選項
+                                                                                                                                                ${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義選項
                                                                                                                                             </div>
                                                                                                                                         </div>`,
                                                                                                                             FormWidget.editorView({
                                                                                                                                 gvc: gvc,
-                                                                                                                                array: yield filterFormat((dd) => {
-                                                                                                                                    if (type === 'def' || oWidget[`${type}_editable`].find((d1) => {
-                                                                                                                                        return d1 === dd.key;
-                                                                                                                                    })) {
-                                                                                                                                        return dd.page !== 'color_theme' && dd.category !== 'style';
-                                                                                                                                    }
-                                                                                                                                    else {
-                                                                                                                                        return false;
-                                                                                                                                    }
-                                                                                                                                }),
+                                                                                                                                array: array_items,
                                                                                                                                 refresh: () => {
+                                                                                                                                    console.log(`_editable`, oWidget[`${type}_editable`]);
+                                                                                                                                    Object.keys(refer_form).map((dd) => {
+                                                                                                                                        if (!oWidget[`${type}_editable`].find((d1) => {
+                                                                                                                                            return d1 === dd;
+                                                                                                                                        })) {
+                                                                                                                                            oWidget.data.refer_form_data[dd] = JSON.parse(JSON.stringify(refer_form[dd] || ''));
+                                                                                                                                            refer_form[dd] = undefined;
+                                                                                                                                        }
+                                                                                                                                    });
                                                                                                                                     refresh(widget, type);
                                                                                                                                 },
                                                                                                                                 formData: refer_form,

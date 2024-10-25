@@ -59,7 +59,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_13.5.0";
+        glitter.share.editerVersion = "V_13.5.8";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -201,9 +201,6 @@ export class Entry {
         }
     }
     static toBackendEditor(glitter, callback) {
-        if (!glitter.getUrlParameter('function')) {
-            glitter.setUrlParameter('function', 'backend-manger');
-        }
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
@@ -253,7 +250,7 @@ export class Entry {
                         appName: config.appName,
                         tag: glitter.getUrlParameter('page'),
                     });
-                    if (data.response.result.length === 0) {
+                    if (data.response.result.length === 0 && (glitter.getUrlParameter('page') !== 'cms')) {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
                     glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {

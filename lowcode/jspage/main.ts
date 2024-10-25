@@ -17,20 +17,15 @@ import {SetGlobalValue} from '../editor/set-global-value.js';
 import {PageCodeSetting} from '../editor/page-code-setting.js';
 import {NormalPageEditor} from '../editor/normal-page-editor.js';
 import {EditorConfig} from '../editor-config.js';
-import {all} from 'underscore/index.js';
 import {BgCustomerMessage} from '../backend-manager/bg-customer-message.js';
 import {BgGuide} from "../backend-manager/bg-guide.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
-import {StepManager} from "../modules/step-manager.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {SearchIdea} from "../editor/search-idea.js";
 import {AiMessage} from "../cms-plugin/ai-message.js";
 import {GlobalWidget} from "../glitterBundle/html-component/global-widget.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
 import {ApiUser} from "../glitter-base/route/user.js";
-import {AiPointsApi} from "../glitter-base/route/ai-points-api.js";
-import {ApiCart} from "../glitter-base/route/api-cart.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {Article} from "../glitter-base/route/article.js";
@@ -39,6 +34,7 @@ const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+
     glitter.share.ai_message = AiMessage
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
 
@@ -202,7 +198,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     //載入頁面資料
     async function lod() {
-        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+        if (EditorConfig.backend_page() !== 'backend-manger') {
             glitter.share.loading_dialog.dataLoading({text: '模組加載中...', visible: true})
         } else {
             dialog.dataLoading({visible: true})
@@ -254,7 +250,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 return await new Promise(async (resolve, reject) => {
                     ApiPageConfig.getAppConfig().then((res) => {
                         viewModel.app_config_original = res.response.result[0];
-                        if (gvc.glitter.getUrlParameter('function') === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
+                        if (EditorConfig.backend_page() === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
                             glitter.setUrlParameter('appName', viewModel.app_config_original.refer_app)
                             location.reload()
                             return
@@ -274,16 +270,16 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             tag: glitter.getUrlParameter('page'),
                             appName: gBundle.appName
                         }, (d2: any) => {
-                            if(glitter.getUrlParameter('page').startsWith('pages')){
+                            if (glitter.getUrlParameter('page').startsWith('pages')) {
                                 Article.get({
                                     page: 0,
                                     limit: 1,
                                     tag: glitter.getUrlParameter('page').split('/')[1]
                                 }).then(async (data) => {
-                                    d2.response.result[0].config=data.response.data[0].content.config
+                                    d2.response.result[0].config = data.response.data[0].content.config
                                     resolve(d2.response.result[0])
                                 })
-                            }else{
+                            } else {
                                 resolve(d2.response.result[0])
                             }
                         })
@@ -449,6 +445,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     async () => {
                         let haveID: string[] = [];
                         const config = JSON.parse(JSON.stringify((viewModel.data as any).config))
+
                         function getID(set: any) {
                             set.map((dd: any) => {
                                 dd.js = dd.js.replace(`${location.origin}/${(window as any).appName}/`, './');
@@ -471,6 +468,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 }
                             });
                         }
+
                         getID(config);
                         if (glitter.share.editor_vm) {
                             return new Promise((resolve, reject) => {
@@ -479,18 +477,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         } else {
                             return new Promise(async (resolve) => {
                                 let result = true;
-                                if(glitter.getUrlParameter('page').startsWith('pages')){
+                                if (glitter.getUrlParameter('page').startsWith('pages')) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
                                         tag: glitter.getUrlParameter('page').split('/')[1]
                                     }).then(async (data) => {
-                                        data.response.data[0].content.config=config
-                                        Article.put(data.response.data[0]).then((response)=>{
+                                        data.response.data[0].content.config = config
+                                        Article.put(data.response.data[0]).then((response) => {
                                             resolve(response && response.result);
                                         })
                                     })
-                                }else{
+                                } else {
                                     ApiPageConfig.setPage({
                                         id: (viewModel.data! as any).id,
                                         appName: gBundle.appName,
@@ -576,7 +574,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 </div>`;
                     } else {
                         let view: any = [];
-                        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+                        if (EditorConfig.backend_page() !== 'backend-manger') {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
                             view.push(PageSettingView.leftNav(gvc));
@@ -779,7 +777,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                 if (document.body.clientWidth > 1000) {
                                     ApiShop.getFEGuideable().then(r => {
                                         if (!r.response.value || !r.response.value.view) {
-                                            let bgGuide = new BgGuide(gvc, 0, "user-editor" , 0);
+                                            let bgGuide = new BgGuide(gvc, 0, "user-editor", 0);
                                             ApiShop.setFEGuideable({})
                                             bgGuide.drawGuide();
                                         }
@@ -800,14 +798,29 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
         onCreate: () => {
 
         },
+        onResume: () => {
+            setTimeout(() => {
+                gvc.notifyDataChange('MainEditorLeft')
+            }, 100)
+        }
     };
 });
 
 function initialEditor(gvc: GVC, viewModel: any) {
     const glitter = gvc.glitter;
+    setTimeout(()=>{
+        if (EditorConfig.backend_page() === 'backend-manger' && (glitter.getUrlParameter('page') !== 'cms')) {
+            setTimeout(() => {
+                glitter.setUrlParameter('page', 'cms')
+            }, 100)
+        }
+        glitter.setUrlParameter('function', EditorConfig.backend_page())
+    },50)
+
+
     //跳轉至編輯器頁面功能
-    glitter.share.switch_to_web_builder=(page:string)=>{
-        glitter.setUrlParameter('function','user-editor');
+    glitter.share.switch_to_web_builder = (page: string,device:string) => {
+        glitter.closeDrawer()
         glitter.changePage(
             'jspage/main.js',
             page,
@@ -817,6 +830,14 @@ function initialEditor(gvc: GVC, viewModel: any) {
             },
             {
                 backGroundColor: `transparent;`,
+                carry_search:[
+                    {
+                        key:'device',value:device
+                    },
+                    {
+                        key:'function',value:'user-editor'
+                    }
+                ]
             }
         )
     }
@@ -1258,11 +1279,6 @@ function initialEditor(gvc: GVC, viewModel: any) {
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
-    //部落格編輯模式
-    if (glitter.getUrlParameter('blogEditor') === 'true') {
-        glitter.share.blogEditor = true;
-        glitter.share.blogPage = glitter.getUrlParameter('page');
-    }
     //快捷鍵設定
     shortCutKey(gvc);
 

@@ -9,6 +9,7 @@ import {ShareDialog} from "./glitterBundle/dialog/ShareDialog.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         glitter.share.top_inset = 0
         glitter.share.bottom_inset = 0
         glitter.share.reload_code_hash = function () {
@@ -40,6 +41,7 @@ export class Entry {
         };
         glitter.page = (window as any).glitter_page;
         glitter.share.GlobalUser = GlobalUser;
+
         Entry.checkRedirectPage(glitter);
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
@@ -58,7 +60,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_13.5.0";
+        glitter.share.editerVersion = "V_13.5.8";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -72,6 +74,7 @@ export class Entry {
         };
         // 設定SAAS管理員請求API
         config.token = GlobalUser.saas_token;
+
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
@@ -160,6 +163,7 @@ export class Entry {
                                      
                                     }
             `);
+
             // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
@@ -209,10 +213,6 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
-        if (!glitter.getUrlParameter('function')) {
-            glitter.setUrlParameter('function', 'backend-manger');
-        }
-
 
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
@@ -261,6 +261,7 @@ export class Entry {
         (window as any).root.classList.add('light-mode');
 
         function toNext() {
+
             console.log(`to-next-time:`, (window as any).renderClock.stop());
             running().then(async () => {
                 {
@@ -269,9 +270,11 @@ export class Entry {
                         appName: config.appName,
                         tag: glitter.getUrlParameter('page'),
                     });
-                    if (data.response.result.length === 0) {
+                    // console.log(`data===>`,data)
+                    if (data.response.result.length === 0 && (glitter.getUrlParameter('page')!=='cms')) {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
+
                     glitter.setHome(
                         'jspage/main.js',
                         glitter.getUrlParameter('page'),

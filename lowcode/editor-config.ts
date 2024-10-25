@@ -89,7 +89,7 @@ export class EditorConfig {
      * 到期日相關頁面設定
      * */
     public static paymentInfo(gvc: GVC) {
-        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+        if (EditorConfig.backend_page() !== 'backend-manger') {
             return ``;
         }
         const plan = EditorConfig.getPaymentStatus();
@@ -139,6 +139,13 @@ export class EditorConfig {
             plan: planText,
             dead_line: config.dead_line,
         };
+    }
+
+    public static backend_page():'backend-manger'|'page-editor'|'user-editor'{
+        if((window as any).glitter.getUrlParameter('page')==='cms'){
+            return 'backend-manger'
+        }
+        return (window as any).glitter.getUrlParameter('function')
     }
 
 }

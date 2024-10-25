@@ -1110,7 +1110,7 @@ export class SaasViewModel {
                     };
                 })());
             },
-            footer_html: () => {
+            footer_html: (gvc) => {
                 return [
                     BgWidget.cancel(gvc.event(() => {
                         gvc.closeDialog();

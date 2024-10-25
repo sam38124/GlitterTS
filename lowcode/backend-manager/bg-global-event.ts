@@ -180,7 +180,6 @@ ${gvc.bindView(() => {
                                     },
                                     justFolder: true,
                                     selectEv: (dd) => {
-                                        console.log(`selectEV:`, dd)
                                         return dd.tag === BgGlobalEvent.selectTag
                                     }
                                 })].join(''))

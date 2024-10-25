@@ -803,9 +803,6 @@ export const widgetComponent = {
                                             }
                                         }
                                     }),
-                                    GlobalWidget.showCaseBar(gvc, widget, () => {
-                                        gvc.notifyDataChange(id)
-                                    }),
                                     GlobalWidget.showCaseEditor({
                                         gvc: gvc,
                                         widget: widget,
