@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
@@ -18,7 +17,7 @@ export declare class LineMessage {
         data: {
             text?: string;
             image?: string;
-            attachment: any;
+            attachment?: any;
         };
         lineID: string;
     }, callback: (data: any) => void): Promise<boolean | undefined>;

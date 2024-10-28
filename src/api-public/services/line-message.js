@@ -79,6 +79,7 @@ class LineMessage {
         }
     }
     async sendLine(obj, callback) {
+        obj.data.attachment = obj.data.attachment || '';
         try {
             obj.data.text = obj.data.text ? obj.data.text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '') : undefined;
             const post = new user_js_1.User(this.app, this.token);
@@ -283,7 +284,9 @@ class LineMessage {
                         status: 0,
                     },
                 ]);
-                this.chunkSendLine(data.userList, data.content, insertData.insertId);
+                this.chunkSendLine(data.userList, {
+                    text: data.content
+                }, insertData.insertId);
             }
             return { result: true, message: '寄送成功' };
         }
@@ -374,9 +377,12 @@ class LineMessage {
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
                 resolve(await this.sendLine({
-                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    lineID: lineID,
-                }, (res) => { }));
+                    data: {
+                        text: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id)
+                    },
+                    lineID: lineID
+                }, (res) => {
+                }));
             });
         }
     }

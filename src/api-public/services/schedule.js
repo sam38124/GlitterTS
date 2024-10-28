@@ -224,7 +224,11 @@ class Schedule {
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
                     for (const email of emails) {
                         if (email.status === 0) {
-                            new line_message_1.LineMessage(app).chunkSendLine(email.userList, email.content, email.id);
+                            new line_message_1.LineMessage(app).chunkSendLine(email.userList, {
+                                data: {
+                                    text: email.content
+                                }
+                            }, email.id);
                         }
                     }
                 }

@@ -2181,15 +2181,17 @@ ${e.line}
                                                                 {
                                                                     key: 'onmouseover',
                                                                     value: gvc.event((e, event) => {
-                                                                      // if(document.body.clientWidth<800){
-                                                                      //     if(!(window.parent as any).drawer.opened){
-                                                                      //         $(e).click();
-                                                                      //     }
-                                                                      //     return
-                                                                      // };
+                                                                      if(document.body.clientWidth<800){
+                                                                          HtmlGenerate.selectWidget({
+                                                                              gvc: gvc,
+                                                                              widget: widget,
+                                                                              widgetComponentID: cf.widget.id,
+                                                                              event: event,
+                                                                              glitter: (window.parent as any).glitter,
+                                                                          });
+                                                                      };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).show();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).show();
-
                                                                         function loop(item: any) {
 
                                                                             if(item[0] && item[0].tagName.toLowerCase()==='li'){
@@ -2341,20 +2343,17 @@ ${e.line}
 
         function active() {
             try {
+                glitter.share.editorViewModel.selectItem = dd;
                 Storage.page_setting_item = 'layout';
-                (glitter.pageConfig[gvc.glitter.pageConfig.length - 1] as any).gvc.notifyDataChange(['top_sm_bar','left_sm_bar']);
+                (glitter.pageConfig[glitter.pageConfig.length - 1] as any).gvc.notifyDataChange(['top_sm_bar','left_sm_bar','item-editor-select']);
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
-                glitter.share.editorViewModel.selectItem = dd;
                 Storage.lastSelect = dd.id;
                 glitter.share.selectEditorItem();
                 if (cf.scroll_to_hover) {
                     setTimeout(() => {
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0));
                     });
-                }
-                if (document.body.clientWidth < 768) {
-                    glitter.openDrawer();
                 }
                 event && event.stopPropagation && event.stopPropagation();
             } catch (e) {
@@ -2474,6 +2473,9 @@ background: white;
                             `
                         } else {
                             function getPlusAndPasteView(dir: number) {
+                                if((window.parent as any).document.body.clientWidth<800){
+                                    return  ``
+                                }
                                 const detID = cf.gvc.glitter.getUUID()
                                 const plusID = cf.gvc.glitter.getUUID()
                                 let block_close = false
@@ -2586,15 +2588,15 @@ transform: translateY(5px);
                             }
 
                             return html`
-                                <div
+                                ${cf.gvc.glitter.document.body.clientWidth>800 ? `<div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
                                         style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
                                 >
                                     ${cf.label}
-                                </div>
+                                </div>`:``}
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile' || document.body.clientWidth<800)
+                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile')
                                                 ? `-30px`
                                                 : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2602,7 +2604,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile' || document.body.clientWidth<800)
+                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile')
                                                 ? `10px`
                                                 : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2637,7 +2639,7 @@ transform: translateY(5px);
 
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || ((window.parent as any).glitter.share.editorViewModel.selectItem===cf.widget) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },
@@ -2686,7 +2688,7 @@ transform: translateY(5px);
                         container_items.rerenderReplaceElem()
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
-                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft','item-editor-select']);
                     callback();
                 }
             },

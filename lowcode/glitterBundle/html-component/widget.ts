@@ -31,7 +31,11 @@ export const widgetComponent = {
                     (widget as any).refreshComponentParameter.view2();
                 }
                 (widget as any).refreshComponentParameter.view1 = () => {
-                    gvc.notifyDataChange(id)
+                    gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = showCaseData()
+                    setTimeout(()=>{
+                        gvc.glitter.document.querySelector(`.editor_it_${view_container_id}`).classList.add('editorItemActive');
+                        // gvc.glitter.$(`[gvc-id="${gvc.id(id)}"].editorChild`).addClass('editorItemActive')
+                    },500)
                 }
 
                 function showCaseData() {
@@ -171,7 +175,7 @@ export const widgetComponent = {
                                     style_user += widget.code_style || '';
                                     return {
                                         elem: elem,
-                                        class: classList.join(' ')+` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `hide-elem` : ``}` : ``}`,
+                                        class: classList.join(' ') + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `hide-elem` : ``}` : ``}`,
                                         style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${style_user}`,
                                         option: option.concat(htmlGenerate.option),
                                     }
@@ -202,6 +206,7 @@ export const widgetComponent = {
                                                             ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
                                                         const html = String.raw
                                                         const tempID = gvc.glitter.getUUID()
+
                                                         function rerenderReplaceElem() {
                                                             gvc.glitter.$('.' + tempID).remove();
                                                             widget.data.setting.need_count = (() => {
@@ -240,78 +245,33 @@ export const widgetComponent = {
                                                                         <div
                                                                                 class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
                                                                                 style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: ${(() => {
-                                                                        if (widget.data._layout === 'proportion') {
-                                                                            const wid = (widget.data._ratio_layout_value ?? ``).split(',')
-                                                                            for (const c of horGroup) {
-                                                                                if (c.includes(b)) {
-                                                                                    const wid = (widget.data._ratio_layout_value ?? ``).split(',');
-                                                                                    const _gap_y = ((Number(widget.data._gap_y) * (c.length - 1)) / c.length).toFixed(0);
+                                                                                    if (widget.data._layout === 'proportion') {
+                                                                                        const wid = (widget.data._ratio_layout_value ?? ``).split(',')
+                                                                                        for (const c of horGroup) {
+                                                                                            if (c.includes(b)) {
+                                                                                                const wid = (widget.data._ratio_layout_value ?? ``).split(',');
+                                                                                                const _gap_y = ((Number(widget.data._gap_y) * (c.length - 1)) / c.length).toFixed(0);
 
-                                                                                    return `calc(${wid[b] || 100}% - ${_gap_y}px) !important;`
-                                                                                }
-                                                                            }
-                                                                            return wid[b] || 100 + '% !important'
-                                                                        } else {
-                                                                            return `100%`
-                                                                        }
-                                                                    })()};height: 100%;"
+                                                                                                return `calc(${wid[b] || 100}% - ${_gap_y}px) !important;`
+                                                                                            }
+                                                                                        }
+                                                                                        return wid[b] || 100 + '% !important'
+                                                                                    } else {
+                                                                                        return `100%`
+                                                                                    }
+                                                                                })()};height: 100%;"
                                                                                 onmousedown="${gvc.event(() => {
-                                                                        glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                                                                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                            AddComponent.toggle(true);
-                                                                            AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                                (window.parent as any).glitter.share.addComponent(cf);
-                                                                                RenderValue.custom_style.value(gvc, widget)
-                                                                                AddComponent.toggle(false);
-                                                                            };
-                                                                            AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                                (window.parent as any).glitter.share.addComponent({
-                                                                                    id: gvc.glitter.getUUID(),
-                                                                                    js: './official_view_component/official.js',
-                                                                                    css: {
-                                                                                        class: {},
-                                                                                        style: {},
-                                                                                    },
-                                                                                    data: {
-                                                                                        refer_app: tdata.copyApp,
-                                                                                        tag: tdata.copy,
-                                                                                        list: [],
-                                                                                        carryData: {},
-                                                                                        _style_refer_global: {
-                                                                                            index: `0`,
-                                                                                        },
-                                                                                    },
-                                                                                    type: 'component',
-                                                                                    class: 'w-100',
-                                                                                    index: 0,
-                                                                                    label: tdata.title,
-                                                                                    style: '',
-                                                                                    bundle: {},
-                                                                                    global: [],
-                                                                                    toggle: false,
-                                                                                    stylist: [],
-                                                                                    dataType: 'static',
-                                                                                    style_from: 'code',
-                                                                                    classDataType: 'static',
-                                                                                    preloadEvenet: {},
-                                                                                    share: {},
-                                                                                });
-                                                                                RenderValue.custom_style.value(gvc, widget)
-                                                                                AddComponent.toggle(false);
-                                                                            };
-                                                                        });
-                                                                    })}"
+                                                                                })}"
                                                                         >
                                                                             <i class="fa-regular fa-circle-plus text-black"
-                                                                               style="font-size: 60px;"></i>
-                                                                            <span class="fw-500 fs-5 mt-3">添加元件</span>
+                                                                               style="font-size: 50px;"></i>
+                                                                            <span class="fw-500 fs-6 mt-3">添加元件</span>
                                                                         </div>`
                                                                 );
 
                                                             }
                                                         }
+
                                                         widget.data.setting.rerenderReplaceElem = rerenderReplaceElem
                                                         rerenderReplaceElem()
                                                     }
@@ -365,40 +325,42 @@ export const widgetComponent = {
                                     });
                                     return getView()
                                 }
-                               function getCodeText(){
-                                   if ((widget.data.dataFrom === "code")) {
-                                       if (widget.data.elem !== 'select') {
-                                           innerText = ''
-                                       }
-                                       widget.data.innerEvenet = widget.data.innerEvenet ?? {}
-                                       TriggerEvent.trigger({
-                                           gvc: gvc,
-                                           widget: widget,
-                                           clickEvent: widget.data.innerEvenet,
-                                           subData
-                                       }).then((data) => {
-                                           if (widget.data.elem === 'select') {
-                                               formData[widget.data.key] = data
-                                           }
-                                           innerText = data || ''
-                                           gvc.notifyDataChange(id)
-                                       })
-                                   } else if (widget.data.dataFrom === "code_text") {
-                                       const inner = (eval(`(() => {
-                                        ${widget.data.inner}
-                                    })()`))
-                                       if (inner && inner.then) {
 
-                                           inner.then((data: any) => {
-                                               innerText = data || ''
-                                               gvc.notifyDataChange(id)
-                                           })
-                                       } else {
-                                           innerText = inner
-                                           gvc.notifyDataChange(id)
-                                       }
-                                   }
-                               }
+                                function getCodeText() {
+                                    if ((widget.data.dataFrom === "code")) {
+                                        if (widget.data.elem !== 'select') {
+                                            innerText = ''
+                                        }
+                                        widget.data.innerEvenet = widget.data.innerEvenet ?? {}
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: widget.data.innerEvenet,
+                                            subData
+                                        }).then((data) => {
+                                            if (widget.data.elem === 'select') {
+                                                formData[widget.data.key] = data
+                                            }
+                                            innerText = data || ''
+                                            gvc.notifyDataChange(id)
+                                        })
+                                    } else if (widget.data.dataFrom === "code_text") {
+                                        const inner = (eval(`(() => {
+                                            ${widget.data.inner}
+                                        })()`))
+                                        if (inner && inner.then) {
+
+                                            inner.then((data: any) => {
+                                                innerText = data || ''
+                                                gvc.notifyDataChange(id)
+                                            })
+                                        } else {
+                                            innerText = inner
+                                            gvc.notifyDataChange(id)
+                                        }
+                                    }
+                                }
+
                                 getCodeText()
                                 return gvc.bindView(() => {
                                     return {
@@ -490,7 +452,7 @@ export const widgetComponent = {
                                                     break
 
                                             }
-                                            console.log(`htmlGenerate.root`,htmlGenerate.root)
+                                            console.log(`htmlGenerate.root`, htmlGenerate.root)
                                             // if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
                                             //     view.push(glitter.htmlGenerate.getEditorSelectSection({
                                             //         id: widget.id,
@@ -550,7 +512,7 @@ export const widgetComponent = {
                                                 subData: subData
                                             })
                                         },
-                                        onResume:()=>{
+                                        onResume: () => {
                                         }
                                     }
                                 })
@@ -568,6 +530,24 @@ export const widgetComponent = {
             editor: () => {
 
                 if (widget.type === 'container' && Storage.select_function === 'user-editor' || localStorage.getItem('uasi') === 'user_editor') {
+                    const setting_refer_option = [
+                        {
+                            title: "間距設定",
+                            key: 'margin',
+                            array: []
+                        },
+                        {
+                            title: "容器背景設定",
+                            key: 'background',
+                            array: []
+                        },
+                        {
+                            title: "開發者設定",
+                            key: 'develop',
+                            array: []
+                        }
+                    ]
+
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
 
@@ -596,23 +576,7 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         view: (widget, type) => {
-                                            const setting_option = [
-                                                {
-                                                    title: "間距設定",
-                                                    key: 'margin',
-                                                    array: []
-                                                },
-                                                {
-                                                    title: "容器背景設定",
-                                                    key: 'background',
-                                                    array: []
-                                                },
-                                                {
-                                                    title: "開發者設定",
-                                                    key: 'develop',
-                                                    array: []
-                                                }
-                                            ].filter((dd: any) => {
+                                           const setting_option=setting_refer_option.filter((dd: any) => {
                                                 oWidget[`${type}_editable`] = oWidget[`${type}_editable`] ?? []
                                                 switch (dd.key) {
                                                     case 'style':
@@ -640,11 +604,9 @@ export const widgetComponent = {
                                                                                                         </div>`, setting_option.map((dd: any, index: number) => {
                                                 return gvc.bindView(() => {
                                                     const vm_c: {
-                                                        id: string,
-                                                        toggle: boolean
+                                                        id: string
                                                     } = {
-                                                        id: gvc.glitter.getUUID(),
-                                                        toggle: dd.toggle
+                                                        id: gvc.glitter.getUUID()
                                                     };
                                                     (setting_option[index] as any).vm_c = vm_c;
                                                     (widget as any).refreshComponentParameter.view2 = () => {
@@ -656,43 +618,43 @@ export const widgetComponent = {
                                                             const array_string = [html`
                                                                 <div class="hoverF2 d-flex align-items-center p-3"
                                                                      onclick="${gvc.event(() => {
-                                                                         const toggle = !vm_c.toggle;
+                                                                         const toggle = !dd.toggle;
                                                                          (setting_option as any).map((dd: any) => {
-                                                                             if (dd.vm_c.toggle) {
-                                                                                 dd.vm_c.toggle = false
+                                                                             if (dd.toggle) {
+                                                                                 dd.toggle = false
                                                                                  gvc.notifyDataChange(dd.vm_c.id)
                                                                              }
                                                                          });
-                                                                         vm_c.toggle = toggle
+                                                                         dd.toggle = toggle
                                                                          gvc.notifyDataChange(vm_c.id)
                                                                      })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${dd.title}</span>
                                                                     <div class="flex-fill"></div>
-                                                                    ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+                                                                    ${dd.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
                                                                 </div>`]
 
-                                                            if (vm_c.toggle) {
+                                                            if (dd.toggle) {
                                                                 switch (dd.key) {
                                                                     case 'margin':
 
                                                                         array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, widget, () => {
 
                                                                             gvc.notifyDataChange(vm_c.id)
-                                                                            oWidget.refreshComponent()
+                                                                            oWidget.refreshComponentParameter.view1()
                                                                         })}</div>`)
                                                                         break
                                                                     case 'background':
                                                                         array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, widget, () => {
                                                                             gvc.notifyDataChange(vm_c.id)
-                                                                            oWidget.refreshComponent()
+                                                                                oWidget.refreshComponentParameter.view1()
                                                                         })}</div>`)
                                                                         break
                                                                     case 'develop':
                                                                         array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, widget, () => {
                                                                             gvc.notifyDataChange(vm_c.id)
-                                                                            oWidget.refreshComponent()
+                                                                                oWidget.refreshComponentParameter.view1()
                                                                         })}</div>`)
                                                                         break
                                                                 }
@@ -710,12 +672,11 @@ export const widgetComponent = {
                                         },
                                         hide_selector: true
                                     })
-
-
                                 }
                                 (widget as any).refreshComponentParameter.view2 = () => {
                                     gvc.notifyDataChange(id)
                                 }
+
                                 return [
                                     gvc.bindView(() => {
                                         const vm: {
@@ -737,7 +698,7 @@ export const widgetComponent = {
                                                                 type="button"
                                                                 onclick="${gvc.event(() => {
                                                                     vm.type = 'editor'
-                                                                    gvc.notifyDataChange(vm.id)
+                                                                    gvc.notifyDataChange([vm.id,'item-editor-select'])
                                                                 })}">
                                                             <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
                                                         </button>`
@@ -745,7 +706,7 @@ export const widgetComponent = {
                                                     let name = widget.label
                                                     return html`
                                                         <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
-                                                           onclick="${gvc.event((e,event) => {
+                                                           onclick="${gvc.event((e, event) => {
                                                                vm.type = 'preview';
                                                                event.stopPropagation();
                                                                event.preventDefault();
@@ -767,7 +728,7 @@ export const widgetComponent = {
                                                                 onclick="${gvc.event(() => {
                                                                     vm.type = 'preview';
                                                                     widget.label = name;
-                                                                    gvc.notifyDataChange(vm.id)
+                                                                    gvc.notifyDataChange([vm.id,'item-editor-select'])
                                                                 })}">
                                                             <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
                                                         </button>`
@@ -777,10 +738,10 @@ export const widgetComponent = {
                                             divCreate: {
                                                 class: `px-3 mx-n2  border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
                                                 style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
-                                                option:[{
-                                                    key:'onclick',
-                                                    value:gvc.event((e,event)=>{
-                                                        if(vm.type==='editor'){
+                                                option: [{
+                                                    key: 'onclick',
+                                                    value: gvc.event((e, event) => {
+                                                        if (vm.type === 'editor') {
                                                             return
                                                         }
                                                         const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id)
@@ -807,7 +768,6 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         view: (widget) => {
-
                                             const html = String.raw
                                             let array: string[] = []
                                             const setting_btn = html`
@@ -1023,16 +983,17 @@ onclick="${gvc.event(() => {
                                                 }
                                             })
                                             if (widget.data._layout === 'grid') {
-                                                array = array.concat([EditorElem.editeInput({
-                                                    gvc: gvc,
-                                                    title: `X軸數量`,
-                                                    default: widget.data._x_count,
-                                                    placeHolder: '請輸入X軸數量',
-                                                    callback: (text) => {
-                                                        widget.data._x_count = text;
-                                                        widget.refreshComponent()
-                                                    }
-                                                }),
+                                                array = array.concat([
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `X軸數量`,
+                                                        default: widget.data._x_count,
+                                                        placeHolder: '請輸入X軸數量',
+                                                        callback: (text) => {
+                                                            widget.data._x_count = text;
+                                                            widget.refreshComponent()
+                                                        }
+                                                    }),
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: `Y軸數量`,
@@ -1062,7 +1023,9 @@ onclick="${gvc.event(() => {
                                                             widget.data._gap_y = text;
                                                             widget.refreshComponent()
                                                         }
-                                                    }), child_container, setting_btn])
+                                                    }),
+                                                    child_container,
+                                                    setting_btn])
                                             } else if (widget.data._layout === 'vertical') {
                                                 widget.data._ver_position = widget.data._ver_position ?? 'center'
                                                 array = array.concat(
@@ -1076,8 +1039,10 @@ onclick="${gvc.event(() => {
                                                                 widget.data._gap = text;
                                                                 widget.refreshComponent()
                                                             }
-                                                        }), child_container,
-                                                        setting_btn]
+                                                        }),
+                                                        child_container,
+                                                        setting_btn
+                                                    ]
                                                 )
                                             } else if (widget.data._layout === 'proportion') {
                                                 array = array.concat(
@@ -1125,12 +1090,13 @@ onclick="${gvc.event(() => {
                                                                 RenderValue.custom_style.value(gvc, widget)
                                                                 widget.refreshComponent()
                                                             }
-                                                        }), child_container,
-                                                        setting_btn]
+                                                        }),
+                                                        child_container,
+                                                        setting_btn
+                                                    ]
                                                 )
                                             }
                                             // array.push(CustomStyle.editorMargin(gvc, widget))
-
                                             return `<div class="mx-2">${array.join('')}</div>`
                                         },
                                         toggle_visible: (bool) => {

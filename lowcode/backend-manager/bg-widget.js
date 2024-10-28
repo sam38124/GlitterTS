@@ -1627,12 +1627,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         let h = '';
         if (messageList && messageList.length > 0) {
             messageList.map((str) => {
-                h += html `<p class="mb-1">${str}</p>`;
+                h += html `<p class="mb-1" style="white-space: normal; word-break: break-all;">${str}</p>`;
             });
         }
         return html ` <div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
+<<<<<<< HEAD
             ${messageList && messageList.length > 0 ? html `<div class="mt-2" style="white-space: normal;">${h}</div>` : ``}
+=======
+            ${messageList && messageList.length > 0 ? `<div class="mt-2" style="white-space: normal; word-break: break-all;">${h}</div>` : ``}
+>>>>>>> 0aa72d08 ([update] : glitter version.)
         </div>`;
     }
     static selNavbar(data) {

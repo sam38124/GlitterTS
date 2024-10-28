@@ -124,12 +124,13 @@ export class LineMessage {
             data: {
                 text?: string;
                 image?: string;
-                attachment: any;
+                attachment?: any;
             };
             lineID: string;
         },
         callback: (data: any) => void
     ) {
+        obj.data.attachment=obj.data.attachment || ''
         try {
             obj.data.text = obj.data.text ? obj.data.text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '') : undefined;
             const post = new User(this.app, this.token);
@@ -367,19 +368,18 @@ export class LineMessage {
 
                 // this.chunkSendLine(data.userList , data.content , insertData.insertId , formatDateTime(data.sendTime));
             } else {
-                const insertData = await db.query(
-                    `INSERT INTO \`${this.app}\`.\`t_triggers\`
-                                                   SET ?;`,
-                    [
-                        {
-                            tag: 'sendLine',
-                            content: JSON.stringify(data),
-                            trigger_time: formatDateTime(),
-                            status: 0,
-                        },
-                    ]
-                );
-                this.chunkSendLine(data.userList, data.content, insertData.insertId);
+                const insertData = await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\`
+                                                   SET ?;`, [
+                    {
+                        tag: 'sendLine',
+                        content: JSON.stringify(data),
+                        trigger_time: formatDateTime(),
+                        status: 0,
+                    },
+                ]);
+                this.chunkSendLine(data.userList, {
+                    text:data.content
+                }, insertData.insertId);
             }
             return { result: true, message: '寄送成功' };
         } catch (e) {
@@ -489,16 +489,15 @@ export class LineMessage {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
-                resolve(
-                    await this.sendLine(
-                        {
-                            data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                            lineID: lineID,
-                        },
-                        (res) => {}
-                    )
-                );
-            });
+                resolve(await this.sendLine({
+                    data: {
+                        text:customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id)
+                    },
+                    lineID: lineID
+                }, (res) => {
+
+                }))
+            })
         }
     }
 

@@ -1695,6 +1695,16 @@ ${obj.gvc.bindView({
                                                             {
                                                                 key: 'onmouseover',
                                                                 value: gvc.event((e, event) => {
+                                                                    if (document.body.clientWidth < 800) {
+                                                                        HtmlGenerate.selectWidget({
+                                                                            gvc: gvc,
+                                                                            widget: widget,
+                                                                            widgetComponentID: cf.widget.id,
+                                                                            event: event,
+                                                                            glitter: window.parent.glitter,
+                                                                        });
+                                                                    }
+                                                                    ;
                                                                     $(e).children('.editorChild').children('.copy-btn').show();
                                                                     $(e).children('.editorChild').children('.plus_bt').show();
                                                                     function loop(item) {
@@ -1829,20 +1839,17 @@ ${obj.gvc.bindView({
         }
         function active() {
             try {
+                glitter.share.editorViewModel.selectItem = dd;
                 Storage.page_setting_item = 'layout';
-                glitter.pageConfig[gvc.glitter.pageConfig.length - 1].gvc.notifyDataChange(['top_sm_bar', 'left_sm_bar']);
+                glitter.pageConfig[glitter.pageConfig.length - 1].gvc.notifyDataChange(['top_sm_bar', 'left_sm_bar', 'item-editor-select']);
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
-                glitter.share.editorViewModel.selectItem = dd;
                 Storage.lastSelect = dd.id;
                 glitter.share.selectEditorItem();
                 if (cf.scroll_to_hover) {
                     setTimeout(() => {
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0));
                     });
-                }
-                if (document.body.clientWidth < 768) {
-                    glitter.openDrawer();
                 }
                 event && event.stopPropagation && event.stopPropagation();
             }
@@ -1955,6 +1962,9 @@ background: white;
                         }
                         else {
                             function getPlusAndPasteView(dir) {
+                                if (window.parent.document.body.clientWidth < 800) {
+                                    return ``;
+                                }
                                 const detID = cf.gvc.glitter.getUUID();
                                 const plusID = cf.gvc.glitter.getUUID();
                                 let block_close = false;
@@ -2062,15 +2072,15 @@ transform: translateY(5px);
                                     </div>`;
                             }
                             return html `
-                                <div
+                                ${cf.gvc.glitter.document.body.clientWidth > 800 ? `<div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
                                         style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
                                 >
                                     ${cf.label}
-                                </div>
+                                </div>` : ``}
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile' || document.body.clientWidth < 800)
+                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile')
                                 ? `-30px`
                                 : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2078,7 +2088,7 @@ transform: translateY(5px);
                                 </div>
                                 <div
                                         class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile' || document.body.clientWidth < 800)
+                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile')
                                 ? `10px`
                                 : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
@@ -2112,7 +2122,7 @@ transform: translateY(5px);
                         }
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || (window.parent.glitter.share.editorViewModel.selectItem === cf.widget) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },
@@ -2146,7 +2156,7 @@ transform: translateY(5px);
                         container_items.rerenderReplaceElem();
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
-                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft', 'item-editor-select']);
                     callback();
                 }
             },

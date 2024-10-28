@@ -260,7 +260,11 @@ export class Schedule {
 
                     for (const email of emails) {
                         if (email.status === 0) {
-                            new LineMessage(app).chunkSendLine(email.userList , email.content , email.id);
+                            new LineMessage(app).chunkSendLine(email.userList ,{
+                                data:{
+                                    text:email.content
+                                }
+                            } , email.id);
                         }
                     }
                 }

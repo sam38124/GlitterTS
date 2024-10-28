@@ -2,6 +2,7 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { GVC } from '../../glitterBundle/GVController.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import {ApiPageConfig} from "../../api/pageConfig.js";
 
 export class FormModule {
     public static editor(gvc: GVC, data: any, title: string, update?: () => void) {

@@ -1140,17 +1140,22 @@ function initialEditor(gvc, viewModel) {
             root: arrayData.container.container_config.root,
         }))[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         setTimeout(() => {
+            console.log(`cf.data.id==>`, cf.data.id);
             Storage.lastSelect = cf.data.id;
-            glitter.htmlGenerate.selectWidget({
-                widget: cf.data,
-                widgetComponentID: cf.data.id,
-                gvc: arrayData.container.container_config.gvc,
-                scroll_to_hover: true,
-                glitter: glitter,
-            });
+            function pasteEvent() {
+                glitter.htmlGenerate.selectWidget({
+                    widget: cf.data,
+                    widgetComponentID: cf.data.id,
+                    gvc: arrayData.container.container_config.gvc,
+                    scroll_to_hover: true,
+                    glitter: glitter,
+                });
+            }
+            pasteEvent();
             setTimeout(() => {
                 glitter.share.left_block_hover = false;
                 glitter.share.loading_dialog.dataLoading({ visible: false });
+                pasteEvent();
             }, 1000);
         }, 100);
         AddComponent.toggle(false);

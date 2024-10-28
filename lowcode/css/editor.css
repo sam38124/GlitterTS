@@ -1049,3 +1049,8 @@ h6 {
         transform: scale(0.5) translateX(-50%);
     }
 }
+
+.form-check-input-solid:checked{
+    background-color: #393939 !important;
+    border-color: #393939 !important;;
+}

@@ -686,7 +686,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                             onclick="${gvc.event((e, event) => {
                                                                                                                         event.stopPropagation();
                                                                                                                         vm.type = 'editor';
-                                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                                        gvc.notifyDataChange([vm.id]);
                                                                                                                     })}">
                                                                                                                                         <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
                                                                                                                                     </button>`;
@@ -714,7 +714,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         event.stopPropagation();
                                                                                                                         vm.type = 'preview';
                                                                                                                         widget.label = name;
-                                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                                        gvc.notifyDataChange([vm.id, 'item-editor-select']);
                                                                                                                     })}">
                                                                                                                                         <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
                                                                                                                                     </button>`;
@@ -869,15 +869,36 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     }
                                                                                                                     widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
                                                                                                                 }
+                                                                                                                function getItemsVisibility(dd) {
+                                                                                                                    const descriptor = Object.getOwnPropertyDescriptor(refer_form, dd.key);
+                                                                                                                    const custom = oWidget[`${type}_editable`].find((d1) => {
+                                                                                                                        return d1 === dd.key;
+                                                                                                                    });
+                                                                                                                    if (descriptor && (typeof descriptor.get === 'function' || typeof descriptor.set === 'function')) {
+                                                                                                                        delete refer_form[dd.key];
+                                                                                                                    }
+                                                                                                                    if (!custom) {
+                                                                                                                        Object.defineProperty(refer_form, dd.key, {
+                                                                                                                            get: function () {
+                                                                                                                                return oWidget.data.refer_form_data[dd.key];
+                                                                                                                            },
+                                                                                                                            set(v) {
+                                                                                                                                if (v !== undefined) {
+                                                                                                                                    oWidget.data.refer_form_data[dd.key] = v;
+                                                                                                                                }
+                                                                                                                            },
+                                                                                                                            configurable: true
+                                                                                                                        });
+                                                                                                                    }
+                                                                                                                    return (!glitter.share.only_show_cuatomize || custom);
+                                                                                                                }
                                                                                                                 const setting_option = [
                                                                                                                     {
                                                                                                                         title: "樣式設定",
                                                                                                                         key: 'style',
                                                                                                                         array: yield filterFormat((dd) => {
-                                                                                                                            if (type === 'def' || oWidget[`${type}_editable`].find((d1) => {
-                                                                                                                                return d1 === dd.key;
-                                                                                                                            })) {
-                                                                                                                                return dd.page !== 'color_theme' && dd.category === 'style';
+                                                                                                                            if (dd.page !== 'color_theme' && dd.category === 'style') {
+                                                                                                                                return getItemsVisibility(dd);
                                                                                                                             }
                                                                                                                             else {
                                                                                                                                 return false;
@@ -888,10 +909,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         title: "顏色設定",
                                                                                                                         key: 'color',
                                                                                                                         array: yield filterFormat((dd) => {
-                                                                                                                            if (type === 'def' || oWidget[`${type}_editable`].find((d1) => {
-                                                                                                                                return d1 === dd.key;
-                                                                                                                            })) {
-                                                                                                                                return dd.page === 'color_theme';
+                                                                                                                            if (dd.page === 'color_theme') {
+                                                                                                                                return getItemsVisibility(dd);
                                                                                                                             }
                                                                                                                             else {
                                                                                                                                 return false;
@@ -919,111 +938,120 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         array: []
                                                                                                                     }
                                                                                                                 ].filter((dd) => {
-                                                                                                                    switch (dd.key) {
-                                                                                                                        case 'style':
-                                                                                                                        case 'color':
-                                                                                                                            return (dd.array && dd.array.length > 0);
-                                                                                                                        case 'background':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
-                                                                                                                                return d1 === '_container_background';
-                                                                                                                            }).length);
-                                                                                                                        case 'fonts':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
-                                                                                                                                return d1 === '_container_fonts';
-                                                                                                                            }).length);
-                                                                                                                        case 'margin':
-                                                                                                                        case 'develop':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
-                                                                                                                                return d1 === '_container_margin';
-                                                                                                                            }).length);
-                                                                                                                    }
+                                                                                                                    const result = (() => {
+                                                                                                                        switch (dd.key) {
+                                                                                                                            case 'style':
+                                                                                                                            case 'color':
+                                                                                                                                return (dd.array && dd.array.length > 0);
+                                                                                                                            case 'background':
+                                                                                                                                return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                    return d1 === '_container_background';
+                                                                                                                                }).length);
+                                                                                                                            case 'fonts':
+                                                                                                                                return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                    return d1 === '_container_fonts';
+                                                                                                                                }).length);
+                                                                                                                            case 'margin':
+                                                                                                                            case 'develop':
+                                                                                                                                return (type === 'def' || oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                    return d1 === '_container_margin';
+                                                                                                                                }).length);
+                                                                                                                        }
+                                                                                                                    })();
+                                                                                                                    return true;
                                                                                                                 });
                                                                                                                 try {
-                                                                                                                    if (vm.page === 'editor') {
-                                                                                                                        const array_items = yield filterFormat((dd) => {
-                                                                                                                            if (!oWidget[`${type}_editable`].find((d1) => {
-                                                                                                                                return d1 === dd.key;
-                                                                                                                            })) {
-                                                                                                                                refer_form[dd.key] = JSON.parse(JSON.stringify(oWidget.data.refer_form_data[dd.key] || ''));
-                                                                                                                            }
-                                                                                                                            return dd.page !== 'color_theme' && dd.category !== 'style';
-                                                                                                                        });
-                                                                                                                        return [
-                                                                                                                            type === 'def' ? `` : html `
-                                                                                                                                        <div class="my-2 mx-3 guide-user-editor-6 "
+                                                                                                                    const global_setting_view = [
+                                                                                                                        `<div class="mx-3 guide-user-editor-6 "
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
                                                                                                                                              onclick="${gvc.event(() => {
-                                                                                                                                const cGvc = gvc;
-                                                                                                                                BgWidget.settingDialog({
-                                                                                                                                    gvc: gvc,
-                                                                                                                                    title: `${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義選項`,
-                                                                                                                                    innerHTML: (gvc) => {
-                                                                                                                                        return html `
-                                                                                                                                                             <div class="px-3 pb-3">
-                                                                                                                                                                 ${[
-                                                                                                                                            BgWidget.alertInfo(``, [`勾選自定義選項，將會於${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}顯示獨特內容，而不會影響到其他尺寸的呈現樣式`], {
-                                                                                                                                                style: 'white-space:normal;word-break:break-all;',
-                                                                                                                                                class: 'fs-6 fw-500',
-                                                                                                                                            }),
-                                                                                                                                            BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
-                                                                                                                                                return {
-                                                                                                                                                    key: dd.key,
-                                                                                                                                                    name: dd.title
-                                                                                                                                                };
-                                                                                                                                            }).concat([{
-                                                                                                                                                    key: '_container_margin',
-                                                                                                                                                    name: '容器間距'
-                                                                                                                                                }, {
-                                                                                                                                                    key: '_container_fonts',
-                                                                                                                                                    name: '字型設定'
-                                                                                                                                                }, {
-                                                                                                                                                    key: '_container_background',
-                                                                                                                                                    name: '背景設定'
-                                                                                                                                                },
-                                                                                                                                            ]), oWidget[`${type}_editable`] || [], (select) => {
-                                                                                                                                                oWidget[`${type}_editable`] = select;
-                                                                                                                                            }, {})
-                                                                                                                                        ].join('<div class="my-3"></div>')}
-                                                                                                                                                             </div>`;
-                                                                                                                                    },
-                                                                                                                                    footer_html: (gvc) => {
-                                                                                                                                        return ` <div class="d-flex justify-content-end"
+                                                                                                                            const cGvc = gvc;
+                                                                                                                            BgWidget.settingDialog({
+                                                                                                                                gvc: gvc,
+                                                                                                                                title: `${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義項目`,
+                                                                                                                                innerHTML: (gvc) => {
+                                                                                                                                    return html `
+                                                                                                                                                <div class="px-3 pb-3">
+                                                                                                                                                    ${[
+                                                                                                                                        BgWidget.alertInfo(``, [`勾選自定義項目，將會於${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}顯示獨特內容，而不會影響到其他尺寸的呈現樣式。`], {
+                                                                                                                                            style: 'white-space:normal;word-break:break-all;',
+                                                                                                                                            class: 'fs-6 fw-500',
+                                                                                                                                        }),
+                                                                                                                                        BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
+                                                                                                                                            return {
+                                                                                                                                                key: dd.key,
+                                                                                                                                                name: dd.title
+                                                                                                                                            };
+                                                                                                                                        }).concat([{
+                                                                                                                                                key: '_container_margin',
+                                                                                                                                                name: '容器間距'
+                                                                                                                                            }, {
+                                                                                                                                                key: '_container_fonts',
+                                                                                                                                                name: '字型設定'
+                                                                                                                                            }, {
+                                                                                                                                                key: '_container_background',
+                                                                                                                                                name: '背景設定'
+                                                                                                                                            },
+                                                                                                                                        ]), oWidget[`${type}_editable`] || [], (select) => {
+                                                                                                                                            oWidget[`${type}_editable`] = select;
+                                                                                                                                        }, {})
+                                                                                                                                    ].join('<div class="my-3"></div>')}
+                                                                                                                                                </div>`;
+                                                                                                                                },
+                                                                                                                                footer_html: (gvc) => {
+                                                                                                                                    return ` <div class="d-flex justify-content-end"
                                                                                                                                                                           style="gap:10px;">
                                                                                                                                                                          ${BgWidget.cancel(gvc.event(() => {
-                                                                                                                                            gvc.closeDialog();
-                                                                                                                                        }))}
+                                                                                                                                        gvc.closeDialog();
+                                                                                                                                    }))}
                                                                                                                                                                          ${BgWidget.save(gvc.event(() => {
-                                                                                                                                            gvc.closeDialog();
-                                                                                                                                            getReferForm(widget, type);
-                                                                                                                                            refreshLeftBar();
-                                                                                                                                            refresh(widget, type);
-                                                                                                                                        }), '完成')}
+                                                                                                                                        gvc.closeDialog();
+                                                                                                                                        getReferForm(widget, type);
+                                                                                                                                        refreshLeftBar();
+                                                                                                                                        refresh(widget, type);
+                                                                                                                                    }), '完成')}
                                                                                                                                                                      </div>`;
-                                                                                                                                    },
-                                                                                                                                });
-                                                                                                                            })}">
+                                                                                                                                },
+                                                                                                                            });
+                                                                                                                        })}">
                                                                                                                                             <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                                                                                                                ${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義選項
+                                                                                                                                                ${(Storage.view_type === 'mobile') ? `手機版` : `電腦版`}自定義項目
                                                                                                                                             </div>
                                                                                                                                         </div>`,
-                                                                                                                            FormWidget.editorView({
-                                                                                                                                gvc: gvc,
-                                                                                                                                array: array_items,
-                                                                                                                                refresh: () => {
-                                                                                                                                    console.log(`_editable`, oWidget[`${type}_editable`]);
-                                                                                                                                    Object.keys(refer_form).map((dd) => {
-                                                                                                                                        if (!oWidget[`${type}_editable`].find((d1) => {
-                                                                                                                                            return d1 === dd;
-                                                                                                                                        })) {
-                                                                                                                                            oWidget.data.refer_form_data[dd] = JSON.parse(JSON.stringify(refer_form[dd] || ''));
-                                                                                                                                            refer_form[dd] = undefined;
-                                                                                                                                        }
+                                                                                                                        `<div class="d-flex align-items-center mx-3" style="gap:6px;cursor:pointer;" onclick="${gvc.event(() => {
+                                                                                                                            glitter.share.only_show_cuatomize = !glitter.share.only_show_cuatomize;
+                                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                                        })}">
+                                                                                                                                            <input  class="form-check-input form-check-input-solid m-0"
+                                                                                                                                                    type="checkbox"
+                                                                                                                                                    style="height:17px;width:17px;"
+                                                                                                                                                    ${glitter.share.only_show_cuatomize ? `checked` : ``}/>
+                                                                                                                                            <div class="my-auto tx_title fw-normal d-flex align-items-center" style="white-space: nowrap;font-size: 16px;">僅顯示自定義項目</div>
+                                                                                                                                        </div>`,
+                                                                                                                        ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`
+                                                                                                                    ].join(`<div style="height:18px;"></div>`);
+                                                                                                                    if (vm.page === 'editor') {
+                                                                                                                        const array_items = yield filterFormat((dd) => {
+                                                                                                                            return dd.page !== 'color_theme' && dd.category !== 'style' && getItemsVisibility(dd);
+                                                                                                                        });
+                                                                                                                        return [
+                                                                                                                            type === 'def' ? `` : global_setting_view,
+                                                                                                                            (() => {
+                                                                                                                                if (array_items.length === 0) {
+                                                                                                                                    return `<div class="mb-n3" style="text-align: center; padding: 12px; font-size: 18px; font-weight: 700;">尚未設定自定義項目</div>`;
+                                                                                                                                }
+                                                                                                                                else {
+                                                                                                                                    return FormWidget.editorView({
+                                                                                                                                        gvc: gvc,
+                                                                                                                                        array: array_items,
+                                                                                                                                        refresh: () => {
+                                                                                                                                            refresh(widget, type);
+                                                                                                                                        },
+                                                                                                                                        formData: refer_form,
+                                                                                                                                        widget: pageData.config
                                                                                                                                     });
-                                                                                                                                    refresh(widget, type);
-                                                                                                                                },
-                                                                                                                                formData: refer_form,
-                                                                                                                                widget: pageData.config
-                                                                                                                            }),
+                                                                                                                                }
+                                                                                                                            })(),
                                                                                                                             html `
                                                                                                                                         <div class="p-3 mt-3 d-flex align-items-center guide-user-editor-7 ${setting_option.length > 0 ? `` : `d-none`}"
                                                                                                                                              style="font-size: 16px;
@@ -1041,7 +1069,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                         ].join('');
                                                                                                                     }
                                                                                                                     else if (vm.page === 'setting') {
-                                                                                                                        return [setting_option.map((dd, index) => {
+                                                                                                                        return global_setting_view + [setting_option.map((dd, index) => {
                                                                                                                                 return gvc.bindView(() => {
                                                                                                                                     const vm_c = {
                                                                                                                                         id: gvc.glitter.getUUID(),
