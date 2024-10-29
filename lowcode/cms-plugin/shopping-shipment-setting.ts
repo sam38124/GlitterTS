@@ -263,15 +263,21 @@ export class ShoppingShipmentSetting {
                                                                                                                 style="cursor: pointer; width: auto;"
                                                                                                                 class="guide4-6"
                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                    dialog.checkYesOrNot({
-                                                                                                                        text: '是否要刪除',
-                                                                                                                        callback: (response) => {
-                                                                                                                            if (response) {
-                                                                                                                                shipmentArray.volume.splice(index, 1);
-                                                                                                                                gvc.notifyDataChange(page_id);
-                                                                                                                            }
-                                                                                                                        },
-                                                                                                                    });
+                                                                                                                    if (data.value || data.key){
+                                                                                                                        dialog.checkYesOrNot({
+                                                                                                                            text: '是否要刪除',
+                                                                                                                            callback: (response) => {
+                                                                                                                                if (response) {
+                                                                                                                                    shipmentArray.volume.splice(index, 1);
+                                                                                                                                    gvc.notifyDataChange(page_id);
+                                                                                                                                }
+                                                                                                                            },
+                                                                                                                        });
+                                                                                                                    }else{
+                                                                                                                        shipmentArray.volume.splice(index, 1);
+                                                                                                                        gvc.notifyDataChange(page_id);
+                                                                                                                    }
+                                                                                                                    
                                                                                                                 })}"
                                                                                                             >
                                                                                                                 <i class="fa-duotone fa-xmark"></i>

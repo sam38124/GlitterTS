@@ -110,6 +110,34 @@ export class ApiShop {
             }),
         });
     }
+    static getFEGuideLeave() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config?key=FEGuideLeave`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+    static setFEGuideLeave() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                key: 'FEGuideLeave',
+                value: {
+                    view: true,
+                },
+            }),
+        });
+    }
     static postProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,

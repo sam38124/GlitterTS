@@ -97,7 +97,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     setTimeout(() => gvc.closeDialog(), 1200);
                     return html `
                         <div
-                            class="dialog-box"
+                            class="dialog-box dialog-success"
                             onclick="${gvc.event(() => {
                         gvc.closeDialog();
                     })}"
