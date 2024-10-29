@@ -241,8 +241,8 @@ export class AutoReply {
                                         placeHolder: '請輸入寄件者名稱',
                                     }),
                                     html`
-                                        <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
-                                            <div class="d-flex align-items-center gap-2">${EditorElem.h3('簡訊內文')} ${BgWidget.grayNote(`預計每則簡訊花費${pointCount * this.ticket}點`)}</div>
+                                        <div class="d-flex align-items-center justify-content-between p-0 my-2">
+                                            <div class="d-flex align-items-center gap-2">${EditorElem.h3('訊息內容')}</div>
                                             <div>${BgWidget.aiChatButton({ gvc, select: 'writer' })}</div>
                                         </div>
                                     `,

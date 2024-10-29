@@ -115,18 +115,21 @@ export class BgCustomerMessage {
                              alt="Albert Flores">
                         <div class="d-flex  px-1 text-white align-items-center" style="gap:8px;">
                             <h6 class="mb-0 text-white " style="">一站式客服整合系統</h6>
-                            ${BgWidget.questionButton(gvc.event(() => {
-                                BgWidget.dialog({
-                                    gvc,
-                                    title: '提示',
-                                    innerHTML: () => {
-                                        return `<div class="w-100" style="white-space:normal;word-break: break-all;">${BgWidget.grayNote([`*單一後台即可管理各渠道訊息`, `*前往第三方整合設定，設定Line與Facebook官方訊息串接`, `*為確保訊息同步，請統一透過SHOPNEX後台發送訊息`].map((dd) => {
-                                            return `<div style="letter-spacing: 1.2px;white-space:normal;word-break: break-all;">${dd}</div>`;
-                                        }).join('<div class="my-1"></div>'))}</div>`;
-                                    },
-                                    width: 250
-                                });
-                            }))}
+                            ${BgWidget.iconButton({
+                                icon: 'question',
+                                event: gvc.event(() => {
+                                    BgWidget.dialog({
+                                        gvc,
+                                        title: '提示',
+                                        innerHTML: () => {
+                                            return `<div class="w-100" style="white-space:normal;word-break: break-all;">${BgWidget.grayNote([`*單一後台即可管理各渠道訊息`, `*前往第三方整合設定，設定Line與Facebook官方訊息串接`, `*為確保訊息同步，請統一透過SHOPNEX後台發送訊息`].map((dd) => {
+                                                return `<div style="letter-spacing: 1.2px;white-space:normal;word-break: break-all;">${dd}</div>`;
+                                            }).join('<div class="my-1"></div>'))}</div>`;
+                                        },
+                                        width: 250
+                                    });
+                                })
+                            })}
                         </div>
                         <div class="flex-fill" style="flex: 1;"></div>
                         <i class="fa-regular fa-circle-xmark text-white fs-3 " aria-hidden="true"

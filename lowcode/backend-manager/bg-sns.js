@@ -1343,7 +1343,22 @@ export class BgSNS {
                                                                     ${gvc.bindView(() => {
                                             return {
                                                 bind: 'total_count',
-                                                view: () => BgWidget.grayNote(`預計每則簡訊花費${pointCount * this.ticket}點`),
+                                                view: () => document.body.clientWidth > 768
+                                                    ? BgWidget.grayNote(`預計每則簡訊花費${pointCount * this.ticket}點`, 'margin-top: 0.25em;')
+                                                    : html ` <div style="margin-top: 0.25em;">
+                                                                                          ${BgWidget.iconButton({
+                                                        icon: 'info',
+                                                        event: gvc.event(() => {
+                                                            BgWidget.jumpAlert({
+                                                                gvc,
+                                                                text: `預計每則簡訊花費${pointCount * this.ticket}點`,
+                                                                justify: 'top',
+                                                                align: 'center',
+                                                                width: 200,
+                                                            });
+                                                        }),
+                                                    })}
+                                                                                      </div>`,
                                             };
                                         })}
                                                                 </div>
@@ -2208,7 +2223,7 @@ export class BgSNS {
                             `);
                     }
                     return BgWidget.container(html `
-                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
+                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('回饋信件')}
                             <div class="flex-fill"></div>
                         </div>
@@ -2527,7 +2542,7 @@ export class BgSNS {
                             `);
                     }
                     return BgWidget.container(html `
-                        <div class="title-container ${type === 'select' ? `d-none` : ``}">
+                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('客服訊息')}
                             <div class="flex-fill"></div>
                             <button

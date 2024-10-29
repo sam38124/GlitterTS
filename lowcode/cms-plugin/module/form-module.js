@@ -55,17 +55,17 @@ export class FormModule {
                                     return ``;
                                 }
                                 return html `<li class="w-100 border rounded-3 mb-2" style="overflow: hidden;">
-                                    <div
-                                        class="d-flex align-items-center w-100 py-2"
-                                        style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
-                                        onclick="${gvc.event(() => {
+                                        <div
+                                            class="d-flex align-items-center w-100 py-2"
+                                            style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
+                                            onclick="${gvc.event(() => {
                                     dd.toggle = !dd.toggle;
                                     gvc.notifyDataChange(vm.id);
                                 })}"
-                                    >
-                                        <i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
-                                        <div style="width:12px;" class="d-flex align-items-center justify-content-center me-3">
-                                            ${(() => {
+                                        >
+                                            <i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
+                                            <div style="width:12px;" class="d-flex align-items-center justify-content-center me-3">
+                                                ${(() => {
                                     switch (dd.form_config.type) {
                                         case 'email':
                                             return `<i class="fa-solid fa-envelope "></i>`;
@@ -77,7 +77,8 @@ export class FormModule {
                                             return opc.icon;
                                     }
                                 })()}
-                                        </div>${dd.title || opc.title}${(() => {
+                                            </div>
+                                            ${dd.title || opc.title}${(() => {
                                     if (dd.deletable === false) {
                                         return `<div class="ms-2">${BgWidget.blueNote(`系統預設`)}</div>`;
                                     }
@@ -85,27 +86,30 @@ export class FormModule {
                                         return ``;
                                     }
                                 })()}
-                                        <div class="flex-fill"></div>
-                                        ${dd.toggle ? `<i class="fa-solid fa-angle-up"></i>` : `<i class="fa-solid fa-angle-down"></i>`}
-                                    </div>
-                                    ${dd.toggle
+                                            <div class="flex-fill"></div>
+                                            ${dd.toggle ? `<i class="fa-solid fa-angle-up"></i>` : `<i class="fa-solid fa-angle-down"></i>`}
+                                        </div>
+                                        ${dd.toggle
                                     ? html `
-                                              <div class="w-100 p-3">
-                                                  ${(() => {
+                                                  <div class="w-100 p-3">
+                                                      ${(() => {
                                         var _a;
-                                        const editor_option = [BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                        const editor_option = [
+                                            BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
                                                 if (dd.require) {
                                                     const dialog = new ShareDialog(gvc.glitter);
-                                                    if (dd.key === 'email' && !vm.data.find((dd) => {
-                                                        return dd.key === 'phone' && dd.require;
-                                                    })) {
+                                                    if (dd.key === 'email' &&
+                                                        !vm.data.find((dd) => {
+                                                            return dd.key === 'phone' && dd.require;
+                                                        })) {
                                                         dialog.errorMessage({ text: '電話或信箱，必須有一個為必填' });
                                                         gvc.notifyDataChange(vm.id);
                                                         return;
                                                     }
-                                                    else if (dd.key === 'phone' && !vm.data.find((dd) => {
-                                                        return dd.key === 'email' && dd.require;
-                                                    })) {
+                                                    else if (dd.key === 'phone' &&
+                                                        !vm.data.find((dd) => {
+                                                            return dd.key === 'email' && dd.require;
+                                                        })) {
                                                         dialog.errorMessage({ text: '電話或信箱，必須有一個為必填' });
                                                         gvc.notifyDataChange(vm.id);
                                                         return;
@@ -124,15 +128,17 @@ export class FormModule {
                                                     return [];
                                                 }
                                                 else {
-                                                    return [BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '隱藏此欄位' }], [`${(_a = dd.hidden) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                                    return [
+                                                        BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '隱藏此欄位' }], [`${(_a = dd.hidden) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
                                                             dd.hidden = !dd.hidden;
                                                             update && update();
                                                             gvc.notifyDataChange(vm.id);
-                                                        })];
+                                                        }),
+                                                    ];
                                                 }
                                             })(),
-                                            html `<div class="d-flex align-items-center justify-content-end ${(dd.deletable === false) ? `d-none` : ``}">
-                                                                      ${BgWidget.cancel(gvc.event(() => {
+                                            html `<div class="d-flex align-items-center justify-content-end ${dd.deletable === false ? `d-none` : ``}">
+                                                                  ${BgWidget.cancel(gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認刪除欄位?',
@@ -145,7 +151,8 @@ export class FormModule {
                                                     },
                                                 });
                                             }), '刪除欄位')}
-                                                                  </div>`];
+                                                              </div>`,
+                                        ];
                                         switch (dd.page) {
                                             case 'multiple_line_text':
                                             case 'input':
@@ -155,7 +162,8 @@ export class FormModule {
                                                             return [];
                                                         }
                                                         else {
-                                                            return [EditorElem.select({
+                                                            return [
+                                                                EditorElem.select({
                                                                     title: html `<div class="tx_normal fw-normal">資料類型</div>`,
                                                                     gvc: gvc,
                                                                     callback: (value) => {
@@ -243,7 +251,8 @@ export class FormModule {
                                                                             value: dd.value,
                                                                         };
                                                                     }),
-                                                                })];
+                                                                }),
+                                                            ];
                                                         }
                                                     })(),
                                                     BgWidget.editeInput({
@@ -268,7 +277,7 @@ export class FormModule {
                                                         },
                                                         placeHolder: '請輸入關於這項欄位的描述或指引',
                                                     }),
-                                                    ...editor_option
+                                                    ...editor_option,
                                                 ].join('<div class="my-2"></div>');
                                             case 'form-select':
                                             case 'check_box':
@@ -286,8 +295,8 @@ export class FormModule {
                                                         placeHolder: '請輸入自訂欄位名稱',
                                                     }),
                                                     html `
-                                                                      <div class="tx_normal fw-normal mb-2">選項</div>
-                                                                      ${gvc.bindView(() => {
+                                                                          <div class="tx_normal fw-normal mb-2">選項</div>
+                                                                          ${gvc.bindView(() => {
                                                         const cVm = {
                                                             id: gvc.glitter.getUUID(),
                                                         };
@@ -297,35 +306,35 @@ export class FormModule {
                                                                 return (dd.form_config.option
                                                                     .map((d1, index) => {
                                                                     return html `
-                                                                                                  <div class="d-flex align-items-center mb-2" style="gap: 10px;">
-                                                                                                      <input
-                                                                                                          class="form-control flex-fill"
-                                                                                                          placeholder="請輸入選項內容"
-                                                                                                          value="${d1.name}"
-                                                                                                          onchange="${gvc.event((e, event) => {
+                                                                                                      <div class="d-flex align-items-center mb-2" style="gap: 10px;">
+                                                                                                          <input
+                                                                                                              class="form-control flex-fill"
+                                                                                                              placeholder="請輸入選項內容"
+                                                                                                              value="${d1.name}"
+                                                                                                              onchange="${gvc.event((e, event) => {
                                                                         d1.value = e.value;
                                                                         d1.name = e.value;
                                                                         update && update();
                                                                         gvc.notifyDataChange(cVm.id);
                                                                     })}"
-                                                                                                      />
-                                                                                                      <i
-                                                                                                          class="fa-solid fa-xmark"
-                                                                                                          style="color:#8d8d8d;cursor: pointer; "
-                                                                                                          onclick="${gvc.event(() => {
+                                                                                                          />
+                                                                                                          <i
+                                                                                                              class="fa-solid fa-xmark"
+                                                                                                              style="color:#8d8d8d;cursor: pointer; "
+                                                                                                              onclick="${gvc.event(() => {
                                                                         dd.form_config.option.splice(index, 1);
                                                                         update && update();
                                                                         gvc.notifyDataChange(cVm.id);
                                                                     })}"
-                                                                                                      ></i>
-                                                                                                  </div>
-                                                                                              `;
+                                                                                                          ></i>
+                                                                                                      </div>
+                                                                                                  `;
                                                                 })
                                                                     .join('') +
                                                                     html ` <div
-                                                                                          class=""
-                                                                                          style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex; cursor: pointer;"
-                                                                                          onclick="${gvc.event(() => {
+                                                                                              class=""
+                                                                                              style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex; cursor: pointer;"
+                                                                                              onclick="${gvc.event(() => {
                                                                         dd.form_config.option.push({
                                                                             index: 0,
                                                                             name: '',
@@ -334,25 +343,27 @@ export class FormModule {
                                                                         update && update();
                                                                         gvc.notifyDataChange(cVm.id);
                                                                     })}"
-                                                                                      >
-                                                                                          <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                              新增選項
-                                                                                          </div>
-                                                                                      </div>`);
+                                                                                          >
+                                                                                              <div
+                                                                                                  style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                              >
+                                                                                                  新增選項
+                                                                                              </div>
+                                                                                          </div>`);
                                                             },
                                                         };
                                                     })}
-                                                                  `,
-                                                    ...editor_option
+                                                                      `,
+                                                    ...editor_option,
                                                 ].join('<div class="my-2"></div>');
                                             default:
                                                 return '';
                                         }
                                     })()}
-                                              </div>
-                                          `
+                                                  </div>
+                                              `
                                     : ''}
-                                </li>`;
+                                    </li>`;
                             })
                                 .join('');
                             return view;
@@ -397,7 +408,7 @@ export class FormModule {
                     },
                 };
             }),
-            BgWidget.plusButton({
+            BgWidget.dropPlusButton({
                 gvc: gvc,
                 title: '新增一個欄位',
                 options: option.map((dd) => {

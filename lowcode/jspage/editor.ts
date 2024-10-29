@@ -789,6 +789,7 @@ color:white;
                             </div>
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {
+                    const size = document.body.clientWidth > 768 ? 24 : 18;
                     return (
                         html`
                                                 <div>${AiMessage.aiRobot({
@@ -805,7 +806,7 @@ color:white;
                         })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                         class="me-2" style="width:24px;height: 24px;">AI助手
+                                                         class="me-2" style="width:${size}px;height: ${size}px;">AI助手
                                                 </div>
                                                 <div class="position-relative">
                                                     <div

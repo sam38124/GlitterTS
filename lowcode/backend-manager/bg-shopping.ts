@@ -2502,8 +2502,8 @@ ${EditorElem.editeInput({
                                                             html`<div class="w-100 bgf6 d-flex">
                                                                 <div style=" width:calc(100% / 7 - 90px);"></div>
                                                                 <div style=" width:${wi};padding-left:10px; ">子類</div>
-                                                                <div style=" width:${wi}; ">販售價格</div>
-                                                                <div style=" width:${wi}; ">比較價格</div>
+                                                                <div style=" width:${wi}; ">售價</div>
+                                                                <div style=" width:${wi}; ">原價</div>
                                                                 <div style=" width:${wi}; ">存貨數量</div>
                                                                 <div style=" width:${wi};">存貨單位(SKU)</div>
                                                                 <div style=" width:${wi};margin-left: 20px;">運費權重</div>
@@ -2622,7 +2622,7 @@ ${EditorElem.editeInput({
                                                                                                         }),
                                                                                                         EditorElem.editeInput({
                                                                                                             gvc: obj.gvc,
-                                                                                                            title: '販售價格',
+                                                                                                            title: '售價',
                                                                                                             default: `${dd.sale_price ?? 0}`,
                                                                                                             placeHolder: '',
                                                                                                             type: 'number',
@@ -2632,7 +2632,7 @@ ${EditorElem.editeInput({
                                                                                                         }),
                                                                                                         EditorElem.editeInput({
                                                                                                             gvc: obj.gvc,
-                                                                                                            title: '比較價格',
+                                                                                                            title: '原價',
                                                                                                             default: `${dd.compare_price ?? 0}`,
                                                                                                             placeHolder: '',
                                                                                                             type: 'number',

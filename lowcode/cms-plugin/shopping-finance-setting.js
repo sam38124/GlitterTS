@@ -916,10 +916,23 @@ export class ShoppingFinanceSetting {
                     })}
                             ${BgWidget.mbContainer(12)}
                             ${BgWidget.mainCard([
-                        html `<div class="title-container">
-                                        <div>
+                        html `<div class="title-container px-0">
+                                        <div class="d-flex d-md-block gap-2 align-items-center">
                                             <div class="tx_700">配送說明</div>
-                                            ${BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項')}
+                                            ${document.body.clientWidth > 768
+                            ? BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項')
+                            : BgWidget.iconButton({
+                                icon: 'info',
+                                event: gvc.event(() => {
+                                    BgWidget.jumpAlert({
+                                        gvc,
+                                        text: '於結帳頁面中顯示，告知顧客配送所需要注意的事項',
+                                        justify: 'top',
+                                        align: 'center',
+                                        width: 220,
+                                    });
+                                }),
+                            })}
                                         </div>
                                         <div class="flex-fill"></div>
                                         ${BgWidget.aiChatButton({

@@ -193,7 +193,14 @@ export class BgWidget {
         </button>`;
     }
 
-    static plusButton(obj: {
+    static plusButton(obj: { title: string; event: string }) {
+        return html` <div class="w-100 d-flex justify-content-center align-items-center gap-2 cursor_pointer" style="color: #3366BB" onclick="${obj.event}">
+            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">${obj.title}</div>
+            <i class="fa-solid fa-plus"></i>
+        </div>`;
+    }
+
+    static dropPlusButton(obj: {
         gvc: GVC;
         title: string;
         options: {
@@ -234,13 +241,16 @@ export class BgWidget {
         `;
     }
 
-    static questionButton(
-        event: string,
-        obj?: {
-            size?: number;
-        }
-    ) {
-        return html`<i class="fa-regular fa-circle-question cursor_pointer" style="font-size: ${obj?.size ?? 18}px" onclick="${event}"></i>`;
+    static iconButton(obj: { icon: 'info' | 'question'; event: string; size?: number }) {
+        const iconClass = (() => {
+            switch (obj.icon) {
+                case 'info':
+                    return 'fa-regular fa-circle-info';
+                case 'question':
+                    return 'fa-regular fa-circle-question';
+            }
+        })();
+        return html`<i class="${iconClass} cursor_pointer" style="font-size: ${obj?.size ?? 18}px" onclick="${obj.event}"></i>`;
     }
 
     static switchButton(gvc: GVC, def: boolean, callback: (value: boolean) => void) {
@@ -300,6 +310,7 @@ export class BgWidget {
                         return '使用AI操作導引';
                 }
             })();
+        const size = document.body.clientWidth > 768 ? 24 : 18;
         return html`<div
             class="bt_orange_lin"
             onclick="${obj.gvc.event(() => {
@@ -307,7 +318,11 @@ export class BgWidget {
                 (window.parent as any).glitter.share.ai_message.toggle(true);
             })}"
         >
-            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-1" style="width: 24px; height: 24px;" />${text}
+            <img
+                src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                class="me-1"
+                style="width: ${size}px; height: ${size}px;"
+            />${text}
         </div>`;
     }
 
@@ -1984,11 +1999,7 @@ ${obj.default ?? ''}</textarea
         }
         return html` <div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
-<<<<<<< HEAD
-            ${messageList && messageList.length > 0 ? html`<div class="mt-2" style="white-space: normal;">${h}</div>` : ``}
-=======
             ${messageList && messageList.length > 0 ? `<div class="mt-2" style="white-space: normal; word-break: break-all;">${h}</div>` : ``}
->>>>>>> 0aa72d08 ([update] : glitter version.)
         </div>`;
     }
 
@@ -2195,13 +2206,14 @@ ${obj.default ?? ''}</textarea
             divCreate: {},
             onCreate: () => {
                 if (obj.openOnInit) {
-                    setTimeout(() => {
-                        const navs = document.getElementsByClassName(`box-navbar-${text}`) as any;
-                        if (navs.length > 0) {
-                            const nav = navs[0];
-                            nav.click();
+                    const si = setInterval(() => {
+                        const inside = window.document.querySelector(`.box-inside-${text}`) as any;
+                        if (inside) {
+                            const navs = window.document.getElementsByClassName(`box-navbar-${text}`) as any;
+                            navs.length > 0 && navs[0].click();
+                            clearInterval(si);
                         }
-                    }, 200);
+                    }, 300);
                 }
             },
         });
@@ -2874,6 +2886,62 @@ ${obj.default ?? ''}</textarea
                 </div>
             </div>`;
         }, Tool.randomString(7));
+    }
+
+    static jumpAlert(obj: { gvc: GVC; text: string; justify: 'top' | 'bottom'; align: 'left' | 'center' | 'right'; timeout?: number; width?: number }) {
+        const className = Tool.randomString(5);
+        const fixedStyle = (() => {
+            let style = '';
+            if (obj.justify === 'top') {
+                style += `top: 12px;`;
+            } else if (obj.justify === 'bottom') {
+                style += `bottom: 12px;`;
+            }
+            if (obj.align === 'left') {
+                style += `left: 12px;`;
+            } else if (obj.align === 'center') {
+                style += `left: 50%; right: 50%;`;
+            } else if (obj.align === 'right') {
+                style += `right: 12px;`;
+            }
+            return style;
+        })();
+        const transX = obj.align === 'center' ? '-50%' : '0';
+
+        obj.gvc.addStyle(`
+            .bounce-effect-${className} {
+                animation: bounce 0.5s alternate;
+                animation-iteration-count: 2;
+                position: fixed;
+                ${fixedStyle}
+                background-color: #393939;
+                opacity: 0.85;
+                color: white;
+                padding: 10px;
+                border-radius: 8px;
+                width: ${obj.width ?? 120}px;
+                text-align: center;
+                z-index: 11;
+                transform: translateX(${transX});
+            }
+
+            @keyframes bounce {
+                0% {
+                    transform: translate(${transX}, 0);
+                }
+                100% {
+                    transform: translate(${transX}, -6px);
+                }
+            }
+        `);
+        const htmlString = html`<div class="bounce-effect-${className}">${obj.text}</div>`;
+        obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
+        setTimeout(() => {
+            const element = document.querySelector(`.bounce-effect-${className}`) as HTMLElement;
+            if (element) {
+                element.remove();
+            }
+        }, obj.timeout ?? 2000);
     }
 
     // 圖片

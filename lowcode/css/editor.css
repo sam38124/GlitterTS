@@ -1038,6 +1038,12 @@ h6 {
     .title-container {
         padding: 0 1rem;
     }
+
+    .bt_orange_lin {
+        font-size: 12px;
+        padding: 6px 9px;
+        height: 32px;
+    }
 }
 
 /* @keyframes 定義動畫 */
@@ -1050,7 +1056,7 @@ h6 {
     }
 }
 
-.form-check-input-solid:checked{
+.form-check-input-solid:checked {
     background-color: #393939 !important;
-    border-color: #393939 !important;;
+    border-color: #393939 !important;
 }

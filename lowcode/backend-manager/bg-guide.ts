@@ -1862,8 +1862,8 @@ export class BgGuide {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8, {
                                 width: 332,
                                 height: 209,
-                                title: '販售價格',
-                                content: '輸入商品的販售價格',
+                                title: '售價',
+                                content: '輸入商品的售價',
                                 previewEvent: () => {
                                     this.findIframeDom('.guide5-4').parentElement.parentElement.scrollIntoView();
                                 },
@@ -1877,8 +1877,8 @@ export class BgGuide {
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8, {
                             width: 332,
                             height: 209,
-                            title: '販售價格',
-                            content: '輸入商品的販售價格',
+                            title: '售價',
+                            content: '輸入商品的售價',
                             disable: true,
                             previewEvent: () => {
                                 this.findIframeDom('.guide5-4').parentElement.parentElement.scrollIntoView();
