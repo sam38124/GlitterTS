@@ -933,7 +933,6 @@ h6 {
 .scale_iframe {
     transform: scale(0.5) translateX(-50%);
     transform-origin: 0 0;
-    height: calc(100% + (100% * 1)) !important;
     position: absolute;
     left: 50%;
     top: 0px;

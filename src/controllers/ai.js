@@ -8,7 +8,6 @@ const openai_1 = __importDefault(require("openai"));
 const router = express_1.default.Router();
 router.post('/generate-html', async (req, resp) => {
     try {
-        console.log(process.env.OPENAI_API_KEY);
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });

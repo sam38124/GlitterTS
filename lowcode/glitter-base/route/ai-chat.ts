@@ -34,7 +34,20 @@ export class AiChat{
         })
     }
 
-
+    public static generateHtml(json: {   app_name?:string,
+        text:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ai/generate-html`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": json.app_name || getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            "data":JSON.stringify(json)
+        })
+    }
 }
 
 function getConfig() {

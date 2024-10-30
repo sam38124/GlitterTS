@@ -438,6 +438,89 @@ class AiRobot {
             usage: await this.usePoints(app_name, use_tokens, question, answer)
         };
     }
+    static async codeGenerator(app_name, question) {
+        var _a, e_5, _b, _c;
+        if (!await AiRobot.checkPoints(app_name)) {
+            return { usage: 0 };
+        }
+        const openai = new openai_1.default({
+            apiKey: process_1.default.env.OPENAI_API_KEY,
+        });
+        const query = `你是一個網頁設計師，請依據我提供給你的資訊，生成HTML元件，另外這兩點請你非常注意，元素的樣式請直接用inline-style，不要引用class`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '網頁設計師',
+            model: 'gpt-4o-mini',
+            response_format: { "type": "json_schema", "json_schema": {
+                    "name": "html_element_modification",
+                    "strict": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "html": {
+                                "type": "string",
+                                "description": "HTML元素字串"
+                            },
+                            "inner_html": {
+                                "type": "string",
+                                "description": "DIV內部子元件的html字串"
+                            },
+                            "result": {
+                                "type": "boolean",
+                                "description": "是否有成功執行"
+                            },
+                            "position": {
+                                "type": "string",
+                                "enum": [
+                                    "left",
+                                    "center",
+                                    "right",
+                                    "auto"
+                                ],
+                                "description": "元素顯示位置，預設值為center"
+                            }
+                        },
+                        "required": [
+                            "html",
+                            "result",
+                            "inner_html",
+                            "position"
+                        ],
+                        "additionalProperties": false
+                    }
+                } }
+        });
+        const threads_id = (await openai.beta.threads.create()).id;
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, { role: 'user', content: question });
+        const stream = await openai.beta.threads.runs.create(threads_id, { assistant_id: myAssistant.id, stream: true });
+        let text = '';
+        let use_tokens = 0;
+        try {
+            for (var _d = true, stream_5 = __asyncValues(stream), stream_5_1; stream_5_1 = await stream_5.next(), _a = stream_5_1.done, !_a; _d = true) {
+                _c = stream_5_1.value;
+                _d = false;
+                const event = _c;
+                if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
+                    text = JSON.parse(event.data.content[0].text.value);
+                }
+                if (event.data.usage) {
+                    use_tokens += event.data.usage.total_tokens;
+                }
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = stream_5.return)) await _b.call(stream_5);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
+        await openai.beta.assistants.del(myAssistant.id);
+        return {
+            obj: text,
+            usage: await this.usePoints(app_name, use_tokens, question, text)
+        };
+    }
 }
 exports.AiRobot = AiRobot;
 //# sourceMappingURL=ai-robot.js.map

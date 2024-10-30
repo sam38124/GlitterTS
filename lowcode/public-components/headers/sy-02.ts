@@ -8,7 +8,9 @@ const html = String.raw
 
 export class Sy02 {
     public static main(gvc: GVC, widget: any, subData: any) {
-        let changePage = (index: string, type: 'page' | 'home', subData: any) => {}
+        let changePage = (index: string, type: 'page' | 'home', subData: any) => {
+            alert('change_page_origin')
+        }
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage
         })
@@ -295,7 +297,14 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                 })}
                             </li>
                             <li class="nav-item d-flex align-items-center justify-content-center ms-3 ms-sm-4"
-                                style="">
+                                style="" onclick="${gvc.event(() => {
+                                console.log(`changePage==>`)
+                                if (GlobalUser.token) {
+                                    changePage('account_userinfo', 'page', {})
+                                } else {
+                                    changePage('login', 'page', {})
+                                }
+                            })}">
                                 <div class=""
                                      style="background: ${widget.formData.theme_color['solid-button-bg'] ?? '#000'};
 color: ${widget.formData.theme_color['solid-button-text'] ?? '#000'};  cursor: pointer;
@@ -306,13 +315,7 @@ justify-content: center;
 align-items: center;
 gap: 10px;
 border-radius: 5px;"
-                                     onclick="${gvc.event(() => {
-                                         if (GlobalUser.token) {
-                                             changePage('account_userinfo', 'page', {})
-                                         } else {
-                                             changePage('login', 'page', {})
-                                         }
-                                     })}">${(GlobalUser.token) ? `會員管理`:`會員登入`}</div>
+                                >${(GlobalUser.token) ? `會員管理`:`會員登入`}</div>
                             </li>
                         </ul>
                     </div>

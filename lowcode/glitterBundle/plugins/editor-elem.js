@@ -426,7 +426,7 @@ export class EditorElem {
             },
             divCreate: {
                 elem: `textArea`,
-                style: `max-height:400px!important;min-height:100px;`,
+                style: `max-height:${obj.max_height || 400}px!important;min-height:${obj.min_height || 100}px;`,
                 class: `form-control`,
                 option: [
                     { key: 'placeholder', value: obj.placeHolder },
@@ -585,24 +585,30 @@ export class EditorElem {
                 };
             });
         }
-        return (html `
-                <div class="d-flex">
-                    ${obj.title ? EditorElem.h3(obj.title) : ''}
-                    <div
-                        class="d-flex align-items-center justify-content-center"
-                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                        onclick="${obj.gvc.event(() => {
-            EditorElem.openEditorDialog(obj.gvc, (gvc) => {
-                return getComponent(gvc, window.innerHeight - 100);
-            }, () => {
-                obj.gvc.notifyDataChange(idlist);
-            });
-        })}"
-                    >
-                        <i class="fa-solid fa-expand"></i>
-                    </div>
-                </div>
-            ` + getComponent(obj.gvc, obj.height));
+        return obj.gvc.bindView(() => {
+            const codeID = obj.gvc.glitter.getUUID();
+            return {
+                bind: codeID,
+                view: () => {
+                    return (html ` <div class="d-flex">
+                            ${obj.title ? EditorElem.h3(obj.title) : ''}
+                            <div
+                                class="d-flex align-items-center justify-content-center"
+                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                onclick="${obj.gvc.event(() => {
+                        EditorElem.openEditorDialog(obj.gvc, (gvc) => {
+                            return getComponent(gvc, window.innerHeight - 100);
+                        }, () => {
+                            obj.gvc.notifyDataChange(codeID);
+                        });
+                    })}"
+                            >
+                                <i class="fa-solid fa-expand"></i>
+                            </div>
+                        </div>` + getComponent(obj.gvc, obj.height));
+                },
+            };
+        });
     }
     static pageEditor(cf) {
         const href = new URL(location.href);

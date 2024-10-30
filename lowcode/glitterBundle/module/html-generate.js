@@ -2220,6 +2220,20 @@ transform: translateY(5px);
             glitter.htmlGenerate.loadScript(glitter, preloadJS, 'clickEvent');
         });
     }
+    static renderComponent(cf) {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            (window.glitterInitialHelper).getPageData({
+                tag: cf.tag,
+                appName: cf.appName
+            }, (d2) => {
+                resolve(new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
+                    class: ``,
+                    style: ``,
+                    page_config: d2.response.result[0].page_config,
+                }));
+            });
+        }));
+    }
 }
 HtmlGenerate.share = {};
 HtmlGenerate.isEditMode = isEditMode;

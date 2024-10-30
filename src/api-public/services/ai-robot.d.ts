@@ -27,4 +27,11 @@ export declare class AiRobot {
         text: string;
         usage: number;
     } | undefined>;
+    static codeGenerator(app_name: string, question: string): Promise<{
+        usage: number;
+        obj?: undefined;
+    } | {
+        obj: string;
+        usage: number;
+    }>;
 }

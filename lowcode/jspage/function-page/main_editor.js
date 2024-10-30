@@ -274,9 +274,18 @@ export class Main_editor {
                                                                                 </div>
                                                                                 <div class="hoverBtn p-1 dragItem child"
                                                                                      onmousedown="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                                if ((Storage.view_type !== 'mobile')) {
+                                                                    const frame = document.querySelector('.iframe_view');
+                                                                    frame.original_height = frame.style.height;
+                                                                    frame.style.height = `${document.body.clientHeight * 2}px`;
+                                                                    $('#editerCenter').addClass('scale_iframe');
+                                                                }
                                                             })}" onmouseup="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                if ((Storage.view_type !== 'mobile')) {
+                                                                    const frame = document.querySelector('.iframe_view');
+                                                                    frame.style.height = frame.original_height;
+                                                                    $('#editerCenter').removeClass('scale_iframe');
+                                                                }
                                                             })}">
                                                                                     <i
                                                                                             class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
@@ -420,7 +429,11 @@ export class Main_editor {
                                                                             const dd = og_array[newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                            if ((Storage.view_type !== 'mobile')) {
+                                                                                const frame = document.querySelector('.iframe_view');
+                                                                                frame.style.height = frame.original_height;
+                                                                                $('#editerCenter').removeClass('scale_iframe');
+                                                                            }
                                                                             setTimeout(() => {
                                                                                 const dd = og_array[newIndex];
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
@@ -429,7 +442,7 @@ export class Main_editor {
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
                                                                             glitter.share.left_block_hover = true;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter').addClass('scale_iframe');
                                                                         },
                                                                     });
                                                                 }
@@ -1025,7 +1038,7 @@ export class Main_editor {
         }
     }
     static userEditor(gvc) {
-        gvc.glitter.share.resetCenterFrame = () => {
+        gvc.glitter.share.resetCenterFrame = (scale) => {
             const container_width = (() => {
                 if (Storage.view_type === ViewType.mobile) {
                     return (document.body.clientWidth > 800) ? 414 : document.body.clientWidth;
@@ -1033,7 +1046,7 @@ export class Main_editor {
                 else {
                     return (document.body.clientWidth < 800) ? document.body.clientWidth : document.body.clientWidth - 365;
                 }
-            })();
+            })() * (scale || 1);
             const tool_box = (() => {
                 if (document.body.clientWidth < 800) {
                     return 40;

@@ -10,6 +10,10 @@ import process from "process";
 import fs from "fs";
 import {User} from "./user.js";
 import {Shopping} from "./shopping.js";
+import {Beta, ResponseFormatJSONSchema} from "openai/resources";
+import { z } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
+import ResponseFormatText = OpenAI.ResponseFormatText;
 
 export class AiRobot {
     // 操作引導
@@ -418,6 +422,82 @@ export class AiRobot {
         return {
             text: answer,
             usage: await this.usePoints(app_name, use_tokens, question, answer)
+        }
+    }
+
+    //代碼生成
+    public static async codeGenerator(app_name: string, question: string) {
+        if (!await AiRobot.checkPoints(app_name)) {
+            return  {usage:0}
+        }
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+        //創建網頁設計師
+        const query = `你是一個網頁設計師，請依據我提供給你的資訊，生成HTML元件，另外這兩點請你非常注意，元素的樣式請直接用inline-style，不要引用class`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '網頁設計師',
+            model: 'gpt-4o-mini',
+            response_format:{ "type": "json_schema" ,"json_schema":{
+                    "name": "html_element_modification",
+                    "strict": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "html": {
+                                "type": "string",
+                                "description": "HTML元素字串"
+                            },
+                            "inner_html": {
+                                "type": "string",
+                                "description": "DIV內部子元件的html字串"
+                            },
+                            "result": {
+                                "type": "boolean",
+                                "description": "是否有成功執行"
+                            },
+                            "position": {
+                                "type": "string",
+                                "enum": [
+                                    "left",
+                                    "center",
+                                    "right",
+                                    "auto"
+                                ],
+                                "description": "元素顯示位置，預設值為center"
+                            }
+                        },
+                        "required": [
+                            "html",
+                            "result",
+                            "inner_html",
+                            "position"
+                        ],
+                        "additionalProperties": false
+                    }
+                }}
+        });
+        //對話線程ID
+        const threads_id=(await openai.beta.threads.create()).id
+        //添加訊息
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: question});
+        //建立數據流
+        const stream = await openai.beta.threads.runs.create(threads_id, {assistant_id: myAssistant.id, stream: true});
+        let text = '';
+        let use_tokens = 0
+        for await (const event of stream) {
+            if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
+                text = JSON.parse((event.data as any).content[0].text.value);
+            }
+            if ((event.data as any).usage) {
+                use_tokens += (event.data as any).usage.total_tokens;
+            }
+        }
+        await openai.beta.assistants.del(myAssistant.id);
+        return {
+            obj: text,
+            usage: await this.usePoints(app_name, use_tokens, question, text)
         }
     }
 }

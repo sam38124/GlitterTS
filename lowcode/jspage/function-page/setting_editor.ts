@@ -722,7 +722,8 @@ export class Setting_editor {
                                                     url.searchParams.set('appName', items[parseInt(index)].appName);
                                                     url.searchParams.set('cms', 'true');
                                                     url.searchParams.set('page', page);
-
+                                                 
+                                                   
                                                     // ((window as any).glitterInitialHelper).getPageData({
                                                     //     tag: page,
                                                     //     appName: items[parseInt(index)].appName

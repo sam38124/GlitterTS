@@ -25,6 +25,18 @@ export class AiChat {
             "data": JSON.stringify(json)
         });
     }
+    static generateHtml(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ai/generate-html`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": json.app_name || getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            "data": JSON.stringify(json)
+        });
+    }
 }
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
