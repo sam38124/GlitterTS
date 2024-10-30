@@ -1204,7 +1204,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                                             })(),
                                                                                                                                                                             callback: (text: any) => {
                                                                                                                                                                                 widget.container_fonts = text
-                                                                                                                                                                                refresh(widget, type)
+                                                                                                                                                                                refresh(_f_wd, type)
                                                                                                                                                                             },
                                                                                                                                                                             array: glitter.share.editorViewModel.appConfig.font_theme.map((dd: any, index: number) => {
                                                                                                                                                                                 return {
@@ -1219,7 +1219,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                                     gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
                                                                                                                                                                         NormalPageEditor.closeEvent = () => {
                                                                                                                                                                             gvc.notifyDataChange(vm_c.id)
-                                                                                                                                                                            refresh(widget, type)
+                                                                                                                                                                            refresh(_f_wd, type)
                                                                                                                                                                         }
                                                                                                                                                                         NormalPageEditor.toggle({
                                                                                                                                                                             visible: true,
