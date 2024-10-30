@@ -2232,102 +2232,113 @@ export class ShoppingProductSetting {
                                                         return postMD.content_array.includes(item.id);
                                                     })
                                                         .map((item, index) => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return gvc.bindView((() => {
-                                                            return {
-                                                                bind: id,
-                                                                view: () => {
-                                                                    return BgWidget.openBoxContainer({
-                                                                        gvc,
-                                                                        tag: 'content_array',
-                                                                        title: item.title,
-                                                                        insideHTML: (() => {
-                                                                            if (item.data.tags && item.data.tags.length > 0) {
-                                                                                const id = obj.gvc.glitter.getUUID();
-                                                                                return BgWidget.container1x2({
-                                                                                    html: item.data.tags
-                                                                                        .map((tag) => {
-                                                                                        return html `<div>
+                                                        return BgWidget.openBoxContainer({
+                                                            gvc,
+                                                            tag: 'content_array',
+                                                            title: item.title,
+                                                            insideHTML: (() => {
+                                                                if (item.data.tags && item.data.tags.length > 0) {
+                                                                    const id = obj.gvc.glitter.getUUID();
+                                                                    return html `<div
+                                                                                                class="cursor_pointer text-end me-1 mb-2"
+                                                                                                onclick="${gvc.event(() => {
+                                                                        const originJson = JSON.parse(JSON.stringify(postMD.content_json));
+                                                                        BgWidget.settingDialog({
+                                                                            gvc: gvc,
+                                                                            title: '設定',
+                                                                            innerHTML: (gvc) => {
+                                                                                return html `<div>
+                                                                                                                ${item.data.tags
+                                                                                    .map((tag) => {
+                                                                                    return html `<div>
                                                                                                                             ${BgWidget.editeInput({
-                                                                                            gvc,
-                                                                                            title: tag.title,
-                                                                                            default: (() => {
-                                                                                                const docIndex = postMD.content_json.findIndex((c) => c.id === item.id);
-                                                                                                if (docIndex === -1) {
-                                                                                                    return '';
-                                                                                                }
-                                                                                                if (postMD.content_json[docIndex].list === undefined) {
-                                                                                                    return '';
-                                                                                                }
-                                                                                                const keyIndex = postMD.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
-                                                                                                if (keyIndex === -1) {
-                                                                                                    return '';
-                                                                                                }
-                                                                                                return postMD.content_json[docIndex].list[keyIndex].value;
-                                                                                            })(),
-                                                                                            callback: (text) => {
-                                                                                                setTimeout(() => {
-                                                                                                    gvc.notifyDataChange(`${id}-${index}`);
-                                                                                                }, 100);
-                                                                                                const docIndex = postMD.content_json.findIndex((c) => c.id === item.id);
-                                                                                                if (docIndex === -1) {
-                                                                                                    postMD.content_json.push({
-                                                                                                        id: item.id,
-                                                                                                        list: [{ key: tag.key, value: text }],
-                                                                                                    });
-                                                                                                    return;
-                                                                                                }
-                                                                                                if (postMD.content_json[docIndex].list === undefined) {
-                                                                                                    postMD.content_json[docIndex].list = [
-                                                                                                        { key: tag.key, value: text },
-                                                                                                    ];
-                                                                                                    return;
-                                                                                                }
-                                                                                                const keyIndex = postMD.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
-                                                                                                if (keyIndex === -1) {
-                                                                                                    postMD.content_json[docIndex].list.push({
-                                                                                                        key: tag.key,
-                                                                                                        value: text,
-                                                                                                    });
-                                                                                                    return;
-                                                                                                }
-                                                                                                postMD.content_json[docIndex].list[keyIndex].value = text;
-                                                                                            },
-                                                                                            placeHolder: '輸入文本標籤',
-                                                                                        })}
+                                                                                        gvc,
+                                                                                        title: tag.title,
+                                                                                        default: (() => {
+                                                                                            const docIndex = postMD.content_json.findIndex((c) => c.id === item.id);
+                                                                                            if (docIndex === -1) {
+                                                                                                return '';
+                                                                                            }
+                                                                                            if (postMD.content_json[docIndex].list === undefined) {
+                                                                                                return '';
+                                                                                            }
+                                                                                            const keyIndex = postMD.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
+                                                                                            if (keyIndex === -1) {
+                                                                                                return '';
+                                                                                            }
+                                                                                            return postMD.content_json[docIndex].list[keyIndex].value;
+                                                                                        })(),
+                                                                                        callback: (text) => {
+                                                                                            const docIndex = postMD.content_json.findIndex((c) => c.id === item.id);
+                                                                                            if (docIndex === -1) {
+                                                                                                postMD.content_json.push({
+                                                                                                    id: item.id,
+                                                                                                    list: [{ key: tag.key, value: text }],
+                                                                                                });
+                                                                                                return;
+                                                                                            }
+                                                                                            if (postMD.content_json[docIndex].list === undefined) {
+                                                                                                postMD.content_json[docIndex].list = [
+                                                                                                    { key: tag.key, value: text },
+                                                                                                ];
+                                                                                                return;
+                                                                                            }
+                                                                                            const keyIndex = postMD.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
+                                                                                            if (keyIndex === -1) {
+                                                                                                postMD.content_json[docIndex].list.push({
+                                                                                                    key: tag.key,
+                                                                                                    value: text,
+                                                                                                });
+                                                                                                return;
+                                                                                            }
+                                                                                            postMD.content_json[docIndex].list[keyIndex].value = text;
+                                                                                        },
+                                                                                        placeHolder: '輸入文本標籤',
+                                                                                    })}
                                                                                                                         </div>`;
-                                                                                    })
-                                                                                        .join(BgWidget.mbContainer(12)),
-                                                                                    ratio: 20,
-                                                                                }, {
-                                                                                    html: gvc.bindView((() => {
-                                                                                        return {
-                                                                                            bind: `${id}-${index}`,
-                                                                                            view: () => {
-                                                                                                const content = item.data.content || '';
-                                                                                                const tags = item.data.tags;
-                                                                                                const jsonData = postMD.content_json.find((c) => c.id === item.id);
-                                                                                                return html `<div
-                                                                                                                                    style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px"
-                                                                                                                                >
-                                                                                                                                    ${tags
-                                                                                                    ? formatRichtext(content, tags, jsonData ? jsonData.list : [])
-                                                                                                    : content}
-                                                                                                                                </div>`;
-                                                                                            },
-                                                                                        };
-                                                                                    })()),
-                                                                                    ratio: 80,
-                                                                                });
-                                                                            }
-                                                                            return html `<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
-                                                                                                        ${item.data.content || ''}
-                                                                                                    </div>`;
-                                                                        })(),
-                                                                    });
-                                                                },
-                                                            };
-                                                        })());
+                                                                                })
+                                                                                    .join(BgWidget.mbContainer(12))}
+                                                                                                            </div>`;
+                                                                            },
+                                                                            footer_html: (gvc2) => {
+                                                                                return [
+                                                                                    BgWidget.cancel(gvc2.event(() => {
+                                                                                        postMD.content_json = originJson;
+                                                                                        gvc2.closeDialog();
+                                                                                    })),
+                                                                                    BgWidget.save(gvc2.event(() => {
+                                                                                        gvc2.closeDialog();
+                                                                                        gvc.notifyDataChange(`${id}-${index}`);
+                                                                                    })),
+                                                                                ].join('');
+                                                                            },
+                                                                            closeCallback: () => {
+                                                                                postMD.content_json = originJson;
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                                            >
+                                                                                                標籤設值
+                                                                                            </div>
+                                                                                            ${gvc.bindView((() => {
+                                                                        return {
+                                                                            bind: `${id}-${index}`,
+                                                                            view: () => {
+                                                                                const content = item.data.content || '';
+                                                                                const tags = item.data.tags;
+                                                                                const jsonData = postMD.content_json.find((c) => c.id === item.id);
+                                                                                return html `<div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
+                                                                                                                ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
+                                                                                                            </div>`;
+                                                                            },
+                                                                        };
+                                                                    })())}`;
+                                                                }
+                                                                return html `<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                        ${item.data.content || ''}
+                                                                                    </div>`;
+                                                            })(),
+                                                        });
                                                     })
                                                         .join(BgWidget.mbContainer(8))}`;
                                                 }),
@@ -3287,9 +3298,7 @@ export class ShoppingProductSetting {
                                                                                                       ></i>
                                                                                                       <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">規格</div>
                                                                                                       ${document.body.clientWidth < 768
-                                                                                    ? html ` <div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">
-                                                                                                                售價*
-                                                                                                            </div>`
+                                                                                    ? html ` <div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">售價*</div>`
                                                                                     : `${['售價*', '存貨數量*', '運費計算方式']
                                                                                         .map((dd) => {
                                                                                         return html ` <div

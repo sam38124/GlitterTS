@@ -544,6 +544,15 @@ export class ProductText {
                                             return;
                                         }
 
+                                        if (vm.data.data.tags) {
+                                            for (const tag of vm.data.data.tags) {
+                                                if (!vm.data.data.content.includes(`@{{${tag.key}}}`)) {
+                                                    dialog.errorMessage({ text: `標籤名「${tag.title}」尚未使用<br />請加入至文本或刪除標籤` });
+                                                    return;
+                                                }
+                                            }
+                                        }
+
                                         vm.data.updated_time = glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
                                         if (vm.data.id.length === 0) {
                                             vm.data.id = Tool.randomString(10);
@@ -551,6 +560,7 @@ export class ProductText {
                                         } else {
                                             vm.dataList[vm.dataList.findIndex((item: { id: string }) => item.id === vm.data.id)] = vm.data;
                                         }
+
                                         dialog.dataLoading({ text: '設定中...', visible: true });
                                         ApiUser.setPublicConfig({
                                             key: 'text-manager',
