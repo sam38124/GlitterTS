@@ -22,4 +22,9 @@ export declare class AiRobot {
     }>;
     static checkPoints(app_name: string): Promise<boolean>;
     static usePoints(app_name: string, token_number: number, ask: string, response: string): Promise<number>;
+    static syncAiRobot(app: string): Promise<string | undefined>;
+    static aiResponse(app_name: string, question: string): Promise<{
+        text: string;
+        usage: number;
+    } | undefined>;
 }

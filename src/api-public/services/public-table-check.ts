@@ -1,7 +1,10 @@
 import db from '../../modules/database';
-import { saasConfig } from '../../config.js';
-import { compare_sql_table } from '../../services/saas-table-check.js';
+import {saasConfig} from '../../config.js';
+import {compare_sql_table} from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
+import {Ai} from "../../services/ai.js";
+import {AiRobot} from "./ai-robot.js";
+
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
@@ -17,7 +20,9 @@ export class ApiPublic {
         }
         ApiPublic.checkApp.push({
             app_name: appName,
-            refer_app: (await db.query(`select refer_app from \`${saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['refer_app'],
+            refer_app: (await db.query(`select refer_app
+                                        from \`${saasConfig.SAAS_NAME}\`.app_config
+                                        where appName = ?`, [appName]))[0]['refer_app'],
         });
         try {
             await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -40,9 +45,9 @@ export class ApiPublic {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
-                    scheme:appName,
-                    table:`t_invoice_memory`,
-                    sql:`(
+                    scheme: appName,
+                    table: `t_invoice_memory`,
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -470,6 +475,7 @@ export class ApiPublic {
                     }
                 });
             }
+            await (AiRobot.syncAiRobot(appName))
         } catch (e) {
             console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
@@ -481,9 +487,9 @@ export class ApiPublic {
     public static async checkSQLAdmin(appName: string) {
         const sql_info = (
             await db.query(
-                `select sql_pwd,sql_admin
-                                               from \`${saasConfig.SAAS_NAME}\`.app_config
-                                               where appName = ${db.escape(appName)}`,
+                `select sql_pwd, sql_admin
+                 from \`${saasConfig.SAAS_NAME}\`.app_config
+                 where appName = ${db.escape(appName)}`,
                 []
             )
         )[0];
@@ -493,11 +499,15 @@ export class ApiPublic {
                 sql_info.sql_pwd = tool.randomString(12);
                 const trans = await db.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
-                await trans.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${db.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
+                await trans.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                     set sql_admin=?,
+                                         sql_pwd=?
+                                     where appName = ${db.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
-            } catch (e) {}
+            } catch (e) {
+            }
         }
     }
 }

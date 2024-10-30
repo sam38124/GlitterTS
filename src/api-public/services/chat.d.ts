@@ -12,6 +12,8 @@ export interface ChatMessage {
         text?: string;
         image?: string;
         attachment: any;
+        ai_usage?: any;
+        type?: 'robot' | 'manual';
     };
 }
 export declare class Chat {

@@ -2177,19 +2177,42 @@ ${e.line}
                                                 option: option.concat(
                                                     (() => {
                                                         if (root && isEditMode()) {
+                                                            if((window.parent as any).document.body.clientWidth<800){
+                                                                return  [
+                                                                    {
+                                                                        key:'onclick',
+                                                                        value:gvc.event((e,event)=>{
+                                                                            HtmlGenerate.selectWidget({
+                                                                                gvc: gvc,
+                                                                                widget: widget,
+                                                                                widgetComponentID: cf.widget.id,
+                                                                                event: event,
+                                                                                glitter: (window.parent as any).glitter,
+                                                                            });
+                                                                            function loop(item: any) {
+
+                                                                                if(item[0] && item[0].tagName.toLowerCase()==='li'){
+                                                                                    if(item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))){
+                                                                                        item[0].children[0].style.background = '#F2F2F2';
+                                                                                    }
+                                                                                }
+                                                                                if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                                    loop(item.parent())
+                                                                                }
+                                                                            }
+                                                                            if( (window.parent as any).document.querySelector(`.it-${widget.id}`)){
+                                                                                loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
+                                                                                (window.parent as any).document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
+                                                                            }
+                                                                            ($(e).children('.editorChild').get(0) as any).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                        })
+                                                                    }
+                                                                ]
+                                                            }
                                                             return [
                                                                 {
                                                                     key: 'onmouseover',
                                                                     value: gvc.event((e, event) => {
-                                                                      if(document.body.clientWidth<800){
-                                                                          HtmlGenerate.selectWidget({
-                                                                              gvc: gvc,
-                                                                              widget: widget,
-                                                                              widgetComponentID: cf.widget.id,
-                                                                              event: event,
-                                                                              glitter: (window.parent as any).glitter,
-                                                                          });
-                                                                      };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).show();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).show();
                                                                         function loop(item: any) {

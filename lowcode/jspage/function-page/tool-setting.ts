@@ -44,12 +44,12 @@ export class ToolSetting {
                 view: () => {
                     if (vm.function === 'edit') {
                         return html`
-                            <div class="px-2 pt-3">${vm.edit_view}</div>`;
+                            <div class="px-2 pt-2">${vm.edit_view}</div>`;
                     }
                     return html`
                         ${(() => {
                             if (document.body.clientWidth < 800) {
-                                return `<div class="w-100 d-flex align-items-center p-3 border-bottom mt-n2">
+                                return `<div class="w-100 d-flex align-items-center p-3 border-bottom">
                             <h5 class="offcanvas-title  " style="max-width: calc(100% - 50px);overflow: hidden;text-overflow: ellipsis;">統一元件設定</h5>
                             <div class="flex-fill"></div>
                             <div
@@ -289,60 +289,68 @@ export class ToolSetting {
                                                                                                                 callback: (response) => {
                                                                                                                     if (response) {
                                                                                                                         dialog.dataLoading({visible: true});
-                                                                                                                        widget.config[0] = {
-                                                                                                                            id: gvc.glitter.getUUID(),
-                                                                                                                            js: './official_view_component/official.js',
-                                                                                                                            css: {
-                                                                                                                                class: {},
-                                                                                                                                style: {},
-                                                                                                                            },
-                                                                                                                            data: {
-                                                                                                                                refer_app: dd.appName,
-                                                                                                                                tag: dd.tag,
-                                                                                                                                list: [],
-                                                                                                                                carryData: {},
-                                                                                                                            },
-                                                                                                                            type: 'component',
-                                                                                                                            class: 'w-100',
-                                                                                                                            index: 0,
-                                                                                                                            label: dd.name,
-                                                                                                                            style: '',
-                                                                                                                            bundle: {},
-                                                                                                                            global: [],
-                                                                                                                            toggle: false,
-                                                                                                                            stylist: [],
-                                                                                                                            dataType: 'static',
-                                                                                                                            style_from: 'code',
-                                                                                                                            classDataType: 'static',
-                                                                                                                            preloadEvenet: {},
-                                                                                                                            share: {},
-                                                                                                                            "arrayData": {
-                                                                                                                                "clickEvent": [{
-                                                                                                                                    "clickEvent": {
-                                                                                                                                        "src": "./official_event/event.js",
-                                                                                                                                        "route": "code"
-                                                                                                                                    },
-                                                                                                                                    "codeVersion": "v2",
-                                                                                                                                    "code": "    //判斷不是APP在顯示\n    if ((gvc.glitter.deviceType === glitter.deviceTypeEnum.Web) && (glitter.getUrlParameter('device') !== 'mobile')) {\n        return [subData]\n    } else {\n        return []\n    }"
-                                                                                                                                }]
-                                                                                                                            },
-                                                                                                                            "gCount": "multiple"
-                                                                                                                        };
-                                                                                                                        ApiPageConfig.setPage({
-                                                                                                                            id: widget.id,
-                                                                                                                            appName: widget.appName,
-                                                                                                                            tag: widget.tag,
-                                                                                                                            name: widget.name,
-                                                                                                                            config: widget.config,
-                                                                                                                            group: widget.group,
-                                                                                                                            page_config: widget.page_config,
-                                                                                                                            page_type: widget.page_type,
-                                                                                                                            preview_image: widget.preview_image,
-                                                                                                                            favorite: widget.favorite,
-                                                                                                                        }).then((api) => {
-                                                                                                                            dialog.dataLoading({visible: false});
-                                                                                                                            location.reload();
-                                                                                                                        });
+                                                                                                                        ((window as any).glitterInitialHelper).getPageData({
+                                                                                                                            tag: dd.tag,
+                                                                                                                            appName: dd.appName
+                                                                                                                        }, (d3: any) => {
+                                                                                                                            widget.config[0] = {
+                                                                                                                                id: gvc.glitter.getUUID(),
+                                                                                                                                js: './official_view_component/official.js',
+                                                                                                                                css: {
+                                                                                                                                    class: {},
+                                                                                                                                    style: {},
+                                                                                                                                },
+                                                                                                                                data: {
+                                                                                                                                    refer_app: dd.appName,
+                                                                                                                                    refer_form_data: d3.response.result[0].page_config.formData,
+                                                                                                                                    tag: dd.tag,
+                                                                                                                                    list: [],
+                                                                                                                                    carryData: {},
+                                                                                                                                },
+                                                                                                                                type: 'component',
+                                                                                                                                class: 'w-100',
+                                                                                                                                index: 0,
+                                                                                                                                label: dd.name,
+                                                                                                                                style: '',
+                                                                                                                                bundle: {},
+                                                                                                                                global: [],
+                                                                                                                                toggle: false,
+                                                                                                                                stylist: [],
+                                                                                                                                dataType: 'static',
+                                                                                                                                style_from: 'code',
+                                                                                                                                classDataType: 'static',
+                                                                                                                                preloadEvenet: {},
+                                                                                                                                share: {},
+                                                                                                                                "gCount": "single"
+                                                                                                                            };
+                                                                                                                            if (['c_header', 'footer'].includes(widget.tag)) {
+                                                                                                                                widget.config[0].arrayData = {
+                                                                                                                                    "clickEvent": [{
+                                                                                                                                        "clickEvent": {
+                                                                                                                                            "src": "./official_event/event.js",
+                                                                                                                                            "route": "code"
+                                                                                                                                        },
+                                                                                                                                        "codeVersion": "v2",
+                                                                                                                                        "code": "//判斷不是APP在顯示\n    if ((!glitter.share.is_application) && (glitter.getUrlParameter('device') !== 'mobile')) {\n        return [subData]\n    } else {\n        return []\n    }"
+                                                                                                                                    }]
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                            ApiPageConfig.setPage({
+                                                                                                                                id: widget.id,
+                                                                                                                                appName: widget.appName,
+                                                                                                                                tag: widget.tag,
+                                                                                                                                name: widget.name,
+                                                                                                                                config: widget.config,
+                                                                                                                                group: widget.group,
+                                                                                                                                page_config: widget.page_config,
+                                                                                                                                page_type: widget.page_type,
+                                                                                                                                preview_image: widget.preview_image,
+                                                                                                                                favorite: widget.favorite,
+                                                                                                                            }).then((api) => {
+                                                                                                                                dialog.dataLoading({visible: false});
+                                                                                                                                location.reload();
+                                                                                                                            });
+                                                                                                                        })
                                                                                                                     }
                                                                                                                 },
                                                                                                             });
@@ -408,7 +416,7 @@ export class ToolSetting {
                     `
                 },
                 divCreate: {
-                    class: `p-2 mx-n2`,
+                    class: `p-2 mx-n2 mt-n2`,
                 },
             };
         })].join('');

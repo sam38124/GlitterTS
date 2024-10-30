@@ -1997,7 +1997,7 @@ ${obj.default ?? ''}</textarea
                 h += html`<p class="mb-1" style="white-space: normal; word-break: break-all;">${str}</p>`;
             });
         }
-        return html` <div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
+        return html`<div class="w-100 alert alert-secondary p-3 mb-0 ${css.class}" style="white-space: normal; word-break: break-all; ${css.style} ">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
             ${messageList && messageList.length > 0 ? `<div class="mt-2" style="white-space: normal; word-break: break-all;">${h}</div>` : ``}
         </div>`;

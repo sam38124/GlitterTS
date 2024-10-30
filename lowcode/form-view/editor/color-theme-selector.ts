@@ -8,15 +8,15 @@ const html = String.raw;
 
 export class ColorThemeSelector {
     public static main(cf: { gvc: GVC; formData: any; widget: any; key: string; callback: (data: any) => void }) {
-        const globalValue = cf.gvc.glitter.share.editorViewModel.appConfig;
-        globalValue.color_theme = globalValue.color_theme ?? [];
-        const select = '0';
+
 
         return cf.gvc.bindView(() => {
             const id = cf.gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
+                    const globalValue = cf.gvc.glitter.share.editorViewModel.appConfig;
+                    globalValue.color_theme = globalValue.color_theme ?? [];
                     try {
                         if (typeof cf.widget.bundle.form_data[cf.widget.bundle.form_key] !== 'object') {
                             cf.widget.bundle.form_data[cf.widget.bundle.form_key] = {};
@@ -42,11 +42,10 @@ export class ColorThemeSelector {
                                     .map((dd) => {
                                         return html` <div>
                                             ${[
-                                                html` <div
+                                                html`<div
                                                     class="d-flex  cursor_pointer"
                                                     style="gap:8px;"
                                                     onclick="${cf.gvc.event(() => {
-                                                        
                                                         const key = `${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`;
                                                         if (key === dd.value) {
                                                             return;
@@ -111,12 +110,20 @@ export class ColorThemeSelector {
                                                     cf.gvc.notifyDataChange(id);
                                                 },
                                                 filter: (key) => {
-                                                    if (!cf.widget.bundle.root_widget) {
-                                                        return true;
-                                                    }
-                                                    const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
+                                                    if(cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                        return dd.data._color_editor_able!==undefined
+                                                    })){
+                                                        return  cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                            return dd.data._color_editor_able!==undefined
+                                                        }).data._color_editor_able.includes(key)
+                                                    }else{
+                                                        if (!cf.widget.bundle.root_widget) {
+                                                            return true;
+                                                        }
+                                                        const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
 
-                                                    return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`);
+                                                        return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`);   
+                                                    }
                                                 },
                                                 name: custom ? `自定義配色` : `配色${parseInt(select.id, 10) + 1}`,
                                                 data: custom ? select : globalValue.color_theme[parseInt(select.id, 10)],
@@ -124,6 +131,9 @@ export class ColorThemeSelector {
                                             }),
                                             title: '顏色編輯',
                                         });
+                                                                    NormalPageEditor.closeEvent=()=>{
+                                                                        cf.gvc.notifyDataChange(id);
+                                                                    }
                                     })}">編輯
                                     </div>
                                 </div>
@@ -165,13 +175,21 @@ export class ColorThemeSelector {
                                                          cf.gvc.notifyDataChange(id);
                                                      },
                                                      filter: (key) => {
-                                                         if (!cf.widget.bundle.root_widget) {
-                                                             return true;
+                                                         if(cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                             return dd.data._color_editor_able!==undefined
+                                                         })){
+                                                             return  cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                                 return dd.data._color_editor_able!==undefined
+                                                             }).data._color_editor_able.includes(key)
+                                                         }else{
+                                                             if (!cf.widget.bundle.root_widget) {
+                                                                 return true;
+                                                             }
+                                                             const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
+                                                             return (
+                                                                     inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`)
+                                                             );   
                                                          }
-                                                         const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
-                                                         return (
-                                                             inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`)
-                                                         );
                                                      },
                                                      name: vm.name,
                                                      data: vm.data,
@@ -196,17 +214,25 @@ export class ColorThemeSelector {
                                                                         cf.gvc.notifyDataChange(id);
                                                                     },
                                                                     filter: (key) => {
-                                                                        if (!cf.widget.bundle.root_widget) {
-                                                                            return true;
+                                                                        if(cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                                            return dd.data._color_editor_able!==undefined
+                                                                        })){
+                                                                            return  cf.widget.bundle.root_widget.find((dd:any)=>{
+                                                                                return dd.data._color_editor_able!==undefined
+                                                                            }).data._color_editor_able.includes(key)
+                                                                        }else{
+                                                                            if (!cf.widget.bundle.root_widget) {
+                                                                                return true;
+                                                                            }
+                                                                            const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
+                                                                            return (
+                                                                                    inf.includes(`.${key}`) ||
+                                                                                    inf.includes(`("${key}`) ||
+                                                                                    inf.includes(`('${key}`) ||
+                                                                                    inf.includes(`['${key}']`) ||
+                                                                                    inf.includes(`["${key}"]`)
+                                                                            );
                                                                         }
-                                                                        const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
-                                                                        return (
-                                                                            inf.includes(`.${key}`) ||
-                                                                            inf.includes(`("${key}`) ||
-                                                                            inf.includes(`('${key}`) ||
-                                                                            inf.includes(`['${key}']`) ||
-                                                                            inf.includes(`["${key}"]`)
-                                                                        );
                                                                     },
                                                                     name: vm.name,
                                                                     data: vm.data,

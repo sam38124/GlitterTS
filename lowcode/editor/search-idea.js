@@ -32,12 +32,12 @@ ${gvc.bindView(() => {
                     if (data) {
                         return html `
                             <div class="w-100" style=" overflow-y: auto;">
-                                <div class="row m-0 pt-2  mx-n2">
+                                <div class="d-flex flex-column ">
                                     ${data.response.result
                             .map((dd, index) => {
                             var _a;
                             return html `
-                                                    <div class="col-12 mb-3 rounded-3">
+                                                    <div class="rounded-3">
                                                         <div
                                                                 class="d-flex flex-column justify-content-center w-100 "
                                                                 style="gap:5px;cursor:pointer;${vm.select === dd.appName
@@ -69,13 +69,13 @@ ${gvc.bindView(() => {
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center">
-                                                                ${dd.template_config.name}</h3>
+                                                            <div class="mb-0 d-flex justify-content-center align-items-center fw-bold" style="font-size:15px;" >
+                                                                ${dd.template_config.name}</div>
                                                         </div>
                                                     </div>
                                                 `;
                         })
-                            .join('')}
+                            .join(`<div class="my-2"></div>`)}
                                 </div>
                             </div>
                         `;

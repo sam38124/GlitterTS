@@ -33,7 +33,6 @@ export class SearchIdea {
 <div class="d-flex flex-column border-end" style="width:200px;">
 <div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title((obg.type==='idea') ? '選擇偏好模板':'模板預覽', 'font-size:16px;')}</div>
 ${gvc.bindView(() => {
-          
             ApiPageConfig.getTemplateList().then((res) => {
                 data = res;
                 data.response.result.reverse();
@@ -46,11 +45,11 @@ ${gvc.bindView(() => {
                     if (data) {
                         return html`
                             <div class="w-100" style=" overflow-y: auto;">
-                                <div class="row m-0 pt-2  mx-n2">
+                                <div class="d-flex flex-column ">
                                     ${data.response.result
                                             .map((dd: any, index: number) => {
                                                 return html`
-                                                    <div class="col-12 mb-3 rounded-3">
+                                                    <div class="rounded-3">
                                                         <div
                                                                 class="d-flex flex-column justify-content-center w-100 "
                                                                 style="gap:5px;cursor:pointer;${vm.select === dd.appName
@@ -82,13 +81,13 @@ ${gvc.bindView(() => {
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center">
-                                                                ${dd.template_config.name}</h3>
+                                                            <div class="mb-0 d-flex justify-content-center align-items-center fw-bold" style="font-size:15px;" >
+                                                                ${dd.template_config.name}</div>
                                                         </div>
                                                     </div>
                                                 `;
                                             })
-                                            .join('')}
+                                            .join(`<div class="my-2"></div>`)}
                                 </div>
                             </div>
                         `;

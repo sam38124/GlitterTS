@@ -8,6 +8,7 @@ const database_1 = __importDefault(require("../../modules/database"));
 const config_js_1 = require("../../config.js");
 const saas_table_check_js_1 = require("../../services/saas-table-check.js");
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
+const ai_robot_js_1 = require("./ai-robot.js");
 class ApiPublic {
     static async createScheme(appName) {
         if (ApiPublic.checkApp.find((dd) => {
@@ -17,7 +18,9 @@ class ApiPublic {
         }
         ApiPublic.checkApp.push({
             app_name: appName,
-            refer_app: (await database_1.default.query(`select refer_app from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['refer_app'],
+            refer_app: (await database_1.default.query(`select refer_app
+                                        from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                        where appName = ?`, [appName]))[0]['refer_app'],
         });
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -469,6 +472,7 @@ class ApiPublic {
                     }
                 });
             }
+            await (ai_robot_js_1.AiRobot.syncAiRobot(appName));
         }
         catch (e) {
             console.error(e);
@@ -478,21 +482,25 @@ class ApiPublic {
         }
     }
     static async checkSQLAdmin(appName) {
-        const sql_info = (await database_1.default.query(`select sql_pwd,sql_admin
-                                               from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                               where appName = ${database_1.default.escape(appName)}`, []))[0];
+        const sql_info = (await database_1.default.query(`select sql_pwd, sql_admin
+                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                 where appName = ${database_1.default.escape(appName)}`, []))[0];
         if (!sql_info.sql_admin || !sql_info.sql_pwd) {
             try {
                 sql_info.sql_admin = tool_js_1.default.randomString(6);
                 sql_info.sql_pwd = tool_js_1.default.randomString(12);
                 const trans = await database_1.default.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
-                await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
+                await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                     set sql_admin=?,
+                                         sql_pwd=?
+                                     where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) { }
+            catch (e) {
+            }
         }
     }
 }

@@ -459,7 +459,7 @@ export const widgetComponent = {
                                                 setTimeout(() => {
                                                     textArea.style.height = textArea.scrollHeight + 'px';
                                                     autosize(textArea);
-                                                }, 100);
+                                                }, 300);
                                             }
                                             TriggerEvent.trigger({
                                                 gvc,

@@ -42,6 +42,8 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
             }
         ).value;
         cf[type] = (await openai.beta.threads.create()).id;
+
+        //匯入訂單檔案
         async function syncOrderData(){
             (
                 await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({

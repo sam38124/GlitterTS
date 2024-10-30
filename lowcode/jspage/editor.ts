@@ -108,7 +108,8 @@ export class Editor {
                 })();
                 content.config = glitter.share.editorViewModel.data.config;
                 localStorage.setItem('preview_data', JSON.stringify(content));
-                (window.parent as any).glitter.openNewTab(href);
+                const url=new URL(href);
+                (window.parent as any).glitter.openNewTab(url.href);
             } else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
                 if (document.body.clientWidth < 800) {
                     glitter.openNewTab(`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`);
@@ -124,6 +125,10 @@ export class Editor {
                 const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set('page', glitter.getUrlParameter('page'));
+                if(document.body.clientWidth < 800 && Storage.view_type==='desktop' && gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Ios){
+                    url.searchParams.set('_preview_width','1300');
+                    url.searchParams.set('_preview_scale',`${(document.body.clientWidth / 1300).toFixed(2)}`);
+                }
                 glitter.openNewTab(url.href);
             }
         }
@@ -1085,14 +1090,33 @@ color:white;
                         })
                     },
                     divCreate: () => {
-                        return {
-                            elem: 'main',
-                            class: `docs-container`,
-                            style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                        if(gvc.glitter.getUrlParameter('function')!=='page-editor'){
+                            return {
+                                elem: 'main',
+                                class: `docs-container`,
+                                style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
                            padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
                            padding-right:0px;
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}`
+                            }
+                        }else{
+                            return {
+                                elem: 'main',
+                                class: `docs-container`,
+                                style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                          padding-right:${(Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
+                                Storage.select_function !== 'backend-manger' &&
+                                Storage.select_function !== 'server-manager'
+                                        ? `290`
+                                        : `0`}px;${Storage.view_type === ViewType.fullScreen
+                                        ? `padding-left:0px;`
+                                        : `
+                          padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
+                          ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
+                          `}`
+                            }
                         }
+                      
                     },
                 }
             })}

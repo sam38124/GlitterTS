@@ -416,7 +416,7 @@ export class AddComponent {
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center p-2" style="gap:10px;">
+                                <div class="d-flex align-items-center p-2" style="gap:7px;">
                                     ${(() => {
                                         const list = [
                                             {
@@ -439,22 +439,24 @@ export class AddComponent {
                                         return list
                                             .map((dd) => {
                                                 if (vm.template_from === dd.key) {
-                                                    return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+                                                    return `<div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500" style="
 gap: 10px;
 border-radius: 7px;
 cursor: pointer;
 color: white;
 font-size: 16px;
+height: 48px;
 flex:1;
 border: 1px solid #FFB400;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
                                                 } else {
-                                                    return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+                                                    return `<div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500" style="
 border-radius: 7px;
 flex:1;
 font-size: 16px;
 border: 1px solid #FFB400;
 cursor: pointer;
+height: 48px;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
@@ -470,14 +472,35 @@ background-clip: text;
                                             .join('');
                                     })()}
                                     <div
-                                        class="d-flex align-items-center justify-content-center fw-bold    fw-500 "
-                                        style="
+                                            class="d-flex flex-column align-items-center justify-content-center fw-bold    fw-500 "
+                                            style="
 border-radius: 7px;
-width: 43px;
+width: 48px;
+height: 48px;
 font-size: 16px;
 border: 1px solid #FFB400;
 cursor: pointer;
-height: 43px;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;"
+                                            onclick="${gvc.event(() => {
+
+                                            })}"
+                                    >
+                                        <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                             style="width: 25px;height: 25px;">
+                                        <span class="fw-500" style="font-size:11px;">AI生成</span>
+                                    </div>
+                                    <div
+                                        class="d-flex align-items-center flex-column justify-content-center fw-bold    fw-500 "
+                                        style="
+border-radius: 7px;
+width: 48px;
+height: 48px;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
@@ -497,8 +520,10 @@ background-clip: text;
                                             });
                                         })}"
                                     >
-                                        <i class="fa-regular fa-paste"></i>
+                                        <i class="fa-regular fa-paste fs-5" style="width: 25px;height: 25px;"></i>
+                                        <span class="fw-500" style="font-size:11px;">貼上</span>
                                     </div>
+                                 
                                 </div>
                                 <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}" style="">
                                     <div class="input-group mb-2">

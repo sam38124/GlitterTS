@@ -18,6 +18,11 @@ const ai_1 = require("../../services/ai");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const app_js_1 = require("../../services/app.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
+const tool_js_2 = __importDefault(require("../../modules/tool.js"));
+const process_1 = __importDefault(require("process"));
+const fs_1 = __importDefault(require("fs"));
+const user_js_1 = require("./user.js");
+const shopping_js_1 = require("./shopping.js");
 class AiRobot {
     static async guide(app_name, question) {
         var _a, e_1, _b, _c;
@@ -36,7 +41,7 @@ class AiRobot {
             },
         }).value;
         const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process_1.default.env.OPENAI_API_KEY,
         });
         let use_tokens = 0;
         const query = `你是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
@@ -105,7 +110,7 @@ class AiRobot {
             },
         }).value;
         const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process_1.default.env.OPENAI_API_KEY,
         });
         const query = `現在時間為${(0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。
         另外以下3點請注意
@@ -180,7 +185,7 @@ class AiRobot {
             },
         }).value;
         const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process_1.default.env.OPENAI_API_KEY,
         });
         const query = '你是一個電商文案寫手，專門協助撰寫商品描述、行銷文案。';
         const myAssistant = await openai.beta.assistants.create({
@@ -250,6 +255,188 @@ class AiRobot {
             }
         ]);
         return total * -1;
+    }
+    static async syncAiRobot(app) {
+        try {
+            const copy = await (new user_js_1.User(app)).getConfigV2({ key: 'robot_ai_reply', user_id: 'manager' });
+            copy.ai_refer_file = undefined;
+            const refer_question = JSON.parse(JSON.stringify(copy));
+            refer_question.question = refer_question.question.concat([
+                {
+                    ask: '查詢我的訂單狀態',
+                    response: 'orders-search'
+                },
+                {
+                    ask: '查詢我的訂單配送狀態',
+                    response: 'orders-search'
+                },
+                {
+                    ask: '查詢我的訂單付款狀態',
+                    response: 'orders-search'
+                },
+                {
+                    ask: '訂單號碼##########的配送狀態',
+                    response: 'orders-search'
+                },
+                {
+                    ask: '訂單號碼##########的付款狀態',
+                    response: 'orders-search'
+                },
+                {
+                    ask: '訂單號碼##########的狀態',
+                    response: 'orders-search'
+                }
+            ]);
+            const jsonStringQA = JSON.stringify(refer_question);
+            const file1 = tool_js_2.default.randomString(10) + '.json';
+            const openai = new openai_1.default({
+                apiKey: process_1.default.env.OPENAI_API_KEY,
+            });
+            fs_1.default.writeFileSync(file1, jsonStringQA);
+            const file = await openai.files.create({
+                file: fs_1.default.createReadStream(file1),
+                purpose: 'assistants',
+            });
+            fs_1.default.rmSync(file1);
+            copy.ai_refer_file = file.id;
+            await (new user_js_1.User(app)).setConfig({ key: 'robot_ai_reply', value: copy, user_id: 'manager' });
+            return file.id;
+        }
+        catch (e) {
+        }
+    }
+    static async aiResponse(app_name, question) {
+        var _a, e_4, _b, _c;
+        if (!await AiRobot.checkPoints(app_name)) {
+            return undefined;
+        }
+        let cf = await (new user_js_1.User(app_name)).getConfigV2({
+            key: 'robot_ai_reply',
+            user_id: 'manager'
+        });
+        const openai = new openai_1.default({
+            apiKey: process_1.default.env.OPENAI_API_KEY,
+        });
+        let use_tokens = 0;
+        const query = `你是一個AI客服，請用我提供給你的檔案來回覆問題，檔案中包含一個question的陣列，當用戶提出了問題，請先遍歷question陣列，判斷提問的內容是否與ask或者keywords相關，
+        請不要經過任何修改直接回覆response欄位，另外這點請你非常注意若無法找到相關資料，請直接回答『no-data』就好，不要回答其他文字內容。`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: 'AI客服',
+            tools: [{ type: 'code_interpreter' }],
+            tool_resources: {
+                code_interpreter: {
+                    file_ids: [cf.ai_refer_file],
+                },
+            },
+            model: 'gpt-4o-mini',
+        });
+        const threads_id = (await openai.beta.threads.create()).id;
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, {
+            role: 'user',
+            content: question
+        });
+        const stream = await openai.beta.threads.runs.create(threads_id, {
+            assistant_id: myAssistant.id,
+            stream: true
+        });
+        let text = '';
+        try {
+            for (var _d = true, stream_4 = __asyncValues(stream), stream_4_1; stream_4_1 = await stream_4.next(), _a = stream_4_1.done, !_a; _d = true) {
+                _c = stream_4_1.value;
+                _d = false;
+                const event = _c;
+                if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
+                    text = event.data.content[0].text.value;
+                }
+                if (event.data.usage) {
+                    use_tokens += event.data.usage.total_tokens;
+                }
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = stream_4.return)) await _b.call(stream_4);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        const regex = /【[^】]*】/g;
+        const answer = text.replace(regex, '');
+        await openai.beta.assistants.del(myAssistant.id);
+        await this.usePoints(app_name, use_tokens, question, answer);
+        if (answer === 'orders-search') {
+            function extractNumbers(text) {
+                const numbers = text.match(/\d+/g);
+                return numbers ? numbers.map(Number) : '';
+            }
+            if (extractNumbers(question)) {
+                const order_data = await new shopping_js_1.Shopping(app_name).getCheckOut({
+                    page: 0,
+                    limit: 5000,
+                    returnSearch: 'true',
+                    search: extractNumbers(question)
+                });
+                if (order_data) {
+                    return {
+                        text: [
+                            `這筆訂單建立於${(0, moment_1.default)(order_data.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm')}`,
+                            `付款狀態為『 ${(() => {
+                                var _a;
+                                switch ((_a = order_data.status) !== null && _a !== void 0 ? _a : 0) {
+                                    case 1:
+                                        return '已付款';
+                                    case -1:
+                                        return '付款失敗';
+                                    case -2:
+                                        return '已退款';
+                                    case 0:
+                                    default:
+                                        return '未付款';
+                                }
+                            })()} 』`,
+                            `訂單狀態為『 ${(() => {
+                                var _a;
+                                switch ((_a = order_data.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                    case 'shipping':
+                                        return '已出貨';
+                                    case 'finish':
+                                        return '已取貨';
+                                    case 'arrived':
+                                        return '已送達';
+                                    case 'returns':
+                                        return '已退貨';
+                                    case 'wait':
+                                    default:
+                                        return '未出貨';
+                                }
+                            })()} 』`,
+                            `訂單總金額為『 ${order_data.orderData.total} 』`,
+                            `購買項目有:\n${order_data.orderData.lineItems.map((item) => {
+                                return `${item.title} * ${item.count}`;
+                            }).join('\n')} `
+                        ].join('\n'),
+                        usage: await this.usePoints(app_name, use_tokens, question, answer)
+                    };
+                }
+                else {
+                    return {
+                        text: '查物相關訂單',
+                        usage: await this.usePoints(app_name, use_tokens, question, answer)
+                    };
+                }
+            }
+            else {
+                return {
+                    text: '您好，查詢訂單相關資料必須同時告知訂單號碼，例如:『 訂單號碼1723274721的配送狀態 』',
+                    usage: await this.usePoints(app_name, use_tokens, question, answer)
+                };
+            }
+        }
+        return {
+            text: answer,
+            usage: await this.usePoints(app_name, use_tokens, question, answer)
+        };
     }
 }
 exports.AiRobot = AiRobot;
