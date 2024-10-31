@@ -323,7 +323,7 @@ export class Chat {
                 //發送通知
                 if (b.user_id !== room.user_id) {
                     //訂單分析
-                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                    if (['writer', 'order_analysis', 'operation_guide','design'].includes(b.user_id)) {
                         const response = await new Promise(async (resolve, reject) => {
                             switch (b.user_id) {
                                 case 'writer':
@@ -335,6 +335,9 @@ export class Chat {
                                 case 'operation_guide':
                                     resolve(await AiRobot.guide(this.app, room.message.text ?? ''));
                                     return;
+                                case 'design':
+                                    resolve(await AiRobot.design(this.app, room.message.text ?? ''));
+                                    return
                             }
                         });
                         const insert = await db.query(

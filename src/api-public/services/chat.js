@@ -234,9 +234,9 @@ class Chat {
             }
             for (const b of particpant) {
                 if (b.user_id !== room.user_id) {
-                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                    if (['writer', 'order_analysis', 'operation_guide', 'design'].includes(b.user_id)) {
                         const response = await new Promise(async (resolve, reject) => {
-                            var _a, _b, _c;
+                            var _a, _b, _c, _d;
                             switch (b.user_id) {
                                 case 'writer':
                                     resolve(await ai_robot_js_1.AiRobot.writer(this.app, (_a = room.message.text) !== null && _a !== void 0 ? _a : ''));
@@ -246,6 +246,9 @@ class Chat {
                                     return;
                                 case 'operation_guide':
                                     resolve(await ai_robot_js_1.AiRobot.guide(this.app, (_c = room.message.text) !== null && _c !== void 0 ? _c : ''));
+                                    return;
+                                case 'design':
+                                    resolve(await ai_robot_js_1.AiRobot.design(this.app, (_d = room.message.text) !== null && _d !== void 0 ? _d : ''));
                                     return;
                             }
                         });

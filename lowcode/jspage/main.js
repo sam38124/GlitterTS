@@ -535,9 +535,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             view.push(AddPage.leftNav(gvc));
                             view.push(PageCodeSetting.leftNav(gvc));
                         }
-                        else {
-                            view.push(BgCustomerMessage.leftNav(gvc));
-                        }
+                        view.push(BgCustomerMessage.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);

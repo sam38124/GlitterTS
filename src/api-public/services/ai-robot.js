@@ -88,7 +88,6 @@ class AiRobot {
         const regex = /【[^】]*】/g;
         const answer = text.replace(regex, '');
         await openai.beta.assistants.del(myAssistant.id);
-        await this.usePoints(app_name, use_tokens, question, answer);
         return {
             text: answer,
             usage: await this.usePoints(app_name, use_tokens, question, answer)
@@ -163,14 +162,110 @@ class AiRobot {
         const regex = /【[^】]*】/g;
         await openai.beta.assistants.del(myAssistant.id);
         const answer = text.replace(regex, '');
-        await this.usePoints(app_name, use_tokens, question, answer);
         return {
             text: answer,
             usage: await this.usePoints(app_name, use_tokens, question, answer)
         };
     }
-    static async writer(app_name, question) {
+    static async design(app_name, question) {
         var _a, e_3, _b, _c;
+        var _d;
+        if (!await AiRobot.checkPoints(app_name)) {
+            return { text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]` };
+        }
+        let cf = ((_d = (await private_config_js_1.Private_config.getConfig({
+            appName: app_name,
+            key: 'ai_config',
+        }))[0]) !== null && _d !== void 0 ? _d : {
+            value: {
+                design: ''
+            },
+        }).value;
+        const openai = new openai_1.default({
+            apiKey: process_1.default.env.OPENAI_API_KEY,
+        });
+        const query = `你是一個平面設計師，請依據我提供給你的描述，產生prompt，我會利用你提供的資訊去呼叫圖片生成模型`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '平面設計師',
+            model: 'gpt-4o-mini',
+            response_format: {
+                "type": "json_schema", "json_schema": {
+                    "name": "prompt",
+                    "strict": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "prompt": {
+                                "type": "string",
+                                "description": "繁體中文的prompt"
+                            }
+                        },
+                        "required": [
+                            "prompt"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            }
+        });
+        const threads_id = cf.design;
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, { role: 'user', content: question });
+        const stream = await openai.beta.threads.runs.create(threads_id, { assistant_id: myAssistant.id, stream: true });
+        let text = undefined;
+        let use_tokens = 0;
+        try {
+            for (var _e = true, stream_3 = __asyncValues(stream), stream_3_1; stream_3_1 = await stream_3.next(), _a = stream_3_1.done, !_a; _e = true) {
+                _c = stream_3_1.value;
+                _e = false;
+                const event = _c;
+                if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
+                    text = JSON.parse(event.data.content[0].text.value);
+                }
+                if (event.data.usage) {
+                    use_tokens += event.data.usage.total_tokens;
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (!_e && !_a && (_b = stream_3.return)) await _b.call(stream_3);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        await openai.beta.assistants.del(myAssistant.id);
+        if (text) {
+            console.log(text.prompt);
+            const response = await openai.images.generate({
+                model: "dall-e-3",
+                prompt: text.prompt,
+                n: 1,
+                size: "1024x1024",
+            });
+            if (response.data[0]) {
+                return {
+                    prompt: text.prompt,
+                    image: response.data[0].url,
+                    usage: await this.usePoints(app_name, 100000 + use_tokens, question, `使用AI進行圖片生成`)
+                };
+            }
+            else {
+                return {
+                    text: '生成失敗，請輸入更具體一點的描述',
+                    usage: 0
+                };
+            }
+        }
+        else {
+            return {
+                text: '生成失敗，請輸入更具體一點的描述',
+                usage: 0
+            };
+        }
+    }
+    static async writer(app_name, question) {
+        var _a, e_4, _b, _c;
         var _d;
         if (!await AiRobot.checkPoints(app_name)) {
             return { text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]` };
@@ -198,8 +293,8 @@ class AiRobot {
         let text = '';
         let use_tokens = 0;
         try {
-            for (var _e = true, stream_3 = __asyncValues(stream), stream_3_1; stream_3_1 = await stream_3.next(), _a = stream_3_1.done, !_a; _e = true) {
-                _c = stream_3_1.value;
+            for (var _e = true, stream_4 = __asyncValues(stream), stream_4_1; stream_4_1 = await stream_4.next(), _a = stream_4_1.done, !_a; _e = true) {
+                _c = stream_4_1.value;
                 _e = false;
                 const event = _c;
                 if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
@@ -210,12 +305,12 @@ class AiRobot {
                 }
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
         finally {
             try {
-                if (!_e && !_a && (_b = stream_3.return)) await _b.call(stream_3);
+                if (!_e && !_a && (_b = stream_4.return)) await _b.call(stream_4);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_4) throw e_4.error; }
         }
         const regex = /【[^】]*】/g;
         await openai.beta.assistants.del(myAssistant.id);
@@ -306,7 +401,7 @@ class AiRobot {
         }
     }
     static async aiResponse(app_name, question) {
-        var _a, e_4, _b, _c;
+        var _a, e_5, _b, _c;
         if (!await AiRobot.checkPoints(app_name)) {
             return undefined;
         }
@@ -342,8 +437,8 @@ class AiRobot {
         });
         let text = '';
         try {
-            for (var _d = true, stream_4 = __asyncValues(stream), stream_4_1; stream_4_1 = await stream_4.next(), _a = stream_4_1.done, !_a; _d = true) {
-                _c = stream_4_1.value;
+            for (var _d = true, stream_5 = __asyncValues(stream), stream_5_1; stream_5_1 = await stream_5.next(), _a = stream_5_1.done, !_a; _d = true) {
+                _c = stream_5_1.value;
                 _d = false;
                 const event = _c;
                 if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
@@ -354,17 +449,16 @@ class AiRobot {
                 }
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
         finally {
             try {
-                if (!_d && !_a && (_b = stream_4.return)) await _b.call(stream_4);
+                if (!_d && !_a && (_b = stream_5.return)) await _b.call(stream_5);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_5) throw e_5.error; }
         }
         const regex = /【[^】]*】/g;
         const answer = text.replace(regex, '');
         await openai.beta.assistants.del(myAssistant.id);
-        await this.usePoints(app_name, use_tokens, question, answer);
         if (answer === 'orders-search') {
             function extractNumbers(text) {
                 const numbers = text.match(/\d+/g);
@@ -439,7 +533,7 @@ class AiRobot {
         };
     }
     static async codeGenerator(app_name, question) {
-        var _a, e_5, _b, _c;
+        var _a, e_6, _b, _c;
         if (!await AiRobot.checkPoints(app_name)) {
             return { usage: 0 };
         }
@@ -451,7 +545,8 @@ class AiRobot {
             instructions: query,
             name: '網頁設計師',
             model: 'gpt-4o-mini',
-            response_format: { "type": "json_schema", "json_schema": {
+            response_format: {
+                "type": "json_schema", "json_schema": {
                     "name": "html_element_modification",
                     "strict": true,
                     "schema": {
@@ -488,7 +583,8 @@ class AiRobot {
                         ],
                         "additionalProperties": false
                     }
-                } }
+                }
+            }
         });
         const threads_id = (await openai.beta.threads.create()).id;
         const threadMessages = await openai.beta.threads.messages.create(threads_id, { role: 'user', content: question });
@@ -496,8 +592,8 @@ class AiRobot {
         let text = '';
         let use_tokens = 0;
         try {
-            for (var _d = true, stream_5 = __asyncValues(stream), stream_5_1; stream_5_1 = await stream_5.next(), _a = stream_5_1.done, !_a; _d = true) {
-                _c = stream_5_1.value;
+            for (var _d = true, stream_6 = __asyncValues(stream), stream_6_1; stream_6_1 = await stream_6.next(), _a = stream_6_1.done, !_a; _d = true) {
+                _c = stream_6_1.value;
                 _d = false;
                 const event = _c;
                 if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
@@ -508,12 +604,12 @@ class AiRobot {
                 }
             }
         }
-        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
         finally {
             try {
-                if (!_d && !_a && (_b = stream_5.return)) await _b.call(stream_5);
+                if (!_d && !_a && (_b = stream_6.return)) await _b.call(stream_6);
             }
-            finally { if (e_5) throw e_5.error; }
+            finally { if (e_6) throw e_6.error; }
         }
         await openai.beta.assistants.del(myAssistant.id);
         return {

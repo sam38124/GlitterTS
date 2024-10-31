@@ -24,7 +24,7 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
-    const  type:'writer' | 'order_analysis' | 'operation_guide' =req.body.type
+    const  type:'writer' | 'order_analysis' | 'operation_guide' | 'design' =req.body.type
     try {
         const exportData: any = [];
         let cf = (
@@ -132,7 +132,9 @@ return {
                                         FROM \`${req.get('g-app') as string}\`.t_chat_detail where chat_id=? order by id desc limit 0,5`,[
                                             [type,'manager'].sort().join('-')
         ])).reverse()){
-            if(b.message.text){
+            if(b.message.prompt){
+                await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.prompt })
+            }else if(b.message.text){
                 await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.text })
             }
         }

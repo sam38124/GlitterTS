@@ -35,7 +35,6 @@ const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-
     glitter.share.ai_message = AiMessage
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
 
@@ -581,10 +580,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             view.push(PageSettingView.leftNav(gvc));
                             view.push(AddPage.leftNav(gvc));
                             view.push(PageCodeSetting.leftNav(gvc));
-                        } else {
-                            view.push(BgCustomerMessage.leftNav(gvc));
                         }
-
+                        view.push(BgCustomerMessage.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
 
                         try {

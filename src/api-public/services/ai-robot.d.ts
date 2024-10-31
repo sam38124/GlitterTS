@@ -13,6 +13,22 @@ export declare class AiRobot {
         text: string;
         usage: number;
     }>;
+    static design(app_name: string, question: string): Promise<{
+        text: string;
+        prompt?: undefined;
+        image?: undefined;
+        usage?: undefined;
+    } | {
+        prompt: any;
+        image: string | undefined;
+        usage: number;
+        text?: undefined;
+    } | {
+        text: string;
+        usage: number;
+        prompt?: undefined;
+        image?: undefined;
+    }>;
     static writer(app_name: string, question: string): Promise<{
         text: string;
         usage?: undefined;

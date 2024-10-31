@@ -119,7 +119,10 @@ router.post('/sync-data', async (req, resp) => {
                                         FROM \`${req.get('g-app')}\`.t_chat_detail where chat_id=? order by id desc limit 0,5`, [
             [type, 'manager'].sort().join('-')
         ])).reverse()) {
-            if (b.message.text) {
+            if (b.message.prompt) {
+                await openai.beta.threads.messages.create(cf[type], { role: (b.user_id === 'robot') ? 'assistant' : 'user', content: b.message.prompt });
+            }
+            else if (b.message.text) {
                 await openai.beta.threads.messages.create(cf[type], { role: (b.user_id === 'robot') ? 'assistant' : 'user', content: b.message.text });
             }
         }

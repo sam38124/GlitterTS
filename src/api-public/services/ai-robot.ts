@@ -11,16 +11,16 @@ import fs from "fs";
 import {User} from "./user.js";
 import {Shopping} from "./shopping.js";
 import {Beta, ResponseFormatJSONSchema} from "openai/resources";
-import { z } from "zod";
-import { zodResponseFormat } from "openai/helpers/zod";
+import {z} from "zod";
+import {zodResponseFormat} from "openai/helpers/zod";
 import ResponseFormatText = OpenAI.ResponseFormatText;
 
 export class AiRobot {
     // 操作引導
     public static async guide(app_name: string, question: string) {
         if (!await AiRobot.checkPoints(app_name)) {
-            return  {text:`您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
-          }
+            return {text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
+        }
         let cf = (
             (
                 await Private_config.getConfig({
@@ -75,7 +75,6 @@ export class AiRobot {
         const regex = /【[^】]*】/g;
         const answer = text.replace(regex, '')
         await openai.beta.assistants.del(myAssistant.id);
-        await this.usePoints(app_name, use_tokens, question, answer)
         return {
             text: answer,
             usage: await this.usePoints(app_name, use_tokens, question, answer)
@@ -86,7 +85,7 @@ export class AiRobot {
     public static async orderAnalysis(app_name: string, question: string) {
 
         if (!await AiRobot.checkPoints(app_name)) {
-            return  {text:`您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
+            return {text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
         }
         let cf = (
             (
@@ -147,17 +146,110 @@ export class AiRobot {
         const regex = /【[^】]*】/g;
         await openai.beta.assistants.del(myAssistant.id);
         const answer = text.replace(regex, '');
-        await this.usePoints(app_name, use_tokens, question, answer)
         return {
             text: answer,
             usage: await this.usePoints(app_name, use_tokens, question, answer)
         }
     }
 
+
+    // 圖片生成
+    public static async design(app_name: string, question: string) {
+
+        if (!await AiRobot.checkPoints(app_name)) {
+            return {text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
+        }
+        let cf = (
+            (
+                await Private_config.getConfig({
+                    appName: app_name,
+                    key: 'ai_config',
+                })
+            )[0] ?? {
+                value: {
+                    design:''
+                },
+            }
+        ).value;
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+        //創建平面設計師
+        const query = `你是一個平面設計師，請依據我提供給你的描述，產生prompt，我會利用你提供的資訊去呼叫圖片生成模型`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '平面設計師',
+            model: 'gpt-4o-mini',
+            response_format: {
+                "type": "json_schema", "json_schema": {
+                    "name": "prompt",
+                    "strict": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "prompt": {
+                                "type": "string",
+                                "description": "繁體中文的prompt"
+                            }
+                        },
+                        "required": [
+                            "prompt"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            }
+        });
+        //對話線程ID
+        const threads_id =  cf.design;
+        //添加訊息
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: question});
+        //建立數據流
+        const stream = await openai.beta.threads.runs.create(threads_id, {assistant_id: myAssistant.id, stream: true});
+        let text:any = undefined;
+        let use_tokens = 0
+        for await (const event of stream) {
+            if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
+                text = JSON.parse((event.data as any).content[0].text.value);
+            }
+            if ((event.data as any).usage) {
+                use_tokens += (event.data as any).usage.total_tokens;
+            }
+        }
+
+        await openai.beta.assistants.del(myAssistant.id);
+        if(text){
+            console.log(text.prompt)
+            const response = await openai.images.generate({
+                model: "dall-e-3",
+                prompt: text.prompt,
+                n: 1,
+                size: "1024x1024",
+            });
+            if (response.data[0]) {
+                return {
+                    prompt:text.prompt,
+                    image: response.data[0].url,
+                    usage: await this.usePoints(app_name, 100000+use_tokens, question, `使用AI進行圖片生成`)
+                }
+            } else {
+                return {
+                    text: '生成失敗，請輸入更具體一點的描述',
+                    usage: 0
+                }
+            }
+        }else{
+            return {
+                text: '生成失敗，請輸入更具體一點的描述',
+                usage: 0
+            }
+        }
+    }
+
     // 寫手
     public static async writer(app_name: string, question: string) {
         if (!await AiRobot.checkPoints(app_name)) {
-            return  {text:`您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
+            return {text: `您的AI Points點數餘額不足，請先[ <a href="./?type=editor&appName=${app_name}&function=backend-manger&tab=ai-point">前往加值</a> ]`}
         }
         let cf = (
             (
@@ -226,10 +318,10 @@ export class AiRobot {
     //點數扣除
     public static async usePoints(app_name: string, token_number: number, ask: string, response: string) {
         let total = token_number * 0.000018 * 10
-        if(total<1){
-            total=1
+        if (total < 1) {
+            total = 1
         }
-        total=Math.ceil(total * -1)
+        total = Math.ceil(total * -1)
         const brandAndMemberType = await App.checkBrandAndMemberType(app_name);
         await db.query(`insert into \`${brandAndMemberType.brand}\`.t_ai_points
                         set ?`, [
@@ -241,7 +333,7 @@ export class AiRobot {
                 note: JSON.stringify({
                     ask: ask,
                     response: response,
-                    token_number:token_number
+                    token_number: token_number
                 })
             }
         ])
@@ -249,35 +341,35 @@ export class AiRobot {
     }
 
     //AI客服設定
-    public static async syncAiRobot(app:string){
+    public static async syncAiRobot(app: string) {
         try {
-            const copy=await (new User(app)).getConfigV2({key:'robot_ai_reply',user_id:'manager'})
-            copy.ai_refer_file=undefined
-            const refer_question=JSON.parse(JSON.stringify(copy))
-            refer_question.question=refer_question.question.concat([
+            const copy = await (new User(app)).getConfigV2({key: 'robot_ai_reply', user_id: 'manager'})
+            copy.ai_refer_file = undefined
+            const refer_question = JSON.parse(JSON.stringify(copy))
+            refer_question.question = refer_question.question.concat([
                 {
-                    ask:'查詢我的訂單狀態',
-                    response:'orders-search'
+                    ask: '查詢我的訂單狀態',
+                    response: 'orders-search'
                 },
                 {
-                    ask:'查詢我的訂單配送狀態',
-                    response:'orders-search'
+                    ask: '查詢我的訂單配送狀態',
+                    response: 'orders-search'
                 },
                 {
-                    ask:'查詢我的訂單付款狀態',
-                    response:'orders-search'
+                    ask: '查詢我的訂單付款狀態',
+                    response: 'orders-search'
                 },
                 {
-                    ask:'訂單號碼##########的配送狀態',
-                    response:'orders-search'
+                    ask: '訂單號碼##########的配送狀態',
+                    response: 'orders-search'
                 },
                 {
-                    ask:'訂單號碼##########的付款狀態',
-                    response:'orders-search'
+                    ask: '訂單號碼##########的付款狀態',
+                    response: 'orders-search'
                 },
                 {
-                    ask:'訂單號碼##########的狀態',
-                    response:'orders-search'
+                    ask: '訂單號碼##########的狀態',
+                    response: 'orders-search'
                 }
             ])
             const jsonStringQA = JSON.stringify(refer_question);
@@ -292,10 +384,10 @@ export class AiRobot {
                 purpose: 'assistants',
             });
             fs.rmSync(file1);
-            copy.ai_refer_file= file.id;
-            await (new User(app)).setConfig({key:'robot_ai_reply',value:copy,user_id:'manager'})
+            copy.ai_refer_file = file.id;
+            await (new User(app)).setConfig({key: 'robot_ai_reply', value: copy, user_id: 'manager'})
             return file.id;
-        }catch (e) {
+        } catch (e) {
 
         }
     }
@@ -303,11 +395,11 @@ export class AiRobot {
     //AI回覆
     public static async aiResponse(app_name: string, question: string) {
         if (!await AiRobot.checkPoints(app_name)) {
-            return  undefined;
+            return undefined;
         }
         let cf = await (new User(app_name)).getConfigV2({
-            key:'robot_ai_reply',
-            user_id:'manager'
+            key: 'robot_ai_reply',
+            user_id: 'manager'
         })
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
@@ -328,7 +420,7 @@ export class AiRobot {
             model: 'gpt-4o-mini',
         });
         //對話線程ID
-        const threads_id=(await openai.beta.threads.create()).id
+        const threads_id = (await openai.beta.threads.create()).id
         //添加訊息
         const threadMessages = await openai.beta.threads.messages.create(threads_id, {
             role: 'user',
@@ -351,22 +443,22 @@ export class AiRobot {
         const regex = /【[^】]*】/g;
         const answer = text.replace(regex, '')
         await openai.beta.assistants.del(myAssistant.id);
-        await this.usePoints(app_name, use_tokens, question, answer)
-        if(answer==='orders-search'){
-            function extractNumbers(text:any) {
+        if (answer === 'orders-search') {
+            function extractNumbers(text: any) {
                 // 使用正則表達式 \d+ 來找到數字
                 const numbers = text.match(/\d+/g);
                 // 將找到的數字從字串轉換成數字
                 return numbers ? numbers.map(Number) : '';
             }
-            if(extractNumbers(question)){
-                const order_data=await new Shopping(app_name).getCheckOut({
+
+            if (extractNumbers(question)) {
+                const order_data = await new Shopping(app_name).getCheckOut({
                     page: 0,
                     limit: 5000,
-                    returnSearch:'true',
-                    search:extractNumbers(question)
+                    returnSearch: 'true',
+                    search: extractNumbers(question)
                 })
-                if(order_data){
+                if (order_data) {
                     return {
                         text: [
                             `這筆訂單建立於${moment(order_data.created_time).tz('Asia/Taipei').format('YYYY/MM/DD HH:mm')}`,
@@ -399,19 +491,19 @@ export class AiRobot {
                                 }
                             })()} 』`,
                             `訂單總金額為『 ${order_data.orderData.total} 』`,
-                            `購買項目有:\n${order_data.orderData.lineItems.map((item:any)=>{
+                            `購買項目有:\n${order_data.orderData.lineItems.map((item: any) => {
                                 return `${item.title} * ${item.count}`
                             }).join('\n')} `
                         ].join('\n'),
                         usage: await this.usePoints(app_name, use_tokens, question, answer)
                     }
-                }else{
+                } else {
                     return {
                         text: '查物相關訂單',
                         usage: await this.usePoints(app_name, use_tokens, question, answer)
                     }
                 }
-            }else{
+            } else {
                 return {
                     text: '您好，查詢訂單相關資料必須同時告知訂單號碼，例如:『 訂單號碼1723274721的配送狀態 』',
                     usage: await this.usePoints(app_name, use_tokens, question, answer)
@@ -428,7 +520,7 @@ export class AiRobot {
     //代碼生成
     public static async codeGenerator(app_name: string, question: string) {
         if (!await AiRobot.checkPoints(app_name)) {
-            return  {usage:0}
+            return {usage: 0}
         }
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
@@ -439,7 +531,8 @@ export class AiRobot {
             instructions: query,
             name: '網頁設計師',
             model: 'gpt-4o-mini',
-            response_format:{ "type": "json_schema" ,"json_schema":{
+            response_format: {
+                "type": "json_schema", "json_schema": {
                     "name": "html_element_modification",
                     "strict": true,
                     "schema": {
@@ -476,10 +569,11 @@ export class AiRobot {
                         ],
                         "additionalProperties": false
                     }
-                }}
+                }
+            }
         });
         //對話線程ID
-        const threads_id=(await openai.beta.threads.create()).id
+        const threads_id = (await openai.beta.threads.create()).id
         //添加訊息
         const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: question});
         //建立數據流
