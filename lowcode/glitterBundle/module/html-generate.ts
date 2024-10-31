@@ -2764,23 +2764,36 @@ transform: translateY(5px);
     }
 
     public static renderComponent(cf: {
-        appName: string, tag: string, gvc: GVC,subData:any
+        appName: string, tag: string, gvc: GVC, subData: any
     }) {
-        return new Promise(async (resolve, reject) => {
-            ((window as any).glitterInitialHelper).getPageData({
-                tag: cf.tag,
-                appName: cf.appName
-            }, (d2: any) => {
-               resolve( new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
-                   class: ``,
-                   style: ``,
-                   page_config: d2.response.result[0].page_config,
-               }))
-            })
+        return cf.gvc.bindView(() => {
+            const id = cf.gvc.glitter.getUUID()
+            return {
+                bind: id,
+                view: () => {
+                    return ``
+                },
+                divCreate: {
+                    option: [
+                        {key: 'id', value: cf.gvc.glitter.getUUID()}
+                    ]
+                },
+                onCreate:()=>{
+                    ((window as any).glitterInitialHelper).getPageData({
+                        tag: cf.tag,
+                        appName: cf.appName
+                    }, (d2: any) => {
+                        cf.gvc.glitter.document.querySelector('#'+id).outerHTML=new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
+                            class: ``,
+                            style: ``,
+                            page_config: d2.response.result[0].page_config,
+                        })
+                    })
+                }
+            }
         })
     }
 }
-
 
 
 function isIdeaAble(widget: any) {
