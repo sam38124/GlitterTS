@@ -25,6 +25,7 @@ const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
+const fb_message_1 = require("./fb-message");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -996,6 +997,12 @@ class Shopping {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                         console.log('訂單line訊息寄送成功');
+                    }
+                    console.log("check -- ", carData.customer_info);
+                    if (carData.customer_info.fb_id) {
+                        let fb = new fb_message_1.FbMessage(this.app);
+                        await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
+                        console.log('訂單FB訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)

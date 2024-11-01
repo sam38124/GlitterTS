@@ -20,6 +20,7 @@ import { Delivery, DeliveryData } from './delivery.js';
 import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
+import {FbMessage} from "./fb-message";
 
 type BindItem = {
     id: string;
@@ -1387,11 +1388,17 @@ export class Shopping {
                         await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
                         console.log('訂單簡訊寄送成功');
                     }
+
                     if (carData.customer_info.lineID) {
                         let line = new LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                         console.log('訂單line訊息寄送成功');
                     }
+                    // if (carData.customer_info.fb_id) {
+                    //     let fb = new FbMessage(this.app)
+                    //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
+                    //     console.log('訂單FB訊息寄送成功');
+                    // }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
                     await db.execute(

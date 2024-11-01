@@ -86,12 +86,14 @@ export class FbMessage {
             text?: string;
             image?: string;
             attachment: any;
+            tag ?: any;
         }, fbID: string
     }, callback: (data: any) => void) {
         try {
             const payload = {
                 recipient: {id: obj.fbID},
-                message: {}
+                message: {},
+                tag:"POST_PURCHASE_UPDATE"
             };
             if (obj.data.image) {
                 payload.message = {
@@ -108,6 +110,10 @@ export class FbMessage {
                 payload.message = {
                     text: obj.data.text
                 }
+            }
+
+            if (obj.data.tag) {
+                (payload as any).tag = obj.data.tag
             }
             const post = new User(this.app, this.token);
 
@@ -543,13 +549,18 @@ export class FbMessage {
         }
     }
 
-    public async sendCustomerLine(tag: string, order_id: string, lineID: string) {
+    public async sendCustomerFB(tag: string, order_id: string, fb_id: string) {
         const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
+        customerMail.tag = "POST_PURCHASE_UPDATE";
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
                 resolve(await this.sendMessage({
-                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    fbID: lineID
+                    data: {
+                        text : "出貨訊息",
+                        attachment:[],
+                        tag:'POST_PURCHASE_UPDATE'
+                    },
+                    fbID: fb_id,
                 }, (res) => {
 
                 }))
@@ -639,67 +650,6 @@ export class FbMessage {
         } catch (e: any) {
             throw exception.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
-    }
-
-    //判斷餘額是否足夠
-    public async checkPoints(message: string, user_count: number) {
-        const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
-        // 判斷錢包是否有餘額
-        const sum =
-            (
-                await db.query(
-                    `SELECT sum(money)
-                     FROM \`${brandAndMemberType.brand}\`.t_sms_points
-                     WHERE status in (1, 2)
-                       and userID = ?`,
-                    [brandAndMemberType.user_id]
-                )
-            )[0]['sum(money)'] || 0;
-        return sum > (this.getUsePoints(message, user_count))
-    }
-
-    //點數扣除
-    public async usePoints(obj: { message: string, user_count: number, order_id?: string, phone: string }) {
-        if (!obj.phone) {
-            return 0
-        }
-        let total = this.getUsePoints(obj.message, obj.user_count)
-        const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
-        await db.query(`insert into \`${brandAndMemberType.brand}\`.t_sms_points
-                        set ?`, [
-            {
-                orderID: obj.order_id || Tool.randomNumber(8),
-                money: total * -1,
-                userID: brandAndMemberType.user_id,
-                status: 1,
-                note: JSON.stringify({
-                    message: obj.message,
-                    phone: obj.phone
-                })
-            }
-        ])
-        return total * -1
-    }
-
-    public getUsePoints(text: string, user_count: number) {
-        let pointCount = 0
-        const maxSize = 160;
-        const longSMS = 153;
-        let totalSize = 0
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
-                totalSize += 2;
-            } else {
-                totalSize += 1;
-            }
-        }
-        if (totalSize < maxSize) {
-            pointCount = 1;
-        } else {
-            pointCount = Math.ceil(totalSize / longSMS);
-        }
-        return pointCount * 15 * user_count
     }
 
 }

@@ -9,8 +9,6 @@ const database_js_1 = __importDefault(require("../../modules/database.js"));
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
-const app_js_1 = require("../../services/app.js");
-const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const chat_1 = require("./chat");
 const user_1 = require("./user");
 const logger_1 = __importDefault(require("../../modules/logger"));
@@ -47,7 +45,8 @@ class FbMessage {
         try {
             const payload = {
                 recipient: { id: obj.fbID },
-                message: {}
+                message: {},
+                tag: "POST_PURCHASE_UPDATE"
             };
             if (obj.data.image) {
                 payload.message = {
@@ -64,6 +63,9 @@ class FbMessage {
                 payload.message = {
                     text: obj.data.text
                 };
+            }
+            if (obj.data.tag) {
+                payload.tag = obj.data.tag;
             }
             const post = new user_1.User(this.app, this.token);
             let tokenData = await post.getConfig({
@@ -418,17 +420,20 @@ class FbMessage {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Error:' + e, null);
         }
     }
-    async sendCustomerLine(tag, order_id, lineID) {
+    async sendCustomerFB(tag, order_id, fb_id) {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
-        if (customerMail.toggle) {
-            await new Promise(async (resolve) => {
-                resolve(await this.sendMessage({
-                    data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    fbID: lineID
-                }, (res) => {
-                }));
-            });
-        }
+        customerMail.tag = "POST_PURCHASE_UPDATE";
+        await new Promise(async (resolve) => {
+            resolve(await this.sendMessage({
+                data: {
+                    text: "出貨訊息",
+                    attachment: [],
+                    tag: 'POST_PURCHASE_UPDATE'
+                },
+                fbID: fb_id,
+            }, (res) => {
+            }));
+        });
     }
     async uploadFile(file_name, fileData) {
         const TAG = `[AWS-S3][Upload]`;
@@ -506,57 +511,6 @@ class FbMessage {
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send line Error:' + e.data, null);
         }
-    }
-    async checkPoints(message, user_count) {
-        const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
-        const sum = (await database_js_1.default.query(`SELECT sum(money)
-                     FROM \`${brandAndMemberType.brand}\`.t_sms_points
-                     WHERE status in (1, 2)
-                       and userID = ?`, [brandAndMemberType.user_id]))[0]['sum(money)'] || 0;
-        return sum > (this.getUsePoints(message, user_count));
-    }
-    async usePoints(obj) {
-        if (!obj.phone) {
-            return 0;
-        }
-        let total = this.getUsePoints(obj.message, obj.user_count);
-        const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
-        await database_js_1.default.query(`insert into \`${brandAndMemberType.brand}\`.t_sms_points
-                        set ?`, [
-            {
-                orderID: obj.order_id || tool_js_1.default.randomNumber(8),
-                money: total * -1,
-                userID: brandAndMemberType.user_id,
-                status: 1,
-                note: JSON.stringify({
-                    message: obj.message,
-                    phone: obj.phone
-                })
-            }
-        ]);
-        return total * -1;
-    }
-    getUsePoints(text, user_count) {
-        let pointCount = 0;
-        const maxSize = 160;
-        const longSMS = 153;
-        let totalSize = 0;
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            if (/[\u4e00-\u9fa5\uFF00-\uFFEF]/.test(char)) {
-                totalSize += 2;
-            }
-            else {
-                totalSize += 1;
-            }
-        }
-        if (totalSize < maxSize) {
-            pointCount = 1;
-        }
-        else {
-            pointCount = Math.ceil(totalSize / longSMS);
-        }
-        return pointCount * 15 * user_count;
     }
 }
 exports.FbMessage = FbMessage;

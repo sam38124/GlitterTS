@@ -16,6 +16,7 @@ export declare class FbMessage {
             text?: string;
             image?: string;
             attachment: any;
+            tag?: any;
         };
         fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
@@ -48,17 +49,9 @@ export declare class FbMessage {
         result: boolean;
         message: string;
     }>;
-    sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
+    sendCustomerFB(tag: string, order_id: string, fb_id: string): Promise<void>;
     uploadFile(file_name: string, fileData: Buffer): Promise<string>;
     getFBInf(obj: {
         fbID: string;
     }, callback: (data: any) => void): Promise<boolean>;
-    checkPoints(message: string, user_count: number): Promise<boolean>;
-    usePoints(obj: {
-        message: string;
-        user_count: number;
-        order_id?: string;
-        phone: string;
-    }): Promise<number>;
-    getUsePoints(text: string, user_count: number): number;
 }
