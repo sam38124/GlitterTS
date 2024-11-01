@@ -22,8 +22,7 @@ import { ShareDialog } from '../dialog/ShareDialog.js';
 const html = String.raw;
 export class HtmlGenerate {
     constructor(container, hoverInitial = [], subData, root) {
-        this.initialFunction = () => {
-        };
+        this.initialFunction = () => { };
         if (root) {
             window.glitter.htmlGenerate.preloadEvent(container);
         }
@@ -42,16 +41,12 @@ export class HtmlGenerate {
                 dd.css.style = (_b = dd.css.style) !== null && _b !== void 0 ? _b : {};
                 dd.css.class = (_c = dd.css.class) !== null && _c !== void 0 ? _c : {};
                 dd.refreshAllParameter = (_d = dd.refreshAllParameter) !== null && _d !== void 0 ? _d : {
-                    view1: () => {
-                    },
-                    view2: () => {
-                    },
+                    view1: () => { },
+                    view2: () => { },
                 };
                 dd.refreshComponentParameter = (_e = dd.refreshComponentParameter) !== null && _e !== void 0 ? _e : {
-                    view1: () => {
-                    },
-                    view2: () => {
-                    },
+                    view1: () => { },
+                    view2: () => { },
                 };
                 dd.refreshAll = () => {
                     dd.refreshAllParameter.view1();
@@ -79,7 +74,7 @@ export class HtmlGenerate {
                                 dialog.errorMessage({ text: subData.title });
                             }
                             else if (key === 'loading') {
-                                dialog.dataLoading({ visible: (_a = (subData.visible)) !== null && _a !== void 0 ? _a : true, text: subData.title });
+                                dialog.dataLoading({ visible: (_a = subData.visible) !== null && _a !== void 0 ? _a : true, text: subData.title });
                             }
                             resolve(true);
                             return;
@@ -151,8 +146,7 @@ export class HtmlGenerate {
                                 },
                             });
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     }
                 });
             }
@@ -163,10 +157,8 @@ export class HtmlGenerate {
             class: ``,
             style: ``,
             containerID: gvc.glitter.getUUID(),
-            jsFinish: () => {
-            },
-            onCreate: () => {
-            },
+            jsFinish: () => { },
+            onCreate: () => { },
         }, createOption) => {
             var _a, _b;
             const document = (_a = option.document) !== null && _a !== void 0 ? _a : gvc.glitter.document;
@@ -325,7 +317,8 @@ export class HtmlGenerate {
                                                     root: root,
                                                     sub_data: subData,
                                                 });
-                                            }).concat(container.replace_elem)
+                                            })
+                                                .concat(container.replace_elem)
                                                 .join(''));
                                         })).then((html) => {
                                             if (option && option.is_page) {
@@ -372,7 +365,7 @@ export class HtmlGenerate {
                                     id: option.editorSection,
                                     gvc: gvc,
                                     label: option.origin_widget.label || '容器',
-                                    widget: option.origin_widget
+                                    widget: option.origin_widget,
                                 }));
                             }
                             resolve(view.join(''));
@@ -425,11 +418,9 @@ export class HtmlGenerate {
         };
         this.editor = (gvc, option = {
             return_: false,
-            refreshAll: () => {
-            },
+            refreshAll: () => { },
             setting: container,
-            deleteEvent: () => {
-            },
+            deleteEvent: () => { },
             hideInfo: false,
         }) => {
             var loading = true;
@@ -474,10 +465,8 @@ export class HtmlGenerate {
                             try {
                                 const component = gvc.glitter.getUUID();
                                 dd.refreshAllParameter = (_a = dd.refreshAllParameter) !== null && _a !== void 0 ? _a : {
-                                    view1: () => {
-                                    },
-                                    view2: () => {
-                                    },
+                                    view1: () => { },
+                                    view2: () => { },
                                 };
                                 dd.refreshComponent = () => {
                                     try {
@@ -489,10 +478,8 @@ export class HtmlGenerate {
                                     }
                                 };
                                 dd.refreshComponentParameter = (_b = dd.refreshComponentParameter) !== null && _b !== void 0 ? _b : {
-                                    view1: () => {
-                                    },
-                                    view2: () => {
-                                    },
+                                    view1: () => { },
+                                    view2: () => { },
                                 };
                                 dd.refreshAllParameter.view2 = () => {
                                     gvc.notifyDataChange(editContainer);
@@ -693,11 +680,9 @@ onclick="${gvc.event(() => {
                                                                                                     return {
                                                                                                         bind: selectID,
                                                                                                         view: () => {
-                                                                                                            return html `
-                                                                                                                        <div class="w-100 "
-                                                                                                                             style="">
-                                                                                                                            <div class="d-flex align-items-center justify-content-around w-100 p-2">
-                                                                                                                                ${[
+                                                                                                            return html ` <div class="w-100 " style="">
+                                                                                      <div class="d-flex align-items-center justify-content-around w-100 p-2">
+                                                                                          ${[
                                                                                                                 {
                                                                                                                     title: '模塊資訊',
                                                                                                                     value: 'info',
@@ -715,30 +700,28 @@ onclick="${gvc.event(() => {
                                                                                                                 },
                                                                                                             ]
                                                                                                                 .map((dd) => {
-                                                                                                                return html `
-                                                                                                                                                <div
-                                                                                                                                                        class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
+                                                                                                                return html ` <div
+                                                                                                      class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
                                                                                                                     ? `border`
                                                                                                                     : ``} rounded-3"
-                                                                                                                                                        style="height:36px;width:36px;cursor:pointer;
+                                                                                                      style="height:36px;width:36px;cursor:pointer;
 ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
-                                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                      onclick="${gvc.event(() => {
                                                                                                                     vm.select = dd.value;
                                                                                                                     gvc.notifyDataChange([id, selectID]);
                                                                                                                 })}"
-                                                                                                                                                        data-bs-toggle="tooltip"
-                                                                                                                                                        data-bs-placement="top"
-                                                                                                                                                        data-bs-custom-class="custom-tooltip"
-                                                                                                                                                        data-bs-title="${dd.title}"
-                                                                                                                                                >
-                                                                                                                                                    <i class="${dd.icon}"
-                                                                                                                                                       aria-hidden="true"></i>
-                                                                                                                                                </div>`;
+                                                                                                      data-bs-toggle="tooltip"
+                                                                                                      data-bs-placement="top"
+                                                                                                      data-bs-custom-class="custom-tooltip"
+                                                                                                      data-bs-title="${dd.title}"
+                                                                                                  >
+                                                                                                      <i class="${dd.icon}" aria-hidden="true"></i>
+                                                                                                  </div>`;
                                                                                                             })
                                                                                                                 .join(``)}
-                                                                                                                            </div>
-                                                                                                                        </div>`;
+                                                                                      </div>
+                                                                                  </div>`;
                                                                                                         },
                                                                                                         divCreate: {
                                                                                                             class: `d-flex bg-white mx-n3 border-bottom`,
@@ -756,29 +739,20 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                             var _a, _b, _c, _d;
                                                                                                             switch (vm.select) {
                                                                                                                 case 'info':
-                                                                                                                    return html `
-                                                                                                                                <div
-                                                                                                                                        class="alert-warning alert mt-0  p-2 mb-0"
-                                                                                                                                        style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;"
-                                                                                                                                >
-                                                                                                                                    <h3 class="text-dark  m-1"
-                                                                                                                                        style="font-size: 16px;">
-                                                                                                                                        模塊路徑</h3>
-                                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
-                                                                                                                                        style="font-size: 14px;color:black;">
-                                                                                                                                        ${HtmlGenerate.reDefineJsResource(dd.js)}
-                                                                                                                                    </h3>
-                                                                                                                                    <h3 class="text-dark  m-1 mt-2"
-                                                                                                                                        style="font-size: 16px;">
-                                                                                                                                        函式路徑</h3>
-                                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
-                                                                                                                                        style="font-size: 14px;">
-                                                                                                                                        ${dd.type}</h3>
-                                                                                                                                </div>`;
+                                                                                                                    return html ` <div
+                                                                                              class="alert-warning alert mt-0  p-2 mb-0"
+                                                                                              style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;"
+                                                                                          >
+                                                                                              <h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
+                                                                                              <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;color:black;">
+                                                                                                  ${HtmlGenerate.reDefineJsResource(dd.js)}
+                                                                                              </h3>
+                                                                                              <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
+                                                                                              <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${dd.type}</h3>
+                                                                                          </div>`;
                                                                                                                 case 'loading':
-                                                                                                                    return html `
-                                                                                                                                <div class="px-2">
-                                                                                                                                    ${(() => {
+                                                                                                                    return html ` <div class="px-2">
+                                                                                              ${(() => {
                                                                                                                         var _a, _b, _c, _d;
                                                                                                                         const array = [];
                                                                                                                         if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
@@ -853,7 +827,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                         }
                                                                                                                         return array.join(`<div class="my-2"></div>`);
                                                                                                                     })()}
-                                                                                                                                    ${gvc.bindView(() => {
+                                                                                              ${gvc.bindView(() => {
                                                                                                                         const uid = gvc.glitter.getUUID();
                                                                                                                         return {
                                                                                                                             bind: uid,
@@ -885,7 +859,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                             },
                                                                                                                         };
                                                                                                                     })}
-                                                                                                                                </div>`;
+                                                                                          </div>`;
                                                                                                                 case 'lifecycle':
                                                                                                                     if (dd.data && dd.data.onCreateEvent) {
                                                                                                                         dd.onCreateEvent = dd.data.onCreateEvent;
@@ -896,16 +870,15 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                     dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
                                                                                                                     dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
                                                                                                                     return `<div class="p-2 pt-1">${[
-                                                                                                                        html `
-                                                                                                                                    <div
-                                                                                                                                            class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
-                                                                                                                                            style="border-radius: 0px;color:black !important;"
-                                                                                                                                    >
-                                                                                                                                        <strong>onInitial事件:</strong><br/>模塊初次載入所執行事件。<br/>
-                                                                                                                                        <strong>onCreate事件:</strong><br/>模塊被建立時所執行事件。<br/>
-                                                                                                                                        <strong>onResume事件:</strong><br/>模塊重新渲染至畫面時所執行事件。<br/>
-                                                                                                                                        <strong>onDestroy事件:</strong><br/>模塊被銷毀所執行的事件。<br/>
-                                                                                                                                    </div>`,
+                                                                                                                        html ` <div
+                                                                                                  class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
+                                                                                                  style="border-radius: 0px;color:black !important;"
+                                                                                              >
+                                                                                                  <strong>onInitial事件:</strong><br />模塊初次載入所執行事件。<br />
+                                                                                                  <strong>onCreate事件:</strong><br />模塊被建立時所執行事件。<br />
+                                                                                                  <strong>onResume事件:</strong><br />模塊重新渲染至畫面時所執行事件。<br />
+                                                                                                  <strong>onDestroy事件:</strong><br />模塊被銷毀所執行的事件。<br />
+                                                                                              </div>`,
                                                                                                                         `<div class="my-4"></div>`,
                                                                                                                         TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
                                                                                                                             title: 'onInitial事件',
@@ -1093,8 +1066,7 @@ ${e.line}
                     }
                 },
                 divCreate: {},
-                onCreate: () => {
-                },
+                onCreate: () => { },
             });
         };
         this.exportJson = (setting) => {
@@ -1437,8 +1409,7 @@ ${obj.gvc.bindView({
                     },
                 };
             },
-            set(v) {
-            },
+            set(v) { },
         });
         function getHtml() {
             var _a;
@@ -1565,8 +1536,7 @@ ${obj.gvc.bindView({
                                     target.outerHTML = vm.html;
                                 }
                             },
-                            onDestroy: () => {
-                            },
+                            onDestroy: () => { },
                         };
                     });
                 }
@@ -1629,7 +1599,7 @@ ${obj.gvc.bindView({
                                                             id: cf.widget.id,
                                                             gvc: gvc,
                                                             label: cf.widget.label,
-                                                            widget: widget
+                                                            widget: widget,
                                                         }));
                                                     }
                                                     return view.join('');
@@ -1675,7 +1645,7 @@ ${obj.gvc.bindView({
                                                             id: cf.widget.id,
                                                             gvc: gvc,
                                                             label: cf.widget.label,
-                                                            widget: widget
+                                                            widget: widget,
                                                         }));
                                                     }
                                                     resolve(view.join(''));
@@ -1686,7 +1656,7 @@ ${obj.gvc.bindView({
                                                   ${widget.code_style || ''}
                                                 `,
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
-                                                                                ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
+                                                                                ${isEditMode() || isIdeaMode() ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}
                                                                 ${widget.visible === false ? ` hide-elem` : ``}`,
                                                 option: option.concat((() => {
@@ -1705,11 +1675,11 @@ ${obj.gvc.bindView({
                                                                         });
                                                                         function loop(item) {
                                                                             if (item[0] && item[0].tagName.toLowerCase() === 'li') {
-                                                                                if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                                if (item[0].children[0] && !item[0].children[0].className.includes('active_F2F2F2')) {
                                                                                     item[0].children[0].style.background = '#F2F2F2';
                                                                                 }
                                                                             }
-                                                                            if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                            if (!item[0] || !item[0].className.includes('root-left-container')) {
                                                                                 loop(item.parent());
                                                                             }
                                                                         }
@@ -1717,9 +1687,10 @@ ${obj.gvc.bindView({
                                                                             loop(window.parent.glitter.$(`.it-${widget.id}`).parent());
                                                                             window.parent.document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
                                                                         }
-                                                                        $(e).children('.editorChild').get(0).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
-                                                                    })
-                                                                }
+                                                                        $(e).children('.editorChild').get(0).style.background =
+                                                                            'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                    }),
+                                                                },
                                                             ];
                                                         }
                                                         return [
@@ -1730,11 +1701,11 @@ ${obj.gvc.bindView({
                                                                     $(e).children('.editorChild').children('.plus_bt').show();
                                                                     function loop(item) {
                                                                         if (item[0] && item[0].tagName.toLowerCase() === 'li') {
-                                                                            if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                            if (item[0].children[0] && !item[0].children[0].className.includes('active_F2F2F2')) {
                                                                                 item[0].children[0].style.background = '#F2F2F2';
                                                                             }
                                                                         }
-                                                                        if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                        if (!item[0] || !item[0].className.includes('root-left-container')) {
                                                                             loop(item.parent());
                                                                         }
                                                                     }
@@ -1742,7 +1713,8 @@ ${obj.gvc.bindView({
                                                                         loop(window.parent.glitter.$(`.it-${widget.id}`).parent());
                                                                         window.parent.document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
                                                                     }
-                                                                    $(e).children('.editorChild').get(0).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                    $(e).children('.editorChild').get(0).style.background =
+                                                                        'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
                                                                 }),
                                                             },
                                                             {
@@ -1752,11 +1724,11 @@ ${obj.gvc.bindView({
                                                                     $(e).children('.editorChild').children('.plus_bt').hide();
                                                                     function loop(item) {
                                                                         if (item[0] && item[0].tagName.toLowerCase() === 'li') {
-                                                                            if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                            if (item[0].children[0] && !item[0].children[0].className.includes('active_F2F2F2')) {
                                                                                 item[0].children[0].style.background = 'none';
                                                                             }
                                                                         }
-                                                                        if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                        if (!item[0] || !item[0].className.includes('root-left-container')) {
                                                                             loop(item.parent());
                                                                         }
                                                                     }
@@ -1773,7 +1745,7 @@ ${obj.gvc.bindView({
                                                         return [];
                                                     }
                                                 })()),
-                                                elem: `div`
+                                                elem: `div`,
                                             },
                                             onCreate: () => {
                                                 TriggerEvent.trigger({
@@ -1837,8 +1809,7 @@ ${obj.gvc.bindView({
                                     target.outerHTML = render(widget.subData || sub_data);
                                 }
                             },
-                            onDestroy: () => {
-                            },
+                            onDestroy: () => { },
                         };
                     });
                 }
@@ -1883,7 +1854,8 @@ ${obj.gvc.bindView({
         }
     }
     static getEditorSelectSection(cf) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && ((window.glitter.getUrlParameter('type') !== 'find_idea') || window.glitter.getUrlParameter('select_widget') === 'false')) {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' &&
+            (window.glitter.getUrlParameter('type') !== 'find_idea' || window.glitter.getUrlParameter('select_widget') === 'false')) {
             return ``;
         }
         function addWidgetEvent(direction, component) {
@@ -1959,11 +1931,11 @@ ${obj.gvc.bindView({
                     view: () => {
                         if (isIdeaMode()) {
                             return html `
-                                <div class="position-absolute w-100 h-100"
-                                     style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
-                                    <div class="position-absolute"
-                                         style="top:50%;left:50%;transform: translate(-50%,-50%);cursor: pointer;pointer-events:all;">
-                                        <button class="py-2 px-4 fw-500" style="display: inline-flex;
+                                <div class="position-absolute w-100 h-100" style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
+                                    <div class="position-absolute" style="top:50%;left:50%;transform: translate(-50%,-50%);cursor: pointer;pointer-events:all;">
+                                        <button
+                                            class="py-2 px-4 fw-500"
+                                            style="display: inline-flex;
 justify-content: center;
 font-size: 36px;
 align-items: center;
@@ -1971,11 +1943,14 @@ border-radius: 12px;
 color: #FF6C02;
 border: 2px solid #FF6C02;
 background: white;
-" onmousedown="${cf.gvc.event(() => {
+"
+                                            onmousedown="${cf.gvc.event(() => {
                                 const add = JSON.parse(JSON.stringify(cf.widget));
                                 add.id = cf.gvc.glitter.getUUID();
                                 window.parent.glitter.share.add_from_idea(add);
-                            })}">確認複製
+                            })}"
+                                        >
+                                            確認複製
                                         </button>
                                     </div>
                                 </div>
@@ -1989,16 +1964,15 @@ background: white;
                                 const detID = cf.gvc.glitter.getUUID();
                                 const plusID = cf.gvc.glitter.getUUID();
                                 let block_close = false;
-                                return html `
-                                    <div class="" style="z-index:9999;min-height: 20px;max-height: 20px;width: 100%;"
-                                         onmouseout="${cf.gvc.event(() => {
-                                })}"
-                                    >
-                                        <div id="${detID}" class="d-none"
-                                             style="height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex"
-                                             onmouseover="${cf.gvc.event(() => {
+                                return html ` <div class="" style="z-index:9999;min-height: 20px;max-height: 20px;width: 100%;" onmouseout="${cf.gvc.event(() => { })}">
+                                    <div
+                                        id="${detID}"
+                                        class="d-none"
+                                        style="height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex"
+                                        onmouseover="${cf.gvc.event(() => {
                                     block_close = true;
-                                })}" onmouseout="${cf.gvc.event(() => {
+                                })}"
+                                        onmouseout="${cf.gvc.event(() => {
                                     block_close = false;
                                     setTimeout(() => {
                                         if (!block_close) {
@@ -2006,19 +1980,22 @@ background: white;
                                             cf.gvc.glitter.$('#' + plusID).removeClass('d-none');
                                         }
                                     }, 100);
-                                })}">
-                                            <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                                ${[
+                                })}"
+                                    >
+                                        <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                                            ${[
                                     {
-                                        text: '新增', event: (e, event) => {
+                                        text: '新增',
+                                        event: (e, event) => {
                                             HtmlGenerate.block_timer = new Date().getTime();
                                             addWidgetEvent(dir);
                                             event.stopPropagation();
                                             event.preventDefault();
-                                        }
+                                        },
                                     },
                                     {
-                                        text: '貼上', event: (e, event) => {
+                                        text: '貼上',
+                                        event: (e, event) => {
                                             HtmlGenerate.block_timer = new Date().getTime();
                                             const dialog = new ShareDialog(window.parent.glitter);
                                             function readClipboardContent() {
@@ -2040,30 +2017,37 @@ background: white;
                                             }
                                             readClipboardContent();
                                         },
-                                        class: `paste-ev`
+                                        class: `paste-ev`,
                                     },
-                                ].map((dd) => {
-                                    return html `
-                                                        <div class="${dd.class || ''}"
-                                                             style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
-                                                             onmousedown="${cf.gvc.event((e, event) => {
+                                ]
+                                    .map((dd) => {
+                                    return html ` <div
+                                                        class="${dd.class || ''}"
+                                                        style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                                        onmousedown="${cf.gvc.event((e, event) => {
                                         dd.event(e, event);
-                                    })}">${dd.text}
-                                                        </div>`;
-                                }).join(`<div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>`)}
-                                            </div>
+                                    })}"
+                                                    >
+                                                        ${dd.text}
+                                                    </div>`;
+                                })
+                                    .join(`<div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>`)}
                                         </div>
-                                        <i class="fa-solid fa-circle-plus fs-5" id="${plusID}" style="background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%);background-clip: text;
+                                    </div>
+                                    <i
+                                        class="fa-solid fa-circle-plus fs-5"
+                                        id="${plusID}"
+                                        style="background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%);background-clip: text;
 -webkit-background-clip: text;
 transform: translateY(5px);
--webkit-text-fill-color: transparent;" onmouseover="${cf.gvc.event((e, event) => __awaiter(this, void 0, void 0, function* () {
+-webkit-text-fill-color: transparent;"
+                                        onmouseover="${cf.gvc.event((e, event) => __awaiter(this, void 0, void 0, function* () {
                                     let pasteVisible = false;
                                     try {
                                         const json = JSON.parse(yield navigator.clipboard.readText());
                                         pasteVisible = json.id;
                                     }
-                                    catch (e) {
-                                    }
+                                    catch (e) { }
                                     block_close = false;
                                     if (!pasteVisible) {
                                         return;
@@ -2082,40 +2066,46 @@ transform: translateY(5px);
                                             cf.gvc.glitter.$('#' + plusID).removeClass('d-none');
                                         }
                                     }, 100);
-                                }))}" onmousedown="${cf.gvc.event((e, event) => {
+                                }))}"
+                                        onmousedown="${cf.gvc.event((e, event) => {
                                     setTimeout(() => {
                                         HtmlGenerate.block_timer = new Date().getTime();
                                         addWidgetEvent(dir);
                                     }, 10);
                                     event.stopPropagation();
                                     event.preventDefault();
-                                })}"></i>
-                                    </div>`;
+                                })}"
+                                    ></i>
+                                </div>`;
                             }
                             return html `
-                                ${cf.gvc.glitter.document.body.clientWidth > 800 ? `<div
+                                ${cf.gvc.glitter.document.body.clientWidth > 800
+                                ? `<div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
                                         style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
                                 >
                                     ${cf.label}
-                                </div>` : ``}
+                                </div>`
+                                : ``}
                                 <div
-                                        class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile')
+                                    class="position-absolute fs-1 plus_bt"
+                                    style="left:50%;transform: translateX(-50%);height:20px;top:${Storage.view_type === 'mobile'
                                 ? `-30px`
                                 : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
                                     ${getPlusAndPasteView(-1)}
                                 </div>
                                 <div
-                                        class="position-absolute fs-1 plus_bt"
-                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${(Storage.view_type === 'mobile')
+                                    class="position-absolute fs-1 plus_bt"
+                                    style="left:50%;transform: translateX(-50%);height:20px;bottom:${Storage.view_type === 'mobile'
                                 ? `10px`
                                 : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
                                     ${getPlusAndPasteView(1)}
                                 </div>
-                                <div class="position-absolute px-3 py-2 fw-bold copy-btn d-none" style="
+                                <div
+                                    class="position-absolute px-3 py-2 fw-bold copy-btn d-none"
+                                    style="
     justify-content: center;
     display:none;
     border-radius: 3px;
@@ -2133,17 +2123,22 @@ transform: translateY(5px);
     font-weight: 700;
     line-height: normal;
     letter-spacing: 0.56px;
-    pointer-events:all;" onmousedown="${cf.gvc.event(() => {
+    pointer-events:all;"
+                                    onmousedown="${cf.gvc.event(() => {
                                 const dialog = new ShareDialog(cf.gvc.glitter);
                                 navigator.clipboard.writeText(JSON.stringify(cf.widget));
                                 dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
-                            })}">複製元件
+                            })}"
+                                >
+                                    複製元件
                                 </div>
                             `;
                         }
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || (window.parent.glitter.share.editorViewModel.selectItem === cf.widget) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || window.parent.glitter.share.editorViewModel.selectItem === cf.widget
+                            ? `editorItemActive`
+                            : ``} position-absolute w-100 h-100`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },
@@ -2229,14 +2224,12 @@ transform: translateY(5px);
                     return ``;
                 },
                 divCreate: {
-                    option: [
-                        { key: 'id', value: cf.gvc.glitter.getUUID() }
-                    ]
+                    option: [{ key: 'id', value: id }],
                 },
                 onCreate: () => {
-                    (window.glitterInitialHelper).getPageData({
+                    window.glitterInitialHelper.getPageData({
                         tag: cf.tag,
-                        appName: cf.appName
+                        appName: cf.appName,
                     }, (d2) => {
                         cf.gvc.glitter.document.querySelector('#' + id).outerHTML = new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
                             class: ``,
@@ -2244,7 +2237,7 @@ transform: translateY(5px);
                             page_config: d2.response.result[0].page_config,
                         });
                     });
-                }
+                },
             };
         });
     }
@@ -2317,9 +2310,7 @@ HtmlGenerate.loadScript = (glitter, js, where = 'htmlExtension') => {
             type: 'module',
             src: key,
         };
-    }), () => {
-    }, () => {
-    }, [{ key: 'async', value: 'true' }]);
+    }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
 };
 HtmlGenerate.loadEvent = (glitter, js) => {
     var _a;
@@ -2371,9 +2362,7 @@ HtmlGenerate.loadEvent = (glitter, js) => {
             type: 'module',
             src: key,
         };
-    }), () => {
-    }, () => {
-    }, [{ key: 'async', value: 'true' }]);
+    }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
 };
 HtmlGenerate.getKey = (js) => {
     let key = window.glitter.htmlGenerate.resourceHook(js);

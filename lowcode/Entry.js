@@ -13,7 +13,7 @@ import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
-import { ShareDialog } from "./glitterBundle/dialog/ShareDialog.js";
+import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 export class Entry {
     static onCreate(glitter) {
         var _a;
@@ -49,9 +49,9 @@ export class Entry {
                     scroll-behavior: auto !important;
                 }
             }
-              .hide-elem {
-            display: none !important;
-        }
+            .hide-elem {
+                display: none !important;
+            }
         `);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
@@ -59,8 +59,8 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_13.8.3";
-        glitter.share.start = (new Date());
+        glitter.share.editerVersion = 'V_13.8.4';
+        glitter.share.start = new Date();
         const vm = {
             appConfig: [],
         };
@@ -72,12 +72,14 @@ export class Entry {
         config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
-            ${(parseInt(window.parent.glitter.share.bottom_inset, 10)) ? `
-             .update-bar-container {
-        padding-bottom:${window.parent.glitter.share.bottom_inset}px !important;
-        }
-            ` : ``}
-            
+                ${parseInt(window.parent.glitter.share.bottom_inset, 10)
+                ? `
+                              .update-bar-container {
+                                  padding-bottom: ${window.parent.glitter.share.bottom_inset}px !important;
+                              }
+                          `
+                : ``}
+
                 .editorParent .editorChild {
                     display: none;
                 }
@@ -102,11 +104,9 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     pointer-events: none;
-                    
                 }
- .editor_item.active {
-                 background:#DDD;
-                   
+                .editor_item.active {
+                    background: #ddd;
                 }
                 .editorItemActive {
                     display: block !important;
@@ -117,7 +117,6 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     position: absolute;
-                   
                 }
 
                 .editorItemActive > .badge_it {
@@ -140,29 +139,26 @@ export class Entry {
                     position: relative;
                 }
                 .sel_normal {
-    cursor: pointer;
-    border-radius: 7px;
-    border: 1px solid #ddd;
-    padding: 2px 14px;
-    background: #fff;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
-}
+                    cursor: pointer;
+                    border-radius: 7px;
+                    border: 1px solid #ddd;
+                    padding: 2px 14px;
+                    background: #fff;
+                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+                }
 
-  ul {
-                                        list-style: none;
-                                      
-                                    }
-                                    li {
-                                      list-style: none;
-                                     
-                                    }
+                ul {
+                    list-style: none;
+                }
+                li {
+                    list-style: none;
+                }
             `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => { });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -217,9 +213,14 @@ export class Entry {
         glitter.share.evalPlace = (evals) => eval(evals);
         function running() {
             return __awaiter(this, void 0, void 0, function* () {
-                glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css', 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
+                glitter.addStyleLink([
+                    'assets/vendor/boxicons/css/boxicons.min.css',
+                    'assets/css/theme.css',
+                    'css/editor.css',
+                    'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
                     'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
-                    'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css']);
+                    'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css',
+                ]);
                 yield new Promise((resolve, reject) => {
                     glitter.addMtScript([
                         'jslib/pickr.min.js',
@@ -250,7 +251,7 @@ export class Entry {
                         appName: config.appName,
                         tag: glitter.getUrlParameter('page'),
                     });
-                    if (data.response.result.length === 0 && (glitter.getUrlParameter('page') !== 'cms')) {
+                    if (data.response.result.length === 0 && glitter.getUrlParameter('page') !== 'cms') {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
                     glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
@@ -287,9 +288,7 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -323,9 +322,7 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => {
-        }, () => {
-        }, [{ key: 'async', value: 'true' }]);
+        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -389,8 +386,7 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => {
-                    },
+                    callback: () => { },
                 };
             }));
             function authPass() {
@@ -446,17 +442,20 @@ export class Entry {
             glitter.share.initial_fonts = [];
             if (glitter.share.font_theme[0]) {
                 glitter.addStyle(`
-@charset "UTF-8";
-${glitter.share.font_theme.map((dd) => {
+                    @charset "UTF-8";
+                    ${glitter.share.font_theme
+                    .map((dd) => {
                     glitter.share.initial_fonts.push(dd.value);
                     return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
-                }).join('\n')}
-body {
-    font-family: "${glitter.share.font_theme[0].value}" !important;
-    font-optical-sizing: auto;
-    font-style: normal;
-    color: #393939;
-}`);
+                })
+                    .join('\n')}
+                    body {
+                        font-family: '${glitter.share.font_theme[0].value}' !important;
+                        font-optical-sizing: auto;
+                        font-style: normal;
+                        color: #393939;
+                    }
+                `);
             }
             function loopCheckGlobalValue(array, tag) {
                 try {
