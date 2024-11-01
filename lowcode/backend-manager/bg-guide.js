@@ -182,7 +182,6 @@ export class BgGuide {
         BgGuide.disableFunction = (event) => {
             event.preventDefault();
         };
-        console.log(BgGuide.disableFunction);
         const contentWindow = this.findPageIframe().contentWindow;
         if (contentWindow) {
             contentWindow.addEventListener('scroll', BgGuide.disableFunction, { passive: false });
@@ -196,7 +195,6 @@ export class BgGuide {
     }
     enableScroll(preventScroll) {
         const contentWindow = this.findPageIframe().contentWindow;
-        console.log(preventScroll);
         if (contentWindow) {
             contentWindow.removeEventListener('scroll', preventScroll);
             contentWindow.removeEventListener('wheel', preventScroll);
@@ -3473,7 +3471,6 @@ export class BgGuide {
                                 previewEvent: () => {
                                     let previewBTN = document.querySelector(`.offcanvas-title`).nextElementSibling.nextElementSibling;
                                     previewBTN.click();
-                                    console.log(previewBTN);
                                 }
                             });
                         }
@@ -4087,7 +4084,6 @@ export class BgGuide {
                             }, 500);
                         }
                         let target = document.querySelector(`.${className}`);
-                        console.log("target -- ", target);
                         if (target) {
                             const context = html `
                                 <div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`;

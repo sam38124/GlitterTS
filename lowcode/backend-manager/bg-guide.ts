@@ -219,8 +219,6 @@ export class BgGuide {
         BgGuide.disableFunction= (event: Event) => {
             event.preventDefault();
         };
-        console.log(BgGuide.disableFunction)
-        // console.log("this.findPageIframe() -- " , this.findPageIframe().contentWindow)
         const contentWindow = this.findPageIframe().contentWindow;
         if (contentWindow) {
             // 禁用 iframe 的滾動事件
@@ -238,9 +236,9 @@ export class BgGuide {
         // this.findIframeDom('.guideOverflow').parentElement.style.overflow = 'hidden';
     }
 
+
     public enableScroll(preventScroll:any) {
         const contentWindow = this.findPageIframe().contentWindow;
-        console.log(preventScroll)
         if (contentWindow) {
             // 啟用 iframe 的滾動事件
             contentWindow.removeEventListener('scroll', preventScroll);
@@ -3809,7 +3807,6 @@ export class BgGuide {
                                 previewEvent: () => {
                                     let previewBTN = document!.querySelector(`.offcanvas-title`)!.nextElementSibling!.nextElementSibling;
                                     (previewBTN as HTMLElement).click();
-                                    console.log(previewBTN)
                                 }
                             });
                         }
@@ -4537,7 +4534,6 @@ export class BgGuide {
                             }, 500)
                         }
                         let target = document.querySelector(`.${className}`);
-                        console.log("target -- ", target)
                         if (target) {
                             const context = html`
                                 <div>點擊<span style="font-weight: 700">配色1</span>進入編輯</div>`
