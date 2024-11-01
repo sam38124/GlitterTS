@@ -601,10 +601,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                             let html = '';
                                                             let spiltCount = 0;
                                                             function appendHtml(pageData, widget, initial, p_id, parent_array) {
+                                                                var _a;
                                                                 const oWidget = widget;
+                                                                oWidget.data.refer_form_data = (_a = oWidget.data.refer_form_data) !== null && _a !== void 0 ? _a : {};
                                                                 initialReferData(widget);
                                                                 const page_config = pageData.page_config;
                                                                 function getReferForm(widget, type) {
+                                                                    var _a;
+                                                                    widget.data.refer_form_data = (_a = widget.data.refer_form_data) !== null && _a !== void 0 ? _a : {};
                                                                     if ((widget.data.refer_app)) {
                                                                         widget.data.refer_form_data = widget.data.refer_form_data || (oWidget.data.refer_form_data && JSON.parse(JSON.stringify(oWidget.data.refer_form_data))) || JSON.parse(JSON.stringify(page_config.formData));
                                                                         if (type !== 'def') {
@@ -892,31 +896,47 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     }
                                                                                                                     return (!glitter.share.only_show_cuatomize || custom);
                                                                                                                 }
+                                                                                                                const color_array = yield filterFormat((dd) => {
+                                                                                                                    if (dd.page === 'color_theme') {
+                                                                                                                        return getItemsVisibility(dd);
+                                                                                                                    }
+                                                                                                                    else {
+                                                                                                                        return false;
+                                                                                                                    }
+                                                                                                                });
+                                                                                                                const style_array = yield filterFormat((dd) => {
+                                                                                                                    if (dd.page !== 'color_theme' && dd.category === 'style') {
+                                                                                                                        return getItemsVisibility(dd);
+                                                                                                                    }
+                                                                                                                    else {
+                                                                                                                        return false;
+                                                                                                                    }
+                                                                                                                });
                                                                                                                 const setting_option = [
-                                                                                                                    {
-                                                                                                                        title: "樣式設定",
-                                                                                                                        key: 'style',
-                                                                                                                        array: yield filterFormat((dd) => {
-                                                                                                                            if (dd.page !== 'color_theme' && dd.category === 'style') {
-                                                                                                                                return getItemsVisibility(dd);
-                                                                                                                            }
-                                                                                                                            else {
-                                                                                                                                return false;
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "顏色設定",
-                                                                                                                        key: 'color',
-                                                                                                                        array: yield filterFormat((dd) => {
-                                                                                                                            if (dd.page === 'color_theme') {
-                                                                                                                                return getItemsVisibility(dd);
-                                                                                                                            }
-                                                                                                                            else {
-                                                                                                                                return false;
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    },
+                                                                                                                    ...(() => {
+                                                                                                                        if (style_array.length) {
+                                                                                                                            return [{
+                                                                                                                                    title: "樣式設定",
+                                                                                                                                    key: 'style',
+                                                                                                                                    array: style_array
+                                                                                                                                }];
+                                                                                                                        }
+                                                                                                                        else {
+                                                                                                                            return [];
+                                                                                                                        }
+                                                                                                                    })(),
+                                                                                                                    ...(() => {
+                                                                                                                        if (color_array.length) {
+                                                                                                                            return [{
+                                                                                                                                    title: "顏色設定",
+                                                                                                                                    key: 'color',
+                                                                                                                                    array: color_array
+                                                                                                                                }];
+                                                                                                                        }
+                                                                                                                        else {
+                                                                                                                            return [];
+                                                                                                                        }
+                                                                                                                    })(),
                                                                                                                     {
                                                                                                                         title: "字型設定",
                                                                                                                         key: 'fonts',
@@ -1076,6 +1096,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                         toggle: false
                                                                                                                                     };
                                                                                                                                     setting_option[index].vm_c = vm_c;
+                                                                                                                                    const _f_wd = widget;
                                                                                                                                     return {
                                                                                                                                         bind: vm_c.id,
                                                                                                                                         view: () => {
@@ -1102,6 +1123,26 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                         ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
                                                                                                                                                     </div>`];
+                                                                                                                                            const refer_result = (() => {
+                                                                                                                                                switch (dd.key) {
+                                                                                                                                                    case 'style':
+                                                                                                                                                    case 'color':
+                                                                                                                                                        return true;
+                                                                                                                                                    case 'background':
+                                                                                                                                                        return (oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                                            return d1 === '_container_background';
+                                                                                                                                                        }).length);
+                                                                                                                                                    case 'fonts':
+                                                                                                                                                        return (oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                                            return d1 === '_container_fonts';
+                                                                                                                                                        }).length);
+                                                                                                                                                    case 'margin':
+                                                                                                                                                    case 'develop':
+                                                                                                                                                        return (oWidget[`${type}_editable`].filter((d1) => {
+                                                                                                                                                            return d1 === '_container_margin';
+                                                                                                                                                        }).length);
+                                                                                                                                                }
+                                                                                                                                            })();
                                                                                                                                             if (vm_c.toggle) {
                                                                                                                                                 switch (dd.key) {
                                                                                                                                                     case 'style':
@@ -1122,58 +1163,67 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                         })}</div>`);
                                                                                                                                                         break;
                                                                                                                                                     case 'fonts':
-                                                                                                                                                        array_string.push(`<div class="px-3 pb-2 ">${EditorElem.select({
-                                                                                                                                                            title: '',
-                                                                                                                                                            gvc: gvc,
-                                                                                                                                                            def: (() => {
-                                                                                                                                                                if (!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts, 10)]) {
-                                                                                                                                                                    widget.container_fonts = `0`;
-                                                                                                                                                                }
-                                                                                                                                                                return widget.container_fonts;
-                                                                                                                                                            })(),
-                                                                                                                                                            callback: (text) => {
-                                                                                                                                                                widget.container_fonts = text;
-                                                                                                                                                                refresh(widget, type);
-                                                                                                                                                            },
-                                                                                                                                                            array: glitter.share.editorViewModel.appConfig.font_theme.map((dd, index) => {
-                                                                                                                                                                return {
-                                                                                                                                                                    title: dd.title,
-                                                                                                                                                                    value: `${index}`
-                                                                                                                                                                };
-                                                                                                                                                            }),
-                                                                                                                                                        })}
+                                                                                                                                                        (() => {
+                                                                                                                                                            const widget = refer_result ? _f_wd : oWidget;
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2 ">${EditorElem.select({
+                                                                                                                                                                title: '',
+                                                                                                                                                                gvc: gvc,
+                                                                                                                                                                def: (() => {
+                                                                                                                                                                    if (!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts, 10)]) {
+                                                                                                                                                                        widget.container_fonts = `0`;
+                                                                                                                                                                    }
+                                                                                                                                                                    return widget.container_fonts;
+                                                                                                                                                                })(),
+                                                                                                                                                                callback: (text) => {
+                                                                                                                                                                    widget.container_fonts = text;
+                                                                                                                                                                    refresh(_f_wd, type);
+                                                                                                                                                                },
+                                                                                                                                                                array: glitter.share.editorViewModel.appConfig.font_theme.map((dd, index) => {
+                                                                                                                                                                    return {
+                                                                                                                                                                        title: dd.title,
+                                                                                                                                                                        value: `${index}`
+                                                                                                                                                                    };
+                                                                                                                                                                }),
+                                                                                                                                                            })}
   <div class="bt_border_editor mt-2"
                                                  onclick="${gvc.event((e, event) => {
-                                                                                                                                                            gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
-                                                                                                                                                                NormalPageEditor.closeEvent = () => {
-                                                                                                                                                                    gvc.notifyDataChange(vm_c.id);
-                                                                                                                                                                    refresh(widget, type);
-                                                                                                                                                                };
-                                                                                                                                                                NormalPageEditor.toggle({
-                                                                                                                                                                    visible: true,
-                                                                                                                                                                    view: FontsConfig.fontsSettingView(gvc, glitter.share.editorViewModel.appConfig, true),
-                                                                                                                                                                    title: '管理全站字型'
+                                                                                                                                                                gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
+                                                                                                                                                                    NormalPageEditor.closeEvent = () => {
+                                                                                                                                                                        gvc.notifyDataChange(vm_c.id);
+                                                                                                                                                                        refresh(_f_wd, type);
+                                                                                                                                                                    };
+                                                                                                                                                                    NormalPageEditor.toggle({
+                                                                                                                                                                        visible: true,
+                                                                                                                                                                        view: FontsConfig.fontsSettingView(gvc, glitter.share.editorViewModel.appConfig, true),
+                                                                                                                                                                        title: '管理全站字型'
+                                                                                                                                                                    });
                                                                                                                                                                 });
-                                                                                                                                                            });
-                                                                                                                                                        })}">
+                                                                                                                                                            })}">
                                                 管理全站字型
                                             </div>
 </div>`);
+                                                                                                                                                        })();
                                                                                                                                                         break;
                                                                                                                                                     case 'margin':
-                                                                                                                                                        array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, widget, () => {
-                                                                                                                                                            refresh(widget, type);
-                                                                                                                                                        })}</div>`);
+                                                                                                                                                        (() => {
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, refer_result ? widget : oWidget, () => {
+                                                                                                                                                                refresh(widget, type);
+                                                                                                                                                            })}</div>`);
+                                                                                                                                                        })();
                                                                                                                                                         break;
                                                                                                                                                     case 'background':
-                                                                                                                                                        array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, widget, () => {
-                                                                                                                                                            refresh(widget, type);
-                                                                                                                                                        })}</div>`);
+                                                                                                                                                        (() => {
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, refer_result ? widget : oWidget, () => {
+                                                                                                                                                                refresh(widget, type);
+                                                                                                                                                            })}</div>`);
+                                                                                                                                                        })();
                                                                                                                                                         break;
                                                                                                                                                     case 'develop':
-                                                                                                                                                        array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, widget, () => {
-                                                                                                                                                            refresh(widget, type);
-                                                                                                                                                        })}</div>`);
+                                                                                                                                                        (() => {
+                                                                                                                                                            array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, refer_result ? widget : oWidget, () => {
+                                                                                                                                                                refresh(widget, type);
+                                                                                                                                                            })}</div>`);
+                                                                                                                                                        })();
                                                                                                                                                         break;
                                                                                                                                                 }
                                                                                                                                             }

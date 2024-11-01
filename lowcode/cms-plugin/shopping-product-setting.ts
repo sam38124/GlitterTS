@@ -549,7 +549,7 @@ export class ShoppingProductSetting {
                 'sku',
                 '成本',
                 '售價',
-                '比較價格',
+                '原價',
                 '利潤',
                 '運費計算方式',
                 '長度',
@@ -1624,10 +1624,10 @@ export class ShoppingProductSetting {
                                     <div style="font-weight: 700;">定價</div>
                                     <div class="d-flex w-100" style="gap:18px;">
                                         <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
-                                            <div>販售價格*</div>
+                                            <div>售價*</div>
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                placeholder="請輸入販售價格"
+                                                placeholder="請輸入售價"
                                                 onchange="${gvc.event((e) => {
                                                     variant.sale_price = e.value;
                                                 })}"
@@ -1637,10 +1637,10 @@ export class ShoppingProductSetting {
                                             />
                                         </div>
                                         <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                            <div>比較價格*</div>
+                                            <div>原價*</div>
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                placeholder="請輸入比較價格"
+                                                placeholder="請輸入原價"
                                                 min="0"
                                                 onchange="${gvc.event((e) => {
                                                     variant.compare_price = e.value;
@@ -2080,6 +2080,10 @@ export class ShoppingProductSetting {
             };
             template: string;
             content_array: string[];
+            content_json: {
+                id: string;
+                list: { key: string; value: string }[];
+            }[];
         } = {
             title: '',
             productType: {
@@ -2104,6 +2108,7 @@ export class ShoppingProductSetting {
             relative_product: [],
             template: '',
             content_array: [],
+            content_json: [],
         };
         switch (obj.product_type) {
             case 'product':
@@ -2124,6 +2129,7 @@ export class ShoppingProductSetting {
                 break;
         }
         postMD.content_array = postMD.content_array ?? [];
+        postMD.content_json = postMD.content_json ?? [];
         if (obj.type === 'replace') {
             postMD = obj.defData;
         } else {
@@ -2373,11 +2379,50 @@ export class ShoppingProductSetting {
                                                         };
 
                                                         postMD.content_array = postMD.content_array ?? [];
+                                                        postMD.content_json = postMD.content_json ?? [];
                                                         return {
                                                             bind: vm.id,
                                                             view: async () => {
                                                                 if (vm.loading) {
                                                                     return BgWidget.spinner();
+                                                                }
+
+                                                                function formatRichtext(
+                                                                    text: string,
+                                                                    tags: {
+                                                                        key: string;
+                                                                        title: string;
+                                                                        font_size: string;
+                                                                        font_color: string;
+                                                                        font_bgr: string;
+                                                                    }[],
+                                                                    jsonData: {
+                                                                        key: string;
+                                                                        value: string;
+                                                                    }[]
+                                                                ) {
+                                                                    let gText = `${text}`;
+                                                                    if (tags && tags.length > 0) {
+                                                                        for (const item of tags) {
+                                                                            const data = jsonData.find((j) => j.key === item.key);
+                                                                            const textImage = data
+                                                                                ? html`<span
+                                                                                      style="font-size: ${item.font_size ?? '14'}px; color: ${item.font_color ??
+                                                                                      '#393939'}; background: ${item.font_bgr ?? '#fff'}"
+                                                                                      >${data.value}</span
+                                                                                  >`
+                                                                                : html`<img
+                                                                                      alt="${item.key}"
+                                                                                      class="rounded-2"
+                                                                                      src="https://assets.imgix.net/~text?bg=4d86db&txtclr=f2f2f2&w=${Tool.twenLength(item.title) *
+                                                                                      20}&h=40&txtsize=12&txt=${item.title}&txtfont=Helvetica&txtalign=middle,center"
+                                                                                  />`;
+
+                                                                            const regex = new RegExp(`@{{${item.key}}}`, 'g');
+                                                                            gText = gText.replace(regex, textImage);
+                                                                        }
+                                                                    }
+                                                                    return gText;
                                                                 }
 
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
@@ -2464,11 +2509,11 @@ export class ShoppingProductSetting {
                                                                                                             if ((window as any).Sortable) {
                                                                                                                 try {
                                                                                                                     gvc.addStyle(`
-                                                                                                                                ul {
-                                                                                                                                    list-style: none;
-                                                                                                                                    padding: 0;
-                                                                                                                                }
-                                                                                                                            `);
+                                                                                                                        ul {
+                                                                                                                            list-style: none;
+                                                                                                                            padding: 0;
+                                                                                                                        }
+                                                                                                                    `);
                                                                                                                     function swapArr(arr: any, t1: number, t2: number) {
                                                                                                                         const data = arr[t1];
                                                                                                                         arr.splice(t1, 1);
@@ -2530,14 +2575,127 @@ export class ShoppingProductSetting {
                                                                         .filter((item: any) => {
                                                                             return postMD.content_array.includes(item.id);
                                                                         })
-                                                                        .map((item: any) => {
+                                                                        .map((item: any, index) => {
                                                                             return BgWidget.openBoxContainer({
                                                                                 gvc,
                                                                                 tag: 'content_array',
                                                                                 title: item.title,
-                                                                                insideHTML: html`<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
-                                                                                    ${item.data.content || ''}
-                                                                                </div>`,
+                                                                                insideHTML: (() => {
+                                                                                    if (item.data.tags && item.data.tags.length > 0) {
+                                                                                        const id = obj.gvc.glitter.getUUID();
+                                                                                        return html`<div
+                                                                                                class="cursor_pointer text-end me-1 mb-2"
+                                                                                                onclick="${gvc.event(() => {
+                                                                                                    const originJson = JSON.parse(JSON.stringify(postMD.content_json));
+                                                                                                    BgWidget.settingDialog({
+                                                                                                        gvc: gvc,
+                                                                                                        title: '設定',
+                                                                                                        innerHTML: (gvc) => {
+                                                                                                            return html`<div>
+                                                                                                                ${item.data.tags
+                                                                                                                    .map((tag: { key: string; title: string }) => {
+                                                                                                                        return html`<div>
+                                                                                                                            ${BgWidget.editeInput({
+                                                                                                                                gvc,
+                                                                                                                                title: tag.title,
+                                                                                                                                default: (() => {
+                                                                                                                                    const docIndex = postMD.content_json.findIndex(
+                                                                                                                                        (c) => c.id === item.id
+                                                                                                                                    );
+                                                                                                                                    if (docIndex === -1) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    if (postMD.content_json[docIndex].list === undefined) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    const keyIndex = postMD.content_json[docIndex].list.findIndex(
+                                                                                                                                        (l) => l.key === tag.key
+                                                                                                                                    );
+                                                                                                                                    if (keyIndex === -1) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    return postMD.content_json[docIndex].list[keyIndex].value;
+                                                                                                                                })(),
+                                                                                                                                callback: (text) => {
+                                                                                                                                    const docIndex = postMD.content_json.findIndex(
+                                                                                                                                        (c) => c.id === item.id
+                                                                                                                                    );
+                                                                                                                                    if (docIndex === -1) {
+                                                                                                                                        postMD.content_json.push({
+                                                                                                                                            id: item.id,
+                                                                                                                                            list: [{ key: tag.key, value: text }],
+                                                                                                                                        });
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    if (postMD.content_json[docIndex].list === undefined) {
+                                                                                                                                        postMD.content_json[docIndex].list = [
+                                                                                                                                            { key: tag.key, value: text },
+                                                                                                                                        ];
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    const keyIndex = postMD.content_json[docIndex].list.findIndex(
+                                                                                                                                        (l) => l.key === tag.key
+                                                                                                                                    );
+                                                                                                                                    if (keyIndex === -1) {
+                                                                                                                                        postMD.content_json[docIndex].list.push({
+                                                                                                                                            key: tag.key,
+                                                                                                                                            value: text,
+                                                                                                                                        });
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    postMD.content_json[docIndex].list[keyIndex].value = text;
+                                                                                                                                },
+                                                                                                                                placeHolder: '輸入文本標籤',
+                                                                                                                            })}
+                                                                                                                        </div>`;
+                                                                                                                    })
+                                                                                                                    .join(BgWidget.mbContainer(12))}
+                                                                                                            </div>`;
+                                                                                                        },
+                                                                                                        footer_html: (gvc2: GVC) => {
+                                                                                                            return [
+                                                                                                                BgWidget.cancel(
+                                                                                                                    gvc2.event(() => {
+                                                                                                                        postMD.content_json = originJson;
+                                                                                                                        gvc2.closeDialog();
+                                                                                                                    })
+                                                                                                                ),
+                                                                                                                BgWidget.save(
+                                                                                                                    gvc2.event(() => {
+                                                                                                                        gvc2.closeDialog();
+                                                                                                                        gvc.notifyDataChange(`${id}-${index}`);
+                                                                                                                    })
+                                                                                                                ),
+                                                                                                            ].join('');
+                                                                                                        },
+                                                                                                        closeCallback: () => {
+                                                                                                            postMD.content_json = originJson;
+                                                                                                        },
+                                                                                                    });
+                                                                                                })}"
+                                                                                            >
+                                                                                                標籤設值
+                                                                                            </div>
+                                                                                            ${gvc.bindView(
+                                                                                                (() => {
+                                                                                                    return {
+                                                                                                        bind: `${id}-${index}`,
+                                                                                                        view: () => {
+                                                                                                            const content = item.data.content || '';
+                                                                                                            const tags = item.data.tags;
+                                                                                                            const jsonData = postMD.content_json.find((c) => c.id === item.id);
+                                                                                                            return html`<div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
+                                                                                                                ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
+                                                                                                            </div>`;
+                                                                                                        },
+                                                                                                    };
+                                                                                                })()
+                                                                                            )}`;
+                                                                                    }
+                                                                                    return html`<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                        ${item.data.content || ''}
+                                                                                    </div>`;
+                                                                                })(),
                                                                             });
                                                                         })
                                                                         .join(BgWidget.mbContainer(8))}`;
@@ -2549,6 +2707,9 @@ export class ShoppingProductSetting {
                                                                         vm.documents = data.response.value;
                                                                         postMD.content_array = postMD.content_array.filter((id) => {
                                                                             return vm.documents.some((item: any) => item.id === id);
+                                                                        });
+                                                                        postMD.content_json = postMD.content_json.filter((d) => {
+                                                                            return vm.documents.some((item: any) => item.id === d.id);
                                                                         });
                                                                         vm.loading = false;
                                                                         gvc.notifyDataChange(vm.id);
@@ -2910,7 +3071,7 @@ export class ShoppingProductSetting {
                                                                                                                       <div
                                                                                                                           style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                       >
-                                                                                                                          編輯販售價格
+                                                                                                                          編輯售價
                                                                                                                       </div>
                                                                                                                       <div
                                                                                                                           class="w-100 d-flex flex-column"
@@ -2995,7 +3156,7 @@ export class ShoppingProductSetting {
                                                                                                                   <div
                                                                                                                       style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                   >
-                                                                                                                      編輯販售價格
+                                                                                                                      編輯售價
                                                                                                                   </div>
                                                                                                                   <div
                                                                                                                       class="w-100 d-flex flex-column"
@@ -3398,7 +3559,7 @@ export class ShoppingProductSetting {
                                                                                                           <div
                                                                                                               style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                           >
-                                                                                                              編輯販售價格
+                                                                                                              編輯售價
                                                                                                           </div>
                                                                                                           <div
                                                                                                               class="w-100 d-flex flex-column"
@@ -3458,7 +3619,7 @@ export class ShoppingProductSetting {
                                                                                                                                     }, 'edit');
                                                                                                                                 })}"
                                                                                                                             >
-                                                                                                                                編輯販售價格
+                                                                                                                                編輯售價
                                                                                                                             </div>
                                                                                                                             <div
                                                                                                                                 style="cursor: pointer;"
@@ -3557,10 +3718,8 @@ export class ShoppingProductSetting {
                                                                                                       ></i>
                                                                                                       <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">規格</div>
                                                                                                       ${document.body.clientWidth < 768
-                                                                                                          ? html` <div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">
-                                                                                                                販售價格*
-                                                                                                            </div>`
-                                                                                                          : `${['販售價格*', '存貨數量*', '運費計算方式']
+                                                                                                          ? html` <div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">售價*</div>`
+                                                                                                          : `${['售價*', '存貨數量*', '運費計算方式']
                                                                                                                 .map((dd) => {
                                                                                                                     return html` <div
                                                                                                                         style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "

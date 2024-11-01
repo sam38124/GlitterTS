@@ -10,7 +10,6 @@ export = router;
 
 router.post('/generate-html', async (req: express.Request, resp: express.Response) => {
     try {
-        console.log(process.env.OPENAI_API_KEY)
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
         });

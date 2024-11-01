@@ -13,6 +13,22 @@ export declare class AiRobot {
         text: string;
         usage: number;
     }>;
+    static design(app_name: string, question: string): Promise<{
+        text: string;
+        prompt?: undefined;
+        image?: undefined;
+        usage?: undefined;
+    } | {
+        prompt: any;
+        image: string | undefined;
+        usage: number;
+        text?: undefined;
+    } | {
+        text: string;
+        usage: number;
+        prompt?: undefined;
+        image?: undefined;
+    }>;
     static writer(app_name: string, question: string): Promise<{
         text: string;
         usage?: undefined;
@@ -22,4 +38,16 @@ export declare class AiRobot {
     }>;
     static checkPoints(app_name: string): Promise<boolean>;
     static usePoints(app_name: string, token_number: number, ask: string, response: string): Promise<number>;
+    static syncAiRobot(app: string): Promise<string | undefined>;
+    static aiResponse(app_name: string, question: string): Promise<{
+        text: string;
+        usage: number;
+    } | undefined>;
+    static codeGenerator(app_name: string, question: string): Promise<{
+        usage: number;
+        obj?: undefined;
+    } | {
+        obj: string;
+        usage: number;
+    }>;
 }

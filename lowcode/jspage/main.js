@@ -38,6 +38,7 @@ import { ApiUser } from "../glitter-base/route/user.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { Article } from "../glitter-base/route/article.js";
+import { AiChat } from "../glitter-base/route/ai-chat.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -534,9 +535,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             view.push(AddPage.leftNav(gvc));
                             view.push(PageCodeSetting.leftNav(gvc));
                         }
-                        else {
-                            view.push(BgCustomerMessage.leftNav(gvc));
-                        }
+                        view.push(BgCustomerMessage.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);
@@ -707,15 +706,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                 break;
                             }
                             case 'user-editor': {
-                                if (document.body.clientWidth > 1000) {
-                                    ApiShop.getFEGuideable().then(r => {
-                                        if (!r.response.value || !r.response.value.view) {
-                                            let bgGuide = new BgGuide(gvc, 0, "user-editor", 0);
-                                            ApiShop.setFEGuideable({});
-                                            bgGuide.drawGuide();
-                                        }
-                                    });
-                                }
                                 break;
                             }
                         }
@@ -743,6 +733,139 @@ function initialEditor(gvc, viewModel) {
         }
         glitter.setUrlParameter('function', EditorConfig.backend_page());
     }, 50);
+    glitter.share.ai_code_generator = (message, callback) => {
+        const dialog = new ShareDialog(gvc.glitter);
+        dialog.dataLoading({ visible: true });
+        AiChat.generateHtml({
+            app_name: window.appName,
+            text: message
+        }).then((res) => {
+            if (res.result && res.response.data.usage === 0) {
+                dialog.dataLoading({ visible: false });
+                dialog.errorMessage({ text: `很抱歉你的AI代幣不足，請先前往加值` });
+            }
+            else if (res.result && (!res.response.data.obj.result)) {
+                dialog.dataLoading({ visible: false });
+                dialog.errorMessage({ text: `AI無法理解你的需求，請給出具體一點的描述` });
+            }
+            else if (!res.result) {
+                dialog.dataLoading({ visible: false });
+                dialog.errorMessage({ text: `發生錯誤` });
+            }
+            else {
+                res.response.data.obj.html;
+                AddComponent.addWidget(gvc, {
+                    "id": "s7scs2s9s3s5s8sc",
+                    "js": "./official_view_component/official.js",
+                    "css": { "class": {}, "style": {} },
+                    "data": {
+                        "refer_app": "shop_template_black_style",
+                        "tag": "custom-code",
+                        "list": [],
+                        "carryData": {},
+                        "_style_refer_global": { "index": "0" },
+                        "_style_refer": "custom",
+                        "elem": "div",
+                        "inner": "",
+                        "attr": [],
+                        "_padding": {},
+                        "_margin": {},
+                        "_border": {},
+                        "_max_width": "1200",
+                        "_gap": "",
+                        "_background": "",
+                        "_other": {},
+                        "_radius": "",
+                        "_reverse": "false",
+                        "_hor_position": "center",
+                        "_background_setting": { "type": "none" },
+                        "refer_form_data": {
+                            "code": res.response.data.obj.html,
+                            "width": { "unit": "px", "value": "0px", "number": "0" },
+                            "height": {
+                                "unit": "px",
+                                "value": "50px",
+                                "number": "50"
+                            },
+                            "with_bg": "false",
+                            "background": {
+                                "id": "custom-background",
+                                "title": "#030303",
+                                "content": "#000000",
+                                "sec-title": "#000000",
+                                "background": "#ffffff",
+                                "sec-background": "#FFFFFF",
+                                "solid-button-bg": "#000000",
+                                "border-button-bg": "#000000",
+                                "solid-button-text": "#ffffff",
+                                "border-button-text": "#000000"
+                            }
+                        }
+                    },
+                    "type": "component",
+                    "class": "w-100",
+                    "index": 0,
+                    "label": "自定義HTML代碼",
+                    "style": "",
+                    "bundle": {},
+                    "global": [],
+                    "toggle": true,
+                    "stylist": [],
+                    "dataType": "static",
+                    "style_from": "code",
+                    "classDataType": "static",
+                    "preloadEvenet": {},
+                    "share": {},
+                    "formData": {},
+                    "refreshAllParameter": {},
+                    "editor_bridge": {},
+                    "refreshComponentParameter": {},
+                    "list": [],
+                    "version": "v2",
+                    "storage": {},
+                    "mobile": {
+                        "id": "s7scs2s9s3s5s8sc",
+                        "js": "./official_view_component/official.js",
+                        "css": { "class": {}, "style": {} },
+                        "data": { "refer_app": "shop_template_black_style" },
+                        "type": "component",
+                        "class": "w-100",
+                        "index": 0,
+                        "label": "自定義HTML代碼",
+                        "style": "",
+                        "global": [],
+                        "toggle": true,
+                        "stylist": [],
+                        "dataType": "static",
+                        "style_from": "code",
+                        "classDataType": "static",
+                        "preloadEvenet": {},
+                        "refreshAllParameter": {},
+                        "editor_bridge": {},
+                        "refreshComponentParameter": {},
+                        "list": [],
+                        "version": "v2",
+                        "mobile_editable": [],
+                        "desktop_editable": [],
+                        "container_fonts": 0,
+                        "visible": true,
+                        "refer": "custom"
+                    },
+                    "mobile_editable": [],
+                    "desktop": {
+                        "data": {
+                            "refer_app": "shop_template_black_style",
+                            "refer_form_data": {}
+                        }, "refer": "custom"
+                    },
+                    "desktop_editable": [],
+                    "container_fonts": 0,
+                    "visible": true
+                });
+                dialog.successMessage({ text: `AI生成完畢，使用了『${res.response.data.usage}』點 AI Points.` });
+            }
+        });
+    };
     glitter.share.switch_to_web_builder = (page, device) => {
         glitter.closeDrawer();
         glitter.changePage('jspage/main.js', page, true, {

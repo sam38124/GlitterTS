@@ -102,7 +102,7 @@ export class CustomerMessageUser {
                                     {
                                         sm: (cf.type !== 'preview') ? `826px` : `${($('body').height() as any + 25)}px`,
                                     },
-                                    `${window.innerHeight + 20}px`
+                                    ($('body').height() as any) + 60 + 'px',
                                 ),
                                 document: document,
                                 goBack: () => {
@@ -552,7 +552,7 @@ export class CustomerMessageUser {
                                             ${
                                                                 vm.data.length === 0
                                                                         ? `
-                                            <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
+                                            <div class="w-100 text-center no_message"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
                                             `
                                                                         : ``
                                                         }`;
@@ -647,7 +647,7 @@ export class CustomerMessageUser {
                                                         }
                                                     })}
                                                     <div class="d-flex  w-100">
-                                                        <div class="d-flex align-items-end">
+                                                        <div class="d-flex align-items-center">
                                                             <button
                                                                     type="button"
                                                                     class="btn btn-icon d-sm-inline-flex text-white"
@@ -814,6 +814,7 @@ export class CustomerMessageUser {
 
                                                                             // textArea.focus();
                                                                         }
+                                                                        document.querySelector('.no_message').remove()
                                                                     })}"
                                                             >
                                                                 <i class="fa-regular fa-paper-plane-top"></i>
@@ -824,7 +825,7 @@ export class CustomerMessageUser {
 
                                                 `
                                             }, divCreate: {
-                                                class: `card-footer border-top d-flex flex-column align-items-center w-100 border-0 pt-3 pb-3 pe-4 ps-3 position-fixed bottom-0 position-lg-absolute`,
+                                                class: `card-footer border-top d-flex flex-column align-items-center w-100 border-0 pt-3 pb-3 pe-4 ps-3 position-fixed bottom-0 position-sm-absolute`,
                                                 style: `background: white;min-height:45px;`
                                             }
                                         })}`;

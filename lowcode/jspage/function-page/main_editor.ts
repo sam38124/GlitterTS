@@ -281,9 +281,19 @@ export class Main_editor {
                                                                                 </div>
                                                                                 <div class="hoverBtn p-1 dragItem child"
                                                                                      onmousedown="${gvc.event(() => {
-                                                                                         (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe')
+                                                                                         if( (Storage.view_type !== 'mobile') ){
+                                                                                             const frame: any = document.querySelector('.iframe_view')!;
+                                                                                             frame.original_height=frame.style.height
+                                                                                             frame.style.height = `${document.body.clientHeight * 2}px`;
+                                                                                             $('#editerCenter').addClass('scale_iframe')
+                                                                                         }
+                                                                                       
                                                                                      })}" onmouseup="${gvc.event(() => {
-                                                                                    (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe')
+                                                                                         if ( (Storage.view_type !== 'mobile')){
+                                                                                             const frame: any = document.querySelector('.iframe_view')!;
+                                                                                             frame.style.height = frame.original_height;
+                                                                                             $('#editerCenter').removeClass('scale_iframe')   
+                                                                                         }
                                                                                 })}">
                                                                                     <i
                                                                                             class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
@@ -450,7 +460,11 @@ export class Main_editor {
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover()
                                                                             // gvc.notifyDataChange('showView');
                                                                             glitter.share.left_block_hover = false;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe')
+                                                                            if ( (Storage.view_type !== 'mobile')){
+                                                                                const frame: any = document.querySelector('.iframe_view')!;
+                                                                                frame.style.height = frame.original_height;
+                                                                                $('#editerCenter').removeClass('scale_iframe')
+                                                                            }
                                                                             setTimeout(() => {
                                                                                 const dd = og_array[newIndex]
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
@@ -460,7 +474,7 @@ export class Main_editor {
                                                                             startIndex = evt.oldIndex;
                                                                             glitter.share.left_block_hover = true;
 
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe')
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter').addClass('scale_iframe')
                                                                         },
                                                                     });
                                                                 } catch (e) {
@@ -802,6 +816,9 @@ export class Main_editor {
                                     if (`${vm.index}` === '0') {
                                         (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
                                     }
+                                    for (const b of (document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelectorAll('._builder_color_refresh')) {
+                                        b.recreateView()
+                                    }
                                     gvc.notifyDataChange(vId)
                                 },
                                 gvc: gvc,
@@ -1094,14 +1111,23 @@ export class Main_editor {
     }
 
     public static center(gvc: GVC) {
-        gvc.glitter.share.resetCenterFrame = () => {
+        if (gvc.glitter.getUrlParameter('function') === 'page-editor') {
+            return Main_editor.developerEditor(gvc)
+        } else {
+            return Main_editor.userEditor(gvc)
+        }
+    }
+
+    //用戶版本編輯器
+    public static userEditor(gvc: GVC) {
+        gvc.glitter.share.resetCenterFrame = (scale?: number) => {
             const container_width = (() => {
                 if (Storage.view_type === ViewType.mobile) {
                     return (document.body.clientWidth > 800) ? 414 : document.body.clientWidth;
                 } else {
                     return (document.body.clientWidth < 800) ? document.body.clientWidth : document.body.clientWidth - 365;
                 }
-            })()
+            })() * (scale || 1)
             const tool_box = (() => {
                 if (document.body.clientWidth < 800) {
                     return 40
@@ -1123,7 +1149,6 @@ export class Main_editor {
                     return (container_width > 1300) ? container_width : 1300
                 }
             })()
-
             const frame_height = container_height * (frame_width / container_width);
             const frame: any = document.querySelector('.iframe_view')!
             frame.style.width = `${frame_width}px`;
@@ -1135,7 +1160,7 @@ export class Main_editor {
                 frame.style.left = `0`;
             }
             if (gvc.glitter.share.top_inset) {
-                frame.style.top = `${parseInt(gvc.glitter.share.top_inset, 10)  + tool_box + 10}px`;
+                frame.style.top = `${parseInt(gvc.glitter.share.top_inset, 10) + tool_box + 10}px`;
             } else {
                 frame.style.top = `${tool_box}px`;
             }
@@ -1160,19 +1185,20 @@ export class Main_editor {
                                  style="${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;` : ``}"
                                  id="editerCenter">
                                 ${(document.body.clientWidth < 800) ? gvc.bindView(() => {
+                                    let last_selected = '';
                                     return {
                                         bind: `item-editor-select`,
                                         view: () => {
                                             if (gvc.glitter.share.editorViewModel.selectItem) {
                                                 function addWidgetEvent(direction: number, component?: any) {
-                                                    const cf=gvc.glitter.share.editorViewModel.selectItem
+                                                    const cf = gvc.glitter.share.editorViewModel.selectItem
                                                     let glitter = (window as any).glitter;
                                                     while (!glitter.share.editorViewModel) {
                                                         glitter = (window.parent as any).glitter;
                                                     }
                                                     if (component) {
-                                                        component=JSON.parse(JSON.stringify(component))
-                                                        component.id=gvc.glitter.getUUID()
+                                                        component = JSON.parse(JSON.stringify(component))
+                                                        component.id = gvc.glitter.getUUID()
                                                         glitter.share.addWithIndex({
                                                             data: component,
                                                             index: cf.id,
@@ -1229,8 +1255,9 @@ export class Main_editor {
                                                     }
 
                                                 }
-                                                async function readAndPasteClipboardContent(index:number) {
-                                                    const dialog=new ShareDialog(gvc.glitter)
+
+                                                async function readAndPasteClipboardContent(index: number) {
+                                                    const dialog = new ShareDialog(gvc.glitter)
                                                     try {
                                                         // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
                                                         const json: any = JSON.parse(await navigator.clipboard.readText());
@@ -1243,22 +1270,33 @@ export class Main_editor {
                                                         dialog.errorMessage({text: '請選擇要複製的元件，並按下複製元件。'})
                                                     }
                                                 }
+
+                                                if (gvc.glitter.share.editorViewModel.selectItem.id === last_selected) {
+                                                    setTimeout(() => {
+                                                        gvc.glitter.openDrawer()
+                                                    }, 50)
+                                                } else {
+                                                    setTimeout(() => {
+                                                        last_selected = gvc.glitter.share.editorViewModel.selectItem.id
+                                                    }, 50)
+                                                }
                                                 return html`
                                                     <div class="border-bottom  d-flex align-items-center px-2 shadow"
                                                          style="height:40px;gap:7px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;">
                                                         <div class="fw-500 fs-6"
                                                              style="text-overflow: ellipsis;overflow: hidden !important;">
-                                                         ${gvc.glitter.share.editorViewModel.selectItem.label}
+                                                            ${gvc.glitter.share.editorViewModel.selectItem.label}
                                                         </div>
                                                         <div class="flex-fill"></div>
                                                         <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                              style="font-size: 14px;color:black;"
                                                              onclick="${gvc.event(() => {
                                                                  gvc.glitter.openDrawer();
-                                                             })}">編輯</div>
-                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500"
+                                                             })}">編輯
+                                                        </div>
+                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500 ${(gvc.glitter.share.editorViewModel.selectItem.deletable === 'false') ? `d-none` : ``}"
                                                              style="font-size: 14px;color:black;"
-                                                             onclick="${gvc.event(()=>{
+                                                             onclick="${gvc.event(() => {
                                                                  const dialog = new ShareDialog(gvc.glitter)
                                                                  navigator.clipboard.writeText(JSON.stringify(gvc.glitter.share.editorViewModel.selectItem));
                                                                  dialog.successMessage({text: '複製成功，滑動至要插入的區塊，並點擊貼上。'})
@@ -1267,14 +1305,15 @@ export class Main_editor {
                                                         <div class="btn-group dropdown">
                                                             <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                                  style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">貼上
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">貼上
                                                             </div>
                                                             <div class="dropdown-menu my-1">
-                                                                <a class="dropdown-item" onclick="${gvc.event(()=>{
+                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
                                                                     gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
                                                                     readAndPasteClipboardContent(-1)
                                                                 })}">向上貼上元件</a>
-                                                                <a class="dropdown-item" onclick="${gvc.event(()=>{
+                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
                                                                     gvc.glitter.htmlGenerate.block_timer = new Date().getTime();
                                                                     readAndPasteClipboardContent(1)
                                                                 })}">向下貼上元件</a>
@@ -1283,13 +1322,14 @@ export class Main_editor {
                                                         <div class="btn-group dropdown">
                                                             <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                                  style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">新增
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">新增
                                                             </div>
                                                             <div class="dropdown-menu my-1">
-                                                                <a class="dropdown-item" onclick="${gvc.event(()=>{
+                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
                                                                     addWidgetEvent(-1)
                                                                 })}">向上添加元件</a>
-                                                                <a class="dropdown-item" onclick="${gvc.event(()=>{
+                                                                <a class="dropdown-item" onclick="${gvc.event(() => {
                                                                     addWidgetEvent(1)
                                                                 })}">向下添加元件</a>
                                                             </div>
@@ -1327,7 +1367,41 @@ export class Main_editor {
                 }
             }
         })
+    }
 
+    //開發人員版本編輯器
+    public static developerEditor(gvc: GVC) {
+        return gvc.bindView(() => {
+            return {
+                bind: 'iframe_center',
+                view: () => {
+                    if (EditorConfig.backend_page() === 'backend-manger') {
+                        return html`
+                            <div class="position-relative"
+                                 style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+                                 id="editerCenter">
+                            </div>`
+                    } else {
+                        return html`
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;` : ``}"
+                                 id="editerCenter">
+                                <iframe class="w-100 h-100  bg-white iframe_view"
+                                        sandbox="allow-same-origin allow-scripts"
+                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                            </div>`
+                    }
+                },
+                divCreate: () => {
+                    return {
+                        class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                        style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                    }
+                }
+            }
+        })
     }
 
     public static pageAndComponent(option: { gvc: GVC; data: any; divCreate?: any }) {

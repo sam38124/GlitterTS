@@ -17,6 +17,8 @@ import { BaseApi } from '../glitterBundle/api/base.js';
 import { EditorConfig } from '../editor-config.js';
 import { SearchIdea } from './search-idea.js';
 import { BasicComponent } from './basic-component.js';
+import { BgWidget } from "../backend-manager/bg-widget.js";
+import { AiChat } from "../glitter-base/route/ai-chat.js";
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -49,9 +51,9 @@ export class AddComponent {
                             <h5 class="offcanvas-title" style=""> 新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
-                                class="fs-5 text-black"
-                                style="cursor: pointer;"
-                                onclick="${gvc.event(() => {
+                                    class="fs-5 text-black"
+                                    style="cursor: pointer;"
+                                    onclick="${gvc.event(() => {
                         AddComponent.toggle(false);
                     })}"
                             >
@@ -260,10 +262,11 @@ export class AddComponent {
         if (visible) {
             window.glitter.closeDrawer();
             AddComponent.refresh();
-            AddComponent.closeEvent = () => { };
+            AddComponent.closeEvent = () => {
+            };
             AddComponent.addWidget = (gvc, cf) => {
                 gvc.glitter.share.addComponent(cf);
-                gvc.glitter.closeDiaLog();
+                gvc.glitter.closeDiaLog('dataLoading');
             };
             AddComponent.addEvent = (gvc, tdata) => {
                 gvc.glitter.share.addComponent({
@@ -309,15 +312,17 @@ export class AddComponent {
     }
     static leftNav(gvc) {
         const html = String.raw;
-        return html ` <div
-                class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
-                id="addComponentViewHover"
-                style="z-index: 99999;background: rgba(0,0,0,0.5);"
-                onclick="${gvc.event(() => {
+        return html `
+            <div
+                    class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
+                    id="addComponentViewHover"
+                    style="z-index: 99999;background: rgba(0,0,0,0.5);"
+                    onclick="${gvc.event(() => {
             AddComponent.toggle(false);
         })}"
             ></div>
-            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
+            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
+                 style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
                 ${AddComponent.view(gvc)}
             </div>`;
     }
@@ -337,11 +342,12 @@ export class AddComponent {
                     view: () => {
                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                             resolve(html `
-                                <div class="p-2 d-flex ${vm.template_from === 'plus' ? `border-bottom` : ``} ${type === 'form_plugin' ? `d-none` : ``} d-none" style="gap: 10px;height: 60px;">
+                                <div class="p-2 d-flex ${vm.template_from === 'plus' ? `border-bottom` : ``} ${type === 'form_plugin' ? `d-none` : ``} d-none"
+                                     style="gap: 10px;height: 60px;">
                                     <div
-                                        class="${vm.template_from === 'all' ? `bt_ffb40` : `bt_ffb40_stroke`}"
-                                        style="flex: 1;"
-                                        onclick="${gvc.event(() => {
+                                            class="${vm.template_from === 'all' ? `bt_ffb40` : `bt_ffb40_stroke`}"
+                                            style="flex: 1;"
+                                            onclick="${gvc.event(() => {
                                 vm.template_from = 'all';
                                 gvc.notifyDataChange([searchContainer, containerID]);
                             })}"
@@ -349,9 +355,9 @@ export class AddComponent {
                                         官方模塊
                                     </div>
                                     <div
-                                        class="${vm.template_from === 'plus' ? `bt_ffb40` : `bt_ffb40_stroke`}"
-                                        style="flex: 1;"
-                                        onclick="${gvc.event(() => {
+                                            class="${vm.template_from === 'plus' ? `bt_ffb40` : `bt_ffb40_stroke`}"
+                                            style="flex: 1;"
+                                            onclick="${gvc.event(() => {
                                 vm.template_from = 'plus';
                                 gvc.notifyDataChange([searchContainer, containerID]);
                             })}"
@@ -359,9 +365,9 @@ export class AddComponent {
                                         元件容器
                                     </div>
                                     <div
-                                        class="bt_ffb40_stroke"
-                                        style="width:50px;"
-                                        onclick="${gvc.event(() => {
+                                            class="bt_ffb40_stroke"
+                                            style="width:50px;"
+                                            onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
                                         const data = JSON.parse(clipboardText);
@@ -369,7 +375,8 @@ export class AddComponent {
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) { }
+                                        catch (e) {
+                                        }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -381,16 +388,17 @@ export class AddComponent {
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center p-2" style="gap:10px;">
+                                <div class="d-flex align-items-center p-2" style="gap:7px;">
                                     ${(() => {
                                 const list = [
                                     {
                                         key: 'basic',
-                                        label: '基礎設計',
+                                        label: '設計元件',
                                     },
                                     {
-                                        key: 'all',
-                                        label: '更多設計',
+                                        key: 'ai',
+                                        label: `<img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                             style="width: 25px;height: 25px;" class="me-1">AI 生成`,
                                     },
                                     {
                                         key: 'idea',
@@ -404,23 +412,24 @@ export class AddComponent {
                                 return list
                                     .map((dd) => {
                                     if (vm.template_from === dd.key) {
-                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
-gap: 10px;
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500" style="
 border-radius: 7px;
 cursor: pointer;
 color: white;
 font-size: 16px;
+height: 48px;
 flex:1;
 border: 1px solid #FFB400;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
                                     }
                                     else {
-                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500" style="
 border-radius: 7px;
 flex:1;
 font-size: 16px;
 border: 1px solid #FFB400;
 cursor: pointer;
+height: 48px;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
@@ -434,55 +443,19 @@ background-clip: text;
                                     .join('');
                             })()}
                                     <div
-                                        class="d-flex align-items-center justify-content-center fw-bold    fw-500 "
-                                        style="
+                                            class="d-flex align-items-center flex-column justify-content-center fw-bold    fw-500 "
+                                            style="
 border-radius: 7px;
-width: 43px;
+width: 48px;
+height: 48px;
 font-size: 16px;
+gap:3px;
 border: 1px solid #FFB400;
 cursor: pointer;
-height: 43px;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;"
-                                        onclick="${gvc.event(() => {
-                                navigator.clipboard.readText().then((clipboardText) => {
-                                    try {
-                                        const data = JSON.parse(clipboardText);
-                                        data.id = gvc.glitter.getUUID();
-                                        try {
-                                            AddComponent.addWidget(gvc, data);
-                                        }
-                                        catch (e) { }
-                                    }
-                                    catch (e) {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.errorMessage({ text: '請先選擇元件複製!' });
-                                    }
-                                });
-                            })}"
-                                    >
-                                        <i class="fa-regular fa-paste"></i>
-                                    </div>
-                                </div>
-                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}" style="">
-                                    <div class="input-group mb-2">
-                                        <input
-                                            class="form-control input-sm"
-                                            placeholder="輸入關鍵字或標籤名稱"
-                                            onchange="${gvc.event((e, event) => {
-                                vm.search = e.value;
-                                gvc.notifyDataChange(containerID);
-                            })}"
-                                            value="${vm.search || ''}"
-                                        />
-                                        <span class="input-group-text" style="cursor: pointer;border-left:none;">
-                                            <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
-                                        </span>
-                                        <div
-                                            class="bt_gray_stroke d-none"
-                                            style="width:50px;"
                                             onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
@@ -491,7 +464,49 @@ background-clip: text;
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) { }
+                                        catch (e) {
+                                        }
+                                    }
+                                    catch (e) {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.errorMessage({ text: '請先選擇元件複製!' });
+                                    }
+                                });
+                            })}"
+                                    >
+                                        <i class="fa-regular fa-paste fs-6 d-flex align-items-center justify-content-center"
+                                           style=""></i>
+                                    </div>
+
+                                </div>
+                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic', 'ai'].includes(vm.template_from) ? `d-none` : ``}"
+                                     style="">
+                                    <div class="input-group mb-2">
+                                        <input
+                                                class="form-control input-sm"
+                                                placeholder="輸入關鍵字或標籤名稱"
+                                                onchange="${gvc.event((e, event) => {
+                                vm.search = e.value;
+                                gvc.notifyDataChange(containerID);
+                            })}"
+                                                value="${vm.search || ''}"
+                                        />
+                                        <span class="input-group-text" style="cursor: pointer;border-left:none;">
+                                            <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
+                                        </span>
+                                        <div
+                                                class="bt_gray_stroke d-none"
+                                                style="width:50px;"
+                                                onclick="${gvc.event(() => {
+                                navigator.clipboard.readText().then((clipboardText) => {
+                                    try {
+                                        const data = JSON.parse(clipboardText);
+                                        data.id = gvc.glitter.getUUID();
+                                        try {
+                                            AddComponent.addWidget(gvc, data);
+                                        }
+                                        catch (e) {
+                                        }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -518,6 +533,166 @@ background-clip: text;
                             }
                             else if (vm.template_from === 'basic') {
                                 return BasicComponent.main(gvc);
+                            }
+                            else if (vm.template_from === 'ai') {
+                                let message = '';
+                                return html `
+                                <div class="border-top"></div>
+                                <div class="p-2">
+                                    ${[
+                                    html `
+                                            <lottie-player src="lottie/ai.json" class="mx-auto my-n4" speed="1"
+                                                           style="max-width: 100%;width: 250px;height:300px;" loop
+                                                           autoplay></lottie-player>`,
+                                    EditorElem.editeText({
+                                        gvc: gvc,
+                                        title: '',
+                                        default: '',
+                                        placeHolder: `幫我新增一個標題，字體大小為20px，顏色為黑色，距離左邊20px
+幫我插入Google Map地圖，地址為....
+幫我插入Youtube 影片，並自動播放，連結為....
+`,
+                                        callback: (text) => {
+                                            message = text;
+                                        },
+                                        min_height: 300
+                                    }),
+                                    `<div class="w-100 d-flex align-items-center justify-content-end">
+${BgWidget.save(gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
+                                        AiChat.generateHtml({
+                                            app_name: window.appName,
+                                            text: message
+                                        }).then((res) => {
+                                            if (res.result && res.response.data.usage === 0) {
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.errorMessage({ text: `很抱歉你的AI代幣不足，請先前往加值` });
+                                            }
+                                            else if (res.result && (!res.response.data.obj.result)) {
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.errorMessage({ text: `AI無法理解你的需求，請給出具體一點的描述` });
+                                            }
+                                            else if (!res.result) {
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.errorMessage({ text: `發生錯誤` });
+                                            }
+                                            else {
+                                                AddComponent.addWidget(gvc, {
+                                                    "id": "s7scs2s9s3s5s8sc",
+                                                    "js": "./official_view_component/official.js",
+                                                    "css": { "class": {}, "style": {} },
+                                                    "data": {
+                                                        "refer_app": "shop_template_black_style",
+                                                        "tag": "custom-code",
+                                                        "list": [],
+                                                        "carryData": {},
+                                                        "_style_refer_global": { "index": "0" },
+                                                        "_style_refer": "custom",
+                                                        "elem": "div",
+                                                        "inner": "",
+                                                        "attr": [],
+                                                        "_padding": {},
+                                                        "_margin": {},
+                                                        "_border": {},
+                                                        "_max_width": "1200",
+                                                        "_gap": "",
+                                                        "_background": "",
+                                                        "_other": {},
+                                                        "_radius": "",
+                                                        "_reverse": "false",
+                                                        "_hor_position": "center",
+                                                        "_background_setting": { "type": "none" },
+                                                        "refer_form_data": {
+                                                            "code": res.response.data.obj.html,
+                                                            "width": { "unit": "px", "value": "0px", "number": "0" },
+                                                            "height": {
+                                                                "unit": "px",
+                                                                "value": "50px",
+                                                                "number": "50"
+                                                            },
+                                                            "with_bg": "false",
+                                                            "background": {
+                                                                "id": "custom-background",
+                                                                "title": "#030303",
+                                                                "content": "#000000",
+                                                                "sec-title": "#000000",
+                                                                "background": "#ffffff",
+                                                                "sec-background": "#FFFFFF",
+                                                                "solid-button-bg": "#000000",
+                                                                "border-button-bg": "#000000",
+                                                                "solid-button-text": "#ffffff",
+                                                                "border-button-text": "#000000"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "component",
+                                                    "class": "w-100",
+                                                    "index": 0,
+                                                    "label": "自定義HTML代碼",
+                                                    "style": "",
+                                                    "bundle": {},
+                                                    "global": [],
+                                                    "toggle": true,
+                                                    "stylist": [],
+                                                    "dataType": "static",
+                                                    "style_from": "code",
+                                                    "classDataType": "static",
+                                                    "preloadEvenet": {},
+                                                    "share": {},
+                                                    "formData": {},
+                                                    "refreshAllParameter": {},
+                                                    "editor_bridge": {},
+                                                    "refreshComponentParameter": {},
+                                                    "list": [],
+                                                    "version": "v2",
+                                                    "storage": {},
+                                                    "mobile": {
+                                                        "id": "s7scs2s9s3s5s8sc",
+                                                        "js": "./official_view_component/official.js",
+                                                        "css": { "class": {}, "style": {} },
+                                                        "data": { "refer_app": "shop_template_black_style" },
+                                                        "type": "component",
+                                                        "class": "w-100",
+                                                        "index": 0,
+                                                        "label": "自定義HTML代碼",
+                                                        "style": "",
+                                                        "global": [],
+                                                        "toggle": true,
+                                                        "stylist": [],
+                                                        "dataType": "static",
+                                                        "style_from": "code",
+                                                        "classDataType": "static",
+                                                        "preloadEvenet": {},
+                                                        "refreshAllParameter": {},
+                                                        "editor_bridge": {},
+                                                        "refreshComponentParameter": {},
+                                                        "list": [],
+                                                        "version": "v2",
+                                                        "mobile_editable": [],
+                                                        "desktop_editable": [],
+                                                        "container_fonts": 0,
+                                                        "visible": true,
+                                                        "refer": "custom"
+                                                    },
+                                                    "mobile_editable": [],
+                                                    "desktop": {
+                                                        "data": {
+                                                            "refer_app": "shop_template_black_style",
+                                                            "refer_form_data": {}
+                                                        }, "refer": "custom"
+                                                    },
+                                                    "desktop_editable": [],
+                                                    "container_fonts": 0,
+                                                    "visible": true
+                                                });
+                                                dialog.successMessage({ text: `AI生成完畢，使用了『${res.response.data.usage}』點 AI Points.` });
+                                            }
+                                        });
+                                    }), "開始生成")}
+</div>`
+                                ].join('<div class="my-2"></div>')}
+                                </div>`;
                             }
                             else {
                                 return gvc.bindView(() => {
@@ -562,16 +737,18 @@ background-clip: text;
                                                     if (data.response.result.data.length === 0) {
                                                         if (!vm.search) {
                                                             return html `
-                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
-                                                                <img src="./img/box-open-solid.svg" />
-                                                                <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
+                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
+                                                                 style="width:700px;gap:10px;">
+                                                                <img src="./img/box-open-solid.svg"/>
+                                                                <span class="color39 text-center">尚未自製任何模塊<br/>請前往開發者模式自製專屬模塊</span>
                                                             </div>
                                                         `;
                                                         }
                                                         else {
                                                             return html `
-                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
-                                                                <img src="./img/box-open-solid.svg" />
+                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
+                                                                 style="width:700px;gap:10px;">
+                                                                <img src="./img/box-open-solid.svg"/>
                                                                 <span class="color39 text-center">查無相關模塊</span>
                                                             </div>
                                                         `;
@@ -580,8 +757,8 @@ background-clip: text;
                                                     else {
                                                         return html `
                                                         <div
-                                                            class="w-100"
-                                                            style=" max-height:${(() => {
+                                                                class="w-100"
+                                                                style=" max-height:${(() => {
                                                             if (type === 'form_plugin') {
                                                                 return `calc(100vh - 150px)`;
                                                             }
@@ -619,22 +796,22 @@ background-clip: text;
                                                                     view: () => {
                                                                         const array = [
                                                                             html `
-                                                                                        <div
-                                                                                            class="hoverF2 d-flex align-items-center p-3"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                            <div
+                                                                                                    class="hoverF2 d-flex align-items-center p-3"
+                                                                                                    onclick="${gvc.event(() => {
                                                                                 vm_c.toggle = !vm_c.toggle;
                                                                                 gvc.notifyDataChange(vm_c.id);
                                                                             })}"
-                                                                                        >
-                                                                                            <span
-                                                                                                class="fw-500"
-                                                                                                style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;"
-                                                                                                >${d1.title}</span
                                                                                             >
-                                                                                            <div class="flex-fill"></div>
-                                                                                            ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
-                                                                                        </div>
-                                                                                    `,
+                                                                                            <span
+                                                                                                    class="fw-500"
+                                                                                                    style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;"
+                                                                                            >${d1.title}</span
+                                                                                            >
+                                                                                                <div class="flex-fill"></div>
+                                                                                                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
+                                                                                            </div>
+                                                                                        `,
                                                                         ];
                                                                         if (vm_c.toggle) {
                                                                             array.push(AddComponent.getComponentDetail({
@@ -835,10 +1012,12 @@ background-clip: text;
                                                 })();
                                             }
                                             else {
-                                                return html ` <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column" style="gap: 10px;">
-                                                <div class="spinner-border fs-5"></div>
-                                                <div class="fs-6 fw-500">載入中...</div>
-                                            </div>`;
+                                                return html `
+                                                <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column"
+                                                     style="gap: 10px;">
+                                                    <div class="spinner-border fs-5"></div>
+                                                    <div class="fs-6 fw-500">載入中...</div>
+                                                </div>`;
                                             }
                                         },
                                         divCreate: {
@@ -860,8 +1039,9 @@ background-clip: text;
         const callback = obj.callback;
         const justGetIframe = obj.justGetIframe;
         const html = String.raw;
-        return html ` <div class="row m-0 pt-2 w-100">
-            ${data
+        return html `
+            <div class="row m-0 pt-2 w-100">
+                ${data
             .sort((a, b) => {
             var _a, _b;
             if (['SY00-內文', 'SY00-按鈕連結', 'SY00-圖片元件', 'SY00-影片方塊', 'SY00-標題', 'SY00-商品顯示區塊', 'SY00-富文本區塊'].find((dd) => {
@@ -1019,10 +1199,10 @@ background-clip: text;
                                                 bind: id,
                                                 view: () => {
                                                     return html `
-                                                                                                        <div class="alert alert-danger fs-base fw-bold">
-                                                                                                            標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
-                                                                                                        </div>
-                                                                                                        ${res.copy_component
+                                                                                                            <div class="alert alert-danger fs-base fw-bold">
+                                                                                                                標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
+                                                                                                            </div>
+                                                                                                            ${res.copy_component
                                                         .filter((d1) => {
                                                         return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                             return d1.tag === dd.tag;
@@ -1030,7 +1210,8 @@ background-clip: text;
                                                     })
                                                         .map((data, index) => {
                                                         let view = [
-                                                            EditorElem.h3(html ` <span class="text-danger">
+                                                            EditorElem.h3(html `
+                                                                                                                                <span class="text-danger">
                                                                                                                         ${(data.template_config && data.template_config.name) || data.name}
                                                                                                                     </span>`),
                                                             `<div class="d-flex flex-wrap px-1 align-items-center ">
@@ -1054,7 +1235,8 @@ ${[
                                                                     gvc.notifyDataChange(id);
                                                                 })}">
   <input class="form-check-input" type="checkbox" id="ch-${dd.value}-${index}"   ${dd.value === data.execute ? `checked` : ``} >
-  <label class="form-check-label" for="ch-${dd.value}-${index}" style="color:#5e5e5e;" onclick="${gvc.event(() => { })}">${dd.title}</label>
+  <label class="form-check-label" for="ch-${dd.value}-${index}" style="color:#5e5e5e;" onclick="${gvc.event(() => {
+                                                                })}">${dd.title}</label>
 </div>
                                                         `;
                                                             })
@@ -1074,17 +1256,18 @@ ${[
                                                         return `<div class="border-bottom w-100 ">${view.join('')}</div>`;
                                                     })
                                                         .join('')}
-                                                                                                    `;
+                                                                                                        `;
                                                 },
                                                 divCreate: {
                                                     class: `p-2 `,
                                                 },
                                             };
                                         }),
-                                        html ` <div class="d-flex align-items-center justify-content-end px-2 ">
-                                                                                            <button
-                                                                                                class="btn btn-primary-c btn-sm mb-2 fs-base"
-                                                                                                onclick="${gvc.event(() => {
+                                        html `
+                                                                                                <div class="d-flex align-items-center justify-content-end px-2 ">
+                                                                                                    <button
+                                                                                                            class="btn btn-primary-c btn-sm mb-2 fs-base"
+                                                                                                            onclick="${gvc.event(() => {
                                             const conflict = res.copy_component.filter((d1) => {
                                                 return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                     return d1.tag === dd.tag;
@@ -1139,12 +1322,13 @@ ${[
                                             }
                                             next();
                                         })}"
-                                                                                            >
-                                                                                                確認
-                                                                                            </button>
-                                                                                        </div>`,
+                                                                                                    >
+                                                                                                        確認
+                                                                                                    </button>
+                                                                                                </div>`,
                                     ].join('');
-                                }, () => { }, 400, '偵測到衝突組件');
+                                }, () => {
+                                }, 400, '偵測到衝突組件');
                             }
                             else {
                                 next();
@@ -1178,12 +1362,13 @@ ${[
                 return dd !== '設計元件' && dd !== '基本元件' && dd !== '商品元件';
             })
                 .map((dd) => {
-                return html ` <div
-                                                        class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
-                                                        style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;"
-                                                    >
-                                                        #${dd}
-                                                    </div>`;
+                return html `
+                                                            <div
+                                                                    class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
+                                                                    style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;"
+                                                            >
+                                                                    #${dd}
+                                                            </div>`;
             })
                 .join('<div class="me-1"></div>')}
 
@@ -1194,7 +1379,7 @@ ${[
                             `;
         })
             .join('')}
-        </div>`;
+            </div>`;
     }
     static plusView(gvc) {
         const html = String.raw;
@@ -5680,7 +5865,9 @@ ${[
                 }),
                 EditorElem.searchInput({
                     title: html `${title}分類
-                            <div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">可加入 / 進行分類:<br />例如:首頁／置中版面</div>`,
+                        <div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">可加入 /
+                            進行分類:<br/>例如:首頁／置中版面
+                        </div>`,
                     gvc: gvc,
                     def: '',
                     array: (() => {
@@ -5704,7 +5891,8 @@ ${[
             })}">確認新增</div>
 </div>
 `;
-        }, () => { }, 400, '編輯' + title);
+        }, () => {
+        }, 400, '編輯' + title);
     }
     static checkLoop(gvc, data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -5765,8 +5953,12 @@ ${[
         });
     }
 }
-AddComponent.addEvent = (gvc, tdata) => { };
-AddComponent.addWidget = (gvc, tdata) => { };
-AddComponent.refresh = () => { };
-AddComponent.closeEvent = () => { };
+AddComponent.addEvent = (gvc, tdata) => {
+};
+AddComponent.addWidget = (gvc, tdata) => {
+};
+AddComponent.refresh = () => {
+};
+AddComponent.closeEvent = () => {
+};
 window.glitter.setModule(import.meta.url, AddComponent);

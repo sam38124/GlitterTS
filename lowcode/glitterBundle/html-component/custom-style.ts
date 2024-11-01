@@ -13,7 +13,7 @@ export class CustomStyle {
         return [
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `元件最大寬度
+                title: `元件寬度
                            
                             `,
                 default: widget.data._max_width,
@@ -25,7 +25,7 @@ export class CustomStyle {
             }),
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `元件最大高度
+                title: `元件高度
                            
                             `,
                 default: widget.data._max_height,
@@ -391,7 +391,7 @@ export class CustomStyle {
             }),
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `元件最大寬度
+                title: `元件寬度
                            
                             `,
                 default: widget.data._max_width,
@@ -403,7 +403,7 @@ export class CustomStyle {
             }),
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `元件最大高度
+                title: `元件高度
                            
                             `,
                 default: widget.data._max_height,

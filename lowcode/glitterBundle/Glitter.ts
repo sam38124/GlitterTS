@@ -320,15 +320,21 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     };
 
-    public openDrawer() {
+    public openDrawer(width?:number) {
         if ((window as any).drawer !== undefined) {
             $("#Navigation").show();
             (window as any).drawer.open();
+            if(width){
+                (document.querySelector('.hy-drawer-content') as any).style.width=width+'px'
+            }
         } else {
             var timer = setInterval(function () {
                 if ((window as any).drawer !== undefined) {
                     $("#Navigation").show();
                     (window as any).drawer.open();
+                    if(width){
+                        (document.querySelector('.hy-drawer-content') as any).style.width=width+'px'
+                    }
                     clearInterval(timer);
                 }
             }, 100);

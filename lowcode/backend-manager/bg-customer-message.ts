@@ -131,19 +131,22 @@ export class BgCustomerMessage {
                              alt="Albert Flores">
                         <div class="d-flex  px-1 text-white align-items-center" style="gap:8px;">
                             <h6 class="mb-0 text-white " style="">一站式客服整合系統</h6>
-                            ${BgWidget.questionButton(
-                                gvc.event(() => {
-                                    BgWidget.dialog({
-                                        gvc,
-                                        title: '提示',
-                                        innerHTML: () => {
-                                            return  `<div class="w-100" style="white-space:normal;word-break: break-all;">${BgWidget.grayNote([`*單一後台即可管理各渠道訊息`, `*前往第三方整合設定，設定Line與Facebook官方訊息串接`, `*為確保訊息同步，請統一透過SHOPNEX後台發送訊息`].map((dd) => {
-                                                return `<div style="letter-spacing: 1.2px;white-space:normal;word-break: break-all;">${dd}</div>`
-                                            }).join('<div class="my-1"></div>'))}</div>`
-                                        },
-                                        width: 250
-                                    });
-                                })
+      ${BgWidget.iconButton(
+                                {
+                                    icon: 'question',
+                                    event: gvc.event(() => {
+                                        BgWidget.dialog({
+                                            gvc,
+                                            title: '提示',
+                                            innerHTML: () => {
+                                                return  `<div class="w-100" style="white-space:normal;word-break: break-all;">${BgWidget.grayNote([`*單一後台即可管理各渠道訊息`, `*前往第三方整合設定，設定Line與Facebook官方訊息串接`, `*為確保訊息同步，請統一透過SHOPNEX後台發送訊息`].map((dd) => {
+                                                    return `<div style="letter-spacing: 1.2px;white-space:normal;word-break: break-all;">${dd}</div>`
+                                                }).join('<div class="my-1"></div>'))}</div>`
+                                            },
+                                            width: 250
+                                        });
+                                    })
+                                }
                             )}
                         </div>
                         <div class="flex-fill" style="flex: 1;"></div>
@@ -399,53 +402,347 @@ export class BgCustomerMessage {
                                                                     </div>
                                                                     ${BgWidget.switchButton(gvc, keyData.toggle, (bool) => {
                                                                         keyData.toggle = bool;
+                                                                        gvc.notifyDataChange(vO.id)
                                                                     })}
                                                                 </div>`,
-                                                            BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '客服名稱',
-                                                                type: 'name',
-                                                                placeHolder: `請輸入客服名稱`,
-                                                                default: keyData.name,
-                                                                callback: (text) => {
-                                                                    keyData.name = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.uploadImage({
-                                                                title: '大頭照',
-                                                                gvc: gvc,
-                                                                def: keyData.head || '',
-                                                                callback: (text: string) => {
-                                                                    keyData.head = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.colorSelect({
-                                                                gvc: gvc,
-                                                                title: '設定主色調',
-                                                                def: keyData.color,
-                                                                callback: (text) => {
-                                                                    keyData.color = text;
-                                                                    gvc.notifyDataChange(vO.id)
-                                                                },
-                                                            }),
-                                                            BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '置頂標題',
-                                                                placeHolder: `請輸入置頂標題`,
-                                                                default: keyData.title,
-                                                                callback: (text) => {
-                                                                    keyData.title = text;
-                                                                },
-                                                            }),
-                                                            BgWidget.textArea({
-                                                                gvc: gvc,
-                                                                title: '置頂內文',
-                                                                placeHolder: `請輸入置頂內文`,
-                                                                default: keyData.content,
-                                                                callback: (text) => {
-                                                                    keyData.content = text;
-                                                                },
-                                                            }),
+                                                            ...(() => {
+                                                                if (keyData.toggle) {
+                                                                    return [
+                                                                        gvc.bindView(() => {
+                                                                            keyData.ask_manual_keyword=keyData.ask_manual_keyword||'真人客服'
+                                                                            keyData.ask_ai_keyword=keyData.ask_ai_keyword||'AI客服'
+                                                                            const cid = gvc.glitter.getUUID()
+                                                                            return {
+                                                                                bind: cid,
+                                                                                view: () => {
+                                                                                    return html`
+                                                                                        <div class="d-flex flex-column"
+                                                                                             style="gap:5px;">
+                                                                                            <div class="tx_normal fw-normal"
+                                                                                                 style="">AI客服機器人
+                                                                                            </div>
+                                                                                            <div class="d-flex">
+                                                                                                ${BgWidget.switchButton(gvc, keyData.ai_toggle, (bool) => {
+                                                                                                    keyData.ai_toggle = bool;
+                                                                                                    gvc.notifyDataChange(cid)
+                                                                                                })}
+                                                                                                ${keyData.ai_toggle ? `啟用` : `關閉`}
+                                                                                            </div>
+                                                                                            ${keyData.ai_toggle ? html`
+                                                                                                <div class="mt-2 d-flex align-items-center"
+                                                                                                     style="gap:10px;">
+                                                                                                    ${BgWidget.grayButton('AI 問答設定', gvc.event(async () => {
+                                                                                                        let keyData = (await ApiUser.getPublicConfig(`robot_ai_reply`, 'manager')).response.value || {};
+                                                                                                        BgWidget.settingDialog({
+                                                                                                            gvc: gvc,
+                                                                                                            title: 'AI問答設定',
+                                                                                                            innerHTML: (gvc) => {
+                                                                                                                return gvc.bindView(() => {
+                                                                                                                    const id = gvc.glitter.getUUID();
+                                                                                                                    const html = String.raw;
+                                                                                                                    return {
+                                                                                                                        bind: id,
+                                                                                                                        view: () => {
+                                                                                                                            if (Array.isArray(keyData)) {
+                                                                                                                                keyData = {};
+                                                                                                                            }
+                                                                                                                            keyData.question = keyData.question ?? []
+                                                                                                                            const parId = gvc.glitter.getUUID()
+                                                                                                                            const id = gvc.glitter.getUUID()
+
+                                                                                                                            function refresh() {
+                                                                                                                                gvc.notifyDataChange(id)
+                                                                                                                            }
+
+                                                                                                                            return html`
+                                                                                                                                ${BgWidget.alertInfo('', [
+                                                                                                                                    `<span class="fw-500 fs-6">＊當AI判斷，客戶提出的問題與你設定的問題有關聯的話，將會直接回答你設定的回覆內容。</span>`,
+                                                                                                                                    `<span class="fw-500 fs-6">＊建議設定多個問答項目，來提升機器人客服的妥善率。</span>`,
+                                                                                                                                ], {
+                                                                                                                                    class: 'p-2',
+                                                                                                                                    style: ``
+                                                                                                                                })}
+                                                                                                                                <div style=""
+                                                                                                                                     class="p-2">
+
+                                                                                                                                    ${gvc.bindView(() => {
+                                                                                                                                        return {
+                                                                                                                                            bind: id,
+                                                                                                                                            view: () => {
+                                                                                                                                                return (keyData.question || []).map((d2: any, index: number) => {
+                                                                                                                                                    return html`
+                                                                                                                                                        <li onclick="${gvc.event(() => {
+                                                                                                                                                            const copy = JSON.parse(JSON.stringify(d2))
+                                                                                                                                                            BgWidget.settingDialog({
+                                                                                                                                                                gvc: gvc,
+                                                                                                                                                                title: '設定問答',
+                                                                                                                                                                innerHTML: (gvc) => {
+                                                                                                                                                                    return [BgWidget.editeInput({
+                                                                                                                                                                        gvc: gvc,
+                                                                                                                                                                        title: '問題',
+                                                                                                                                                                        placeHolder: `請輸入問題`,
+                                                                                                                                                                        default: copy.ask,
+                                                                                                                                                                        callback: (text) => {
+                                                                                                                                                                            copy.ask = text;
+                                                                                                                                                                        },
+                                                                                                                                                                    }), BgWidget.textArea({
+                                                                                                                                                                        gvc: gvc,
+                                                                                                                                                                        title: '回答',
+                                                                                                                                                                        placeHolder: `請輸入回答`,
+                                                                                                                                                                        default: copy.response,
+                                                                                                                                                                        callback: (text) => {
+                                                                                                                                                                            copy.response = text;
+                                                                                                                                                                        },
+                                                                                                                                                                    })].map((dd) => {
+                                                                                                                                                                        return `<div>${dd}</div>`
+                                                                                                                                                                    }).join('')
+                                                                                                                                                                },
+                                                                                                                                                                footer_html: (gvc) => {
+                                                                                                                                                                    return [
+                                                                                                                                                                        BgWidget.cancel(gvc.event(() => {
+                                                                                                                                                                            gvc.closeDialog()
+                                                                                                                                                                        })),
+                                                                                                                                                                        BgWidget.save(gvc.event(() => {
+                                                                                                                                                                            refresh()
+                                                                                                                                                                            gvc.closeDialog()
+                                                                                                                                                                        }))
+                                                                                                                                                                    ].join(``)
+                                                                                                                                                                }
+                                                                                                                                                            })
+                                                                                                                                                        })}">
+                                                                                                                                                            <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 subComponentGuide"
+                                                                                                                                                                 style="gap:5px;color:#393939;">
+                                                                                                                                                                <div class=" p-1 dragItem ">
+                                                                                                                                                                    <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                                                                                                                                       style="width:15px;height:15px;"
+                                                                                                                                                                       aria-hidden="true"></i>
+                                                                                                                                                                </div>
+                                                                                                                                                                <span style="max-width:calc(100% - 60px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${d2.ask}</span>
+                                                                                                                                                                <div class="flex-fill"></div>
+                                                                                                                                                                <div class="hoverBtn p-1 child"
+                                                                                                                                                                     onclick="${gvc.event((e, event) => {
+                                                                                                                                                                         event.stopPropagation();
+                                                                                                                                                                         event.preventDefault();
+                                                                                                                                                                         dialog.checkYesOrNot({
+                                                                                                                                                                             text: '是否確認移除問答?',
+                                                                                                                                                                             callback: (response) => {
+                                                                                                                                                                                 if (response) {
+                                                                                                                                                                                     keyData.question.splice(index, 1)
+                                                                                                                                                                                     gvc.notifyDataChange(id)
+                                                                                                                                                                                 }
+                                                                                                                                                                             }
+                                                                                                                                                                         })
+                                                                                                                                                                     })}">
+                                                                                                                                                                    <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
+                                                                                                                                                                       aria-hidden="true"></i>
+                                                                                                                                                                </div>
+                                                                                                                                                            </div>
+                                                                                                                                                        </li>`
+                                                                                                                                                }).join('')
+                                                                                                                                            },
+                                                                                                                                            divCreate: {
+                                                                                                                                                class: `mx-n2`,
+                                                                                                                                                elem: 'ul',
+                                                                                                                                                option: [{
+                                                                                                                                                    key: 'id',
+                                                                                                                                                    value: parId
+                                                                                                                                                }],
+                                                                                                                                            },
+                                                                                                                                            onCreate: () => {
+                                                                                                                                                gvc.glitter.addMtScript(
+                                                                                                                                                        [
+                                                                                                                                                            {
+                                                                                                                                                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                                                                                                                                            },
+                                                                                                                                                        ],
+                                                                                                                                                        () => {
+                                                                                                                                                            const interval = setInterval(() => {
+                                                                                                                                                                if ((window as any).Sortable) {
+                                                                                                                                                                    try {
+                                                                                                                                                                        gvc.addStyle(`
+                                    ul {
+                                        list-style: none;
+                                        padding: 0;
+                                    }
+                                `);
+
+                                                                                                                                                                        function swapArr(arr: any, index1: number, index2: number) {
+                                                                                                                                                                            const data = arr[index1];
+                                                                                                                                                                            arr.splice(index1, 1);
+                                                                                                                                                                            arr.splice(index2, 0, data);
+                                                                                                                                                                        }
+
+                                                                                                                                                                        let startIndex = 0;
+                                                                                                                                                                        //@ts-ignore
+                                                                                                                                                                        Sortable.create(gvc.glitter.document.getElementById(parId), {
+                                                                                                                                                                            handle: '.dragItem',
+                                                                                                                                                                            group: gvc.glitter.getUUID(),
+
+                                                                                                                                                                            animation: 100,
+                                                                                                                                                                            onChange: function (evt: any) {
+                                                                                                                                                                                swapArr(keyData.question, startIndex, evt.newIndex);
+                                                                                                                                                                                const newIndex = evt.newIndex
+                                                                                                                                                                                startIndex = newIndex
+                                                                                                                                                                            },
+                                                                                                                                                                            onEnd: (evt: any) => {
+
+                                                                                                                                                                            },
+                                                                                                                                                                            onStart: function (evt: any) {
+                                                                                                                                                                                startIndex = evt.oldIndex;
+                                                                                                                                                                            },
+                                                                                                                                                                        });
+                                                                                                                                                                    } catch (e) {
+                                                                                                                                                                    }
+                                                                                                                                                                    clearInterval(interval);
+                                                                                                                                                                }
+                                                                                                                                                            }, 100);
+                                                                                                                                                        },
+                                                                                                                                                        () => {
+                                                                                                                                                        }
+                                                                                                                                                );
+                                                                                                                                            }
+                                                                                                                                        }
+                                                                                                                                    })}
+                                                                                                                                    <div class="w-100"
+                                                                                                                                         style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
+                                                                                                                                         data-bs-toggle="dropdown"
+                                                                                                                                         aria-haspopup="true"
+                                                                                                                                         aria-expanded="false"
+                                                                                                                                         onclick="${gvc.event(() => {
+                                                                                                                                             const copy = {
+                                                                                                                                                 ask: '',
+                                                                                                                                                 response: ''
+                                                                                                                                             }
+                                                                                                                                             BgWidget.settingDialog({
+                                                                                                                                                 gvc: gvc,
+                                                                                                                                                 title: '設定問答',
+                                                                                                                                                 innerHTML: (gvc) => {
+                                                                                                                                                     return [BgWidget.editeInput({
+                                                                                                                                                         gvc: gvc,
+                                                                                                                                                         title: '問題',
+                                                                                                                                                         placeHolder: `請輸入問題`,
+                                                                                                                                                         default: copy.ask,
+                                                                                                                                                         callback: (text) => {
+                                                                                                                                                             copy.ask = text;
+                                                                                                                                                         },
+                                                                                                                                                     }), BgWidget.textArea({
+                                                                                                                                                         gvc: gvc,
+                                                                                                                                                         title: '回答',
+                                                                                                                                                         placeHolder: `請輸入回答`,
+                                                                                                                                                         default: copy.response,
+                                                                                                                                                         callback: (text) => {
+                                                                                                                                                             copy.response = text;
+                                                                                                                                                         },
+                                                                                                                                                     })].map((dd) => {
+                                                                                                                                                         return `<div>${dd}</div>`
+                                                                                                                                                     }).join('')
+                                                                                                                                                 },
+                                                                                                                                                 footer_html: (gvc) => {
+                                                                                                                                                     return [
+                                                                                                                                                         BgWidget.cancel(gvc.event(() => {
+                                                                                                                                                             gvc.closeDialog()
+                                                                                                                                                         })),
+                                                                                                                                                         BgWidget.save(gvc.event(() => {
+                                                                                                                                                             if (!copy.ask || !copy.response) {
+                                                                                                                                                                 dialog.errorMessage({text: '內容不得為空'})
+                                                                                                                                                                 return
+                                                                                                                                                             }
+                                                                                                                                                             keyData.question.push(copy)
+                                                                                                                                                             refresh()
+                                                                                                                                                             gvc.closeDialog()
+                                                                                                                                                         }))
+                                                                                                                                                     ].join(``)
+                                                                                                                                                 }
+                                                                                                                                             })
+                                                                                                                                         })}">
+                                                                                                                                        <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                                                            新增一則問答
+                                                                                                                                        </div>
+                                                                                                                                        <i class="fa-solid fa-plus"
+                                                                                                                                           aria-hidden="true"></i>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            `
+                                                                                                                        },
+                                                                                                                        divCreate: {
+                                                                                                                            class: `m-n2`,
+                                                                                                                        },
+                                                                                                                    };
+                                                                                                                })
+                                                                                                            },
+                                                                                                            footer_html: (gvc) => {
+                                                                                                                return [BgWidget.cancel(gvc.event(() => {
+                                                                                                                    gvc.closeDialog()
+                                                                                                                }), '取消'), BgWidget.save(gvc.event(async () => {
+                                                                                                                    dialog.dataLoading({visible: true});
+                                                                                                                    await ApiUser.setPublicConfig({
+                                                                                                                        key: `robot_ai_reply`,
+                                                                                                                        value: keyData,
+                                                                                                                        user_id: 'manager',
+                                                                                                                    });
+                                                                                                                    dialog.dataLoading({visible: false});
+                                                                                                                    dialog.successMessage({text: '設定成功!'});
+                                                                                                                    gvc.closeDialog()
+                                                                                                                }), '儲存')].join('')
+                                                                                                            }
+                                                                                                        })
+                                                                                                    }))}
+                                                                                                </div>` : ``}
+                                                                                        </div>
+                                                                                    `
+                                                                                }
+                                                                            }
+                                                                        }),
+                                                                        BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '客服名稱',
+                                                                            type: 'name',
+                                                                            placeHolder: `請輸入客服名稱`,
+                                                                            default: keyData.name,
+                                                                            callback: (text) => {
+                                                                                keyData.name = text;
+                                                                            },
+                                                                        }),
+                                                                        EditorElem.uploadImage({
+                                                                            title: '大頭照',
+                                                                            gvc: gvc,
+                                                                            def: keyData.head || '',
+                                                                            callback: (text: string) => {
+                                                                                keyData.head = text;
+                                                                            },
+                                                                        }),
+                                                                        EditorElem.colorSelect({
+                                                                            gvc: gvc,
+                                                                            title: '設定主色調',
+                                                                            def: keyData.color,
+                                                                            callback: (text) => {
+                                                                                keyData.color = text;
+                                                                                gvc.notifyDataChange(vO.id)
+                                                                            },
+                                                                        }),
+                                                                        BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '置頂標題',
+                                                                            placeHolder: `請輸入置頂標題`,
+                                                                            default: keyData.title,
+                                                                            callback: (text) => {
+                                                                                keyData.title = text;
+                                                                            },
+                                                                        }),
+                                                                        BgWidget.textArea({
+                                                                            gvc: gvc,
+                                                                            title: '置頂內文',
+                                                                            placeHolder: `請輸入置頂內文`,
+                                                                            default: keyData.content,
+                                                                            callback: (text) => {
+                                                                                keyData.content = text;
+                                                                            },
+                                                                        })
+                                                                    ]
+                                                                } else {
+                                                                    return []
+                                                                }
+                                                            })()
                                                         ].join(`<div class="my-2"></div>`)}
                                                     </div>`,
                                                 gvc.bindView(() => {
@@ -454,6 +751,9 @@ export class BgCustomerMessage {
                                                     return {
                                                         bind: id,
                                                         view: () => {
+                                                            if (!keyData.toggle) {
+                                                                return ``
+                                                            }
                                                             return new Promise(async (resolve, reject) => {
                                                                 let keyData = (await ApiUser.getPublicConfig(`robot_auto_reply`, 'manager')).response.value || {};
                                                                 if (Array.isArray(keyData)) {
@@ -470,10 +770,12 @@ export class BgCustomerMessage {
 
                                                                 resolve(html`
                                                                     <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 p-2 py-3 border-top border-bottom mt-2 shadow">
-                                                                        <span class="fs-6 fw-bold "
-                                                                              style="color:black;">常見問題</span>
+                                                                        <span class="fs-6 fw-bold d-flex flex-column"
+                                                                              style="color:black;">常見問題
+                                                                                 ${BgWidget.grayNote('將顯示於客服聊天首頁，讓用戶直接點選')}</span>
                                                                     </div>
                                                                     <div style="" class="p-2">
+
                                                                         ${gvc.bindView(() => {
                                                                             return {
                                                                                 bind: id,
@@ -821,11 +1123,11 @@ export class BgCustomerMessage {
                                                             </div>
                                                             <img
                                                                     src="${head}"
-                                                                    class="rounded-circle ${(dd.chat_id.startsWith('line') || dd.chat_id.startsWith('fb')) ? ``:`border`}"
-                                                                    style="border-radius: 50%;${(()=>{
-                                                                        if(dd.chat_id.startsWith('line')){
+                                                                    class="rounded-circle ${(dd.chat_id.startsWith('line') || dd.chat_id.startsWith('fb')) ? `` : `border`}"
+                                                                    style="border-radius: 50%;${(() => {
+                                                                        if (dd.chat_id.startsWith('line')) {
                                                                             return `border:2px solid green;`
-                                                                        }else  if(dd.chat_id.startsWith('fb')){
+                                                                        } else if (dd.chat_id.startsWith('fb')) {
                                                                             return `border:2px solid #0078ff;`
                                                                         }
                                                                     })()}"

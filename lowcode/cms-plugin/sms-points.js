@@ -192,10 +192,10 @@ export class SmsPoints {
                                 gvc.recreateView();
                             },
                             options: [
-                                { key: '500', value: '5,000點 ( NT.500 )' },
-                                { key: '1000', value: '10,000點 ( NT.1,000 )' },
-                                { key: '1500', value: '15,000點 ( NT.1,500 )' },
-                                { key: '2000', value: '20,000點 ( NT.2,000 )' },
+                                { key: '500', value: '5,000點' },
+                                { key: '1000', value: '10,000點' },
+                                { key: '1500', value: '15,000點' },
+                                { key: '2000', value: '20,000點' },
                             ],
                             default: `${vm.total}`,
                         }),

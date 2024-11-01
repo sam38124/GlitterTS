@@ -1,6 +1,6 @@
 {
   "name": "ts-glitter",
-  "version": "13.6.4",
+  "version": "13.8.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -55,7 +55,7 @@
     "nginx-conf": "^2.1.0",
     "nodemailer": "^6.9.3",
     "nodemon": "^2.0.20",
-    "openai": "4.63.0",
+    "openai": "4.68.4",
     "qs": "^6.12.1",
     "sharp": "^0.33.5",
     "ssh2": "^1.14.0",

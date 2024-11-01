@@ -49,9 +49,9 @@ class Chat {
                         },
                     ]);
                     await database_1.default.query(`delete
-                                    from \`${this.app}\`.\`t_chat_last_read\`
-                                    where user_id = ?
-                                      and chat_id = ?`, [b, room.chat_id]);
+                         from \`${this.app}\`.\`t_chat_last_read\`
+                         where user_id = ?
+                           and chat_id = ?`, [b, room.chat_id]);
                     await database_1.default.query(`
                             insert into \`${this.app}\`.\`t_chat_last_read\`
                             set ?
@@ -111,7 +111,9 @@ class Chat {
                                 b.unread = (await database_1.default.query(`SELECT count(1)
                                          FROM \`${this.app}\`.t_chat_detail,
                                               \`${this.app}\`.t_chat_last_read
-                                         where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(userID)})
+                                         where t_chat_detail.chat_id in (SELECT chat_id
+                                                                         FROM \`${this.app}\`.t_chat_participants
+                                                                         where user_id = ${database_1.default.escape(userID)})
                                            and (t_chat_detail.chat_id != 'manager-preview')
                                            and t_chat_detail.user_id!=${database_1.default.escape(userID)}
                                            and t_chat_detail.chat_id=${database_1.default.escape(b.chat_id)}
@@ -127,7 +129,8 @@ class Chat {
                                     try {
                                         b.user_data = (_b = ((_a = (await new user_js_1.User(this.app).getUserData(user, 'userID'))) !== null && _a !== void 0 ? _a : {}).userData) !== null && _b !== void 0 ? _b : {};
                                     }
-                                    catch (e) { }
+                                    catch (e) {
+                                    }
                                 }
                             }
                             resolve(true);
@@ -166,27 +169,33 @@ class Chat {
                 await new line_message_js_1.LineMessage(this.app).sendLine({
                     data: room.message,
                     lineID: newChatId,
-                }, () => { });
+                }, () => {
+                });
             }
             if (room.chat_id.startsWith('fb') && room.user_id == 'manager') {
                 const newChatId = room.chat_id.slice(3).split('-')[0];
                 await new fb_message_js_1.FbMessage(this.app).sendMessage({
                     data: room.message,
                     fbID: newChatId,
-                }, () => { });
+                }, () => {
+                });
             }
             let user = (await database_1.default.query(`SELECT userID, userData
                      FROM \`${this.app}\`.t_user
                      where userID = ?`, [room.user_id]))[0];
             if (room.user_id.startsWith('line')) {
                 user = {
-                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['line'],
+                    userData: (await database_1.default.query(`select info
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['line'],
                     userID: -1,
                 };
             }
             else if (room.user_id.startsWith('fb')) {
                 user = {
-                    userData: (await database_1.default.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['fb'],
+                    userData: (await database_1.default.query(`select info
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['fb'],
                     userID: -1,
                 };
             }
@@ -194,8 +203,8 @@ class Chat {
                  FROM \`${this.app}\`.t_chat_participants
                  where chat_id = ?`, [room.chat_id]);
             await database_1.default.query(`update \`${this.app}\`.t_chat_list
-                            set updated_time=NOW()
-                            where chat_id = ?`, [room.chat_id]);
+                 set updated_time=NOW()
+                 where chat_id = ?`, [room.chat_id]);
             const insert = await database_1.default.query(`
                     insert into \`${this.app}\`.\`t_chat_detail\`
                         (chat_id, user_id, message, created_time)
@@ -225,9 +234,9 @@ class Chat {
             }
             for (const b of particpant) {
                 if (b.user_id !== room.user_id) {
-                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                    if (['writer', 'order_analysis', 'operation_guide', 'design'].includes(b.user_id)) {
                         const response = await new Promise(async (resolve, reject) => {
-                            var _a, _b, _c;
+                            var _a, _b, _c, _d;
                             switch (b.user_id) {
                                 case 'writer':
                                     resolve(await ai_robot_js_1.AiRobot.writer(this.app, (_a = room.message.text) !== null && _a !== void 0 ? _a : ''));
@@ -237,6 +246,9 @@ class Chat {
                                     return;
                                 case 'operation_guide':
                                     resolve(await ai_robot_js_1.AiRobot.guide(this.app, (_c = room.message.text) !== null && _c !== void 0 ? _c : ''));
+                                    return;
+                                case 'design':
+                                    resolve(await ai_robot_js_1.AiRobot.design(this.app, (_d = room.message.text) !== null && _d !== void 0 ? _d : ''));
                                     return;
                             }
                         });
@@ -377,14 +389,38 @@ class Chat {
                 return dd.user_id === 'manager';
             }) &&
                 room.user_id !== 'manager') {
-                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
-                await new notify_js_1.ManagerNotify(this.app).customerMessager({
-                    title: template.title,
-                    content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
-                    user_name: user.userData.name,
-                    room_image: room.message.image,
-                    room_text: room.message.text,
+                console.log(`收到客服訊息---`, JSON.stringify(room));
+                let message_setting = await (new user_js_1.User(this.app)).getConfigV2({
+                    key: 'message_setting',
+                    user_id: 'manager'
                 });
+                const ai_response_toggle = message_setting.ai_toggle;
+                if (ai_response_toggle) {
+                    if (room.message.text) {
+                        const aiResponse = await ai_robot_js_1.AiRobot.aiResponse(this.app, room.message.text);
+                        if (aiResponse) {
+                            if (aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) {
+                                if ((aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) !== 'no-data') {
+                                    await this.addMessage({
+                                        "chat_id": room.chat_id,
+                                        "user_id": "manager",
+                                        "message": { "text": aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text, "attachment": "", ai_usage: aiResponse.usage, "type": "robot" }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                    await new notify_js_1.ManagerNotify(this.app).customerMessager({
+                        title: template.title,
+                        content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
+                        user_name: user.userData.name,
+                        room_image: room.message.image,
+                        room_text: room.message.text,
+                    });
+                }
             }
         }
         catch (e) {
@@ -468,7 +504,8 @@ class Chat {
         return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.*
              FROM \`${this.app}\`.t_chat_detail,
                   \`${this.app}\`.t_chat_last_read
-             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
+             where t_chat_detail.chat_id in
+                   (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
                and (t_chat_detail.chat_id != 'manager-preview')
                and t_chat_detail.user_id!=${database_1.default.escape(user_id)}
                and t_chat_last_read.user_id= ${database_1.default.escape(user_id)}
@@ -481,7 +518,8 @@ class Chat {
         return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.*
              FROM \`${this.app}\`.t_chat_detail,
                   \`${this.app}\`.t_chat_last_read
-             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
+             where t_chat_detail.chat_id in
+                   (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${database_1.default.escape(user_id)})
                and (t_chat_detail.chat_id != 'manager-preview')
                and t_chat_detail.user_id!=${database_1.default.escape(user_id)}
                and t_chat_detail.chat_id=t_chat_last_read.chat_id

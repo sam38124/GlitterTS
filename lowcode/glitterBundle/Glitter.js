@@ -756,16 +756,22 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
     ;
-    openDrawer() {
+    openDrawer(width) {
         if (window.drawer !== undefined) {
             $("#Navigation").show();
             window.drawer.open();
+            if (width) {
+                document.querySelector('.hy-drawer-content').style.width = width + 'px';
+            }
         }
         else {
             var timer = setInterval(function () {
                 if (window.drawer !== undefined) {
                     $("#Navigation").show();
                     window.drawer.open();
+                    if (width) {
+                        document.querySelector('.hy-drawer-content').style.width = width + 'px';
+                    }
                     clearInterval(timer);
                 }
             }, 100);

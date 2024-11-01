@@ -28,22 +28,30 @@ gvc.addStyle(`.btn-gray {
     background: #aeaeae;
     color:#585858 !important;
 }`)
+            // ${grayButton(
+            //     '列印',
+            //     gvc.event(() => {
+            //         $('#' + hd).addClass('d-none');
+            //         window.print();
+            //         $('#' + hd).removeClass('d-none');
+            //     })
+            // )}
             const id = glitter.getUUID();
             const hd = glitter.getUUID();
+            // <a href="文件連結網址" download="文件名稱">下載文件</a>
             const html = String.raw;
             return html`
                 <div class="vw-100 vh-100 d-flex align-items-center justify-content-center"
                      style="background-color: rgba(0,0,0,0.5);">
                     <div id="${hd}" style="height:50px;right:0;top:${gvc.glitter.share.top_inset || 0}px;"
                          class="m-2 position-absolute d-flex align-items-center justify-content-center gap-2">
-                        ${grayButton(
-                                '列印',
-                                gvc.event(() => {
-                                    $('#' + hd).addClass('d-none');
-                                    window.print();
-                                    $('#' + hd).removeClass('d-none');
-                                })
-                        )}
+                        <div class="btn btn-gray" href="${gBundle}" onclick="${gvc.event(()=>{
+                            const link = document.createElement('a');
+                            link.href = gBundle;
+                            link.click();
+                        })}">
+                            <span class="tx_700" style="">下載圖片</span>
+                        </div>
                         ${grayButton(
                                 '關閉',
                                 gvc.event(() => {

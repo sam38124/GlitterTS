@@ -181,7 +181,7 @@ export class ProductSelect {
                                             case 'product':
                                                 return html` <div class="d-flex align-items-center form-check-label c_updown_label px-1" style="justify-content: space-between" data-index="${opt.key}">
                                                     <div class="d-flex align-items-center gap-3 cursor_move">
-                                                        <i class="fa-solid fa-grip-dots-vertical"></i>
+                                                        <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
                                                         ${BgWidget.validImageBox({
                                                             gvc,
                                                             image: opt.image,
@@ -232,6 +232,7 @@ export class ProductSelect {
                         const el = document.querySelector(`#${subVM.containerId}`) as HTMLElement;
                         (window as any).Sortable.create(el, {
                             animation: 150,
+                            handle: '.dragItem',
                             onEnd: function () {
                                 const elements = el.querySelectorAll('[data-index]');
                                 const dataIndices = Array.from(elements).map((element) => element.getAttribute('data-index'));

@@ -108,7 +108,8 @@ export class Editor {
                 })();
                 content.config = glitter.share.editorViewModel.data.config;
                 localStorage.setItem('preview_data', JSON.stringify(content));
-                (window.parent as any).glitter.openNewTab(href);
+                const url = new URL(href);
+                (window.parent as any).glitter.openNewTab(url.href);
             } else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
                 if (document.body.clientWidth < 800) {
                     glitter.openNewTab(`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`);
@@ -124,6 +125,10 @@ export class Editor {
                 const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set('page', glitter.getUrlParameter('page'));
+                if (document.body.clientWidth < 800 && Storage.view_type === 'desktop' && gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                    url.searchParams.set('_preview_width', '1300');
+                    url.searchParams.set('_preview_scale', `${(document.body.clientWidth / 1300).toFixed(2)}`);
+                }
                 glitter.openNewTab(url.href);
             }
         }
@@ -239,15 +244,15 @@ export class Editor {
                             <div
                                     class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
                                     style="${(() => {
-                switch (EditorConfig.backend_page()) {
-                    case 'page-editor':
-                        return `width: 219px;`;
-                    case 'user-editor':
-                        return `width: 300px;`;
-                    default:
-                        return `width: 218px;`;
-                }
-            })()}"
+                                        switch (EditorConfig.backend_page()) {
+                                            case 'page-editor':
+                                                return `width: 219px;`;
+                                            case 'user-editor':
+                                                return `width: 300px;`;
+                                            default:
+                                                return `width: 218px;`;
+                                        }
+                                    })()}"
                             >
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="min-width:38px;height: 56px;width:38px;">
@@ -255,8 +260,8 @@ export class Editor {
                                             class="fa-solid fa-left-to-bracket hoverBtn"
                                             style="cursor:pointer;"
                                             onclick="${gvc.event(() => {
-                goBack();
-            })}"
+                                                goBack();
+                                            })}"
                                     >
                                     </i>
                                 </div>
@@ -276,12 +281,12 @@ color: transparent;"
                                     class="border-end d-flex align-items-center justify-content-center ms-n2 fs-3 d-sm-none"
                                     style="width:56px;height: 56px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
-                if ((EditorConfig.backend_page() === 'backend-manger')) {
-                    glitter.openDrawer();
-                } else {
-                    goBack()
-                }
-            })}"
+                                if ((EditorConfig.backend_page() === 'backend-manger')) {
+                                    glitter.openDrawer();
+                                } else {
+                                    goBack()
+                                }
+                            })}"
                             >
                                 ${((EditorConfig.backend_page() === 'backend-manger')) ? `<i class="fa-solid fa-bars"></i>` : ` <i class="fa-solid fa-arrow-left-from-arc"></i>`}
                              
@@ -295,42 +300,42 @@ color: transparent;"
                                             </div>
                                 <ul class="dropdown-menu">
                                 ${[
-                {
-                    icon: `<i class="fa-duotone fa-window guide-user-editor-1-icon"></i>`,
-                    index: 'layout',
-                    title: '元件列表總覽',
-                },
-                {
-                    icon: `<i class="fa-sharp fa-regular fa-globe guide-user-editor-11-icon"></i>`,
-                    index: 'color',
-                    title: '全站樣式設定'
-                },
-                {
-                    icon: `<i class="fa-regular fa-grid-2 design-guide-1-icon"></i>`,
-                    index: 'widget',
-                    title: '統一元件設定'
-                },
-                {
-                    icon: `<i class="fa-solid fa-arrow-left-from-arc"></i>`,
-                    title: `返回後台`,
-                    event:gvc.event(()=>{
-                        goBack()
-                    })
-                }
-            ].map((dd) => {
-                return `<li><a  class="dropdown-item d-flex align-items-center" style="gap:10px;" onclick="${dd.event ?? gvc.event(()=>{
-                    gvc.glitter.share.editorViewModel.waitCopy = undefined;
-                    gvc.glitter.share.editorViewModel.selectItem = undefined;
-                    Storage.page_setting_item = dd.index as any;
-                    if (document.body.clientWidth < 800) {
-                        glitter.openDrawer()
-                    }
-                    Storage.lastSelect = '';
-                    gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
-                })}">
+                                {
+                                    icon: `<i class="fa-duotone fa-window guide-user-editor-1-icon"></i>`,
+                                    index: 'layout',
+                                    title: '元件列表總覽',
+                                },
+                                {
+                                    icon: `<i class="fa-sharp fa-regular fa-globe guide-user-editor-11-icon"></i>`,
+                                    index: 'color',
+                                    title: '全站樣式設定'
+                                },
+                                {
+                                    icon: `<i class="fa-regular fa-grid-2 design-guide-1-icon"></i>`,
+                                    index: 'widget',
+                                    title: '統一元件設定'
+                                },
+                                {
+                                    icon: `<i class="fa-solid fa-arrow-left-from-arc"></i>`,
+                                    title: `返回後台`,
+                                    event: gvc.event(() => {
+                                        goBack()
+                                    })
+                                }
+                            ].map((dd) => {
+                                return `<li><a  class="dropdown-item d-flex align-items-center" style="gap:10px;" onclick="${dd.event ?? gvc.event(() => {
+                                    gvc.glitter.share.editorViewModel.waitCopy = undefined;
+                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                    Storage.page_setting_item = dd.index as any;
+                                    if (document.body.clientWidth < 800) {
+                                        glitter.openDrawer()
+                                    }
+                                    Storage.lastSelect = '';
+                                    gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
+                                })}">
 <div class="d-flex align-items-center" style="width:20px;">${dd.icon}</div>
 ${dd.title}</a></li>`
-            }).join('')}
+                            }).join('')}
                                 </ul>
                             </li>
                             `}
@@ -338,15 +343,15 @@ ${dd.title}</a></li>`
                                  style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `39.5px`};height: 56px; "></div>
 
                             ${(() => {
-                if (Storage.select_function === 'backend-manger') {
-                    return html`
+                                if (Storage.select_function === 'backend-manger') {
+                                    return html`
                                         <div
                                                 class=" t_39_normal border-end px-4  d-flex align-items-center justify-content-center indexGuideBTN d-none d-sm-flex"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
-                        let bgGuide = new BgGuide(gvc, 0);
-                        bgGuide.drawGuide();
-                    })}"
+                                                    let bgGuide = new BgGuide(gvc, 0);
+                                                    bgGuide.drawGuide();
+                                                })}"
                                         >
                                             開店導覽
                                         </div>
@@ -354,55 +359,76 @@ ${dd.title}</a></li>`
                                                 class="me-auto t_39_normal border-end px-4 d-none d-sm-flex align-items-center justify-content-center"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
-                        gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');
-                    })}"
+                                                    gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');
+                                                })}"
                                         >
                                             教學文章
                                         </div>
 
                                     `;
-                } else {
-                    return ``;
-                }
-            })()}
+                                } else {
+                                    return ``;
+                                }
+                            })()}
                             <div class="ms-2 d-flex align-items-center flex-fill ${Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor' ? `` : `d-none`}"
                                  style="">
                                 ${gvc.bindView(() => {
-                const id = gvc.glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return [
-                            html`
-                                                    <div class="indexGuideBTN d-none d-sm-block"
-                                                         style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
-                                                         data-bs-html="true" title="新手教學"
-                                                         onclick="${gvc.event(() => {
-                                let bgGuide = new BgGuide(gvc, 0, "user-editor", 1);
-                                bgGuide.drawGuide();
-                            })}">
-                                                        <div style="display: flex;width: 32px;height: 32px;padding: 7px;justify-content: center;align-items: center;border-radius: 5.833px;border: 1px solid #DDD;background: #FFF;">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18"
-                                                                 height="18" viewBox="0 0 18 18" fill="none">
-                                                                <g clip-path="url(#clip0_12535_211966)">
-                                                                    <path d="M16.3125 9C16.3125 7.0606 15.5421 5.20064 14.1707 3.82928C12.7994 2.45792 10.9394 1.6875 9 1.6875C7.0606 1.6875 5.20064 2.45792 3.82928 3.82928C2.45792 5.20064 1.6875 7.0606 1.6875 9C1.6875 10.9394 2.45792 12.7994 3.82928 14.1707C5.20064 15.5421 7.0606 16.3125 9 16.3125C10.9394 16.3125 12.7994 15.5421 14.1707 14.1707C15.5421 12.7994 16.3125 10.9394 16.3125 9ZM0 9C0 6.61305 0.948212 4.32387 2.63604 2.63604C4.32387 0.948212 6.61305 0 9 0C11.3869 0 13.6761 0.948212 15.364 2.63604C17.0518 4.32387 18 6.61305 18 9C18 11.3869 17.0518 13.6761 15.364 15.364C13.6761 17.0518 11.3869 18 9 18C6.61305 18 4.32387 17.0518 2.63604 15.364C0.948212 13.6761 0 11.3869 0 9ZM5.96953 5.81133C6.24727 5.02734 6.99258 4.5 7.82578 4.5H9.87539C11.1023 4.5 12.0938 5.49492 12.0938 6.71836C12.0938 7.51289 11.6684 8.24766 10.9793 8.64492L9.84375 9.29531C9.83672 9.75234 9.46055 10.125 9 10.125C8.53242 10.125 8.15625 9.74883 8.15625 9.28125V8.80664C8.15625 8.5043 8.31797 8.22656 8.58164 8.07539L10.1391 7.18242C10.3043 7.0875 10.4062 6.91172 10.4062 6.72187C10.4062 6.42656 10.1672 6.19102 9.87539 6.19102H7.82578C7.70625 6.19102 7.60078 6.26484 7.56211 6.37734L7.54805 6.41953C7.39336 6.85898 6.9082 7.0875 6.47227 6.93281C6.03633 6.77812 5.8043 6.29297 5.95898 5.85703L5.97305 5.81484L5.96953 5.81133ZM7.875 12.375C7.875 12.0766 7.99353 11.7905 8.2045 11.5795C8.41548 11.3685 8.70163 11.25 9 11.25C9.29837 11.25 9.58452 11.3685 9.7955 11.5795C10.0065 11.7905 10.125 12.0766 10.125 12.375C10.125 12.6734 10.0065 12.9595 9.7955 13.1705C9.58452 13.3815 9.29837 13.5 9 13.5C8.70163 13.5 8.41548 13.3815 8.2045 13.1705C7.99353 12.9595 7.875 12.6734 7.875 12.375Z"
-                                                                          fill="#393939"/>
-                                                                </g>
-                                                                <defs>
-                                                                    <clipPath id="clip0_12535_211966">
-                                                                        <rect width="18" height="18" fill="white"/>
-                                                                    </clipPath>
-                                                                </defs>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                `,
-                            html`
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            const size = document.body.clientWidth > 768 ? 24 : 18;
+                                            return [
+                                                html`
+                                                    <div
+                                                            class="ms-auto me-2 bt_orange_lin"
+                                                            style=""
+                                                            onclick="${gvc.event(() => {
+                                                                AiMessage.toggle(true,[
+                                                                    {
+                                                                        key: 'writer',
+                                                                        label: '文案寫手',
+                                                                    },
+                                                                    {
+                                                                        key: 'design',
+                                                                        label: '圖片生成',
+                                                                    }
+                                                                ]);
+                                                            })}"
+                                                    >
+                                                        <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                             class="me-2" style="width:${size}px;height: ${size}px;">AI助手
+                                                    </div>`,
+                                                // html`
+                                                //                         <div class="indexGuideBTN d-none d-sm-block"
+                                                //                              style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
+                                                //                              data-bs-html="true" title="新手教學"
+                                                //                              onclick="${gvc.event(() => {
+                                                //     let bgGuide = new BgGuide(gvc, 0, "user-editor", 1);
+                                                //     bgGuide.drawGuide();
+                                                // })}">
+                                                //                             <div style="display: flex;width: 32px;height: 32px;padding: 7px;justify-content: center;align-items: center;border-radius: 5.833px;border: 1px solid #DDD;background: #FFF;">
+                                                //                                 <svg xmlns="http://www.w3.org/2000/svg" width="18"
+                                                //                                      height="18" viewBox="0 0 18 18" fill="none">
+                                                //                                     <g clip-path="url(#clip0_12535_211966)">
+                                                //                                         <path d="M16.3125 9C16.3125 7.0606 15.5421 5.20064 14.1707 3.82928C12.7994 2.45792 10.9394 1.6875 9 1.6875C7.0606 1.6875 5.20064 2.45792 3.82928 3.82928C2.45792 5.20064 1.6875 7.0606 1.6875 9C1.6875 10.9394 2.45792 12.7994 3.82928 14.1707C5.20064 15.5421 7.0606 16.3125 9 16.3125C10.9394 16.3125 12.7994 15.5421 14.1707 14.1707C15.5421 12.7994 16.3125 10.9394 16.3125 9ZM0 9C0 6.61305 0.948212 4.32387 2.63604 2.63604C4.32387 0.948212 6.61305 0 9 0C11.3869 0 13.6761 0.948212 15.364 2.63604C17.0518 4.32387 18 6.61305 18 9C18 11.3869 17.0518 13.6761 15.364 15.364C13.6761 17.0518 11.3869 18 9 18C6.61305 18 4.32387 17.0518 2.63604 15.364C0.948212 13.6761 0 11.3869 0 9ZM5.96953 5.81133C6.24727 5.02734 6.99258 4.5 7.82578 4.5H9.87539C11.1023 4.5 12.0938 5.49492 12.0938 6.71836C12.0938 7.51289 11.6684 8.24766 10.9793 8.64492L9.84375 9.29531C9.83672 9.75234 9.46055 10.125 9 10.125C8.53242 10.125 8.15625 9.74883 8.15625 9.28125V8.80664C8.15625 8.5043 8.31797 8.22656 8.58164 8.07539L10.1391 7.18242C10.3043 7.0875 10.4062 6.91172 10.4062 6.72187C10.4062 6.42656 10.1672 6.19102 9.87539 6.19102H7.82578C7.70625 6.19102 7.60078 6.26484 7.56211 6.37734L7.54805 6.41953C7.39336 6.85898 6.9082 7.0875 6.47227 6.93281C6.03633 6.77812 5.8043 6.29297 5.95898 5.85703L5.97305 5.81484L5.96953 5.81133ZM7.875 12.375C7.875 12.0766 7.99353 11.7905 8.2045 11.5795C8.41548 11.3685 8.70163 11.25 9 11.25C9.29837 11.25 9.58452 11.3685 9.7955 11.5795C10.0065 11.7905 10.125 12.0766 10.125 12.375C10.125 12.6734 10.0065 12.9595 9.7955 13.1705C9.58452 13.3815 9.29837 13.5 9 13.5C8.70163 13.5 8.41548 13.3815 8.2045 13.1705C7.99353 12.9595 7.875 12.6734 7.875 12.375Z"
+                                                //                                               fill="#393939"/>
+                                                //                                     </g>
+                                                //                                     <defs>
+                                                //                                         <clipPath id="clip0_12535_211966">
+                                                //                                             <rect width="18" height="18" fill="white"/>
+                                                //                                         </clipPath>
+                                                //                                     </defs>
+                                                //                                 </svg>
+                                                //                             </div>
+                                                //                         </div>
+                                                //                     `,
+                                                html`
                                                     <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
                                                          style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                          onclick="${gvc.event(() => {
-                                SetGlobalValue.toggle(true);
-                            })}"
+                                                             SetGlobalValue.toggle(true);
+                                                         })}"
                                                          data-bs-toggle="tooltip"
                                                          data-bs-placement="top"
                                                          data-bs-custom-class="custom-tooltip"
@@ -410,17 +436,17 @@ ${dd.title}</a></li>`
                                                     >
                                                         <i class="fa-solid fa-bars"></i>
                                                     </div>`
-                        ].join('');
-                    },
-                    divCreate: {
-                        class: `d-flex align-items-center`
-                    },
-                    onCreate: () => {
-                        $('.tooltip').remove();
-                        $('[data-bs-toggle="tooltip"]').tooltip();
-                    },
-                };
-            })}
+                                            ].join('');
+                                        },
+                                        divCreate: {
+                                            class: `d-flex align-items-center`
+                                        },
+                                        onCreate: () => {
+                                            $('.tooltip').remove();
+                                            $('[data-bs-toggle="tooltip"]').tooltip();
+                                        },
+                                    };
+                                })}
                                 <div class="flex-fill"></div>
                                 <div class="d-flex align-items-center"
                                      style="position: absolute;transform: translateX(-50%);${(document.body.clientWidth > 800) ? `left: calc(50% + 15px);` : `left: calc(50%);`}">
@@ -432,8 +458,8 @@ ${dd.title}</a></li>`
                                             data-bs-custom-class="custom-tooltip"
                                             data-bs-title="頁面代碼"
                                             onclick="${gvc.event(() => {
-                PageCodeSetting.toggle(true, gvc);
-            })}"
+                                                PageCodeSetting.toggle(true, gvc);
+                                            })}"
                                     >
                                         <i class="fa-sharp fa-regular fa-square-code"></i>
                                     </div>
@@ -445,16 +471,16 @@ ${dd.title}</a></li>`
                                             data-bs-custom-class="custom-tooltip"
                                             data-bs-title="頁面編輯"
                                             onclick="${gvc.event(() => {
-                PageSettingView.toggle(true);
-            })}"
+                                                PageSettingView.toggle(true);
+                                            })}"
                                     >
                                         <i class="fa-regular fa-gear"></i>
                                     </div>
                                     ${(() => {
-                if (Storage.select_function === 'backend-manger') {
-                    return ``
-                }
-                return html`
+                                        if (Storage.select_function === 'backend-manger') {
+                                            return ``
+                                        }
+                                        return html`
                                             <div
                                                     class="btn-group "
                                                     style="${(document.body.clientWidth < 768) ? `` : `max-width:350px;min-width:200px;`}
@@ -462,96 +488,96 @@ ${dd.title}</a></li>`
                                                "
                                             >
                                                 ${(document.body.clientWidth < 800) ? [
-                    getSizeSelection()
-                ].join('') : ` <button
+                                                    getSizeSelection()
+                                                ].join('') : ` <button
                                                             type="button"
                                                             class="btn btn-outline-secondary rounded px-2 "
                                                             onclick="${gvc.event(() => {
-                    if (gvc.glitter.getUrlParameter('device') !== 'mobile') {
-                        $('#topd').toggle();
-                    }
-                })}"
+                                                    if (gvc.glitter.getUrlParameter('device') !== 'mobile') {
+                                                        $('#topd').toggle();
+                                                    }
+                                                })}"
                                                     >
                                                         <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${data.data.name}</span>
                                                         <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y ${(gvc.glitter.getUrlParameter('device') === 'mobile') ? `d-none` : ``}"
                                                            style="top: 50%;right: 20px;"></i>
                                                     </button>`}
                                                 ${gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            if (Storage.select_function !== 'page-editor') {
-                                return ``
-                            }
-                            return html`
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            if (Storage.select_function !== 'page-editor') {
+                                                                return ``
+                                                            }
+                                                            return html`
                                                                 <div class="px-2">
                                                                     ${EditorElem.select({
-                                title: '',
-                                gvc: gvc,
-                                def: Storage.select_page_type || 'page',
-                                array: EditorConfig.page_type_list,
-                                callback: (text: string) => {
-                                    Storage.select_page_type = text as any;
-                                    gvc.notifyDataChange(id);
-                                    setTimeout(() => {
-                                        $('#topd').toggle();
-                                    });
-                                },
-                            })}
+                                                                        title: '',
+                                                                        gvc: gvc,
+                                                                        def: Storage.select_page_type || 'page',
+                                                                        array: EditorConfig.page_type_list,
+                                                                        callback: (text: string) => {
+                                                                            Storage.select_page_type = text as any;
+                                                                            gvc.notifyDataChange(id);
+                                                                            setTimeout(() => {
+                                                                                $('#topd').toggle();
+                                                                            });
+                                                                        },
+                                                                    })}
                                                                 </div>
                                                                 <div class="w-100 border-bottom mt-2 "></div>
                                                                 <ul class="list-group list-group-flush mt-2">
                                                                     ${(() => {
-                                return gvc.bindView(() => {
-                                    const id = glitter.getUUID();
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return new Promise(async (resolve, reject) => {
-                                                PageEditor.pageSelctor(
-                                                    gvc,
-                                                    (d3: any) => {
-                                                        glitter.share.clearSelectItem();
-                                                        data.data = d3;
-                                                        glitter.setUrlParameter('page', d3.tag);
-                                                        glitter.share.reloadEditor();
-                                                    },
-                                                    {
-                                                        filter: (data) => {
-                                                            if (Storage.select_function === 'user-editor') {
-                                                                return data.page_config && data.page_config.support_editor === 'true';
-                                                            } else {
-                                                                return data.page_type == Storage.select_page_type;
-                                                            }
-                                                        },
-                                                    }
-                                                ).then((data) => {
-                                                    resolve(data.left);
-                                                });
-                                            });
-                                        },
-                                        divCreate: {
-                                            class: `ms-n2 mt-n2`,
-                                        },
-                                    };
-                                });
-                            })()}
+                                                                        return gvc.bindView(() => {
+                                                                            const id = glitter.getUUID();
+                                                                            return {
+                                                                                bind: id,
+                                                                                view: () => {
+                                                                                    return new Promise(async (resolve, reject) => {
+                                                                                        PageEditor.pageSelctor(
+                                                                                                gvc,
+                                                                                                (d3: any) => {
+                                                                                                    glitter.share.clearSelectItem();
+                                                                                                    data.data = d3;
+                                                                                                    glitter.setUrlParameter('page', d3.tag);
+                                                                                                    glitter.share.reloadEditor();
+                                                                                                },
+                                                                                                {
+                                                                                                    filter: (data) => {
+                                                                                                        if (Storage.select_function === 'user-editor') {
+                                                                                                            return data.page_config && data.page_config.support_editor === 'true';
+                                                                                                        } else {
+                                                                                                            return data.page_type == Storage.select_page_type;
+                                                                                                        }
+                                                                                                    },
+                                                                                                }
+                                                                                        ).then((data) => {
+                                                                                            resolve(data.left);
+                                                                                        });
+                                                                                    });
+                                                                                },
+                                                                                divCreate: {
+                                                                                    class: `ms-n2 mt-n2`,
+                                                                                },
+                                                                            };
+                                                                        });
+                                                                    })()}
                                                                 </ul>`;
-                        },
-                        divCreate: {
-                            class: 'dropdown-menu',
-                            style: `margin-top: 50px;max-height: calc(100vh - 100px);width:${document.body.clientWidth < 768 ? 200 : 260}px;overflow-y: scroll;`,
-                            option: [{key: 'id', value: 'topd'}],
-                        },
-                        onCreate: () => {
-                            $('.tooltip')!.remove();
-                            ($('[data-bs-toggle="tooltip"]') as any).tooltip();
-                        },
-                    };
-                })}
+                                                        },
+                                                        divCreate: {
+                                                            class: 'dropdown-menu',
+                                                            style: `margin-top: 50px;max-height: calc(100vh - 100px);width:${document.body.clientWidth < 768 ? 200 : 260}px;overflow-y: scroll;`,
+                                                            option: [{key: 'id', value: 'topd'}],
+                                                        },
+                                                        onCreate: () => {
+                                                            $('.tooltip')!.remove();
+                                                            ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                                                        },
+                                                    };
+                                                })}
                                             </div>`;
-            })()}
+                                    })()}
 
                                     <div
                                             class="d-flex align-items-center justify-content-center hoverBtn ms-2 me-1 border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
@@ -561,99 +587,99 @@ ${dd.title}</a></li>`
                                             data-bs-custom-class="custom-tooltip"
                                             data-bs-title="複製當前頁面"
                                             onclick="${gvc.event(() => {
-                EditorElem.openEditorDialog(
-                    gvc,
-                    (gvc) => {
-                        const tdata: {
-                            appName: string;
-                            tag: string;
-                            group?: string;
-                            name?: string;
-                            config?: [];
-                            page_config?: any;
-                            copy?: string;
-                            page_type?: string;
-                        } = {
-                            appName: config.appName,
-                            tag: '',
-                            group: gvc.glitter.share.editorViewModel.data.group,
-                            name: '',
-                            config: [],
-                            page_type: Storage.select_page_type,
-                            copy: gvc.glitter.getUrlParameter('page'),
-                        };
-                        return html`
+                                                EditorElem.openEditorDialog(
+                                                        gvc,
+                                                        (gvc) => {
+                                                            const tdata: {
+                                                                appName: string;
+                                                                tag: string;
+                                                                group?: string;
+                                                                name?: string;
+                                                                config?: [];
+                                                                page_config?: any;
+                                                                copy?: string;
+                                                                page_type?: string;
+                                                            } = {
+                                                                appName: config.appName,
+                                                                tag: '',
+                                                                group: gvc.glitter.share.editorViewModel.data.group,
+                                                                name: '',
+                                                                config: [],
+                                                                page_type: Storage.select_page_type,
+                                                                copy: gvc.glitter.getUrlParameter('page'),
+                                                            };
+                                                            return html`
                                                                 <div class="py-2 px-2">
                                                                     ${gvc.bindView(() => {
-                            const id = glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return gvc.map([
-                                        glitter.htmlGenerate.editeInput({
-                                            gvc: gvc,
-                                            title: '頁面標籤',
-                                            default: '',
-                                            placeHolder: '請輸入頁面標籤[不得重複]',
-                                            callback: (text) => {
-                                                tdata.tag = text;
-                                            },
-                                        }),
-                                        glitter.htmlGenerate.editeInput({
-                                            gvc: gvc,
-                                            title: '頁面名稱',
-                                            default: '',
-                                            placeHolder: '請輸入頁面名稱',
-                                            callback: (text) => {
-                                                tdata.name = text;
-                                            },
-                                        }),
-                                    ]);
-                                },
-                                divCreate: {},
-                            };
-                        })}
+                                                                        const id = glitter.getUUID();
+                                                                        return {
+                                                                            bind: id,
+                                                                            view: () => {
+                                                                                return gvc.map([
+                                                                                    glitter.htmlGenerate.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: '頁面標籤',
+                                                                                        default: '',
+                                                                                        placeHolder: '請輸入頁面標籤[不得重複]',
+                                                                                        callback: (text) => {
+                                                                                            tdata.tag = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    glitter.htmlGenerate.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: '頁面名稱',
+                                                                                        default: '',
+                                                                                        placeHolder: '請輸入頁面名稱',
+                                                                                        callback: (text) => {
+                                                                                            tdata.name = text;
+                                                                                        },
+                                                                                    }),
+                                                                                ]);
+                                                                            },
+                                                                            divCreate: {},
+                                                                        };
+                                                                    })}
                                                                 </div>
                                                                 <div class="d-flex w-100 my-2 align-items-center justify-content-center">
                                                                     <button
                                                                             class="btn btn-primary "
                                                                             style="width: calc(100% - 20px);"
                                                                             onclick="${gvc.event(() => {
-                            const dialog = new ShareDialog(glitter);
-                            dialog.dataLoading({
-                                text: '上傳中',
-                                visible: true
-                            });
-                            ApiPageConfig.addPage(tdata).then((it) => {
-                                setTimeout(() => {
-                                    dialog.dataLoading({
-                                        text: '',
-                                        visible: false
-                                    });
-                                    if (it.result) {
-                                        location.href = `${glitter.root_path}/${tdata.tag}?type=editor&appName=${
-                                            (window as any).appName
-                                        }&function=${EditorConfig.backend_page()}`;
-                                    } else {
-                                        dialog.errorMessage({
-                                            text: '已有此頁面標籤',
-                                        });
-                                    }
-                                }, 1000);
-                            });
-                        })}"
+                                                                                const dialog = new ShareDialog(glitter);
+                                                                                dialog.dataLoading({
+                                                                                    text: '上傳中',
+                                                                                    visible: true
+                                                                                });
+                                                                                ApiPageConfig.addPage(tdata).then((it) => {
+                                                                                    setTimeout(() => {
+                                                                                        dialog.dataLoading({
+                                                                                            text: '',
+                                                                                            visible: false
+                                                                                        });
+                                                                                        if (it.result) {
+                                                                                            location.href = `${glitter.root_path}/${tdata.tag}?type=editor&appName=${
+                                                                                                    (window as any).appName
+                                                                                            }&function=${EditorConfig.backend_page()}`;
+                                                                                        } else {
+                                                                                            dialog.errorMessage({
+                                                                                                text: '已有此頁面標籤',
+                                                                                            });
+                                                                                        }
+                                                                                    }, 1000);
+                                                                                });
+                                                                            })}"
                                                                     >
                                                                         確認新增
                                                                     </button>
                                                                 </div>
                                                             `;
-                    },
-                    () => {
-                    },
-                    300,
-                    '複製頁面'
-                );
-            })}"
+                                                        },
+                                                        () => {
+                                                        },
+                                                        300,
+                                                        '複製頁面'
+                                                );
+                                            })}"
                                     >
                                         <i class="fa-regular fa-copy"></i>
                                     </div>
@@ -665,31 +691,31 @@ ${dd.title}</a></li>`
                                             data-bs-custom-class="custom-tooltip"
                                             data-bs-title="添加頁面"
                                             onclick="${gvc.event(() => {
-                AddPage.toggle(true);
-            })}"
+                                                AddPage.toggle(true);
+                                            })}"
                                     >
                                         <i class="fa-regular fa-circle-plus"></i>
                                     </div>
                                 </div>
                                 <div class="flex-fill"></div>
                                 ${(() => {
-                return [
-                    html`
+                                    return [
+                                        html`
                                             <div
                                                     class="d-flex align-items-center justify-content-center hoverBtn  border d-none"
                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                     onclick="${gvc.event(() => {
-                        EditorElem.openEditorDialog(
-                            gvc,
-                            (gvc) => {
-                                return BgGlobalEvent.mainPage(gvc);
-                            },
-                            () => {
-                            },
-                            800,
-                            '事件集管理'
-                        );
-                    })}"
+                                                        EditorElem.openEditorDialog(
+                                                                gvc,
+                                                                (gvc) => {
+                                                                    return BgGlobalEvent.mainPage(gvc);
+                                                                },
+                                                                () => {
+                                                                },
+                                                                800,
+                                                                '事件集管理'
+                                                        );
+                                                    })}"
                                                     data-bs-toggle="tooltip"
                                                     data-bs-placement="top"
                                                     data-bs-custom-class="custom-tooltip"
@@ -697,55 +723,57 @@ ${dd.title}</a></li>`
                                             >
                                                 <i class="fa-sharp fa-regular fa-brackets-curly"></i>
                                             </div>`,
-                ].join(`<div class="me-1"></div>`);
-            })()}
+                                    ].join(`<div class="me-1"></div>`);
+                                })()}
                                 ${gvc.bindView(() => {
-                return {
-                    bind: 'step-container',
-                    view: () => {
-                        const stepManager: StepManager<() => void> = glitter.share.stepManager;
-                        return html`
+                                    return {
+                                        bind: 'step-container',
+                                        view: () => {
+                                            const stepManager: StepManager<() => void> = glitter.share.stepManager;
+                                            return html`
                                                 <div class="fs-5"
                                                      style="cursor: pointer;color: ${(!stepManager.canGoBack()) ? `#DDDDDD` : `#393939`};"
                                                      onclick="${gvc.event(() => {
 
-                            (stepManager.previousStep())!()
-                        })}">
+                                                         (stepManager.previousStep())!()
+                                                     })}">
                                                     <i class="fa-solid fa-arrow-rotate-left"></i>
                                                 </div>
                                                 <div class=" fs-5"
                                                      style="cursor: pointer;color: ${(!stepManager.canGoForward()) ? `#DDDDDD` : `#393939`};"
                                                      onclick="${gvc.event(() => {
-                            (stepManager.nextStep())!()
-                        })}">
+                                                         (stepManager.nextStep())!()
+                                                     })}">
                                                     <i class="fa-solid fa-arrow-rotate-right"></i>
                                                 </div>`
-                    },
-                    divCreate: {
-                        class: `d-flex me-3`, style: `gap:10px;`
-                    }
-                }
-            })}
+                                        },
+                                        divCreate: {
+                                            class: `d-flex me-3`, style: `gap:10px;`
+                                        }
+                                    }
+                                })}
 
                                 ${document.body.clientWidth > 768 ? getSizeSelection() : ``}
                                 ${document.body.clientWidth < 768
-                ? html`
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"  style="width:56px;height: 56px;cursor: pointer;"
+                                        ? html`
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
+                                                 style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
-                    preView()
-                })}">
+                                                     preView()
+                                                 })}">
                                                 <i class="fa-solid fa-eyes"></i>
                                                 <span class="fw-500" style="font-size: 10px;">預覽</span>
                                             </div>
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 me-n2 pt-2"  style="width:56px;height: 56px;cursor: pointer;"
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 me-n2 pt-2"
+                                                 style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
-                    glitter.htmlGenerate.saveEvent(false);
-                })}">
+                                                     glitter.htmlGenerate.saveEvent(false);
+                                                 })}">
                                                 <i class="fa-regular fa-floppy-disk"></i>
                                                 <span class="fw-500" style="font-size: 10px;">儲存</span>
                                             </div>
                                         `
-                : html`
+                                        : html`
 
                                             <button
                                                     class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} d-none d-sm-flex"
@@ -759,8 +787,8 @@ border: 1px solid ${EditorConfig.editor_layout.main_color};
 color:${EditorConfig.editor_layout.main_color};
 "
                                                     onclick="${gvc.event(() => {
-                    preView()
-                })}"
+                                                        preView()
+                                                    })}"
                                             >
                                                 <div style="background: ${EditorConfig.editor_layout.btn_background};
 background-clip: text;
@@ -781,214 +809,214 @@ background: ${EditorConfig.editor_layout.btn_background};
 color:white;
 "
                                                     onclick="${gvc.event(() => {
-                    glitter.htmlGenerate.saveEvent(false);
-                })}"
+                                                        glitter.htmlGenerate.saveEvent(false);
+                                                    })}"
                                             >
                                                 儲存
                                             </button>`}
                             </div>
+                            <div>${AiMessage.aiRobot({
+                                gvc: gvc,
+                                userID: 'manager',
+                                toUser: 'robot'
+                            })}
+                            </div>
                             ${(() => {
-                if (Storage.select_function === 'backend-manger') {
-                    return (
-                        html`
-                                                <div>${AiMessage.aiRobot({
-                            gvc: gvc,
-                            userID: 'manager',
-                            toUser: 'robot'
-                        })}
-                                                </div>
+                                if (Storage.select_function === 'backend-manger') {
+                                    const size = document.body.clientWidth > 768 ? 24 : 18;
+                                    return (
+                                            html`
                                                 <div
                                                         class="ms-auto me-2 bt_orange_lin"
                                                         style=""
                                                         onclick="${gvc.event(() => {
-                            AiMessage.toggle(true);
-                        })}"
+                                                            AiMessage.toggle(true);
+                                                        })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                         class="me-2" style="width:24px;height: 24px;">AI助手
+                                                         class="me-2" style="width:${size}px;height: ${size}px;">AI助手
                                                 </div>
                                                 <div class="position-relative">
                                                     <div
                                                             class="me-2 bt_orange_lin position-relative"
                                                             style="width:42px;"
                                                             onclick="${gvc.event(() => {
-                            BgCustomerMessage.toggle(true, gvc);
-                        })}"
+                                                                BgCustomerMessage.toggle(true, gvc);
+                                                            })}"
                                                     >
                                                         <i class="fa-regular fa-messages"></i>
                                                     </div>
                                                     ${gvc.bindView(() => {
-                            const message_notice = gvc.glitter.getUUID()
-                            let unread = 0
-                            let socket: any = undefined
-                            const url = new URL((window as any).glitterBackend)
-                            let vm = {
-                                close: false
-                            }
+                                                        const message_notice = gvc.glitter.getUUID()
+                                                        let unread = 0
+                                                        let socket: any = undefined
+                                                        const url = new URL((window as any).glitterBackend)
+                                                        let vm = {
+                                                            close: false
+                                                        }
 
-                            function loadData() {
-                                Chat.getUnRead({
-                                    user_id: 'manager',
-                                }).then(async (data) => {
-                                    unread = data.response.length;
-                                    gvc.notifyDataChange(message_notice)
-                                });
-                            }
+                                                        function loadData() {
+                                                            Chat.getUnRead({
+                                                                user_id: 'manager',
+                                                            }).then(async (data) => {
+                                                                unread = data.response.length;
+                                                                gvc.notifyDataChange(message_notice)
+                                                            });
+                                                        }
 
-                            loadData()
+                                                        loadData()
 
-                            function connect() {
-                                socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
-                                socket.addEventListener('open', function (event: any) {
-                                    console.log('Connected to update list server');
-                                    socket.send(JSON.stringify({
-                                        type: 'message-count-change',
-                                        user_id: 'manager',
-                                        app_name: (window as any).appName
-                                    }))
-                                });
-                                socket.addEventListener('message', async function (event: any) {
-                                    console.log(`update_message_count`)
-                                    const data = JSON.parse(event.data)
-                                    if (data.type === 'update_message_count') {
-                                        loadData()
-                                    }
-                                });
-                                socket.addEventListener('close', function (event: any) {
-                                    console.log('Disconnected from server');
-                                    if (!vm.close) {
-                                        console.log('Reconnected from server');
-                                        connect()
-                                    }
-                                });
-                            }
+                                                        function connect() {
+                                                            socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                                            socket.addEventListener('open', function (event: any) {
+                                                                console.log('Connected to update list server');
+                                                                socket.send(JSON.stringify({
+                                                                    type: 'message-count-change',
+                                                                    user_id: 'manager',
+                                                                    app_name: (window as any).appName
+                                                                }))
+                                                            });
+                                                            socket.addEventListener('message', async function (event: any) {
+                                                                console.log(`update_message_count`)
+                                                                const data = JSON.parse(event.data)
+                                                                if (data.type === 'update_message_count') {
+                                                                    loadData()
+                                                                }
+                                                            });
+                                                            socket.addEventListener('close', function (event: any) {
+                                                                console.log('Disconnected from server');
+                                                                if (!vm.close) {
+                                                                    console.log('Reconnected from server');
+                                                                    connect()
+                                                                }
+                                                            });
+                                                        }
 
-                            connect()
-                            return {
-                                bind: message_notice,
-                                view: () => {
-                                    return html`
+                                                        connect()
+                                                        return {
+                                                            bind: message_notice,
+                                                            view: () => {
+                                                                return html`
                                                                     <div
                                                                             class="${unread
-                                        ? `d-flex`
-                                        : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
+                                                                                    ? `d-flex`
+                                                                                    : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
                                                                             style="width:15px;height: 15px;color: white !important;"
                                                                     >${unread}
                                                                     </div>`;
-                                },
-                                divCreate: {
-                                    class: `position-absolute`,
-                                    style: `font-size: 10px;right: 13px;top: 3px;`,
-                                },
-                                onDestroy: () => {
-                                    vm.close = true
-                                    socket && socket.close()
-                                }
-                            };
-                        })}
+                                                            },
+                                                            divCreate: {
+                                                                class: `position-absolute`,
+                                                                style: `font-size: 10px;right: 13px;top: 3px;`,
+                                                            },
+                                                            onDestroy: () => {
+                                                                vm.close = true
+                                                                socket && socket.close()
+                                                            }
+                                                        };
+                                                    })}
                                                 </div>
-
                                                 ${gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            const notice_count = gvc.glitter.getUUID();
-                            let toggle = false;
-                            let unread = 0
-                            let socket: any = undefined
-                            let vm = {
-                                close: false
-                            }
+                                                    const id = gvc.glitter.getUUID();
+                                                    const notice_count = gvc.glitter.getUUID();
+                                                    let toggle = false;
+                                                    let unread = 0
+                                                    let socket: any = undefined
+                                                    let vm = {
+                                                        close: false
+                                                    }
 
-                            async function loadData() {
-                                unread = (await ApiUser.getNoticeUnread((window as any).glitterBase, GlobalUser.saas_token)).response.count;
+                                                    async function loadData() {
+                                                        unread = (await ApiUser.getNoticeUnread((window as any).glitterBase, GlobalUser.saas_token)).response.count;
 
-                                gvc.notifyDataChange(id)
-                            }
+                                                        gvc.notifyDataChange(id)
+                                                    }
 
-                            loadData()
+                                                    loadData()
 
-                            function connect() {
-                                const url = new URL((window as any).glitterBackend)
-                                socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
-                                socket.addEventListener('open', async function (event: any) {
-                                    console.log('Connected to notice count server');
-                                    const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
-                                    socket.send(JSON.stringify({
-                                        type: 'notice_count_change',
-                                        user_id: userData.userID,
-                                        app_name: (window as any).appName
-                                    }))
-                                });
-                                socket.addEventListener('message', async function (event: any) {
-                                    const data = JSON.parse(event.data)
-                                    if (data.type === 'notice_count_change') {
-                                        loadData()
-                                    }
-                                });
-                                socket.addEventListener('close', function (event: any) {
-                                    console.log('Disconnected from server');
-                                    if (!vm.close) {
-                                        console.log('Reconnected from server');
-                                        connect()
-                                    }
-                                });
-                            }
+                                                    function connect() {
+                                                        const url = new URL((window as any).glitterBackend)
+                                                        socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                                        socket.addEventListener('open', async function (event: any) {
+                                                            console.log('Connected to notice count server');
+                                                            const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+                                                            socket.send(JSON.stringify({
+                                                                type: 'notice_count_change',
+                                                                user_id: userData.userID,
+                                                                app_name: (window as any).appName
+                                                            }))
+                                                        });
+                                                        socket.addEventListener('message', async function (event: any) {
+                                                            const data = JSON.parse(event.data)
+                                                            if (data.type === 'notice_count_change') {
+                                                                loadData()
+                                                            }
+                                                        });
+                                                        socket.addEventListener('close', function (event: any) {
+                                                            console.log('Disconnected from server');
+                                                            if (!vm.close) {
+                                                                console.log('Reconnected from server');
+                                                                connect()
+                                                            }
+                                                        });
+                                                    }
 
-                            connect()
-                            return {
-                                bind: id,
-                                view: () => {
-                                    // resolve(data)
-                                    let view = [
-                                        html`
+                                                    connect()
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            // resolve(data)
+                                                            let view = [
+                                                                html`
                                                                     <div
                                                                             class="me-2 bt_orange_lin position-relative"
                                                                             style="width: 42px;"
                                                                             onclick="${gvc.event(() => {
-                                            toggle = !toggle;
-                                            unread = 0
-                                            setTimeout(() => {
-                                                gvc.notifyDataChange(id);
-                                            }, 100);
-                                        })}"
+                                                                                toggle = !toggle;
+                                                                                unread = 0
+                                                                                setTimeout(() => {
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }, 100);
+                                                                            })}"
                                                                     >
                                                                         ${toggle ? `<i class="fa-solid fa-xmark"></i>` : `<i class="fa-regular fa-bell"></i>`}
                                                                     </div>`,
-                                        gvc.bindView(() => {
-                                            return {
-                                                bind: notice_count,
-                                                view: () => {
-                                                    return html`
+                                                                gvc.bindView(() => {
+                                                                    return {
+                                                                        bind: notice_count,
+                                                                        view: () => {
+                                                                            return html`
                                                                                 <div
                                                                                         class="${unread
-                                                        ? `d-flex`
-                                                        : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
+                                                                                                ? `d-flex`
+                                                                                                : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
                                                                                         style="width:15px;height: 15px;color: white;"
                                                                                 >
                                                                                     ${unread}
                                                                                 </div>`;
-                                                },
-                                                divCreate: {
-                                                    class: `position-absolute`,
-                                                    style: `font-size: 10px;right: 13px;top: 3px;`,
-                                                },
-                                            };
-                                        }),
-                                    ];
+                                                                        },
+                                                                        divCreate: {
+                                                                            class: `position-absolute`,
+                                                                            style: `font-size: 10px;right: 13px;top: 3px;`,
+                                                                        },
+                                                                    };
+                                                                }),
+                                                            ];
 
-                                    if (toggle) {
-                                        glitter.ut.frSize(
-                                            {
-                                                sm: () => {
-                                                    view.push(html`
+                                                            if (toggle) {
+                                                                glitter.ut.frSize(
+                                                                        {
+                                                                            sm: () => {
+                                                                                view.push(html`
                                                                                     <div
                                                                                             class="position-fixed vw-100 vh-100 top-0 start-0"
                                                                                             style="z-index: 999;"
                                                                                             onclick="${gvc.event(() => {
-                                                        toggle = !toggle;
-                                                        setTimeout(() => {
-                                                            gvc.notifyDataChange(id);
-                                                        }, 100);
-                                                    })}"
+                                                                                                toggle = !toggle;
+                                                                                                setTimeout(() => {
+                                                                                                    gvc.notifyDataChange(id);
+                                                                                                }, 100);
+                                                                                            })}"
                                                                                     ></div>
                                                                                     <div
                                                                                             class="card rounded-3 shadow position-absolute "
@@ -999,19 +1027,19 @@ color:white;
                                                                                                 src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"
                                                                                         ></iframe>
                                                                                     </div>`);
-                                                },
-                                            },
-                                            () => {
-                                                view.push(html`
+                                                                            },
+                                                                        },
+                                                                        () => {
+                                                                            view.push(html`
                                                                                 <div
                                                                                         class="position-fixed vw-100 vh-100 top-0 start-0"
                                                                                         style="z-index: 999;"
                                                                                         onclick="${gvc.event(() => {
-                                                    toggle = !toggle;
-                                                    setTimeout(() => {
-                                                        gvc.notifyDataChange(id);
-                                                    }, 100);
-                                                })}"
+                                                                                            toggle = !toggle;
+                                                                                            setTimeout(() => {
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }, 100);
+                                                                                        })}"
                                                                                 ></div>
                                                                                 <div
                                                                                         class="card  shadow position-fixed "
@@ -1020,22 +1048,22 @@ color:white;
                                                                                     <iframe class="card  shadow position-absolute"
                                                                                             src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>
                                                                                 </div>`);
-                                            }
-                                        )();
-                                    }
-                                    return view.join('');
-                                },
-                                divCreate: {
-                                    class: `position-relative `,
-                                },
-                            };
-                        })}
+                                                                        }
+                                                                )();
+                                                            }
+                                                            return view.join('');
+                                                        },
+                                                        divCreate: {
+                                                            class: `position-relative `,
+                                                        },
+                                                    };
+                                                })}
                                             ` + SaasViewModel.app_manager(gvc)
-                    );
-                } else {
-                    return ``;
-                }
-            })()}
+                                    );
+                                } else {
+                                    return ``;
+                                }
+                            })()}
                         </div>
                     </header>
                     <!--當到期日付費時-->
@@ -1054,8 +1082,8 @@ color:white;
                                             class="fa-solid fa-left-to-bracket hoverBtn"
                                             style="cursor:pointer;"
                                             onclick="${gvc.event(() => {
-                goBack();
-            })}"
+                                                goBack();
+                                            })}"
                                     >
                                     </i>
                                 </div>
@@ -1073,47 +1101,66 @@ color:white;
                         ${left}
                     </aside>
                     ${gvc.bindView(() => {
-                return {
-                    bind: `docs-container`,
-                    view: () => {
-                        return gvc.bindView({
-                            bind: `showView`,
-                            view: () => {
-                                return Main_editor.center(gvc);
-                            }
-                        })
-                    },
-                    divCreate: () => {
                         return {
-                            elem: 'main',
-                            class: `docs-container`,
-                            style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                            bind: `docs-container`,
+                            view: () => {
+                                return gvc.bindView({
+                                    bind: `showView`,
+                                    view: () => {
+                                        return Main_editor.center(gvc);
+                                    }
+                                })
+                            },
+                            divCreate: () => {
+                                if (gvc.glitter.getUrlParameter('function') !== 'page-editor') {
+                                    return {
+                                        elem: 'main',
+                                        class: `docs-container`,
+                                        style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
                            padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
                            padding-right:0px;
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}`
+                                    }
+                                } else {
+                                    return {
+                                        elem: 'main',
+                                        class: `docs-container`,
+                                        style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                          padding-right:${(Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
+                                        Storage.select_function !== 'backend-manger' &&
+                                        Storage.select_function !== 'server-manager'
+                                                ? `290`
+                                                : `0`}px;${Storage.view_type === ViewType.fullScreen
+                                                ? `padding-left:0px;`
+                                                : `
+                          padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
+                          ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
+                          `}`
+                                    }
+                                }
+
+                            },
                         }
-                    },
-                }
-            })}
+                    })}
                     ${(() => {
-                if (
-                    (Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
-                    Storage.select_function !== 'backend-manger' &&
-                    Storage.select_function !== 'server-manager' &&
-                    Storage.select_function !== 'user-editor'
-                ) {
-                    return Main_editor.pageAndComponent({
-                        gvc: gvc,
-                        data: data,
-                        divCreate: {
-                            class: `p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white `,
-                            style: `width: 290px;padding-top:60px !important;`,
-                        },
-                    });
-                } else {
-                    return ``;
-                }
-            })()}
+                        if (
+                                (Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
+                                Storage.select_function !== 'backend-manger' &&
+                                Storage.select_function !== 'server-manager' &&
+                                Storage.select_function !== 'user-editor'
+                        ) {
+                            return Main_editor.pageAndComponent({
+                                gvc: gvc,
+                                data: data,
+                                divCreate: {
+                                    class: `p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white `,
+                                    style: `width: 290px;padding-top:60px !important;`,
+                                },
+                            });
+                        } else {
+                            return ``;
+                        }
+                    })()}
                     <a href="#top" class="btn-scroll-top " data-scroll>
                         <span class="btn-scroll-top-tooltip text-muted fs-sm me-2" style="">Top</span>
                         <i class="btn-scroll-top-icon bx bx-chevron-up"></i>

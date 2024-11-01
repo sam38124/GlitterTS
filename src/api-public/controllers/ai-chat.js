@@ -12,6 +12,7 @@ const shopping_js_1 = require("../services/shopping.js");
 const moment_1 = __importDefault(require("moment"));
 const private_config_js_1 = require("../../services/private_config.js");
 const json2csv_1 = require("json2csv");
+const ai_robot_js_1 = require("../services/ai-robot.js");
 const router = express_1.default.Router();
 router.post('/sync-data', async (req, resp) => {
     var _a;
@@ -118,7 +119,10 @@ router.post('/sync-data', async (req, resp) => {
                                         FROM \`${req.get('g-app')}\`.t_chat_detail where chat_id=? order by id desc limit 0,5`, [
             [type, 'manager'].sort().join('-')
         ])).reverse()) {
-            if (b.message.text) {
+            if (b.message.prompt) {
+                await openai.beta.threads.messages.create(cf[type], { role: (b.user_id === 'robot') ? 'assistant' : 'user', content: b.message.prompt });
+            }
+            else if (b.message.text) {
                 await openai.beta.threads.messages.create(cf[type], { role: (b.user_id === 'robot') ? 'assistant' : 'user', content: b.message.text });
             }
         }
@@ -158,6 +162,17 @@ router.delete('/reset', async (req, resp) => {
     catch (err) {
         console.log(err);
         fs_1.default.rmSync(file1);
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.post('/generate-html', async (req, resp) => {
+    try {
+        return response_js_1.default.succ(resp, {
+            result: true,
+            data: await ai_robot_js_1.AiRobot.codeGenerator(req.get('g-app'), req.body.text)
+        });
+    }
+    catch (err) {
         return response_js_1.default.fail(resp, err);
     }
 });

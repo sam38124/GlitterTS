@@ -1,17 +1,17 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import { IToken } from '../models/Auth.js';
-import { UtDatabase } from '../utils/ut-database.js';
-import { User } from './user.js';
-import { sendmail } from '../../services/ses.js';
-import { App } from '../../services/app.js';
-import { WebSocket } from '../../services/web-socket.js';
-import { Firebase } from '../../modules/firebase.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { AiRobot } from './ai-robot.js';
-import { FbMessage } from './fb-message.js';
-import { LineMessage } from './line-message.js';
-import { ManagerNotify } from './notify.js';
+import {IToken} from '../models/Auth.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {User} from './user.js';
+import {sendmail} from '../../services/ses.js';
+import {App} from '../../services/app.js';
+import {WebSocket} from '../../services/web-socket.js';
+import {Firebase} from '../../modules/firebase.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {AiRobot} from './ai-robot.js';
+import {FbMessage} from './fb-message.js';
+import {LineMessage} from './line-message.js';
+import {ManagerNotify} from './notify.js';
 
 const Jimp = require('jimp');
 
@@ -29,6 +29,8 @@ export interface ChatMessage {
         text?: string;
         image?: string;
         attachment: any;
+        ai_usage?:any;
+        type?:'robot'|'manual'
     };
 }
 
@@ -81,9 +83,9 @@ export class Chat {
                     );
                     await db.query(
                         `delete
-                                    from \`${this.app}\`.\`t_chat_last_read\`
-                                    where user_id = ?
-                                      and chat_id = ?`,
+                         from \`${this.app}\`.\`t_chat_last_read\`
+                         where user_id = ?
+                           and chat_id = ?`,
                         [b, room.chat_id]
                     );
                     await db.query(
@@ -155,7 +157,9 @@ export class Chat {
                                         `SELECT count(1)
                                          FROM \`${this.app}\`.t_chat_detail,
                                               \`${this.app}\`.t_chat_last_read
-                                         where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${db.escape(userID)})
+                                         where t_chat_detail.chat_id in (SELECT chat_id
+                                                                         FROM \`${this.app}\`.t_chat_participants
+                                                                         where user_id = ${db.escape(userID)})
                                            and (t_chat_detail.chat_id != 'manager-preview')
                                            and t_chat_detail.user_id!=${db.escape(userID)}
                                            and t_chat_detail.chat_id=${db.escape(b.chat_id)}
@@ -175,7 +179,8 @@ export class Chat {
                                     try {
                                         b.user_data = ((await new User(this.app).getUserData(user, 'userID')) ?? {}).userData ?? {};
                                         // console.log(`查詢user:${((new Date().getTime()) - start) / 1000}`)
-                                    } catch (e) {}
+                                    } catch (e) {
+                                    }
                                 }
                             }
                             resolve(true);
@@ -222,7 +227,8 @@ export class Chat {
                         data: room.message,
                         lineID: newChatId,
                     },
-                    () => {}
+                    () => {
+                    }
                 );
             }
             //檢查是不是要回傳給fb
@@ -233,7 +239,8 @@ export class Chat {
                         data: room.message,
                         fbID: newChatId,
                     },
-                    () => {}
+                    () => {
+                    }
                 );
             }
             //傳送者
@@ -248,12 +255,16 @@ export class Chat {
             //判斷第三方進行UserData的覆蓋
             if (room.user_id.startsWith('line')) {
                 user = {
-                    userData: (await db.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['line'],
+                    userData: (await db.query(`select info
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['line'],
                     userID: -1,
                 };
             } else if (room.user_id.startsWith('fb')) {
                 user = {
-                    userData: (await db.query(`select info from \`${this.app}\`.t_chat_list where chat_id=?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['fb'],
+                    userData: (await db.query(`select info
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [[room.user_id, 'manager'].sort().join('-')]))[0]['info']['fb'],
                     userID: -1,
                 };
             }
@@ -267,8 +278,8 @@ export class Chat {
             //更新聊天內容的時間點
             await db.query(
                 `update \`${this.app}\`.t_chat_list
-                            set updated_time=NOW()
-                            where chat_id = ?`,
+                 set updated_time=NOW()
+                 where chat_id = ?`,
                 [room.chat_id]
             );
 
@@ -312,7 +323,7 @@ export class Chat {
                 //發送通知
                 if (b.user_id !== room.user_id) {
                     //訂單分析
-                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                    if (['writer', 'order_analysis', 'operation_guide','design'].includes(b.user_id)) {
                         const response = await new Promise(async (resolve, reject) => {
                             switch (b.user_id) {
                                 case 'writer':
@@ -324,6 +335,9 @@ export class Chat {
                                 case 'operation_guide':
                                     resolve(await AiRobot.guide(this.app, room.message.text ?? ''));
                                     return;
+                                case 'design':
+                                    resolve(await AiRobot.design(this.app, room.message.text ?? ''));
+                                    return
                             }
                         });
                         const insert = await db.query(
@@ -504,14 +518,38 @@ export class Chat {
                 }) &&
                 room.user_id !== 'manager'
             ) {
-                const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
-                await new ManagerNotify(this.app).customerMessager({
-                    title: template.title,
-                    content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
-                    user_name: user.userData.name,
-                    room_image: room.message.image,
-                    room_text: room.message.text,
-                });
+                console.log(`收到客服訊息---`, JSON.stringify(room))
+                let message_setting = await (new User(this.app)).getConfigV2({
+                    key:'message_setting',
+                    user_id:'manager'
+                })
+                //判斷是否由機器人回答
+                const ai_response_toggle = message_setting.ai_toggle
+                if (ai_response_toggle) {
+                    if (room.message.text) {
+                        const aiResponse = await AiRobot.aiResponse(this.app, room.message.text as string)
+                        if(aiResponse){
+                            if (aiResponse?.text) {
+                                if(aiResponse?.text!=='no-data'){
+                                    await this.addMessage({
+                                        "chat_id": room.chat_id,
+                                        "user_id": "manager",
+                                        "message": {"text": aiResponse?.text, "attachment": "",ai_usage:aiResponse.usage,"type":"robot"}
+                                    })
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                    await new ManagerNotify(this.app).customerMessager({
+                        title: template.title,
+                        content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
+                        user_name: user.userData.name,
+                        room_image: room.message.image,
+                        room_text: room.message.text,
+                    });
+                }
             }
         } catch (e: any) {
             console.log(e);
@@ -613,7 +651,8 @@ export class Chat {
             `SELECT \`${this.app}\`.t_chat_detail.*
              FROM \`${this.app}\`.t_chat_detail,
                   \`${this.app}\`.t_chat_last_read
-             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${db.escape(user_id)})
+             where t_chat_detail.chat_id in
+                   (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${db.escape(user_id)})
                and (t_chat_detail.chat_id != 'manager-preview')
                and t_chat_detail.user_id!=${db.escape(user_id)}
                and t_chat_last_read.user_id= ${db.escape(user_id)}
@@ -630,7 +669,8 @@ export class Chat {
             `SELECT \`${this.app}\`.t_chat_detail.*
              FROM \`${this.app}\`.t_chat_detail,
                   \`${this.app}\`.t_chat_last_read
-             where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${db.escape(user_id)})
+             where t_chat_detail.chat_id in
+                   (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id = ${db.escape(user_id)})
                and (t_chat_detail.chat_id != 'manager-preview')
                and t_chat_detail.user_id!=${db.escape(user_id)}
                and t_chat_detail.chat_id=t_chat_last_read.chat_id

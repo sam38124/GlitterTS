@@ -22,6 +22,19 @@ export class Tool {
         }
         return truncated;
     }
+    static twenLength(str) {
+        let length = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            if (/[\u4e00-\u9fa5]/.test(char)) {
+                length += 1;
+            }
+            else {
+                length += 0.5;
+            }
+        }
+        return length;
+    }
     static randomString(max) {
         let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
         let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));

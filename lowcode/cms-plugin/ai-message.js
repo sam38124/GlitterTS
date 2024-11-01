@@ -24,7 +24,30 @@ export class AiMessage {
             id: gvc.glitter.getUUID(),
         };
         return gvc.bindView(() => {
-            AiMessage.toggle = (vis) => {
+            AiMessage.toggle = (vis, option) => {
+                if (!option) {
+                    AiMessage.ai_support = [
+                        {
+                            key: 'writer',
+                            label: '文案寫手',
+                        },
+                        {
+                            key: 'order_analysis',
+                            label: '訂單分析',
+                        },
+                        {
+                            key: 'design',
+                            label: '圖片生成',
+                        },
+                        {
+                            key: 'operation_guide',
+                            label: '操作引導',
+                        }
+                    ];
+                }
+                else {
+                    AiMessage.ai_support = option;
+                }
                 vm.visible = vis;
                 $(document.querySelector('.ai-left')).addClass(`scroll-out`);
                 setTimeout(() => {
@@ -38,39 +61,42 @@ export class AiMessage {
                         return ``;
                     }
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(html `<div
-                                class="position-fixed start-0 top-0 vw-100 vh-100"
-                                style="background: rgba(0,0,0,0.5);z-index:999;"
-                                onclick="${gvc.event(() => {
+                        resolve(html `
+                                <div
+                                        class="position-fixed start-0 top-0 vw-100 vh-100"
+                                        style="background: rgba(0,0,0,0.5);z-index:999;"
+                                        onclick="${gvc.event(() => {
                             AiMessage.toggle(false);
                         })}"
-                            >
-                                <div
-                                    class="position-fixed vh-100 top-0 scroll-in bg-white ai-left"
-                                    style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
-                                    onclick="${gvc.event((e, event) => {
+                                >
+                                    <div
+                                            class="position-fixed vh-100 top-0 scroll-in bg-white ai-left"
+                                            style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
+                                            onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
                         })}"
-                                >
-                                    ${AiMessage.detail({
+                                    >
+                                        ${AiMessage.detail({
                             gvc: gvc,
                             user_id: cf.userID,
                             containerHeight: $('body').height() + 10 + 'px',
                             document: document,
-                            goBack: () => { },
+                            goBack: () => {
+                            },
                             close: () => {
                                 AiMessage.toggle(false);
                             },
                         })}
-                                </div>
-                            </div>`);
+                                    </div>
+                                </div>`);
                     }));
                 },
                 divCreate: {
                     elem: 'div',
                     style: `z-index:99999;bottom:0px;left:0px;`,
                 },
-                onCreate: () => __awaiter(this, void 0, void 0, function* () { }),
+                onCreate: () => __awaiter(this, void 0, void 0, function* () {
+                }),
             };
         });
     }
@@ -149,21 +175,23 @@ export class AiMessage {
                                             if (chatRoom.who === 'manager') {
                                                 chatRoom.user_data = AiMessage.config;
                                             }
-                                            resolve(html `<div
-                                                        class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}"
-                                                        style="background: ${AiMessage.config.color};"
-                                                    >
-                                                        <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
-                                                            <img
-                                                                src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                                class="rounded-circle border"
-                                                                style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                width="40"
-                                                                alt="Albert Flores"
-                                                            />
-                                                            <div class="d-flex flex-column px-1 text-white">
-                                                                <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
-                                                                ${gvc.bindView(() => {
+                                            resolve(html `
+                                                        <div
+                                                                class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}"
+                                                                style="background: ${AiMessage.config.color};"
+                                                        >
+                                                            <div class="d-flex align-items-center pe-3 w-100"
+                                                                 style="gap:10px;display: flex;align-items: center;">
+                                                                <img
+                                                                        src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                                        class="rounded-circle border"
+                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                                        width="40"
+                                                                        alt="Albert Flores"
+                                                                />
+                                                                <div class="d-flex flex-column px-1 text-white">
+                                                                    <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
+                                                                    ${gvc.bindView(() => {
                                                 return {
                                                     bind: 'ai_points_count',
                                                     view: () => {
@@ -172,53 +200,44 @@ export class AiMessage {
                                                         }));
                                                     },
                                                     divCreate: {
-                                                        class: `fw-500 d-flex`, style: `font-size:13px;`
+                                                        class: `fw-500 d-flex`,
+                                                        style: `font-size:13px;`
                                                     }
                                                 };
                                             })}
-                                                            </div>
-                                                            <div class="flex-fill" style="flex: 1;"></div>
-                                                            <i
-                                                                class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
-                                                                onclick="${gvc.event(() => {
+                                                                </div>
+                                                                <div class="flex-fill" style="flex: 1;"></div>
+                                                                <i
+                                                                        class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
+                                                                        onclick="${gvc.event(() => {
                                                 cf.close && cf.close();
                                             })}"
-                                                            ></i>
-                                                        </div>
-                                                    </div>` +
-                                                html `<div class="d-flex align-items-center p-2 shadow border-bottom" style="gap:10px;">
+                                                                ></i>
+                                                            </div>
+                                                        </div>` +
+                                                html `
+                                                        <div class="d-flex align-items-center p-2 shadow border-bottom"
+                                                             style="gap:10px;">
                                                             ${(() => {
-                                                    const list = [
-                                                        {
-                                                            key: 'writer',
-                                                            label: '文案寫手',
-                                                        },
-                                                        {
-                                                            key: 'order_analysis',
-                                                            label: '訂單分析',
-                                                        },
-                                                        {
-                                                            key: 'operation_guide',
-                                                            label: '操作引導',
-                                                        },
-                                                    ];
+                                                    const list = AiMessage.ai_support;
                                                     return list
                                                         .map((dd) => {
                                                         if (AiMessage.vm.select_bt === dd.key) {
-                                                            return html `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500 select-label-ai-message">
-                                                                                ${dd.label}
-                                                                            </div>`;
+                                                            return html `
+                                                                                    <div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500 select-label-ai-message fs-6">
+                                                                                        ${dd.label}
+                                                                                    </div>`;
                                                         }
                                                         else {
-                                                            return html `<div
-                                                                                class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500 select-btn-ai-message"
-                                                                                onclick="${gvc.event(() => {
+                                                            return html `
+                                                                                    <div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500 select-btn-ai-message fs-6"
+                                                                                         onclick="${gvc.event(() => {
                                                                 AiMessage.vm.select_bt = dd.key;
                                                                 refresh();
                                                             })}"
-                                                                            >
-                                                                                ${dd.label}
-                                                                            </div>`;
+                                                                                    >
+                                                                                        ${dd.label}
+                                                                                    </div>`;
                                                         }
                                                     })
                                                         .join('');
@@ -273,57 +292,76 @@ export class AiMessage {
                                     return markdownString.replace(/\n/g, '<br>');
                                 }
                                 function add_line(dd, index) {
+                                    dd.message.text = dd.message.text || '';
                                     if (dd.user_id == 'manager') {
                                         dd.user_data = AiMessage.config;
                                     }
                                     const replacedString = markdownToHTML(dd.message.text);
+                                    const width = (document.body.clientWidth < 768) ? document.body.clientWidth - 120 : 348;
                                     if (cf.user_id !== dd.user_id) {
-                                        return html ` <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
-                                                <img
-                                                    src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                    class="rounded-circle border"
-                                                    width="40"
-                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                />
-                                                <div class="ps-2 ms-1" style="max-width: 348px;">
-                                                    <div
-                                                        class="p-3 mb-1"
-                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                    >
-                                                        ${replacedString}
-                                                        <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none` : ``}" style="letter-spacing: 1.2px;">${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points` : ``}</div>
+                                        return html `
+                                                <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                                    <img
+                                                            src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                            class="rounded-circle border"
+                                                            width="40"
+                                                            style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                    />
+                                                    <div class="ps-2 ms-1" style="max-width: ${width}px;">
+                                                        <div
+                                                                class="p-3 mb-1"
+                                                                style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                        >
+                                                            ${replacedString}
+                                                            ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
+                                 src="${dd.message.image}"
+                                 alt="image"
+                                 onclick="${gvc.event(() => {
+                                            gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                                        })}">` : ``}
+                                                            <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none` : ``}"
+                                                                 style="letter-spacing: 1.2px;">
+                                                                ${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points` : ``}
+                                                            </div>
+                                                        </div>
+                                                        <div class="fs-sm d-flex text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                            ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                                                        </div>
                                                     </div>
-                                                    <div class="fs-sm d-flex text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
-                                                    </div>
-                                                </div>
-                                            </div>`;
+                                                </div>`;
                                     }
                                     else {
-                                        return html ` <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
-                                                <div class="pe-2 me-1" style="max-width: 348px;">
-                                                    <div
-                                                        class=" text-light p-3 mb-1"
-                                                        style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                    >
-                                                        ${replacedString}
-                                                    </div>
-                                                    <div
-                                                        class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
+                                        return html `
+                                                <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                                    <div class="pe-2 me-1" style="max-width: ${width}px;">
+                                                        <div
+                                                                class=" text-light p-3 mb-1"
+                                                                style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                        >
+                                                            ${replacedString}
+                                                            ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
+                                 src="${dd.message.image}"
+                                 alt="image"
+                                 onclick="${gvc.event(() => {
+                                            gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                                        })}">` : ``}
+                                                        </div>
+                                                        <div
+                                                                class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
                                             vm.data[index + 1].user_id === dd.user_id
                                             ? `d-none`
                                             : ``}"
-                                                        style="gap:5px;"
-                                                    >
-                                                        <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                        ${vm.last_read.find((d2) => {
+                                                                style="gap:5px;"
+                                                        >
+                                                            <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                                                            ${vm.last_read.find((d2) => {
                                             return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
                                         })
                                             ? `已讀`
                                             : ``}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>`;
+                                                </div>`;
                                     }
                                 }
                                 function connect() {
@@ -393,12 +431,13 @@ export class AiMessage {
                                     bind: viewId,
                                     view: () => {
                                         if (vm.loading) {
-                                            return html `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                                    <div class="spinner-border" role="status">
-                                                        <span class="sr-only"></span>
-                                                    </div>
-                                                    <span class="mt-2">AI 就位中...</span>
-                                                </div>`;
+                                            return html `
+                                                    <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                                                        <div class="spinner-border" role="status">
+                                                            <span class="sr-only"></span>
+                                                        </div>
+                                                        <span class="mt-2">AI 就位中...</span>
+                                                    </div>`;
                                         }
                                         return html `
                                                 ${gvc.bindView(() => {
@@ -424,6 +463,10 @@ export class AiMessage {
                                                                     key: 'operation_guide',
                                                                     text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
                                                                 },
+                                                                {
+                                                                    key: 'design',
+                                                                    text: '您好！我是AI設計師，能協助你生成任何行銷或商品圖面。',
+                                                                }
                                                             ].find((dd) => {
                                                                 return dd.key === AiMessage.vm.select_bt;
                                                             })) === null || _a === void 0 ? void 0 : _a.text,
@@ -486,16 +529,20 @@ export class AiMessage {
                                                 view: () => {
                                                     var _a;
                                                     if (vm.ai_loading) {
-                                                        return html ` <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
-                                                                    <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center" style="gap: 8px;">
-                                                                        <div class="spinner-border" style="width:20px;height: 20px;"></div>
-                                                                        AI 解答中
-                                                                    </div>
-                                                                </div>`;
+                                                        return html `
+                                                                    <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
+                                                                        <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center"
+                                                                             style="gap: 8px;">
+                                                                            <div class="spinner-border"
+                                                                                 style="width:20px;height: 20px;"></div>
+                                                                            AI 解答中
+                                                                        </div>
+                                                                    </div>`;
                                                     }
                                                     else {
                                                         return html `
-                                                                    <div class="d-flex px-2" style="overflow-x: auto;gap:5px;">
+                                                                    <div class="d-flex px-2"
+                                                                         style="overflow-x: auto;gap:5px;">
                                                                         ${(_a = [
                                                             {
                                                                 key: 'writer',
@@ -528,14 +575,20 @@ export class AiMessage {
                                                                     '如何設定網站佈景主題？',
                                                                 ],
                                                             },
+                                                            {
+                                                                key: 'design',
+                                                                data: ['家具電商平台宣傳圖，現代極簡主義，背景保持乾淨整潔',
+                                                                    '服飾店宣傳圖，模特背著名牌包，腳穿高跟鞋']
+                                                            }
                                                         ]
                                                             .find((dd) => {
                                                             return dd.key === AiMessage.vm.select_bt;
                                                         })) === null || _a === void 0 ? void 0 : _a.data.map((dd) => {
-                                                            return html `<div
-                                                                                    class="insignia insignia-secondary bgf6"
-                                                                                    style="white-space: nowrap;cursor: pointer;"
-                                                                                    onclick="${gvc.event(() => {
+                                                            return html `
+                                                                                        <div
+                                                                                                class="insignia insignia-secondary bgf6"
+                                                                                                style="white-space: nowrap;cursor: pointer;"
+                                                                                                onclick="${gvc.event(() => {
                                                                 vm.ai_loading = true;
                                                                 gvc.notifyDataChange('footer-ai');
                                                                 Chat.postMessage({
@@ -549,14 +602,19 @@ export class AiMessage {
                                                                     vm.message = '';
                                                                 });
                                                             })}"
-                                                                                >
-                                                                                    ${dd}
-                                                                                </div>`;
+                                                                                        >
+                                                                                            ${dd}
+                                                                                        </div>`;
                                                         }).join('')}
                                                                     </div>
-                                                                    <div class="px-2 d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
+                                                                    <div class="px-2 d-flex align-items-center w-100 border-0 px-2"
+                                                                         style="background: white;border-radius: 0px;">
                                                                         ${BgWidget.customButton({
-                                                            button: { color: 'snow', size: 'sm', style: 'min-height: 40px;' },
+                                                            button: {
+                                                                color: 'snow',
+                                                                size: 'sm',
+                                                                style: 'min-height: 40px;'
+                                                            },
                                                             icon: { name: 'fa-regular fa-broom-wide text-dark' },
                                                             text: { name: '重置' },
                                                             event: gvc.event(() => {
@@ -578,8 +636,9 @@ export class AiMessage {
                                                             }),
                                                         })}
                                                                         ${[
-                                                            html `<div class="position-relative w-100 mx-2">
-                                                                                ${gvc.bindView(() => {
+                                                            html `
+                                                                                <div class="position-relative w-100 mx-2">
+                                                                                    ${gvc.bindView(() => {
                                                                 return {
                                                                     bind: textAreaId,
                                                                     view: () => {
@@ -612,12 +671,13 @@ export class AiMessage {
                                                                     },
                                                                 };
                                                             })}
-                                                                            </div>`,
-                                                            html ` <button
-                                                                                type="button"
-                                                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
-                                                                                style="height: 36px;background: ${AiMessage.config.color};"
-                                                                                onclick="${gvc.event(() => {
+                                                                                </div>`,
+                                                            html `
+                                                                                <button
+                                                                                        type="button"
+                                                                                        class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
+                                                                                        style="height: 36px;background: ${AiMessage.config.color};"
+                                                                                        onclick="${gvc.event(() => {
                                                                 if (vm.message) {
                                                                     vm.ai_loading = true;
                                                                     gvc.notifyDataChange('footer-ai');
@@ -638,9 +698,9 @@ export class AiMessage {
                                                                 else {
                                                                 }
                                                             })}"
-                                                                            >
-                                                                                <i class="fa-regular fa-paper-plane-top"></i>
-                                                                            </button>`,
+                                                                                >
+                                                                                    <i class="fa-regular fa-paper-plane-top"></i>
+                                                                                </button>`,
                                                         ].join('')}
                                                                     </div>
                                                                 `;
@@ -651,13 +711,15 @@ export class AiMessage {
                                                     class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
                                                     style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset, 10) + 10}px !important;` : ``}`,
                                                 },
-                                                onCreate: () => { },
+                                                onCreate: () => {
+                                                },
                                             };
                                         })}
                                             `;
                                     },
                                     divCreate: {},
-                                    onCreate: () => { },
+                                    onCreate: () => {
+                                    },
                                     onDestroy: () => {
                                         vm.close = true;
                                         socket.close();
@@ -680,13 +742,18 @@ export class AiMessage {
                     var _a, _b;
                     return html `
                         <div class=" card rounded-3">
-                            <div class="p-3 rounded-top" style="width: 100%;white-space: normal;background: ${AiMessage.config.color};">
-                                <div class="text-white fw-bold" style=" font-size: 20px;">${(_a = AiMessage.config.title) !== null && _a !== void 0 ? _a : ''}</div>
-                                <p class=" text-white mt-2 mb-4" style=" font-size: 16px;line-height: 22px;font-weight: 300;">${((_b = AiMessage.config.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, `<br>`)}</p>
+                            <div class="p-3 rounded-top"
+                                 style="width: 100%;white-space: normal;background: ${AiMessage.config.color};">
+                                <div class="text-white fw-bold" style=" font-size: 20px;">
+                                    ${(_a = AiMessage.config.title) !== null && _a !== void 0 ? _a : ''}
+                                </div>
+                                <p class=" text-white mt-2 mb-4"
+                                   style=" font-size: 16px;line-height: 22px;font-weight: 300;">
+                                    ${((_b = AiMessage.config.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, `<br>`)}</p>
                                 <button
-                                    class="btn w-100  rounded"
-                                    style=" background-color: rgba(0, 0, 0, 0.2);"
-                                    onclick="${gvc.event(() => {
+                                        class="btn w-100  rounded"
+                                        style=" background-color: rgba(0, 0, 0, 0.2);"
+                                        onclick="${gvc.event(() => {
                         goToChat('');
                     })}"
                                 >
@@ -704,26 +771,32 @@ export class AiMessage {
                                     const returnHtml = [];
                                     const robot = (yield ApiUser.getPublicConfig('robot_auto_reply', 'manager')).response.value.question;
                                     if (robot.length > 0) {
-                                        returnHtml.push(html ` <div class=" fw-bold" style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
-                                                <div class="" style="color: black;">即時解答</div>
-                                            </div>`);
+                                        returnHtml.push(html `
+                                                <div class=" fw-bold"
+                                                     style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
+                                                    <div class="" style="color: black;">即時解答</div>
+                                                </div>`);
                                     }
                                     robot.map((dd) => {
-                                        returnHtml.push(html `<div
-                                                class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
-                                                style=" "
-                                                onclick="${gvc.event(() => {
+                                        returnHtml.push(html `
+                                                <div
+                                                        class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
+                                                        style=" "
+                                                        onclick="${gvc.event(() => {
                                             goToChat(dd.ask);
                                         })}"
-                                            >
-                                                <div style="white-space: normal;" class="flex-fill">${dd.ask}</div>
-                                                <i class="fa-solid fa-paper-plane-top" style="font-size:18px;" aria-hidden="true"></i>
-                                            </div>`);
+                                                >
+                                                    <div style="white-space: normal;" class="flex-fill">${dd.ask}</div>
+                                                    <i class="fa-solid fa-paper-plane-top" style="font-size:18px;"
+                                                       aria-hidden="true"></i>
+                                                </div>`);
                                     });
                                     resolve(returnHtml.join('') &&
-                                        html ` <div class="px-3 pb-3" style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
-                                                    ${returnHtml.join('')}
-                                                </div>`);
+                                        html `
+                                                    <div class="px-3 pb-3"
+                                                         style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
+                                                        ${returnHtml.join('')}
+                                                    </div>`);
                                 }));
                             },
                             divCreate: {
@@ -754,5 +827,7 @@ AiMessage.vm = {
     select_bt: 'writer',
 };
 AiMessage.id = `dsmdklweew3`;
-AiMessage.toggle = (visible) => { };
+AiMessage.toggle = (visible) => {
+};
+AiMessage.ai_support = [];
 window.glitter.setModule(import.meta.url, AiMessage);

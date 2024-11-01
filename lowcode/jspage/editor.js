@@ -106,7 +106,8 @@ export class Editor {
                 })();
                 content.config = glitter.share.editorViewModel.data.config;
                 localStorage.setItem('preview_data', JSON.stringify(content));
-                window.parent.glitter.openNewTab(href);
+                const url = new URL(href);
+                window.parent.glitter.openNewTab(url.href);
             }
             else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
                 if (document.body.clientWidth < 800) {
@@ -125,6 +126,10 @@ export class Editor {
                 const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set('page', glitter.getUrlParameter('page'));
+                if (document.body.clientWidth < 800 && Storage.view_type === 'desktop' && gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                    url.searchParams.set('_preview_width', '1300');
+                    url.searchParams.set('_preview_scale', `${(document.body.clientWidth / 1300).toFixed(2)}`);
+                }
                 glitter.openNewTab(url.href);
             }
         }
@@ -374,31 +379,28 @@ ${dd.title}</a></li>`;
                 return {
                     bind: id,
                     view: () => {
+                        const size = document.body.clientWidth > 768 ? 24 : 18;
                         return [
                             html `
-                                                    <div class="indexGuideBTN d-none d-sm-block"
-                                                         style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
-                                                         data-bs-html="true" title="新手教學"
-                                                         onclick="${gvc.event(() => {
-                                let bgGuide = new BgGuide(gvc, 0, "user-editor", 1);
-                                bgGuide.drawGuide();
-                            })}">
-                                                        <div style="display: flex;width: 32px;height: 32px;padding: 7px;justify-content: center;align-items: center;border-radius: 5.833px;border: 1px solid #DDD;background: #FFF;">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18"
-                                                                 height="18" viewBox="0 0 18 18" fill="none">
-                                                                <g clip-path="url(#clip0_12535_211966)">
-                                                                    <path d="M16.3125 9C16.3125 7.0606 15.5421 5.20064 14.1707 3.82928C12.7994 2.45792 10.9394 1.6875 9 1.6875C7.0606 1.6875 5.20064 2.45792 3.82928 3.82928C2.45792 5.20064 1.6875 7.0606 1.6875 9C1.6875 10.9394 2.45792 12.7994 3.82928 14.1707C5.20064 15.5421 7.0606 16.3125 9 16.3125C10.9394 16.3125 12.7994 15.5421 14.1707 14.1707C15.5421 12.7994 16.3125 10.9394 16.3125 9ZM0 9C0 6.61305 0.948212 4.32387 2.63604 2.63604C4.32387 0.948212 6.61305 0 9 0C11.3869 0 13.6761 0.948212 15.364 2.63604C17.0518 4.32387 18 6.61305 18 9C18 11.3869 17.0518 13.6761 15.364 15.364C13.6761 17.0518 11.3869 18 9 18C6.61305 18 4.32387 17.0518 2.63604 15.364C0.948212 13.6761 0 11.3869 0 9ZM5.96953 5.81133C6.24727 5.02734 6.99258 4.5 7.82578 4.5H9.87539C11.1023 4.5 12.0938 5.49492 12.0938 6.71836C12.0938 7.51289 11.6684 8.24766 10.9793 8.64492L9.84375 9.29531C9.83672 9.75234 9.46055 10.125 9 10.125C8.53242 10.125 8.15625 9.74883 8.15625 9.28125V8.80664C8.15625 8.5043 8.31797 8.22656 8.58164 8.07539L10.1391 7.18242C10.3043 7.0875 10.4062 6.91172 10.4062 6.72187C10.4062 6.42656 10.1672 6.19102 9.87539 6.19102H7.82578C7.70625 6.19102 7.60078 6.26484 7.56211 6.37734L7.54805 6.41953C7.39336 6.85898 6.9082 7.0875 6.47227 6.93281C6.03633 6.77812 5.8043 6.29297 5.95898 5.85703L5.97305 5.81484L5.96953 5.81133ZM7.875 12.375C7.875 12.0766 7.99353 11.7905 8.2045 11.5795C8.41548 11.3685 8.70163 11.25 9 11.25C9.29837 11.25 9.58452 11.3685 9.7955 11.5795C10.0065 11.7905 10.125 12.0766 10.125 12.375C10.125 12.6734 10.0065 12.9595 9.7955 13.1705C9.58452 13.3815 9.29837 13.5 9 13.5C8.70163 13.5 8.41548 13.3815 8.2045 13.1705C7.99353 12.9595 7.875 12.6734 7.875 12.375Z"
-                                                                          fill="#393939"/>
-                                                                </g>
-                                                                <defs>
-                                                                    <clipPath id="clip0_12535_211966">
-                                                                        <rect width="18" height="18" fill="white"/>
-                                                                    </clipPath>
-                                                                </defs>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                `,
+                                                    <div
+                                                            class="ms-auto me-2 bt_orange_lin"
+                                                            style=""
+                                                            onclick="${gvc.event(() => {
+                                AiMessage.toggle(true, [
+                                    {
+                                        key: 'writer',
+                                        label: '文案寫手',
+                                    },
+                                    {
+                                        key: 'design',
+                                        label: '圖片生成',
+                                    }
+                                ]);
+                            })}"
+                                                    >
+                                                        <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                             class="me-2" style="width:${size}px;height: ${size}px;">AI助手
+                                                    </div>`,
                             html `
                                                     <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
                                                          style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -706,14 +708,16 @@ ${dd.title}</a></li>`;
                                 ${document.body.clientWidth > 768 ? getSizeSelection() : ``}
                                 ${document.body.clientWidth < 768
                 ? html `
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"  style="width:56px;height: 56px;cursor: pointer;"
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
+                                                 style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
                     preView();
                 })}">
                                                 <i class="fa-solid fa-eyes"></i>
                                                 <span class="fw-500" style="font-size: 10px;">預覽</span>
                                             </div>
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 me-n2 pt-2"  style="width:56px;height: 56px;cursor: pointer;"
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 me-n2 pt-2"
+                                                 style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
                     glitter.htmlGenerate.saveEvent(false);
                 })}">
@@ -763,15 +767,16 @@ color:white;
                                                 儲存
                                             </button>`}
                             </div>
+                            <div>${AiMessage.aiRobot({
+                gvc: gvc,
+                userID: 'manager',
+                toUser: 'robot'
+            })}
+                            </div>
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {
+                    const size = document.body.clientWidth > 768 ? 24 : 18;
                     return (html `
-                                                <div>${AiMessage.aiRobot({
-                        gvc: gvc,
-                        userID: 'manager',
-                        toUser: 'robot'
-                    })}
-                                                </div>
                                                 <div
                                                         class="ms-auto me-2 bt_orange_lin"
                                                         style=""
@@ -780,7 +785,7 @@ color:white;
                     })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                         class="me-2" style="width:24px;height: 24px;">AI助手
+                                                         class="me-2" style="width:${size}px;height: ${size}px;">AI助手
                                                 </div>
                                                 <div class="position-relative">
                                                     <div
@@ -860,7 +865,6 @@ color:white;
                         };
                     })}
                                                 </div>
-
                                                 ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         const notice_count = gvc.glitter.getUUID();
@@ -1053,14 +1057,33 @@ color:white;
                         });
                     },
                     divCreate: () => {
-                        return {
-                            elem: 'main',
-                            class: `docs-container`,
-                            style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                        if (gvc.glitter.getUrlParameter('function') !== 'page-editor') {
+                            return {
+                                elem: 'main',
+                                class: `docs-container`,
+                                style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
                            padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
                            padding-right:0px;
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}`
-                        };
+                            };
+                        }
+                        else {
+                            return {
+                                elem: 'main',
+                                class: `docs-container`,
+                                style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                          padding-right:${(Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
+                                    Storage.select_function !== 'backend-manger' &&
+                                    Storage.select_function !== 'server-manager'
+                                    ? `290`
+                                    : `0`}px;${Storage.view_type === ViewType.fullScreen
+                                    ? `padding-left:0px;`
+                                    : `
+                          padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
+                          ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
+                          `}`
+                            };
+                        }
                     },
                 };
             })}

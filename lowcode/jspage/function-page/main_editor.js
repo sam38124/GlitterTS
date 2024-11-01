@@ -274,9 +274,18 @@ export class Main_editor {
                                                                                 </div>
                                                                                 <div class="hoverBtn p-1 dragItem child"
                                                                                      onmousedown="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                                if ((Storage.view_type !== 'mobile')) {
+                                                                    const frame = document.querySelector('.iframe_view');
+                                                                    frame.original_height = frame.style.height;
+                                                                    frame.style.height = `${document.body.clientHeight * 2}px`;
+                                                                    $('#editerCenter').addClass('scale_iframe');
+                                                                }
                                                             })}" onmouseup="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                if ((Storage.view_type !== 'mobile')) {
+                                                                    const frame = document.querySelector('.iframe_view');
+                                                                    frame.style.height = frame.original_height;
+                                                                    $('#editerCenter').removeClass('scale_iframe');
+                                                                }
                                                             })}">
                                                                                     <i
                                                                                             class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
@@ -420,7 +429,11 @@ export class Main_editor {
                                                                             const dd = og_array[newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                            if ((Storage.view_type !== 'mobile')) {
+                                                                                const frame = document.querySelector('.iframe_view');
+                                                                                frame.style.height = frame.original_height;
+                                                                                $('#editerCenter').removeClass('scale_iframe');
+                                                                            }
                                                                             setTimeout(() => {
                                                                                 const dd = og_array[newIndex];
                                                                                 dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
@@ -429,7 +442,7 @@ export class Main_editor {
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
                                                                             glitter.share.left_block_hover = true;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter').addClass('scale_iframe');
                                                                         },
                                                                     });
                                                                 }
@@ -743,6 +756,9 @@ export class Main_editor {
                                     if (`${vm.index}` === '0') {
                                         document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
                                     }
+                                    for (const b of document.querySelector('#editerCenter  iframe').contentWindow.document.querySelectorAll('._builder_color_refresh')) {
+                                        b.recreateView();
+                                    }
                                     gvc.notifyDataChange(vId);
                                 },
                                 gvc: gvc,
@@ -1014,7 +1030,15 @@ export class Main_editor {
         ].join('');
     }
     static center(gvc) {
-        gvc.glitter.share.resetCenterFrame = () => {
+        if (gvc.glitter.getUrlParameter('function') === 'page-editor') {
+            return Main_editor.developerEditor(gvc);
+        }
+        else {
+            return Main_editor.userEditor(gvc);
+        }
+    }
+    static userEditor(gvc) {
+        gvc.glitter.share.resetCenterFrame = (scale) => {
             const container_width = (() => {
                 if (Storage.view_type === ViewType.mobile) {
                     return (document.body.clientWidth > 800) ? 414 : document.body.clientWidth;
@@ -1022,7 +1046,7 @@ export class Main_editor {
                 else {
                     return (document.body.clientWidth < 800) ? document.body.clientWidth : document.body.clientWidth - 365;
                 }
-            })();
+            })() * (scale || 1);
             const tool_box = (() => {
                 if (document.body.clientWidth < 800) {
                     return 40;
@@ -1085,6 +1109,7 @@ export class Main_editor {
                                  style="${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;` : ``}"
                                  id="editerCenter">
                                 ${(document.body.clientWidth < 800) ? gvc.bindView(() => {
+                            let last_selected = '';
                             return {
                                 bind: `item-editor-select`,
                                 view: () => {
@@ -1171,20 +1196,31 @@ export class Main_editor {
                                                 }
                                             });
                                         }
+                                        if (gvc.glitter.share.editorViewModel.selectItem.id === last_selected) {
+                                            setTimeout(() => {
+                                                gvc.glitter.openDrawer();
+                                            }, 50);
+                                        }
+                                        else {
+                                            setTimeout(() => {
+                                                last_selected = gvc.glitter.share.editorViewModel.selectItem.id;
+                                            }, 50);
+                                        }
                                         return html `
                                                     <div class="border-bottom  d-flex align-items-center px-2 shadow"
                                                          style="height:40px;gap:7px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;">
                                                         <div class="fw-500 fs-6"
                                                              style="text-overflow: ellipsis;overflow: hidden !important;">
-                                                         ${gvc.glitter.share.editorViewModel.selectItem.label}
+                                                            ${gvc.glitter.share.editorViewModel.selectItem.label}
                                                         </div>
                                                         <div class="flex-fill"></div>
                                                         <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                              style="font-size: 14px;color:black;"
                                                              onclick="${gvc.event(() => {
                                             gvc.glitter.openDrawer();
-                                        })}">編輯</div>
-                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500"
+                                        })}">編輯
+                                                        </div>
+                                                        <div class="rounded-1 border bg-white p-1 px-2 fw-500 ${(gvc.glitter.share.editorViewModel.selectItem.deletable === 'false') ? `d-none` : ``}"
                                                              style="font-size: 14px;color:black;"
                                                              onclick="${gvc.event(() => {
                                             const dialog = new ShareDialog(gvc.glitter);
@@ -1195,7 +1231,8 @@ export class Main_editor {
                                                         <div class="btn-group dropdown">
                                                             <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                                  style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">貼上
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">貼上
                                                             </div>
                                                             <div class="dropdown-menu my-1">
                                                                 <a class="dropdown-item" onclick="${gvc.event(() => {
@@ -1211,7 +1248,8 @@ export class Main_editor {
                                                         <div class="btn-group dropdown">
                                                             <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                                  style="font-size: 14px;color:black;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">新增
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">新增
                                                             </div>
                                                             <div class="dropdown-menu my-1">
                                                                 <a class="dropdown-item" onclick="${gvc.event(() => {
@@ -1252,6 +1290,40 @@ export class Main_editor {
                         style: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? ``
                             : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                    };
+                }
+            };
+        });
+    }
+    static developerEditor(gvc) {
+        return gvc.bindView(() => {
+            return {
+                bind: 'iframe_center',
+                view: () => {
+                    if (EditorConfig.backend_page() === 'backend-manger') {
+                        return html `
+                            <div class="position-relative"
+                                 style="width:100%;height: 100%;padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;"
+                                 id="editerCenter">
+                            </div>`;
+                    }
+                    else {
+                        return html `
+                            <div class="position-relative"
+                                 style="width:100%;height: calc(100%);${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;` : ``}"
+                                 id="editerCenter">
+                                <iframe class="w-100 h-100  bg-white iframe_view"
+                                        sandbox="allow-same-origin allow-scripts"
+                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                            </div>`;
+                    }
+                },
+                divCreate: () => {
+                    return {
+                        class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                        style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     };
                 }
             };

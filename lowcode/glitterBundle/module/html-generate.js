@@ -1691,11 +1691,11 @@ ${obj.gvc.bindView({
                                                                 ${widget.visible === false ? ` hide-elem` : ``}`,
                                                 option: option.concat((() => {
                                                     if (root && isEditMode()) {
-                                                        return [
-                                                            {
-                                                                key: 'onmouseover',
-                                                                value: gvc.event((e, event) => {
-                                                                    if (document.body.clientWidth < 800) {
+                                                        if (window.parent.document.body.clientWidth < 800) {
+                                                            return [
+                                                                {
+                                                                    key: 'onclick',
+                                                                    value: gvc.event((e, event) => {
                                                                         HtmlGenerate.selectWidget({
                                                                             gvc: gvc,
                                                                             widget: widget,
@@ -1703,8 +1703,29 @@ ${obj.gvc.bindView({
                                                                             event: event,
                                                                             glitter: window.parent.glitter,
                                                                         });
-                                                                    }
-                                                                    ;
+                                                                        function loop(item) {
+                                                                            if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                                if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                                    item[0].children[0].style.background = '#F2F2F2';
+                                                                                }
+                                                                            }
+                                                                            if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                                loop(item.parent());
+                                                                            }
+                                                                        }
+                                                                        if (window.parent.document.querySelector(`.it-${widget.id}`)) {
+                                                                            loop(window.parent.glitter.$(`.it-${widget.id}`).parent());
+                                                                            window.parent.document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
+                                                                        }
+                                                                        $(e).children('.editorChild').get(0).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                    })
+                                                                }
+                                                            ];
+                                                        }
+                                                        return [
+                                                            {
+                                                                key: 'onmouseover',
+                                                                value: gvc.event((e, event) => {
                                                                     $(e).children('.editorChild').children('.copy-btn').show();
                                                                     $(e).children('.editorChild').children('.plus_bt').show();
                                                                     function loop(item) {
@@ -2197,6 +2218,34 @@ transform: translateY(5px);
                 }
             }
             glitter.htmlGenerate.loadScript(glitter, preloadJS, 'clickEvent');
+        });
+    }
+    static renderComponent(cf) {
+        return cf.gvc.bindView(() => {
+            const id = cf.gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return ``;
+                },
+                divCreate: {
+                    option: [
+                        { key: 'id', value: cf.gvc.glitter.getUUID() }
+                    ]
+                },
+                onCreate: () => {
+                    (window.glitterInitialHelper).getPageData({
+                        tag: cf.tag,
+                        appName: cf.appName
+                    }, (d2) => {
+                        cf.gvc.glitter.document.querySelector('#' + id).outerHTML = new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
+                            class: ``,
+                            style: ``,
+                            page_config: d2.response.result[0].page_config,
+                        });
+                    });
+                }
+            };
         });
     }
 }

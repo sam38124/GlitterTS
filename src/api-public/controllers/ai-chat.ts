@@ -14,6 +14,7 @@ import moment from 'moment';
 import { Private_config } from '../../services/private_config.js';
 import {Ai} from "../../services/ai.js";
 import { Parser } from 'json2csv';
+import {AiRobot} from "../services/ai-robot.js";
 const router: express.Router = express.Router();
 
 export = router;
@@ -23,7 +24,7 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
-    const  type:'writer' | 'order_analysis' | 'operation_guide'=req.body.type
+    const  type:'writer' | 'order_analysis' | 'operation_guide' | 'design' =req.body.type
     try {
         const exportData: any = [];
         let cf = (
@@ -42,6 +43,8 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
             }
         ).value;
         cf[type] = (await openai.beta.threads.create()).id;
+
+        //匯入訂單檔案
         async function syncOrderData(){
             (
                 await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
@@ -129,7 +132,9 @@ return {
                                         FROM \`${req.get('g-app') as string}\`.t_chat_detail where chat_id=? order by id desc limit 0,5`,[
                                             [type,'manager'].sort().join('-')
         ])).reverse()){
-            if(b.message.text){
+            if(b.message.prompt){
+                await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.prompt })
+            }else if(b.message.text){
                 await openai.beta.threads.messages.create(cf[type], { role: (b.user_id==='robot') ? 'assistant':'user', content: b.message.text })
             }
         }
@@ -168,6 +173,18 @@ router.delete('/reset',async (req: express.Request, resp: express.Response) => {
     } catch (err) {
         console.log(err);
         fs.rmSync(file1);
+        return response.fail(resp, err);
+    }
+})
+
+
+router.post('/generate-html', async (req: express.Request, resp: express.Response)=>{
+    try {
+        return response.succ(resp, {
+            result: true,
+            data:await AiRobot.codeGenerator(req.get('g-app') as string,req.body.text)
+        });
+    } catch (err) {
         return response.fail(resp, err);
     }
 })

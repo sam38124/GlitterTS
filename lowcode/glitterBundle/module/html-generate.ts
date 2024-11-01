@@ -352,7 +352,7 @@ export class HtmlGenerate {
                                     ${data.style}
                                 })()`);
                             } else if (data.dataType === 'triggerEvent') {
-                                return  ``
+                                return ``
                                 // return glitter.promiseValue(
                                 //     new Promise(async (resolve, reject) => {
                                 //         resolve(
@@ -718,14 +718,14 @@ ${obj.gvc.bindView({
                 dd.formData = dd.formData ?? formData;
                 dd.event = (key: string, subData: any) => {
                     return new Promise(async (resolve, reject) => {
-                        if((window as any).glitter.getUrlParameter('cms') === 'true'){
-                            const dialog=new ShareDialog((window.parent as any).glitter)
-                            if(key==='success'){
-                                dialog.successMessage({text:subData.title})
-                            }else if (key==='error'){
-                                dialog.errorMessage({text:subData.title})
-                            }else if (key==='loading'){
-                                dialog.dataLoading({visible:(subData.visible) ?? true,text:subData.title})
+                        if ((window as any).glitter.getUrlParameter('cms') === 'true') {
+                            const dialog = new ShareDialog((window.parent as any).glitter)
+                            if (key === 'success') {
+                                dialog.successMessage({text: subData.title})
+                            } else if (key === 'error') {
+                                dialog.errorMessage({text: subData.title})
+                            } else if (key === 'loading') {
+                                dialog.dataLoading({visible: (subData.visible) ?? true, text: subData.title})
                             }
                             resolve(true)
                             return
@@ -2177,25 +2177,51 @@ ${e.line}
                                                 option: option.concat(
                                                     (() => {
                                                         if (root && isEditMode()) {
+                                                            if ((window.parent as any).document.body.clientWidth < 800) {
+                                                                return [
+                                                                    {
+                                                                        key: 'onclick',
+                                                                        value: gvc.event((e, event) => {
+                                                                            HtmlGenerate.selectWidget({
+                                                                                gvc: gvc,
+                                                                                widget: widget,
+                                                                                widgetComponentID: cf.widget.id,
+                                                                                event: event,
+                                                                                glitter: (window.parent as any).glitter,
+                                                                            });
+
+                                                                            function loop(item: any) {
+
+                                                                                if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                                    if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
+                                                                                        item[0].children[0].style.background = '#F2F2F2';
+                                                                                    }
+                                                                                }
+                                                                                if (!item[0] || (!item[0].className.includes('root-left-container'))) {
+                                                                                    loop(item.parent())
+                                                                                }
+                                                                            }
+
+                                                                            if ((window.parent as any).document.querySelector(`.it-${widget.id}`)) {
+                                                                                loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
+                                                                                (window.parent as any).document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
+                                                                            }
+                                                                            ($(e).children('.editorChild').get(0) as any).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                        })
+                                                                    }
+                                                                ]
+                                                            }
                                                             return [
                                                                 {
                                                                     key: 'onmouseover',
                                                                     value: gvc.event((e, event) => {
-                                                                      if(document.body.clientWidth<800){
-                                                                          HtmlGenerate.selectWidget({
-                                                                              gvc: gvc,
-                                                                              widget: widget,
-                                                                              widgetComponentID: cf.widget.id,
-                                                                              event: event,
-                                                                              glitter: (window.parent as any).glitter,
-                                                                          });
-                                                                      };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).show();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).show();
+
                                                                         function loop(item: any) {
 
-                                                                            if(item[0] && item[0].tagName.toLowerCase()==='li'){
-                                                                                if(item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))){
+                                                                            if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                                if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
                                                                                     item[0].children[0].style.background = '#F2F2F2';
                                                                                 }
                                                                             }
@@ -2203,7 +2229,8 @@ ${e.line}
                                                                                 loop(item.parent())
                                                                             }
                                                                         }
-                                                                        if( (window.parent as any).document.querySelector(`.it-${widget.id}`)){
+
+                                                                        if ((window.parent as any).document.querySelector(`.it-${widget.id}`)) {
                                                                             loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
                                                                             (window.parent as any).document.querySelector(`.it-${widget.id}`).style.background = '#F2F2F2';
                                                                         }
@@ -2220,9 +2247,10 @@ ${e.line}
                                                                         // };
                                                                         ($(e).children('.editorChild').children('.copy-btn') as any).hide();
                                                                         ($(e).children('.editorChild').children('.plus_bt') as any).hide();
+
                                                                         function loop(item: any) {
-                                                                            if(item[0] && item[0].tagName.toLowerCase()==='li'){
-                                                                                if(item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))){
+                                                                            if (item[0] && item[0].tagName.toLowerCase() === 'li') {
+                                                                                if (item[0].children[0] && (!item[0].children[0].className.includes('active_F2F2F2'))) {
                                                                                     item[0].children[0].style.background = 'none';
                                                                                 }
                                                                             }
@@ -2230,7 +2258,8 @@ ${e.line}
                                                                                 loop(item.parent())
                                                                             }
                                                                         }
-                                                                        if((window.parent as any).document.querySelector(`.it-${widget.id}`)){
+
+                                                                        if ((window.parent as any).document.querySelector(`.it-${widget.id}`)) {
                                                                             loop((window.parent as any).glitter.$(`.it-${widget.id}`).parent());
                                                                             (window.parent as any).document.querySelector(`.it-${widget.id}`).style.removeProperty('background');
                                                                         }
@@ -2345,7 +2374,7 @@ ${e.line}
             try {
                 glitter.share.editorViewModel.selectItem = dd;
                 Storage.page_setting_item = 'layout';
-                (glitter.pageConfig[glitter.pageConfig.length - 1] as any).gvc.notifyDataChange(['top_sm_bar','left_sm_bar','item-editor-select']);
+                (glitter.pageConfig[glitter.pageConfig.length - 1] as any).gvc.notifyDataChange(['top_sm_bar', 'left_sm_bar', 'item-editor-select']);
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
                 Storage.lastSelect = dd.id;
@@ -2473,8 +2502,8 @@ background: white;
                             `
                         } else {
                             function getPlusAndPasteView(dir: number) {
-                                if((window.parent as any).document.body.clientWidth<800){
-                                    return  ``
+                                if ((window.parent as any).document.body.clientWidth < 800) {
+                                    return ``
                                 }
                                 const detID = cf.gvc.glitter.getUUID()
                                 const plusID = cf.gvc.glitter.getUUID()
@@ -2588,12 +2617,12 @@ transform: translateY(5px);
                             }
 
                             return html`
-                                ${cf.gvc.glitter.document.body.clientWidth>800 ? `<div
+                                ${cf.gvc.glitter.document.body.clientWidth > 800 ? `<div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
                                         style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
                                 >
                                     ${cf.label}
-                                </div>`:``}
+                                </div>` : ``}
                                 <div
                                         class="position-absolute fs-1 plus_bt"
                                         style="left:50%;transform: translateX(-50%);height:20px;top:${(Storage.view_type === 'mobile')
@@ -2639,7 +2668,7 @@ transform: translateY(5px);
 
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || ((window.parent as any).glitter.share.editorViewModel.selectItem===cf.widget) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) || ((window.parent as any).glitter.share.editorViewModel.selectItem === cf.widget) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },
@@ -2688,7 +2717,7 @@ transform: translateY(5px);
                         container_items.rerenderReplaceElem()
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
-                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft','item-editor-select']);
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft', 'item-editor-select']);
                     callback();
                 }
             },
@@ -2733,7 +2762,39 @@ transform: translateY(5px);
             glitter.htmlGenerate.loadScript(glitter, preloadJS, 'clickEvent');
         });
     }
+
+    public static renderComponent(cf: {
+        appName: string, tag: string, gvc: GVC, subData: any
+    }) {
+        return cf.gvc.bindView(() => {
+            const id = cf.gvc.glitter.getUUID()
+            return {
+                bind: id,
+                view: () => {
+                    return ``
+                },
+                divCreate: {
+                    option: [
+                        {key: 'id', value: cf.gvc.glitter.getUUID()}
+                    ]
+                },
+                onCreate:()=>{
+                    ((window as any).glitterInitialHelper).getPageData({
+                        tag: cf.tag,
+                        appName: cf.appName
+                    }, (d2: any) => {
+                        cf.gvc.glitter.document.querySelector('#'+id).outerHTML=new cf.gvc.glitter.htmlGenerate(d2.response.result[0].config, [], cf.subData).render(cf.gvc, {
+                            class: ``,
+                            style: ``,
+                            page_config: d2.response.result[0].page_config,
+                        })
+                    })
+                }
+            }
+        })
+    }
 }
+
 
 function isIdeaAble(widget: any) {
     try {
