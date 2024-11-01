@@ -1,16 +1,16 @@
 'use strict';
-import {Glitter} from './glitterBundle/Glitter.js';
-import {config} from './config.js';
-import {ApiPageConfig} from './api/pageConfig.js';
-import {BaseApi} from './glitterBundle/api/base.js';
-import {GlobalUser} from './glitter-base/global/global-user.js';
-import {EditorConfig} from './editor-config.js';
-import {ShareDialog} from "./glitterBundle/dialog/ShareDialog.js";
+import { Glitter } from './glitterBundle/Glitter.js';
+import { config } from './config.js';
+import { ApiPageConfig } from './api/pageConfig.js';
+import { BaseApi } from './glitterBundle/api/base.js';
+import { GlobalUser } from './glitter-base/global/global-user.js';
+import { EditorConfig } from './editor-config.js';
+import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        glitter.share.top_inset = 0
-        glitter.share.bottom_inset = 0
+        glitter.share.top_inset = 0;
+        glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
             const hashCode = (window as any).preloadData.eval_code_hash || {};
             Object.keys(hashCode).map((dd, index) => {
@@ -49,9 +49,9 @@ export class Entry {
                     scroll-behavior: auto !important;
                 }
             }
-              .hide-elem {
-            display: none !important;
-        }
+            .hide-elem {
+                display: none !important;
+            }
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
@@ -59,8 +59,8 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_13.8.3";
-        glitter.share.start = (new Date());
+        glitter.share.editerVersion = 'V_13.8.4';
+        glitter.share.start = new Date();
         const vm: {
             appConfig: any;
         } = {
@@ -77,12 +77,16 @@ export class Entry {
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
-            ${(parseInt((window.parent as any).glitter.share.bottom_inset, 10)) ? `
-             .update-bar-container {
-        padding-bottom:${(window.parent as any).glitter.share.bottom_inset}px !important;
-        }
-            ` : ``}
-            
+                ${
+                    parseInt((window.parent as any).glitter.share.bottom_inset, 10)
+                        ? `
+                              .update-bar-container {
+                                  padding-bottom: ${(window.parent as any).glitter.share.bottom_inset}px !important;
+                              }
+                          `
+                        : ``
+                }
+
                 .editorParent .editorChild {
                     display: none;
                 }
@@ -107,11 +111,9 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     pointer-events: none;
-                    
                 }
- .editor_item.active {
-                 background:#DDD;
-                   
+                .editor_item.active {
+                    background: #ddd;
                 }
                 .editorItemActive {
                     display: block !important;
@@ -122,7 +124,6 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     position: absolute;
-                   
                 }
 
                 .editorItemActive > .badge_it {
@@ -145,32 +146,29 @@ export class Entry {
                     position: relative;
                 }
                 .sel_normal {
-    cursor: pointer;
-    border-radius: 7px;
-    border: 1px solid #ddd;
-    padding: 2px 14px;
-    background: #fff;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
-}
+                    cursor: pointer;
+                    border-radius: 7px;
+                    border: 1px solid #ddd;
+                    padding: 2px 14px;
+                    background: #fff;
+                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+                }
 
-  ul {
-                                        list-style: none;
-                                      
-                                    }
-                                    li {
-                                      list-style: none;
-                                     
-                                    }
+                ul {
+                    list-style: none;
+                }
+                li {
+                    list-style: none;
+                }
             `);
 
             // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
-                const dialog = new ShareDialog(glitter)
-                dialog.dataLoading({visible: true, text: '後台載入中'})
+                const dialog = new ShareDialog(glitter);
+                dialog.dataLoading({ visible: true, text: '後台載入中' });
                 // 頁面編輯器
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => {});
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -212,7 +210,6 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
-
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
@@ -228,11 +225,15 @@ export class Entry {
         glitter.share.EditorMode = true;
         glitter.share.evalPlace = (evals: string) => eval(evals);
 
-
         async function running() {
-            glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css', 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
+            glitter.addStyleLink([
+                'assets/vendor/boxicons/css/boxicons.min.css',
+                'assets/css/theme.css',
+                'css/editor.css',
+                'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css',
                 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
-                'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css']);
+                'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css',
+            ]);
             await new Promise((resolve, reject) => {
                 glitter.addMtScript(
                     [
@@ -260,7 +261,6 @@ export class Entry {
         (window as any).root.classList.add('light-mode');
 
         function toNext() {
-
             console.log(`to-next-time:`, (window as any).renderClock.stop());
             running().then(async () => {
                 {
@@ -270,7 +270,7 @@ export class Entry {
                         tag: glitter.getUrlParameter('page'),
                     });
                     // console.log(`data===>`,data)
-                    if (data.response.result.length === 0 && (glitter.getUrlParameter('page')!=='cms')) {
+                    if (data.response.result.length === 0 && glitter.getUrlParameter('page') !== 'cms') {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
 
@@ -316,10 +316,8 @@ export class Entry {
                     src: 'https://kit.fontawesome.com/cccedec0f8.js',
                 },
             ],
-            () => {
-            },
-            () => {
-            }
+            () => {},
+            () => {}
         );
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -360,11 +358,9 @@ export class Entry {
                     type: 'module',
                 };
             }),
-            () => {
-            },
-            () => {
-            },
-            [{key: 'async', value: 'true'}]
+            () => {},
+            () => {},
+            [{ key: 'async', value: 'true' }]
         );
 
         // Preload page script
@@ -385,21 +381,20 @@ export class Entry {
             return eval(evals);
         };
         setTimeout(() => {
-            (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false})
-        }, 2000)
+            (window.parent as any).glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
+        }, 2000);
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
             page_config: (window.parent as any).page_config ?? {},
             get config() {
-                return (window.parent as any).editerData.setting
+                return (window.parent as any).editerData.setting;
             },
             get editMode() {
-                return (window.parent as any).editerData
+                return (window.parent as any).editerData;
             },
             data: {},
             tag: (window.parent as any).glitter.getUrlParameter('page'),
         });
-
 
         callback();
     }
@@ -441,8 +436,7 @@ export class Entry {
                     .map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            callback: () => {
-                            },
+                            callback: () => {},
                         };
                     })
             );
@@ -493,8 +487,8 @@ export class Entry {
             glitter.share.globalStyle = {};
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = config.color_theme ?? [];
-            config.container_theme = config.container_theme ?? []
-            config.font_theme = config.font_theme ?? []
+            config.container_theme = config.container_theme ?? [];
+            config.font_theme = config.font_theme ?? [];
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
@@ -502,22 +496,25 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
-            glitter.share.font_theme = config.font_theme
-            glitter.share.global_container_theme = config.container_theme
-            glitter.share.initial_fonts = []
+            glitter.share.font_theme = config.font_theme;
+            glitter.share.global_container_theme = config.container_theme;
+            glitter.share.initial_fonts = [];
             if (glitter.share.font_theme[0]) {
                 glitter.addStyle(`
-@charset "UTF-8";
-${glitter.share.font_theme.map((dd: any) => {
-                    glitter.share.initial_fonts.push(dd.value);
-                    return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`
-                }).join('\n')}
-body {
-    font-family: "${glitter.share.font_theme[0].value}" !important;
-    font-optical-sizing: auto;
-    font-style: normal;
-    color: #393939;
-}`)
+                    @charset "UTF-8";
+                    ${glitter.share.font_theme
+                        .map((dd: any) => {
+                            glitter.share.initial_fonts.push(dd.value);
+                            return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
+                        })
+                        .join('\n')}
+                    body {
+                        font-family: '${glitter.share.font_theme[0].value}' !important;
+                        font-optical-sizing: auto;
+                        font-style: normal;
+                        color: #393939;
+                    }
+                `);
             }
 
             function loopCheckGlobalValue(array: any, tag: string) {
