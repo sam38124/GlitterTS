@@ -1,20 +1,20 @@
 import db from '../modules/database';
 import exception from '../modules/exception';
-import { saasConfig } from '../config';
+import {saasConfig} from '../config';
 import tool from './tool';
 import UserUtil from '../utils/UserUtil';
-import { createAPP } from '../index.js';
+import {createAPP} from '../index.js';
 import AWS from 'aws-sdk';
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import config from '../config.js';
 import fs from 'fs';
-import { exec } from 'child_process';
-import { Ssh } from '../modules/ssh.js';
-import { NginxConfFile } from 'nginx-conf';
+import {exec} from 'child_process';
+import {Ssh} from '../modules/ssh.js';
+import {NginxConfFile} from 'nginx-conf';
 import * as process from 'process';
-import { ApiPublic } from '../api-public/services/public-table-check.js';
-import { BackendService } from './backend-service.js';
-import { Template } from './template.js';
+import {ApiPublic} from '../api-public/services/public-table-check.js';
+import {BackendService} from './backend-service.js';
+import {Template} from './template.js';
 import Tool from './tool';
 import path from 'path';
 import {AppInitial} from "./app-initial.js";
@@ -35,10 +35,18 @@ export class App {
         });
     }
 
-    public async createApp(cf: { appName: string; copyApp: string; copyWith: string[]; brand: string; name?: string; theme?: string; sub_domain: string }) {
+    public async createApp(cf: {
+        appName: string;
+        copyApp: string;
+        copyWith: string[];
+        brand: string;
+        name?: string;
+        theme?: string;
+        sub_domain: string
+    }) {
         try {
             cf.copyWith = cf.copyWith ?? [];
-            cf.sub_domain=cf.sub_domain.replace(/\./g,'')
+            cf.sub_domain = cf.sub_domain.replace(/\./g, '')
             const count = await db.execute(
                 `
                     select count(1)
@@ -96,7 +104,7 @@ export class App {
                  values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                          ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
                          ${db.escape(
-                             JSON.stringify((copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name })
+                                 JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name})
                          )},
                          ${cf.theme ? db.escape(cf.theme) : 'null'},
                          ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`,
@@ -163,12 +171,12 @@ export class App {
                     []
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if(!['editorGuide','guideable','guide'].includes(dd.key)){
+                    if (!['editorGuide', 'guideable', 'guide'].includes(dd.key)) {
                         await trans.execute(
                             `
-                            insert into \`${cf.appName}\`.public_config
-                            SET ?;
-                        `,
+                                insert into \`${cf.appName}\`.public_config
+                                SET ?;
+                            `,
                             [dd]
                         );
                     }
@@ -179,7 +187,7 @@ export class App {
                     []
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if((dd.userID!=='manager') && (!['robot_auto_reply','image-manager','message_setting'].includes(dd.key))){
+                    if ((dd.userID !== 'manager') && (!['robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key))) {
                         await trans.execute(
                             `
                                 insert into \`${cf.appName}\`.t_user_public_config
@@ -227,23 +235,28 @@ export class App {
             await trans.commit();
             const store_information = (
                 await db.query(
-                    `select * from \`${cf.appName}\`.t_user_public_config
-                            where \`key\` = ? `,
+                    `select *
+                     from \`${cf.appName}\`.t_user_public_config
+                     where \`key\` = ? `,
                     [`store-information`]
                 )
             )[0];
             if (store_information) {
-                await db.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`, ['store-information']);
+                await db.query(`delete
+                                from \`${cf.appName}\`.t_user_public_config
+                                where \`key\` = ?
+                                  and id > 0`, ['store-information']);
             }
-            for (const b of AppInitial.main(cf.appName)){
+            for (const b of AppInitial.main(cf.appName)) {
                 await db.query(b.sql, [b.obj]);
             }
-            await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [{
-                key:'store-information',
-                user_id:'manager',
-                updated_at:new Date(),
-                value:JSON.stringify({
-                    shop_name:cf.name
+            await db.query(`insert into \`${cf.appName}\`.t_user_public_config
+                            set ?`, [{
+                key: 'store-information',
+                user_id: 'manager',
+                updated_at: new Date(),
+                value: JSON.stringify({
+                    shop_name: cf.name
                 })
             }]);
             await createAPP(cf);
@@ -372,28 +385,32 @@ export class App {
     public async getAPP(query: { app_name?: string; theme?: string }) {
         try {
             const empStores = await db.query(
-                `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config 
-                WHERE user = '${this.token!.userID}' AND status = 1 AND invited = 1;`,
+                `SELECT *
+                 FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                 WHERE user = '${this.token!.userID}'
+                   AND status = 1
+                   AND invited = 1;`,
                 []
             );
             const allStores = await db.query(
-                `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                    WHERE ${(() => {
-                        const sql = [
-                            `(user = '${this.token!.userID}' OR appName = 
+                `SELECT *
+                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                 WHERE ${(() => {
+                     const sql = [
+                         `(user = '${this.token!.userID}' OR appName = 
                             (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
                             WHERE user = '${this.token!.userID}' AND status = 1 AND invited = 1)
                         )`,
-                        ];
-                        if (query.app_name) {
-                            sql.push(` appName='${query.app_name}' `);
-                        } else if (query.theme) {
-                            sql.push(` refer_app='${query.theme}' `);
-                        } else {
-                            sql.push(` refer_app is null `);
-                        }
-                        return sql.join(' and ');
-                    })()};
+                     ];
+                     if (query.app_name) {
+                         sql.push(` appName='${query.app_name}' `);
+                     } else if (query.theme) {
+                         sql.push(` refer_app='${query.theme}' `);
+                     } else {
+                         sql.push(` refer_app is null `);
+                     }
+                     return sql.join(' and ');
+                 })()};
                 `,
                 []
             );
@@ -419,10 +436,10 @@ export class App {
                         query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                         query.template_from === 'all' && sql.push(`template_type = 2`);
                         return sql
-                            .map((dd) => {
-                                return `(${dd})`;
-                            })
-                            .join(' and ');
+                                .map((dd) => {
+                                    return `(${dd})`;
+                                })
+                                .join(' and ');
                     })()};
                 `,
                 []
@@ -501,12 +518,14 @@ export class App {
             brand: base.brand,
             userData: userData.userData,
             domain: base.domain,
-            user_id:userID
+            user_id: userID
         };
     }
 
     public static async preloadPageData(appName: string, refer_page: string) {
+        const start = (new Date()).getTime()
         const page = await Template.getRealPage(refer_page, appName);
+        console.log(`preload-0==>`, (new Date().getTime() - start) / 1000)
         const app = new App();
         const preloadData: {
             component: any;
@@ -545,69 +564,55 @@ export class App {
             return {};
         }
         preloadData.component.push(pageData);
-
-        async function loop(array: any) {
-            for (const dd of array) {
-                if (dd.type === 'container') {
-                    await loop(dd.data.setting);
-                } else if (dd.type === 'component') {
-                    const pageData = (
-                        await new Template(undefined).getPage({
-                            appName: dd.data.refer_app || appName,
-                            tag: dd.data.tag,
+        let checkPass = 0
+        await new Promise(async (resolve, reject) => {
+            function loop(array: any) {
+                for (const dd of array) {
+                    if (dd.type === 'container') {
+                        loop(dd.data.setting);
+                    } else if (dd.type === 'component') {
+                        checkPass++
+                        new Promise(async (resolve, reject) => {
+                            const pageData = (
+                                await new Template(undefined).getPage({
+                                    appName: dd.data.refer_app || appName,
+                                    tag: dd.data.tag,
+                                })
+                            )[0];
+                            if (pageData && pageData.config) {
+                                preloadData.component.push(pageData);
+                                loop(pageData.config ?? []);
+                            }
+                            resolve(true)
+                        }).then(()=>{
+                            checkPass--
+                            if(checkPass===0){
+                                resolve(true)
+                            }
                         })
-                    )[0];
-                    if (pageData && pageData.config) {
-                        preloadData.component.push(pageData);
-                        await loop(pageData.config ?? []);
                     }
                 }
-                // if (dd && typeof dd === 'object') {
-                //     // console.log(data)
-                //     async function loopObject(data:any){
-                //         // console.log(`loopObject->`,data)
-                //         for (const dd of Object.keys(data)){
-                //             if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
-                //                 if (
-                //                     !preloadData.event.find((dd: any) => {
-                //                         return dd === event_[data['route']];
-                //                     })
-                //                 ) {
-                //                     preloadData.event.push(event_[data['route']]);
-                //                 }
-                //             }else{
-                //                 if (Array.isArray(data[dd])) {
-                //                     await loop(data[dd]);
-                //                 }else if (typeof data[dd] === 'object') {
-                //                     // await loopObject(data[dd]);
-                //                 }
-                //             }
-                //
-                //         }
-                //     }
-                //     await loopObject(dd)
-                // } else if (Array.isArray(dd)) {
-                //     await loop(dd);
-                // }
             }
-        }
-
-        await loop(pageData && pageData.config);
+            loop(pageData && pageData.config);
+            if(checkPass===0){resolve(true)}
+        })
+        console.log(`preload-2==>`, (new Date().getTime() - start) / 1000)
         let mapPush: any = {};
         mapPush['getPlugin'] = {
             callback: [],
-            data: { response: { data: preloadData.appConfig, result: true } },
+            data: {response: {data: preloadData.appConfig, result: true}},
             isRunning: true,
         };
         preloadData.component.map((dd: any) => {
             mapPush[`getPageData-${dd.appName}-${dd.tag}`] = {
                 callback: [],
                 isRunning: true,
-                data: { response: { result: [dd] } },
+                data: {response: {result: [dd]}},
             };
         });
 
         let eval_code_hash: any = {};
+        console.log(`preload-3==>`, (new Date().getTime() - start) / 1000)
         // 查找匹配的字串
         const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
         const code: any = JSON.stringify(preloadData.component).match(/\{"code":"[^"]+","/g);
@@ -619,6 +624,7 @@ export class App {
                 console.log(`error->`, dd);
             }
         });
+        console.log(`preload-4==>`, (new Date().getTime() - start) / 1000)
         // 輸出結果
         if (match1) {
             match1.map((d1) => {
@@ -633,6 +639,7 @@ export class App {
         } else {
             console.log('未找到匹配的字串');
         }
+        console.log(`preload-5==>`, (new Date().getTime() - start) / 1000)
         mapPush.eval_code_hash = eval_code_hash;
         mapPush.event = preloadData.event;
         return mapPush;
@@ -738,7 +745,9 @@ export class App {
         ) {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
-                original_domain:(await db.query(`SELECT domain FROM \`${saasConfig.SAAS_NAME}\`.app_config where appName=?;`,[cf.app_name]))[0]['domain'],
+                original_domain: (await db.query(`SELECT domain
+                                                  FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                                                  where appName=?;`, [cf.app_name]))[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -779,7 +788,7 @@ export class App {
         });
     }
 
-    public async setSubDomain(config: {original_domain:string, appName: string; domain: string }) {
+    public async setSubDomain(config: { original_domain: string, appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -805,7 +814,7 @@ export class App {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
 
-                        if ( !b.server_name.toString().includes(`server_name ${config.domain};`) &&  !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
+                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
                     }
@@ -863,7 +872,7 @@ server {
         }
     }
 
-    public async setDomain(config: { original_domain:string,appName: string; domain: string }) {
+    public async setDomain(config: { original_domain: string, appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -883,7 +892,7 @@ server {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
-                        if ( !b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`) ) {
+                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
                     }
@@ -939,7 +948,8 @@ server {
         try {
             try {
                 await new BackendService(config.appName).stopServer();
-            } catch (e) {}
+            } catch (e) {
+            }
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.app_config

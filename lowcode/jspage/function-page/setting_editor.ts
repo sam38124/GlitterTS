@@ -635,9 +635,58 @@ export class Setting_editor {
     static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
-
         return gvc.bindView(() => {
             const id = glitter.getUUID();
+            let initial = false;
+            let loading = true;
+            let permissionTitle: string = '';
+            let permissionData: any = {};
+            let items: any = [];
+            let menuItems = this.menuItems();
+            if ((window as any).memberType === 'noLimit') {
+                menuItems = menuItems.concat(this.noLimitMenuItems());
+            }
+            menuItems.map((dd, index) => {
+                if (dd.page === glitter.getUrlParameter('tab')) {
+                    Storage.select_item = index;
+                }
+            });
+            ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+                if (res.response.result[0]) {
+                    items = res.response.result[0].value;
+                }
+                items = items.filter((dd: any) => dd);
+                items.map((d1: any) => {
+                    if (
+                        !menuItems.find((dd: any) => {
+                            return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
+                        })
+                    ) {
+                        menuItems.push(d1);
+                    }
+                });
+                items = menuItems;
+                if (parseInt(Storage.select_item, 10) >= items.length) {
+                    Storage.select_item = '0';
+                }
+                new Promise<void>((resolve, reject) => {
+                    ApiUser.getPermission({
+                        page: 0,
+                        limit: 1,
+                    }).then((data) => {
+                        if (data.result) {
+                            permissionTitle = data.response.store_permission_title;
+                            permissionData = data.response.data[0] ?? { config: { auth: [] } };
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    });
+                }).then(() => {
+                    loading = false;
+                    gvc.notifyDataChange(id);
+                });
+            });
             return {
                 bind: id,
                 view: () => {
@@ -651,199 +700,155 @@ export class Setting_editor {
                             <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>
                         <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
-                            ${gvc.bindView(() => {
-                                const id = gvc.glitter.getUUID();
-                                let initial = false;
-                                let loading = true;
-                                let permissionTitle: string = '';
-                                let permissionData: any = {};
-                                let items: any = [];
-                                let menuItems = this.menuItems();
-
-                                if ((window as any).memberType === 'noLimit') {
-                                    menuItems = menuItems.concat(this.noLimitMenuItems());
+                            ${(()=>{
+                                if (loading) {
+                                    return BgWidget.spinner({ text: { visible: false } });
                                 }
 
-                                menuItems.map((dd, index) => {
-                                    if (dd.page === glitter.getUrlParameter('tab')) {
-                                        Storage.select_item = index;
-                                    }
-                                });
+                                function renderHTML(items: any) {
+                                    const authConfig = permissionData.config.auth;
+                                    let list: any = [];
 
-                                ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                                    if (res.response.result[0]) {
-                                        items = res.response.result[0].value;
-                                    }
-                                    items = items.filter((dd: any) => dd);
-                                    items.map((d1: any) => {
-                                        if (
-                                            !menuItems.find((dd: any) => {
-                                                return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
-                                            })
-                                        ) {
-                                            menuItems.push(d1);
-                                        }
-                                    });
-                                    items = menuItems;
-                                    if (parseInt(Storage.select_item, 10) >= items.length) {
-                                        Storage.select_item = '0';
-                                    }
-                                    gvc.notifyDataChange(id);
-                                });
-
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        if (loading) {
-                                            return BgWidget.spinner({ text: { visible: false } });
-                                        }
-
-                                        function renderHTML(items: any) {
-                                            const authConfig = permissionData.config.auth;
-                                            let list: any = [];
-
-                                            function click_item(index: any) {
-                                                const itemPage = items[parseInt(index)].page;
-                                                const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
-                                                if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
-                                                    const url = new URL(location.href);
-                                                    if (page === 'page_layout') {
-                                                        url.searchParams.set('function', 'user-editor');
-                                                    } else {
-                                                        Storage.view_type = 'col3';
-                                                        url.searchParams.set('function', 'page-editor');
-                                                    }
-                                                    location.href = url.href;
-                                                } else {
-                                                    Storage.select_item = index;
-                                                    (window as any).editerData = undefined;
-                                                    glitter.setUrlParameter('tab', page);
-                                                    const url = new URL('./' + page, glitter.root_path);
-                                                    url.searchParams.set('appName', items[parseInt(index)].appName);
-                                                    url.searchParams.set('cms', 'true');
-                                                    url.searchParams.set('page', page);
-                                                 
-                                                   
-                                                    // ((window as any).glitterInitialHelper).getPageData({
-                                                    //     tag: page,
-                                                    //     appName: items[parseInt(index)].appName
-                                                    // }, (d2: any) => {
-                                                    //     $('#editerCenter').html(html`
-                                                    //     <div
-                                                    //             style="border: none;">${
-                                                    //             new glitter.htmlGenerate(d2.response.result[0].config, [], {}, true).render(gvc, {
-                                                    //                 class: ``,
-                                                    //                 style: ``,
-                                                    //                 app_config: gBundle.app_config,
-                                                    //                 page_config: gBundle.page_config,
-                                                    //                 is_page:true
-                                                    //             })
-                                                    //     }</div>`);
-                                                    //     // resolve(d2.response.result[0])
-                                                    // })
-
-                                                    $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
-                                                    glitter.closeDrawer();
-                                                }
-                                                return true;
+                                    function click_item(index: any) {
+                                        const itemPage = items[parseInt(index)].page;
+                                        const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
+                                        if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
+                                            const url = new URL(location.href);
+                                            if (page === 'page_layout') {
+                                                url.searchParams.set('function', 'user-editor');
+                                            } else {
+                                                Storage.view_type = 'col3';
+                                                url.searchParams.set('function', 'page-editor');
                                             }
+                                            location.href = url.href;
+                                        } else {
+                                            Storage.select_item = index;
+                                            (window as any).editerData = undefined;
+                                            glitter.setUrlParameter('tab', page);
+                                            const url = new URL('./' + page, glitter.root_path);
+                                            url.searchParams.set('appName', items[parseInt(index)].appName);
+                                            url.searchParams.set('cms', 'true');
+                                            url.searchParams.set('page', page);
+                                            // ((window as any).glitterInitialHelper).getPageData({
+                                            //     tag: page,
+                                            //     appName: items[parseInt(index)].appName
+                                            // }, (d2: any) => {
+                                            //     $('#editerCenter').html(html`
+                                            //     <div
+                                            //             style="border: none;">${
+                                            //             new glitter.htmlGenerate(d2.response.result[0].config, [], {}, true).render(gvc, {
+                                            //                 class: ``,
+                                            //                 style: ``,
+                                            //                 app_config: gBundle.app_config,
+                                            //                 page_config: gBundle.page_config,
+                                            //                 is_page:true
+                                            //             })
+                                            //     }</div>`);
+                                            //     // resolve(d2.response.result[0])
+                                            // })
 
-                                            items
-                                                .filter((dd: any) => {
-                                                    if ((window as any).memberType === 'noLimit') {
-                                                        return true;
-                                                    } else {
-                                                        return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
-                                                    }
-                                                })
-                                                .map((dd: any, index: number) => {
-                                                    let container = list;
-                                                    const group = dd.group.split('/');
-                                                    if (dd.group) {
-                                                        group.map((d3: any) => {
-                                                            if (!container.find((dd: any) => dd.title === d3)) {
-                                                                container.push({
-                                                                    type: 'container',
-                                                                    title: d3,
-                                                                    child: [],
-                                                                    toggle: false,
-                                                                    icon: dd.groupIcon,
-                                                                });
-                                                            }
-                                                            if (Storage.select_item === `${index}`) {
-                                                                container.find((dd: any) => {
-                                                                    return dd.title === d3 && dd.type === 'container';
-                                                                }).toggle = true;
-                                                            }
-                                                            container = container.find((dd: any) => {
+                                            $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
+
+                                        }
+                                        return true;
+                                    }
+
+                                    items
+                                            .filter((dd: any) => {
+                                                if ((window as any).memberType === 'noLimit') {
+                                                    return true;
+                                                } else {
+                                                    return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
+                                                }
+                                            })
+                                            .map((dd: any, index: number) => {
+                                                let container = list;
+                                                const group = dd.group.split('/');
+                                                if (dd.group) {
+                                                    group.map((d3: any) => {
+                                                        if (!container.find((dd: any) => dd.title === d3)) {
+                                                            container.push({
+                                                                type: 'container',
+                                                                title: d3,
+                                                                child: [],
+                                                                toggle: false,
+                                                                icon: dd.groupIcon,
+                                                            });
+                                                        }
+                                                        if (Storage.select_item === `${index}`) {
+                                                            container.find((dd: any) => {
                                                                 return dd.title === d3 && dd.type === 'container';
-                                                            }).child;
-                                                        });
-                                                        if (dd.groupIcon) {
-                                                            items
+                                                            }).toggle = true;
+                                                        }
+                                                        container = container.find((dd: any) => {
+                                                            return dd.title === d3 && dd.type === 'container';
+                                                        }).child;
+                                                    });
+                                                    if (dd.groupIcon) {
+                                                        items
                                                                 .filter((d2: any) => {
                                                                     return d2.group === dd.group;
                                                                 })
                                                                 .map((d1: any) => {
                                                                     d1.groupIcon = dd.groupIcon;
                                                                 });
-                                                        }
                                                     }
-                                                    if (Storage.select_item === `${index}` && !initial) {
-                                                        initial = true;
-                                                        if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
-                                                            Storage.select_item = `5`;
-                                                            click_item(Storage.select_item);
-                                                        } else {
-                                                            click_item(index);
-                                                        }
-                                                    }
-                                                    container.push({
-                                                        title: dd.title,
-                                                        index: index,
-                                                        info: dd,
-                                                        toggle: Storage.select_item === `${index}`,
-                                                    });
-                                                });
-
-                                            function refreshContainer() {
-                                                gvc.notifyDataChange(id);
-                                            }
-
-                                            list.map((dd: any, index: number) => {
-                                                if (dd.type === 'container' && dd.child.length == 1) {
-                                                    dd.child[0].icon = dd.icon;
-                                                    list[index] = dd.child[0];
                                                 }
+                                                if (Storage.select_item === `${index}` && !initial) {
+                                                    initial = true;
+                                                    if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                                        Storage.select_item = `5`;
+                                                        click_item(Storage.select_item);
+                                                    } else {
+                                                        click_item(index);
+                                                    }
+                                                }
+                                                container.push({
+                                                    title: dd.title,
+                                                    index: index,
+                                                    info: dd,
+                                                    toggle: Storage.select_item === `${index}`,
+                                                });
                                             });
 
-                                            function getCRUD(page: string): { read: boolean } {
-                                                const data = authConfig.find((item: any) => item.key === page);
-                                                return data ? data.value : { read: false };
-                                            }
+                                    function refreshContainer() {
+                                        gvc.notifyDataChange(id);
+                                    }
 
-                                            function renderItem(list: any) {
-                                                return gvc.bindView(() => {
-                                                    const id = gvc.glitter.getUUID();
-                                                    return {
-                                                        bind: id,
-                                                        view: () => {
-                                                            return list
-                                                                .map((dd: any, index: any) => {
-                                                                    // 權限判斷
-                                                                    if (permissionTitle === 'employee') {
-                                                                        if (dd.child) {
-                                                                            if (!dd.child.some((item: any) => getCRUD(item.info.page).read)) {
-                                                                                return '';
-                                                                            }
-                                                                        } else {
-                                                                            if (!getCRUD(dd.info.page).read) {
-                                                                                return '';
-                                                                            }
+                                    list.map((dd: any, index: number) => {
+                                        if (dd.type === 'container' && dd.child.length == 1) {
+                                            dd.child[0].icon = dd.icon;
+                                            list[index] = dd.child[0];
+                                        }
+                                    });
+
+                                    function getCRUD(page: string): { read: boolean } {
+                                        const data = authConfig.find((item: any) => item.key === page);
+                                        return data ? data.value : { read: false };
+                                    }
+
+                                    function renderItem(list: any) {
+                                        return gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return list
+                                                            .map((dd: any, index: any) => {
+                                                                // 權限判斷
+                                                                if (permissionTitle === 'employee') {
+                                                                    if (dd.child) {
+                                                                        if (!dd.child.some((item: any) => getCRUD(item.info.page).read)) {
+                                                                            return '';
+                                                                        }
+                                                                    } else {
+                                                                        if (!getCRUD(dd.info.page).read) {
+                                                                            return '';
                                                                         }
                                                                     }
+                                                                }
 
-                                                                    return html`
+                                                                return html`
                                                                         ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                         <li>
                                                                             <div
@@ -851,87 +856,65 @@ export class Setting_editor {
                                                                                 ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                 onclick="${gvc.event(() => {
-                                                                                    if (dd.type === 'container') {
-                                                                                        list.map((d1: any) => {
-                                                                                            d1.toggle = false;
-                                                                                        });
-                                                                                        dd.toggle = !dd.toggle;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        if (items[parseInt(dd.index)].page === 'app-design') {
-                                                                                            localStorage.setItem('lastSelect', '');
-                                                                                            localStorage.setItem('ViewType', 'mobile');
-                                                                                            glitter.share.switch_to_web_builder('index-mobile','mobile')
-                                                                                            return;
-                                                                                        }
-                                                                                        // app-design
-                                                                                        if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
-                                                                                            dd.toggle = true;
-                                                                                            refreshContainer();
-                                                                                        }
-                                                                                    }
-                                                                                })}"
+                                                                    if (dd.type === 'container') {
+                                                                        list.map((d1: any) => {
+                                                                            d1.toggle = false;
+                                                                        });
+                                                                        dd.toggle = !dd.toggle;
+                                                                        gvc.notifyDataChange(id);
+                                                                    } else {
+                                                                        if (items[parseInt(dd.index)].page === 'app-design') {
+                                                                            localStorage.setItem('lastSelect', '');
+                                                                            localStorage.setItem('ViewType', 'mobile');
+                                                                            glitter.share.switch_to_web_builder('index-mobile','mobile')
+                                                                            return;
+                                                                        }
+                                                                        // app-design
+                                                                        if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                            dd.toggle = true;
+                                                                            refreshContainer();
+                                                                        }
+                                                                        glitter.closeDrawer();
+                                                                    }
+                                                                })}"
                                                                             >
                                                                                 ${dd.icon ? html`<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
                                                                                 <span>${dd.title}</span>
                                                                                 <div class="flex-fill"></div>
                                                                                 ${dd.type === 'container'
-                                                                                    ? !dd.toggle
-                                                                                        ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                                                        : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                                    : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                        ? !dd.toggle
+                                                                                ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                                : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                        : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                             </div>
                                                                             ${dd.type === 'container'
-                                                                                ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>`
-                                                                                : ``}
+                                                                        ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>`
+                                                                        : ``}
                                                                         </li>
                                                                     `;
-                                                                })
-                                                                .join('<div class="my-1"></div>');
+                                                            })
+                                                            .join('<div class="my-1"></div>');
+                                                },
+                                                divCreate: {
+                                                    elem: 'ul',
+                                                    class: `m-0 `,
+                                                    option: [
+                                                        {
+                                                            key: 'id',
+                                                            value: id,
                                                         },
-                                                        divCreate: {
-                                                            elem: 'ul',
-                                                            class: `m-0 `,
-                                                            option: [
-                                                                {
-                                                                    key: 'id',
-                                                                    value: id,
-                                                                },
-                                                            ],
-                                                        },
-                                                        onCreate: () => {},
-                                                    };
-                                                });
-                                            }
+                                                    ],
+                                                },
+                                                onCreate: () => {},
+                                            };
+                                        });
+                                    }
 
-                                            return html` <div class="p-2">${renderItem(list)}</div>`;
-                                        }
+                                    return html` <div class="p-2">${renderItem(list)}</div>`;
+                                }
 
-                                        return renderHTML(items);
-                                    },
-                                    onCreate: () => {
-                                        if (loading) {
-                                            new Promise<void>((resolve, reject) => {
-                                                ApiUser.getPermission({
-                                                    page: 0,
-                                                    limit: 1,
-                                                }).then((data) => {
-                                                    if (data.result) {
-                                                        permissionTitle = data.response.store_permission_title;
-                                                        permissionData = data.response.data[0] ?? { config: { auth: [] } };
-                                                        resolve();
-                                                    } else {
-                                                        reject();
-                                                    }
-                                                });
-                                            }).then(() => {
-                                                loading = false;
-                                                gvc.notifyDataChange(id);
-                                            });
-                                        }
-                                    },
-                                };
-                            })}
+                                return renderHTML(items);
+                            })()}
                         </div>
                         <div
                             class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
@@ -951,7 +934,7 @@ export class Setting_editor {
                         </div>
                     `;
                 },
-                divCreate: { style: `` },
+                divCreate: { style: `` }
             };
         });
     }

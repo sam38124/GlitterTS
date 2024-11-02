@@ -5,7 +5,7 @@ export class AiChat{
 
     public static sync_data(json: {
        app_name?:string,
-        type:'writer' | 'order_analysis' | 'operation_guide'
+        type:'writer' | 'order_analysis' | 'operation_guide' | 'page_editor'
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ai/sync-data`,
@@ -20,7 +20,7 @@ export class AiChat{
     }
 
     public static reset(json: {   app_name?:string,
-        type:'writer' | 'order_analysis' | 'operation_guide'
+        type:'writer' | 'order_analysis' | 'operation_guide' | 'page_editor'
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ai/reset`,

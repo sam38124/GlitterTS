@@ -22,7 +22,7 @@ export class SaasViewModel {
                     return new Promise(async (resolve) => {
                         const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
                         resolve(html` <div
-                                class="btn btn-outline-secondary dropdown-toggle border-0 p-1 position-relative"
+                                class="btn btn-outline-secondary dropdown-toggle border-0 px-2 position-relative"
                                 data-bs-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false"
@@ -166,7 +166,7 @@ export class SaasViewModel {
                     });
                 },
                 divCreate: {
-                    class: `btn-group dropdown border-start ps-1`,
+                    class: `btn-group dropdown border-start`,
                     style: `${document.body.clientWidth < 800 ? 'min-width:72px;' : 'min-width:133px;'}`,
                 },
             };
@@ -265,7 +265,7 @@ export class SaasViewModel {
                         })(),
                         BgWidget.editeInput({
                             gvc: gvc,
-                            title: html`<div class="d-flex flex-column" style="gap:3px;">聯絡電話 ${BgWidget.grayNote('輸入聯絡電話，我們客服人員能第一時間與您聯絡')}</div>`,
+                            title: html`<div class="d-flex flex-column" style="gap:3px;">簡訊通知 ${BgWidget.grayNote('將會自動發送系統通知至你所設定的電話號碼')}</div>`,
                             default: userData.userData.phone,
                             callback: (text) => {
                                 userData.userData.phone = text;

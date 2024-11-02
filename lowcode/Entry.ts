@@ -49,9 +49,18 @@ export class Entry {
                     scroll-behavior: auto !important;
                 }
             }
+<<<<<<< HEAD
             .hide-elem {
                 display: none !important;
             }
+=======
+              .hide-elem {
+            display: none !important;
+        }
+        .hy-drawer-left {
+        left:-1000px !important;
+        }
+>>>>>>> d311c294 (update glitter version)
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
@@ -59,7 +68,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.4';
+        glitter.share.editerVersion = 'V_13.8.52';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;

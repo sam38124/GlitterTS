@@ -3,42 +3,43 @@ import express from 'express';
 import cors from 'cors';
 import redis from './modules/redis';
 import Logger from './modules/logger';
-import { v4 as uuidv4 } from 'uuid';
-import { asyncHooks as asyncHook } from './modules/hooks';
-import { config, ConfigSetting, saasConfig } from './config';
+import {v4 as uuidv4} from 'uuid';
+import {asyncHooks as asyncHook} from './modules/hooks';
+import {config, ConfigSetting, saasConfig} from './config';
 import contollers = require('./controllers');
 import public_contollers = require('./api-public/controllers');
 import database from './modules/database';
-import { SaasScheme } from './services/saas-table-check';
+import {SaasScheme} from './services/saas-table-check';
 import db from './modules/database';
-import { createBucket, listBuckets } from './modules/AWSLib';
-import { Live_source } from './live_source';
+import {createBucket, listBuckets} from './modules/AWSLib';
+import {Live_source} from './live_source';
 import * as process from 'process';
 import bodyParser from 'body-parser';
-import { ApiPublic } from './api-public/services/public-table-check.js';
-import { Release } from './services/release.js';
+import {ApiPublic} from './api-public/services/public-table-check.js';
+import {Release} from './services/release.js';
 import fs from 'fs';
-import { App } from './services/app.js';
-import { Firebase } from './modules/firebase.js';
-import { GlitterUtil } from './helper/glitter-util.js';
-import { Seo } from './services/seo.js';
-import { Shopping } from './api-public/services/shopping.js';
-import { WebSocket } from './services/web-socket.js';
-import { UtDatabase } from './api-public/utils/ut-database.js';
+import {App} from './services/app.js';
+import {Firebase} from './modules/firebase.js';
+import {GlitterUtil} from './helper/glitter-util.js';
+import {Seo} from './services/seo.js';
+import {Shopping} from './api-public/services/shopping.js';
+import {WebSocket} from './services/web-socket.js';
+import {UtDatabase} from './api-public/utils/ut-database.js';
 import compression from 'compression';
-import { User } from './api-public/services/user.js';
-import { Schedule } from './api-public/services/schedule.js';
-import { Private_config } from './services/private_config.js';
+import {User} from './api-public/services/user.js';
+import {Schedule} from './api-public/services/schedule.js';
+import {Private_config} from './services/private_config.js';
 import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
-import { SystemSchedule } from './services/system-schedule';
-import { Ai } from './services/ai.js';
+import {SystemSchedule} from './services/system-schedule';
+import {Ai} from './services/ai.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { Monitor } from './api-public/services/monitor.js';
+import {Monitor} from './api-public/services/monitor.js';
 import tool from './services/tool.js';
-import { InitialFakeData } from './api-public/services/initial-fake-data.js';
-import { UpdateScript } from './update-script.js';
+import {InitialFakeData} from './api-public/services/initial-fake-data.js';
+import {UpdateScript} from './update-script.js';
+
 export const app = express();
 const logger = new Logger();
 
@@ -54,20 +55,20 @@ app.use(
         secret: config.SECRET_KEY, // 应用中应该使用一个更强壮的密钥
         resave: false,
         saveUninitialized: true,
-        cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 }, // 设置 Cookie 有效期为1年
+        cookie: {maxAge: 1000 * 60 * 60 * 24 * 365}, // 设置 Cookie 有效期为1年
     })
 );
 
 app.use(cookieParser());
 app.use(cors());
 app.use(compression());
-app.use(express.raw({ limit: '100MB' }));
-app.use(express.json({ limit: '100MB' }));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.raw({limit: '100MB'}));
+app.use(express.json({limit: '100MB'}));
+app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(bodyParser.json({ limit: '100MB' }));
+app.use(bodyParser.json({limit: '100MB'}));
 app.use(createContext);
-app.use(bodyParser.raw({ type: '*/*' }));
+app.use(bodyParser.raw({type: '*/*'}));
 app.use(contollers);
 app.use(public_contollers);
 
@@ -83,7 +84,7 @@ export async function initial(serverPort: number) {
         await createBucket(config.AWS_S3_NAME as string);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await app.listen(serverPort);
-        fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), { recursive: true });
+        fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), {recursive: true});
         Release.removeAllFilesInFolder(path.resolve(__filename, '../app-project/work-space'));
         if (process.env.firebase) {
             await Firebase.initial();
@@ -104,7 +105,7 @@ export async function initial(serverPort: number) {
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
     const uuid = uuidv4();
     const ip = req.ip;
-    const requestInfo = { uuid: `${uuid}`, method: `${req.method}`, url: `${req.url}`, ip: `${ip}` };
+    const requestInfo = {uuid: `${uuid}`, method: `${req.method}`, url: `${req.url}`, ip: `${ip}`};
     asyncHook.getInstance().createRequestContext(requestInfo);
     next();
 }
@@ -142,18 +143,27 @@ export async function createAPP(dd: any) {
                         appName = req.query.appName;
                     }
                     req.headers['g-app'] = appName;
-                    await Monitor.insertHistory({
+                    const start=(new Date()).getTime()
+                    //插入瀏覽紀錄
+                    Monitor.insertHistory({
                         req_type: 'file',
                         req: req,
                     });
+                    console.log(`insertHistory==>`,(new Date().getTime() - start)/1000)
+                    //確認資料庫是否存在
                     await ApiPublic.createScheme(appName);
+                    console.log(`createScheme==>`,(new Date().getTime() - start)/1000)
+                    //確認SAAS用戶資訊
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
-
+                    console.log(`brandAndMemberType==>`,(new Date().getTime() - start)/1000)
+                    //取得頁面資訊
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
+                    console.log(`getPageInfo==>`,(new Date().getTime() - start)/1000)
                     let customCode = await new User(appName).getConfigV2({
                         key: 'ga4_config',
                         user_id: 'manager',
                     });
+                    console.log(`customCode==>`,(new Date().getTime() - start)/1000)
                     if (data && data.page_config) {
                         data.page_config = data.page_config ?? {};
                         const d = data.page_config.seo ?? {};
@@ -162,15 +172,15 @@ export async function createAPP(dd: any) {
                             const pd = await new Shopping(appName, undefined).getProduct(
                                 product_domain
                                     ? {
-                                          page: 0,
-                                          limit: 1,
-                                          domain: decodeURIComponent(product_domain),
-                                      }
+                                        page: 0,
+                                        limit: 1,
+                                        domain: decodeURIComponent(product_domain),
+                                    }
                                     : {
-                                          page: 0,
-                                          limit: 1,
-                                          id: req.query.product_id as string,
-                                      }
+                                        page: 0,
+                                        limit: 1,
+                                        id: req.query.product_id as string,
+                                    }
                             );
 
                             if (pd.data.content) {
@@ -236,7 +246,7 @@ export async function createAPP(dd: any) {
                                 location.href='${page.redirect}${redURL.search}';
                             `;
                         }
-
+                        console.log(`wait_return==>`,(new Date().getTime() - start)/1000)
                         return html`${(() => {
                             const d = data.page_config.seo;
                             return html`
@@ -244,40 +254,44 @@ export async function createAPP(dd: any) {
                                     ${(() => {
                                         if (req.query.type === 'editor') {
                                             return html`<title>SHOPNEX後台系統</title>
-                                                <link rel="canonical" href="/index" />
-                                                <meta name="keywords" content="SHOPNEX,電商平台" />
-                                                <link
+                                            <link rel="canonical" href="/index"/>
+                                            <meta name="keywords" content="SHOPNEX,電商平台"/>
+                                            <link
                                                     id="appImage"
                                                     rel="shortcut icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
-                                                />
-                                                <link
+                                            />
+                                            <link
                                                     rel="icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/png"
                                                     sizes="128x128"
-                                                />
-                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-                                                <meta property="og:title" content="SHOPNEX後台系統" />
-                                                <meta
+                                            />
+                                            <meta property="og:image"
+                                                  content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
+                                            <meta property="og:title" content="SHOPNEX後台系統"/>
+                                            <meta
                                                     name="description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />
-                                                <meta
+                                            />
+                                            <meta
                                                     name="og:description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />`;
+                                            />`;
                                         } else {
                                             return html`<title>${d.title ?? '尚未設定標題'}</title>
-                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
-                                                <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}" />
-                                                <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}" type="image/x-icon" />
-                                                <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128" />
-                                                <meta property="og:image" content="${d.image ?? ''}" />
-                                                <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}" />
-                                                <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}" />
-                                                <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '')}" />`;
+                                            <link rel="canonical"
+                                                  href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
+                                            <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
+                                            <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}"
+                                                  type="image/x-icon"/>
+                                            <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${d.image ?? ''}"/>
+                                            <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
+                                            <meta name="og:description"
+                                                  content="${(d.content ?? '').replace(/\n/g, '')}"/>`;
                                         }
                                     })()}
                                     ${d.code ?? ''}
@@ -286,22 +300,23 @@ export async function createAPP(dd: any) {
                                             return ``;
                                         } else {
                                             return `${(data.config.globalStyle ?? [])
-                                                .map((dd: any) => {
-                                                    try {
-                                                        if (dd.data.elem === 'link') {
-                                                            return html` <link
-                                                                type="text/css"
-                                                                rel="stylesheet"
-                                                                href="${dd.data.attr.find((dd: any) => {
-                                                                    return dd.attr === 'href';
-                                                                }).value}"
-                                                            />`;
+                                                    .map((dd: any) => {
+                                                        try {
+                                                            if (dd.data.elem === 'link') {
+                                                                return html`
+                                                                    <link
+                                                                            type="text/css"
+                                                                            rel="stylesheet"
+                                                                            href="${dd.data.attr.find((dd: any) => {
+                                                                                return dd.attr === 'href';
+                                                                            }).value}"
+                                                                    />`;
+                                                            }
+                                                        } catch (e) {
+                                                            return ``;
                                                         }
-                                                    } catch (e) {
-                                                        return ``;
-                                                    }
-                                                })
-                                                .join('')}`;
+                                                    })
+                                                    .join('')}`;
                                         }
                                     })()}
                                 </head>
@@ -314,35 +329,39 @@ export async function createAPP(dd: any) {
                             window.memberType = '${brandAndMemberType.memberType}';
                             window.glitterBackend = '${config.domain}';
                             window.preloadData = ${JSON.stringify(preload)
-                                .replace(/<\/script>/g, 'sdjuescript_prepand')
-                                .replace(/<script>/g, 'sdjuescript_prefix')};
+                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                    .replace(/<script>/g, 'sdjuescript_prefix')};
                             window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
                             window.glitter_page = '${req.query.page}';
                             ${distribution_code}
                         </script>
                         ${[
-                            { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
-                            { src: 'glitterBundle/module/html-generate.js', type: 'module' },
-                            { src: 'glitterBundle/html-component/widget.js', type: 'module' },
-                            { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
-                            { src: 'api/pageConfig.js', type: 'module' },
+                            {src: 'glitterBundle/GlitterInitial.js', type: 'module'},
+                            {src: 'glitterBundle/module/html-generate.js', type: 'module'},
+                            {src: 'glitterBundle/html-component/widget.js', type: 'module'},
+                            {src: 'glitterBundle/plugins/trigger-event.js', type: 'module'},
+                            {src: 'api/pageConfig.js', type: 'module'},
                         ]
-                            .map((dd) => {
-                                return html` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
-                            })
-                            .join('')}
+                                .map((dd) => {
+                                    return html`
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                type="${dd.type}"></script>`;
+                                })
+                                .join('')}
                         ${(preload.event ?? [])
-                            .filter((dd: any) => {
-                                return dd;
-                            })
-                            .map((dd: any) => {
-                                const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                                return link.substring(0, link.length - 2);
-                            })
-                            .map((dd: any) => {
-                                return html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
-                            })
-                            .join('')}
+                                .filter((dd: any) => {
+                                    return dd;
+                                })
+                                .map((dd: any) => {
+                                    const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                                    return link.substring(0, link.length - 2);
+                                })
+                                .map((dd: any) => {
+                                    return html`
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                type="module"></script>`;
+                                })
+                                .join('')}
                         </head>
                         ${(() => {
                             if (req.query.type === 'editor') {
@@ -350,9 +369,10 @@ export async function createAPP(dd: any) {
                             } else {
                                 return html`
                                     ${(customCode.ga4 || [])
-                                        .map((dd: any) => {
-                                            return html`<!-- Google tag (gtag.js) -->
-                                                <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                            .map((dd: any) => {
+                                                return html`<!-- Google tag (gtag.js) -->
+                                                <script async
+                                                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                 <script>
                                                     window.dataLayer = window.dataLayer || [];
 
@@ -364,27 +384,27 @@ export async function createAPP(dd: any) {
 
                                                     gtag('config', '${dd.code}');
                                                 </script>`;
-                                        })
-                                        .join('')}
+                                            })
+                                            .join('')}
                                     ${(customCode.g_tag || [])
-                                        .map((dd: any) => {
-                                            return html`<!-- Google tag (gtag.js) -->
+                                            .map((dd: any) => {
+                                                return html`<!-- Google tag (gtag.js) -->
                                                 <!-- Google Tag Manager -->
                                                 <script>
                                                     (function (w, d, s, l, i) {
                                                         w[l] = w[l] || [];
-                                                        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                                                        w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
                                                         var f = d.getElementsByTagName(s)[0],
-                                                            j = d.createElement(s),
-                                                            dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                                j = d.createElement(s),
+                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
                                                         j.async = true;
                                                         j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                         f.parentNode.insertBefore(j, f);
                                                     })(window, document, 'script', 'dataLayer', '${dd.code}');
                                                 </script>
                                                 <!-- End Google Tag Manager -->`;
-                                        })
-                                        .join('')}
+                                            })
+                                            .join('')}
                                 `;
                             }
                         })()}
@@ -421,40 +441,40 @@ export async function createAPP(dd: any) {
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(
-                            await db.query(
-                                `select page_config, tag, updated_time
+                    await db.query(
+                        `select page_config, tag, updated_time
                          from \`${saasConfig.SAAS_NAME}\`.page_config
                          where appName = ?
                            and page_config ->>'$.seo.type'='custom'
                         `,
-                                [appName]
-                            )
-                        )
-                            .map((d2: any) => {
-                                return `<url>
+                        [appName]
+                    )
+                )
+                    .map((d2: any) => {
+                        return `<url>
                                     <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
                                     <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
                                 </url> `;
-                            })
-                            .join('')}
+                    })
+                    .join('')}
                         ${article.data
-                            .map((d2: any) => {
-                                if (!d2.content.template) {
-                                    return ``;
-                                }
-                                return `<url>
+                    .map((d2: any) => {
+                        if (!d2.content.template) {
+                            return ``;
+                        }
+                        return `<url>
                                     <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
                                     <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
                                 </url> `;
-                            })
-                            .join('')}
+                    })
+                    .join('')}
                         ${(site_map || []).map((d2: any) => {
-                            return `<url>
+                    return `<url>
                                 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
                                 <lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
                                 <changefreq>weekly</changefreq>
                             </url> `;
-                        })}
+                })}
                     </urlset> `;
                 return xmlFormatter(sitemap, {
                     indentation: '  ', // 使用兩個空格進行縮進
@@ -561,15 +581,15 @@ async function getSeoDetail(appName: string, req: any) {
             const evalString = `
                 return {
                 execute:(${functionValue
-                    .map((d2) => {
-                        return d2.key;
-                    })
-                    .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                    /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                    'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);
@@ -610,15 +630,15 @@ async function getSeoSiteMap(appName: string, req: any) {
             const evalString = `
                 return {
                 execute:(${functionValue
-                    .map((d2) => {
-                        return d2.key;
-                    })
-                    .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                    /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                    'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);

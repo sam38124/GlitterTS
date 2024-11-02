@@ -42,7 +42,6 @@ import { AiChat } from "../glitter-base/route/ai-chat.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-    glitter.share.ai_message = AiMessage;
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter));
     const css = String.raw;
     gvc.addStyle(css `
@@ -639,8 +638,12 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             }
                                         })();
                                         if (document.body.offsetWidth < 800) {
-                                            glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
-                                            });
+                                            glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => { });
+                                            glitter.share.toggle_left_bar = () => {
+                                                glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
+                                                    glitter.openDrawer();
+                                                });
+                                            };
                                             return ``;
                                         }
                                         else {
@@ -733,6 +736,7 @@ function initialEditor(gvc, viewModel) {
         }
         glitter.setUrlParameter('function', EditorConfig.backend_page());
     }, 50);
+    glitter.share.ai_message = AiMessage;
     glitter.share.ai_code_generator = (message, callback) => {
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });

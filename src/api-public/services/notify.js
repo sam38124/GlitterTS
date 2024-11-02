@@ -403,6 +403,14 @@ class ManagerNotify {
                 }
                 return text;
             })()}」`;
+        console.log(`fireBase==>`, {
+            title: `收到客服訊息`,
+            userID: saas.user,
+            tag: 'message',
+            link: link,
+            body: message,
+            pass_store: true,
+        });
         await new firebase_js_1.Firebase(saas.brand).sendMessage({
             title: `收到客服訊息`,
             userID: saas.user,

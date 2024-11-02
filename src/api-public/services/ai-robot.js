@@ -23,6 +23,11 @@ const process_1 = __importDefault(require("process"));
 const fs_1 = __importDefault(require("fs"));
 const user_js_1 = require("./user.js");
 const shopping_js_1 = require("./shopping.js");
+const axios_1 = __importDefault(require("axios"));
+const logger_js_1 = __importDefault(require("../../modules/logger.js"));
+const config_js_1 = __importDefault(require("../../config.js"));
+const AWSLib_js_1 = __importDefault(require("../../modules/AWSLib.js"));
+const mime = require('mime');
 class AiRobot {
     static async guide(app_name, question) {
         var _a, e_1, _b, _c;
@@ -236,7 +241,6 @@ class AiRobot {
         }
         await openai.beta.assistants.del(myAssistant.id);
         if (text) {
-            console.log(text.prompt);
             const response = await openai.images.generate({
                 model: "dall-e-3",
                 prompt: text.prompt,
@@ -246,7 +250,7 @@ class AiRobot {
             if (response.data[0]) {
                 return {
                     prompt: text.prompt,
-                    image: response.data[0].url,
+                    image: await this.convertS3Link(response.data[0].url),
                     usage: await this.usePoints(app_name, 100000 + use_tokens, question, `使用AI進行圖片生成`)
                 };
             }
@@ -610,6 +614,116 @@ class AiRobot {
                 if (!_d && !_a && (_b = stream_6.return)) await _b.call(stream_6);
             }
             finally { if (e_6) throw e_6.error; }
+        }
+        await openai.beta.assistants.del(myAssistant.id);
+        return {
+            obj: text,
+            usage: await this.usePoints(app_name, use_tokens, question, text)
+        };
+    }
+    static async uploadFile(file_name, fileData) {
+        const TAG = `[AWS-S3][Upload]`;
+        const logger = new logger_js_1.default();
+        const s3bucketName = config_js_1.default.AWS_S3_NAME;
+        const s3path = file_name;
+        const fullUrl = config_js_1.default.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            ContentType: (() => {
+                if (config_js_1.default.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`;
+                }
+                else {
+                    return mime.getType(fullUrl.split('.').pop());
+                }
+            })(),
+        };
+        return new Promise((resolve, reject) => {
+            AWSLib_js_1.default.getSignedUrl('putObject', params, async (err, url) => {
+                if (err) {
+                    logger.error(TAG, String(err));
+                    console.log(err, err.stack);
+                    reject(false);
+                }
+                else {
+                    (0, axios_1.default)({
+                        method: 'PUT',
+                        url: url,
+                        data: fileData,
+                        headers: {
+                            'Content-Type': params.ContentType,
+                        },
+                    })
+                        .then(() => {
+                        console.log(fullUrl);
+                        resolve(fullUrl);
+                    })
+                        .catch(() => {
+                        console.log(`convertError:${fullUrl}`);
+                    });
+                }
+            });
+        });
+    }
+    static async convertS3Link(link) {
+        return await new Promise(async (resolve, reject) => {
+            axios_1.default
+                .get(link, { responseType: 'arraybuffer' })
+                .then((response) => Buffer.from(response.data))
+                .then((buffer) => {
+                this.uploadFile(`ai/file/${new Date().getTime()}.png`, buffer).then((url) => {
+                    resolve(url);
+                });
+            })
+                .catch((err) => {
+                console.error('處理圖片時發生錯誤:', err);
+                resolve(false);
+            });
+        });
+    }
+    static async codeEditor(app_name, question, format) {
+        var _a, e_7, _b, _c;
+        if (!await AiRobot.checkPoints(app_name)) {
+            return { usage: 0 };
+        }
+        const openai = new openai_1.default({
+            apiKey: process_1.default.env.OPENAI_API_KEY,
+        });
+        const query = `幫我過濾出要調整的項目和內容`;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '網頁設計師',
+            model: 'gpt-4o-mini',
+            response_format: {
+                "type": "json_schema", "json_schema": format
+            }
+        });
+        const threads_id = (await openai.beta.threads.create()).id;
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, { role: 'user', content: question });
+        const stream = await openai.beta.threads.runs.create(threads_id, { assistant_id: myAssistant.id, stream: true });
+        let text = '';
+        let use_tokens = 0;
+        try {
+            for (var _d = true, stream_7 = __asyncValues(stream), stream_7_1; stream_7_1 = await stream_7.next(), _a = stream_7_1.done, !_a; _d = true) {
+                _c = stream_7_1.value;
+                _d = false;
+                const event = _c;
+                if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
+                    text = JSON.parse(event.data.content[0].text.value);
+                }
+                if (event.data.usage) {
+                    use_tokens += event.data.usage.total_tokens;
+                }
+            }
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = stream_7.return)) await _b.call(stream_7);
+            }
+            finally { if (e_7) throw e_7.error; }
         }
         await openai.beta.assistants.del(myAssistant.id);
         return {

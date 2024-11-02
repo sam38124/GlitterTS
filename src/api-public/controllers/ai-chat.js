@@ -176,5 +176,16 @@ router.post('/generate-html', async (req, resp) => {
         return response_js_1.default.fail(resp, err);
     }
 });
+router.post('/edit-component', async (req, resp) => {
+    try {
+        return response_js_1.default.succ(resp, {
+            result: true,
+            data: await ai_robot_js_1.AiRobot.codeEditor(req.get('g-app'), req.body.text, req.body.format)
+        });
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=ai-chat.js.map

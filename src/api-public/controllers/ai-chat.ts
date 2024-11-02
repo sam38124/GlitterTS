@@ -188,3 +188,14 @@ router.post('/generate-html', async (req: express.Request, resp: express.Respons
         return response.fail(resp, err);
     }
 })
+
+router.post('/edit-component', async (req: express.Request, resp: express.Response)=>{
+    try {
+        return response.succ(resp, {
+            result: true,
+            data:await AiRobot.codeEditor(req.get('g-app') as string,req.body.text,req.body.format)
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
