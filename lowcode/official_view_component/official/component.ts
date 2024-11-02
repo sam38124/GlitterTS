@@ -1291,11 +1291,11 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                     },
                                                                                                     custom_edit: true,
                                                                                                     toggle_visible: (bool) => {
-                                                                                                        if (bool) {
-                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
-                                                                                                        } else {
-                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
-                                                                                                        }
+                                                                                                        // if (bool) {
+                                                                                                        //     $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
+                                                                                                        // } else {
+                                                                                                        //     $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
+                                                                                                        // }
                                                                                                     }
                                                                                                 })
                                                                                             ].join('')}

@@ -214,29 +214,33 @@ export class GlobalWidget {
                                     return {
                                         bind: id,
                                         view: () => {
-                                            return `<div class="my-auto tx_title fw-normal d-flex align-items-center" style="white-space: nowrap;font-size: 16px;">在${(() => {
-                                                if (GlobalWidget.glitter_view_type === "mobile") {
-                                                    return `手機`
-                                                } else {
-                                                    return `電腦`
-                                                }
-                                            })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示</div>
-${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
-                                                // vm.data.main = bool;
-                                                if (bool) {
-                                                    obj.widget[key].refer = 'def'
-                                                } else {
-                                                    obj.widget[key].refer = 'hide'
-                                                }
-                                                obj.toggle_visible && obj.toggle_visible(bool);
-                                                gvc.notifyDataChange(id)
-                                                setTimeout(() => {
-                                                    obj.widget.refreshComponent()
-                                                }, 250)
-                                            })}`
+                                            return html`
+                                                <div class="my-auto tx_title fw-normal d-flex align-items-center"
+                                                     style="white-space: nowrap;font-size: 16px;">在${(() => {
+                                                    if (GlobalWidget.glitter_view_type === "mobile") {
+                                                        return `手機`
+                                                    } else {
+                                                        return `電腦`
+                                                    }
+                                                })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示
+                                                </div>
+                                                ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
+                                                    // vm.data.main = bool;
+                                                    if (bool) {
+                                                        obj.widget[key].refer = 'def'
+                                                    } else {
+                                                        obj.widget[key].refer = 'hide'
+                                                    }
+                                                    obj.toggle_visible && obj.toggle_visible(bool);
+                                                    gvc.notifyDataChange(id)
+                                                    setTimeout(() => {
+                                                        obj.widget.refreshComponent()
+                                                    }, 250)
+                                                })}`
                                         },
                                         divCreate: {
-                                            class: `d-flex align-content-center px-3`, style: `gap:10px;margin-bottom:18px;margin-top:13px;`
+                                            class: `d-flex align-content-center px-3`,
+                                            style: `gap:10px;margin-bottom:18px;margin-top:13px;`
                                         }
                                     }
                                 })
@@ -254,7 +258,7 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                                                 view: () => {
                                                     return `<div class="my-auto tx_title fw-normal d-flex align-items-center" style="white-space: nowrap;font-size: 16px;">顯示獨立樣式</div>
 ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) => {
-                                                        obj.widget[key].refer = (bool) ? `custom`:`def`;
+                                                        obj.widget[key].refer = (bool) ? `custom` : `def`;
                                                         if (obj.widget.refreshComponent) {
                                                             obj.widget.refreshComponent()
                                                         } else if (obj.widget.refreshAll) {
@@ -263,16 +267,17 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) 
                                                     })}`
                                                 },
                                                 divCreate: {
-                                                    class: `d-flex align-content-center px-3`, style: `gap:10px;margin-top:13px;`
+                                                    class: `d-flex align-content-center px-3`,
+                                                    style: `gap:10px;margin-top:13px;`
                                                 }
                                             }
-                                        })+`<div class="px-3 pt-2" style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ">透過設定獨立樣式在${(() => {
+                                        }) + `<div class="px-3 pt-2" style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ">透過設定獨立樣式在${(() => {
                                             if (GlobalWidget.glitter_view_type === "mobile") {
                                                 return `手機`
                                             } else {
                                                 return `電腦`
                                             }
-                                        })()}版上顯示特定設計效果</div>`),`<div class="mx-n3" style="background: #DDD;height: 1px;"></div>`].join(`<div style="height:18px;"></div>`)
+                                        })()}版上顯示特定設計效果</div>`), `<div class="mx-n3" style="background: #DDD;height: 1px;"></div>`].join(`<div style="height:18px;"></div>`)
                                     }
 
 
@@ -292,7 +297,7 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) 
                                     const view = [selector(obj.widget.mobile, 'mobile')]
                                     if (obj.widget.mobile.refer === 'custom') {
                                         view.push(obj.view(obj.widget.mobile, 'mobile'))
-                                    }else {
+                                    } else {
                                         view.push(obj.view(obj.widget, 'def'))
                                     }
                                     return view.join('')
@@ -300,7 +305,7 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) 
                                     const view = [selector(obj.widget.desktop, 'desktop')]
                                     if (obj.widget.desktop.refer === 'custom') {
                                         view.push(obj.view(obj.widget.desktop, 'desktop'))
-                                    }else{
+                                    } else {
                                         view.push(obj.view(obj.widget, 'def'))
                                     }
                                     return view.join('')
