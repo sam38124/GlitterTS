@@ -3013,6 +3013,25 @@ class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
+            if (query.productType !== 'all') {
+                const queryOR = [];
+                if (query.productType) {
+                    query.productType.split(',').map((dd) => {
+                        if (dd === 'hidden') {
+                            queryOR.push(`(p.content->>'$.visible' = "false")`);
+                        }
+                        else {
+                            queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
+                        }
+                    });
+                }
+                else if (!query.id) {
+                    queryOR.push(`(p.content->>'$.productType.product' = "true")`);
+                }
+                querySql.push(`(${queryOR.map((dd) => {
+                    return ` ${dd} `;
+                }).join(' or ')})`);
+            }
             if (query.stockCount) {
                 const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
                 switch (stockCount[0]) {

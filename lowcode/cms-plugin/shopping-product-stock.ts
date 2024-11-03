@@ -34,14 +34,15 @@ export class StockList {
         option: {
             title: string;
             select_mode: boolean;
-            select_data: string[];
+            select_data: { variant:any,product_id:string }[];
             filter_variants: string[];
         } = {
             title: '庫存管理',
             select_data: [],
             select_mode: false,
-            filter_variants: [],
-        }
+            filter_variants: []
+        },
+        productType:'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all' ='all'
     ) {
         const glitter = gvc.glitter;
 
@@ -260,49 +261,72 @@ export class StockList {
                                             gvc.bindView({
                                                 bind: vm.tableId,
                                                 view: () => {
-                                                    return BgWidget.tableV3({
-                                                        gvc: gvc,
-                                                        getData: (vd) => {
-                                                            vmi = vd;
-                                                            const limit = 15;
-                                                            ApiShop.getVariants({
-                                                                page: vmi.page - 1,
-                                                                limit: limit,
-                                                                search: vm.query || undefined,
-                                                                searchType: vm.queryType || 'title',
-                                                                orderBy: vm.orderString || undefined,
-                                                                status: (() => {
-                                                                    if (vm.filter.status && vm.filter.status.length === 1) {
-                                                                        switch (vm.filter.status[0]) {
-                                                                            case 'active':
-                                                                                return 'active';
-                                                                            case 'draft':
-                                                                                return 'draft';
+                                                    try {
+                                                        return BgWidget.tableV3({
+                                                            gvc: gvc,
+                                                            getData: (vd) => {
+                                                                vmi = vd;
+                                                                const limit = 15;
+                                                                ApiShop.getVariants({
+                                                                    page: vmi.page - 1,
+                                                                    limit: limit,
+                                                                    search: vm.query || undefined,
+                                                                    searchType: vm.queryType || 'title',
+                                                                    orderBy: vm.orderString || undefined,
+                                                                    status: (() => {
+                                                                        if (vm.filter.status && vm.filter.status.length === 1) {
+                                                                            switch (vm.filter.status[0]) {
+                                                                                case 'active':
+                                                                                    return 'active';
+                                                                                case 'draft':
+                                                                                    return 'draft';
+                                                                            }
                                                                         }
+                                                                        return undefined;
+                                                                    })(),
+                                                                    collection: vm.filter.collection,
+                                                                    stockCount: vm.filter.count,
+                                                                    accurate_search_collection: true,
+                                                                    productType:productType
+                                                                }).then((data) => {
+                                                                    data.response.data=data.response.data.filter((dd:any)=>{
+                                                                        return  !option.filter_variants.includes([dd.product_id].concat(dd.variant_content.spec).join('-'))
+                                                                    })
+                                                                    vm.dataList = data.response.data;
+                                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                    vmi.originalData = vm.dataList;
+                                                                    vmi.tableData = getDatalist();
+                                                                    vm.stockOriginList = vm.stockList.concat();
+                                                                    gvc.notifyDataChange(vm.updateId);
+                                                                    vmi.loading = false;
+                                                                    vmi.callback();
+                                                                });
+                                                            },
+                                                            item_select:()=>{
+                                                                console.log(vm.dataList)
+                                                                while (option.select_data.length > 0) {
+                                                                    option.select_data.shift();
+                                                                }
+                                                                for (const  b of  vm.dataList){
+                                                                    if(b.checked){
+                                                                        option.select_data.push({
+                                                                            variant:b.variant_content,
+                                                                            product_id:b.product_id
+                                                                        })
                                                                     }
-                                                                    return undefined;
-                                                                })(),
-                                                                collection: vm.filter.collection,
-                                                                stockCount: vm.filter.count,
-                                                                accurate_search_collection: true,
-                                                            }).then((data) => {
-                                                                vm.dataList = data.response.data;
-                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                vmi.originalData = vm.dataList;
-                                                                vmi.tableData = getDatalist();
-                                                                vm.stockOriginList = vm.stockList.concat();
-                                                                gvc.notifyDataChange(vm.updateId);
-                                                                vmi.loading = false;
-                                                                vmi.callback();
-                                                            });
-                                                        },
-                                                        rowClick: (data, index) => {
-                                                            if (option.select_mode) {
-                                                                vm.dataList[index].checked = !vm.dataList[index].checked;
-                                                                vmi.data = getDatalist();
-                                                                gvc.glitter.recreateView('.check-box-item');
-                                                                gvc.notifyDataChange(vm.filterId);
-                                                            } else {
+                                                                }
+                                                                // if(vm.dataList[index].checked){
+                                                                //     option.select_data.push({
+                                                                //         variant:vm.dataList[index].variant,
+                                                                //         product_id:vm.dataList[index].product_content.id
+                                                                //     })
+                                                                //     console.log(vm.dataList[index])
+                                                                // }
+                                                                // vmi.data = getDatalist();
+                                                                // gvc.glitter.recreateView('.check-box-item');
+                                                                // gvc.notifyDataChange(vm.filterId);
+                                                            },
+                                                            rowClick: (data, index) => {
                                                                 const product = vm.dataList[index].product_content;
                                                                 const variant = vm.dataList[index].variant_content;
                                                                 product.variants.map((dd: any) => {
@@ -310,10 +334,21 @@ export class StockList {
                                                                 });
                                                                 vm.replaceData = product;
                                                                 vm.type = 'editSpec';
-                                                            }
-                                                        },
-                                                        filter: [],
-                                                    });
+                                                            },
+                                                            filter:(option.select_mode)  ? [
+                                                                {
+                                                                    name: '選擇項目',
+                                                                    event: (checkedData) => {
+                                                                     
+                                                                    },
+                                                                },
+                                                            ]:[],
+                                                        });
+                                                    }catch (e) {
+                                                        console.log(e)
+                                                        return  `${e}`
+                                                    }
+                                                  
                                                 },
                                             }),
                                         ].join('')

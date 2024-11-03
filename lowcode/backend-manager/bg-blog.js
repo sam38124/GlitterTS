@@ -11,7 +11,6 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from './bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
 import { Article } from '../glitter-base/route/article.js';
 import { MenusSetting } from '../cms-plugin/menus-setting.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
@@ -278,115 +277,69 @@ export class BgBlog {
                         return gvc.bindView(() => {
                             let data = undefined;
                             const id = gvc.glitter.getUUID();
-                            if (page_tab !== 'page') {
-                                ApiPageConfig.getPageTemplate({
-                                    template_from: 'all',
-                                    page: '0',
-                                    limit: '3000',
-                                    type: 'page',
-                                    tag: (() => {
-                                        switch (page_tab) {
-                                            case 'shopping':
-                                            case 'hidden':
-                                                return `一頁購物`;
-                                            default:
-                                                return ``;
-                                        }
-                                    })(),
-                                    search: vm.search,
-                                }).then((res) => {
-                                    data = res;
-                                    data.response.result.data = [
-                                        {
-                                            id: 20739,
-                                            userID: '234285319',
-                                            tag: 'empty',
-                                            name: '空白內容',
-                                            page_type: 'page',
-                                            preview_image: null,
-                                            appName: 'shop_template_black_style',
-                                            template_type: 2,
-                                            template_config: {
-                                                tag: ['頁面範例'],
-                                                desc: '',
-                                                name: '空白內容',
-                                                image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                                status: 'wait',
-                                                post_to: 'all',
-                                                version: '1.0',
-                                                created_by: 'liondesign.io',
-                                                preview_img: '',
-                                            },
-                                        },
-                                    ].concat(data.response.result.data);
-                                    gvc.notifyDataChange(id);
-                                });
-                            }
-                            else {
-                                Article.get({
-                                    page: 0,
-                                    limit: 20,
-                                    search: ``,
-                                    for_index: `false`,
-                                    status: '0,1',
-                                    page_type: page_tab,
-                                    app_name: 't_1726217714800',
-                                }).then((dd) => {
-                                    data = {
-                                        response: {
-                                            result: {
-                                                data: [
-                                                    {
-                                                        id: 20739,
-                                                        userID: '234285319',
-                                                        tag: 'empty',
+                            Article.get({
+                                page: 0,
+                                limit: 20,
+                                search: ``,
+                                for_index: `false`,
+                                status: '0,1',
+                                page_type: page_tab,
+                                app_name: 't_1726217714800',
+                            }).then((dd) => {
+                                data = {
+                                    response: {
+                                        result: {
+                                            data: [
+                                                {
+                                                    id: 20739,
+                                                    userID: '234285319',
+                                                    tag: 'empty',
+                                                    name: '空白內容',
+                                                    page_type: 'page',
+                                                    preview_image: null,
+                                                    appName: 'shop_template_black_style',
+                                                    template_type: 2,
+                                                    template_config: {
+                                                        tag: ['頁面範例'],
+                                                        desc: '',
                                                         name: '空白內容',
-                                                        page_type: 'page',
-                                                        preview_image: null,
-                                                        appName: 'shop_template_black_style',
-                                                        template_type: 2,
-                                                        template_config: {
-                                                            tag: ['頁面範例'],
-                                                            desc: '',
-                                                            name: '空白內容',
-                                                            image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                                            status: 'wait',
-                                                            post_to: 'all',
-                                                            version: '1.0',
-                                                            created_by: 'liondesign.io',
-                                                            preview_img: '',
-                                                        },
+                                                        image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                        status: 'wait',
+                                                        post_to: 'all',
+                                                        version: '1.0',
+                                                        created_by: 'liondesign.io',
+                                                        preview_img: '',
                                                     },
-                                                ].concat(dd.response.data.map((dd) => {
-                                                    return {
-                                                        id: 20739,
-                                                        userID: '234285319',
-                                                        tag: dd.content.tag,
+                                                },
+                                            ].concat(dd.response.data.map((dd) => {
+                                                return {
+                                                    id: 20739,
+                                                    userID: '234285319',
+                                                    tag: dd.content.tag,
+                                                    name: dd.content.name,
+                                                    page_type: 'page',
+                                                    preview_image: null,
+                                                    _config: dd.content.config,
+                                                    appName: 't_1726217714800',
+                                                    template_type: 2,
+                                                    template_config: {
+                                                        tag: [],
+                                                        desc: '',
                                                         name: dd.content.name,
-                                                        page_type: 'page',
-                                                        preview_image: null,
-                                                        _config: dd.content.config,
-                                                        appName: 't_1726217714800',
-                                                        template_type: 2,
-                                                        template_config: {
-                                                            tag: [],
-                                                            desc: '',
-                                                            name: dd.content.name,
-                                                            image: [dd.content.seo.image],
-                                                            status: 'wait',
-                                                            post_to: 'all',
-                                                            version: '1.0',
-                                                            created_by: 'liondesign.io',
-                                                            preview_img: '',
-                                                        },
-                                                    };
-                                                })),
-                                            },
+                                                        image: [dd.content.seo.image],
+                                                        status: 'wait',
+                                                        post_to: 'all',
+                                                        version: '1.0',
+                                                        created_by: 'liondesign.io',
+                                                        preview_img: '',
+                                                    },
+                                                };
+                                            })),
                                         },
-                                    };
-                                    gvc.notifyDataChange(id);
-                                });
-                            }
+                                    },
+                                };
+                                gvc.notifyDataChange(id);
+                            });
                             return {
                                 bind: id,
                                 view: () => {
@@ -816,15 +769,18 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                         return [dd.product_id].concat(dd.variant.spec).join('-');
                                                                     }),
                                                                     callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                        vm.data.content.relative_data = value.map((dd) => {
+                                                                        var _a;
+                                                                        vm.data.content.relative_data = (_a = vm.data.content.relative_data) !== null && _a !== void 0 ? _a : [];
+                                                                        vm.data.content.relative_data = vm.data.content.relative_data.concat(value.map((dd) => {
                                                                             return {
-                                                                                variant: dd.variant_content,
+                                                                                variant: dd.variant,
                                                                                 product_id: dd.product_id,
                                                                             };
-                                                                        });
+                                                                        }));
                                                                         subVM.loading = true;
                                                                         gvc.notifyDataChange(subVM.id);
                                                                     }),
+                                                                    show_mode: 'all'
                                                                 });
                                                             }), { textStyle: 'font-weight: 400;' })}
                                                                                 </div>

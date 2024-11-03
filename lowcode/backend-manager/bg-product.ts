@@ -19,9 +19,9 @@ type CollectionItem = {
 };
 
 export class BgProduct {
-    static variantsSelector(obj: { gvc: GVC; title?: string; filter_variants: string[]; callback: (value: any) => void }) {
+    static variantsSelector(obj: { gvc: GVC; title?: string; filter_variants: string[]; callback: (value: any) => void,show_mode:'hidden'|'all' }) {
         let add_items: any = [];
-        return obj.gvc.glitter.innerDialog((gvc: GVC) => {
+        return (window.parent as any).glitter.innerDialog((gvc: GVC) => {
             return html`
                 <div class="bg-white shadow rounded-3 ">
                     <div class="px-3" style="max-height: calc(100vh - 100px);overflow-y: auto;">
@@ -29,17 +29,17 @@ export class BgProduct {
                             title: '選擇商品',
                             select_data: add_items,
                             select_mode: true,
-                            filter_variants: obj.filter_variants,
-                        })}
+                            filter_variants: obj.filter_variants
+                        },'hidden')}
                     </div>
                     <div class="c_dialog_bar">
                         ${BgWidget.cancel(
-                            obj.gvc.event(() => {
+                            gvc.event(() => {
                                 gvc.closeDialog();
                             })
                         )}
                         ${BgWidget.save(
-                            obj.gvc.event(() => {
+                            gvc.event(() => {
                                 obj.callback(add_items);
                                 gvc.closeDialog();
                             }),

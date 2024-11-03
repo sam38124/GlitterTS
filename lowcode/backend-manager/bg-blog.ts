@@ -315,85 +315,41 @@ export class BgBlog {
                                 return gvc.bindView(() => {
                                     let data: any = undefined;
                                     const id = gvc.glitter.getUUID();
-                                    if (page_tab !== 'page') {
-                                        ApiPageConfig.getPageTemplate({
-                                            template_from: 'all',
-                                            page: '0',
-                                            limit: '3000',
-                                            type: 'page',
-                                            tag: (() => {
-                                                switch (page_tab) {
-                                                    case 'shopping':
-                                                    case 'hidden':
-                                                        return `一頁購物`;
-                                                    default:
-                                                        return ``;
-                                                }
-                                            })(),
-                                            search: vm.search,
-                                        }).then((res) => {
-                                            data = res;
-                                            data.response.result.data = [
-                                                {
-                                                    id: 20739,
-                                                    userID: '234285319',
-                                                    tag: 'empty',
-                                                    name: '空白內容',
-                                                    page_type: 'page',
-                                                    preview_image: null,
-                                                    appName: 'shop_template_black_style',
-                                                    template_type: 2,
-                                                    template_config: {
-                                                        tag: ['頁面範例'],
-                                                        desc: '',
-                                                        name: '空白內容',
-                                                        image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                                        status: 'wait',
-                                                        post_to: 'all',
-                                                        version: '1.0',
-                                                        created_by: 'liondesign.io',
-                                                        preview_img: '',
-                                                    },
-                                                },
-                                            ].concat(data.response.result.data);
-                                            gvc.notifyDataChange(id);
-                                        });
-                                    } else {
-                                        Article.get({
-                                            page: 0,
-                                            limit: 20,
-                                            search: ``,
-                                            for_index: `false`,
-                                            status: '0,1',
-                                            page_type: page_tab,
-                                            app_name: 't_1726217714800',
-                                        }).then((dd) => {
-                                            data = {
-                                                response: {
-                                                    result: {
-                                                        data: [
-                                                            {
-                                                                id: 20739,
-                                                                userID: '234285319',
-                                                                tag: 'empty',
+                                    Article.get({
+                                        page: 0,
+                                        limit: 20,
+                                        search: ``,
+                                        for_index: `false`,
+                                        status: '0,1',
+                                        page_type: page_tab,
+                                        app_name: 't_1726217714800',
+                                    }).then((dd) => {
+                                        data = {
+                                            response: {
+                                                result: {
+                                                    data: [
+                                                        {
+                                                            id: 20739,
+                                                            userID: '234285319',
+                                                            tag: 'empty',
+                                                            name: '空白內容',
+                                                            page_type: 'page',
+                                                            preview_image: null,
+                                                            appName: 'shop_template_black_style',
+                                                            template_type: 2,
+                                                            template_config: {
+                                                                tag: ['頁面範例'],
+                                                                desc: '',
                                                                 name: '空白內容',
-                                                                page_type: 'page',
-                                                                preview_image: null,
-                                                                appName: 'shop_template_black_style',
-                                                                template_type: 2,
-                                                                template_config: {
-                                                                    tag: ['頁面範例'],
-                                                                    desc: '',
-                                                                    name: '空白內容',
-                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                                                    status: 'wait',
-                                                                    post_to: 'all',
-                                                                    version: '1.0',
-                                                                    created_by: 'liondesign.io',
-                                                                    preview_img: '',
-                                                                },
+                                                                image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                                status: 'wait',
+                                                                post_to: 'all',
+                                                                version: '1.0',
+                                                                created_by: 'liondesign.io',
+                                                                preview_img: '',
                                                             },
-                                                        ].concat(
+                                                        },
+                                                    ].concat(
                                                             dd.response.data.map((dd: any) => {
                                                                 return {
                                                                     id: 20739,
@@ -418,14 +374,12 @@ export class BgBlog {
                                                                     },
                                                                 };
                                                             })
-                                                        ),
-                                                    },
+                                                    ),
                                                 },
-                                            };
-
-                                            gvc.notifyDataChange(id);
-                                        });
-                                    }
+                                            },
+                                        };
+                                        gvc.notifyDataChange(id);
+                                    });
 
                                     return {
                                         bind: id,
@@ -883,15 +837,17 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                                     return [dd.product_id].concat(dd.variant.spec).join('-');
                                                                                                 }),
                                                                                                 callback: async (value) => {
-                                                                                                    vm.data.content.relative_data = value.map((dd: any) => {
+                                                                                                    vm.data.content.relative_data=  vm.data.content.relative_data ?? []
+                                                                                                    vm.data.content.relative_data = vm.data.content.relative_data.concat(value.map((dd: any) => {
                                                                                                         return {
-                                                                                                            variant: dd.variant_content,
+                                                                                                            variant: dd.variant,
                                                                                                             product_id: dd.product_id,
                                                                                                         };
-                                                                                                    });
+                                                                                                    }));
                                                                                                     subVM.loading = true;
                                                                                                     gvc.notifyDataChange(subVM.id);
                                                                                                 },
+                                                                                                show_mode:'all'
                                                                                             });
                                                                                         }),
                                                                                         { textStyle: 'font-weight: 400;' }

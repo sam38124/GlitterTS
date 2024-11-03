@@ -101,6 +101,9 @@ export class BgWidget {
                 <span class="tx_700_white">${text}</span>
             </button>`;
     }
+    static ai_generator(gvc, format, callback) {
+        return ``;
+    }
     static cancel(event, text = '取消') {
         return html `
             <button class="btn btn-snow" type="button" onclick="${event}">
@@ -1204,195 +1207,198 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return {
                 bind: ids.container,
                 view: () => {
-                    if (vm.loading) {
-                        return html `
+                    try {
+                        if (vm.loading) {
+                            return html `
                             <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">資料載入中
                                 ....
                             </div>`;
-                    }
-                    if (vm.tableData.length === 0) {
-                        return html `
+                        }
+                        if (vm.tableData.length === 0) {
+                            return html `
                             <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">
                                 暫無資料
                             </div>`;
-                    }
-                    function checkAllBox(changeView) {
-                        return EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: vm.originalData.every((item) => item.checked),
-                            callback: (result) => {
-                                vm.originalData.map((dd, index) => {
-                                    const checkboxParent = document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
-                                    if (checkboxParent) {
-                                        const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ');
-                                        if (checkboxIcon) {
-                                            checkboxIcon.click();
+                        }
+                        function checkAllBox(changeView) {
+                            return EditorElem.checkBoxOnly({
+                                gvc: gvc,
+                                def: vm.originalData.every((item) => item.checked),
+                                callback: (result) => {
+                                    vm.originalData.map((dd, index) => {
+                                        const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
+                                        if (checkboxParent) {
+                                            const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ');
+                                            if (checkboxIcon) {
+                                                checkboxIcon.click();
+                                            }
                                         }
-                                    }
-                                });
-                                gvc.notifyDataChange(ids.filter);
-                                changeHeaderStyle();
-                            },
-                            stopChangeView: changeView,
-                        });
-                    }
-                    function changeHeaderStyle() {
-                        const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`);
-                        if (target) {
-                            if (vm.originalData.find((dd) => dd.checked)) {
-                                target.style.position = 'sticky';
-                                target.style.top = '0';
-                                target.style.left = '0';
-                            }
-                            else {
-                                target.style.position = 'relative';
-                                target.style.top = '';
-                                target.style.left = '';
+                                    });
+                                    gvc.notifyDataChange(ids.filter);
+                                    obj.item_select && obj.item_select();
+                                    changeHeaderStyle();
+                                },
+                                stopChangeView: changeView,
+                            });
+                        }
+                        function changeHeaderStyle() {
+                            const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`);
+                            if (target) {
+                                if (vm.originalData.find((dd) => dd.checked)) {
+                                    target.style.position = 'sticky';
+                                    target.style.top = '0';
+                                    target.style.left = '0';
+                                }
+                                else {
+                                    target.style.position = 'relative';
+                                    target.style.top = '';
+                                    target.style.left = '';
+                                }
                             }
                         }
-                    }
-                    if (!created.checkbox) {
-                        vm.tableData = vm.tableData.map((item, index) => {
-                            if (obj.filter.length > 0) {
-                                return [
-                                    {
-                                        key: checkAllBox(true),
-                                        value: EditorElem.checkBoxOnly({
-                                            gvc: gvc,
-                                            def: false,
-                                            callback: (result) => {
-                                                vm.originalData[index].checked = result;
-                                                gvc.notifyDataChange(ids.filter);
-                                                changeHeaderStyle();
-                                            },
-                                        }),
-                                    },
-                                    ...item,
-                                ];
-                            }
-                            return item;
-                        });
-                        created.checkbox = !created.checkbox;
-                    }
-                    return html `
+                        if (!created.checkbox) {
+                            vm.tableData = vm.tableData.map((item, index) => {
+                                if (obj.filter.length > 0) {
+                                    return [
+                                        {
+                                            key: checkAllBox(true),
+                                            value: EditorElem.checkBoxOnly({
+                                                gvc: gvc,
+                                                def: false,
+                                                callback: (result) => {
+                                                    vm.originalData[index].checked = result;
+                                                    gvc.notifyDataChange(ids.filter);
+                                                    changeHeaderStyle();
+                                                    obj.item_select && obj.item_select();
+                                                },
+                                            }),
+                                        },
+                                        ...item,
+                                    ];
+                                }
+                                return item;
+                            });
+                            created.checkbox = !created.checkbox;
+                        }
+                        return html `
                         <div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
                             <div class="w-100 h-100 bg-white top-0"
                                  style="position: absolute; z-index: ${defWidth > 0 ? 0 : 2}; display: ${defWidth > 0 ? 'none' : 'block'};"></div>
                             ${gvc.bindView({
-                        bind: ids.header,
-                        view: () => {
-                            return gvc.bindView({
-                                bind: ids.filter,
-                                view: () => {
-                                    if (vm.originalData.find((dd) => dd.checked)) {
-                                        const checkedData = vm.originalData.filter((dd) => dd.checked);
-                                        if (document.body.clientWidth < 768) {
-                                            return BgWidget.selNavbar({
-                                                checkbox: checkAllBox(false),
-                                                count: checkedData.length,
-                                                buttonList: [
+                            bind: ids.header,
+                            view: () => {
+                                return gvc.bindView({
+                                    bind: ids.filter,
+                                    view: () => {
+                                        if (vm.originalData.find((dd) => dd.checked)) {
+                                            const checkedData = vm.originalData.filter((dd) => dd.checked);
+                                            if (document.body.clientWidth < 768) {
+                                                return BgWidget.selNavbar({
+                                                    checkbox: checkAllBox(false),
+                                                    count: checkedData.length,
+                                                    buttonList: [
+                                                        BgWidget.selEventDropmenu({
+                                                            gvc: gvc,
+                                                            options: obj.filter.map((item) => {
+                                                                return {
+                                                                    name: item.name,
+                                                                    event: gvc.event(() => item.event(checkedData)),
+                                                                };
+                                                            }),
+                                                            text: '',
+                                                        }),
+                                                    ],
+                                                });
+                                            }
+                                            const inButtons = obj.filter.filter((item) => item.option);
+                                            const outButtons = obj.filter.filter((item) => !item.option);
+                                            const inList = inButtons.length > 0
+                                                ? [
                                                     BgWidget.selEventDropmenu({
                                                         gvc: gvc,
-                                                        options: obj.filter.map((item) => {
+                                                        options: inButtons.map((item) => {
                                                             return {
                                                                 name: item.name,
                                                                 event: gvc.event(() => item.event(checkedData)),
                                                             };
                                                         }),
-                                                        text: '',
+                                                        text: '更多操作',
                                                     }),
-                                                ],
+                                                ]
+                                                : [];
+                                            const outList = outButtons.map((item) => {
+                                                return BgWidget.selEventButton(item.name, gvc.event(() => item.event(checkedData)));
+                                            });
+                                            return BgWidget.selNavbar({
+                                                checkbox: checkAllBox(false),
+                                                count: checkedData.length,
+                                                buttonList: [...inList, ...outList],
                                             });
                                         }
-                                        const inButtons = obj.filter.filter((item) => item.option);
-                                        const outButtons = obj.filter.filter((item) => !item.option);
-                                        const inList = inButtons.length > 0
-                                            ? [
-                                                BgWidget.selEventDropmenu({
-                                                    gvc: gvc,
-                                                    options: inButtons.map((item) => {
-                                                        return {
-                                                            name: item.name,
-                                                            event: gvc.event(() => item.event(checkedData)),
-                                                        };
-                                                    }),
-                                                    text: '更多操作',
-                                                }),
-                                            ]
-                                            : [];
-                                        const outList = outButtons.map((item) => {
-                                            return BgWidget.selEventButton(item.name, gvc.event(() => item.event(checkedData)));
-                                        });
-                                        return BgWidget.selNavbar({
-                                            checkbox: checkAllBox(false),
-                                            count: checkedData.length,
-                                            buttonList: [...inList, ...outList],
-                                        });
-                                    }
-                                    return vm.tableData[0]
-                                        .map((dd, index) => {
-                                        return html `
+                                        return vm.tableData[0]
+                                            .map((dd, index) => {
+                                            return html `
                                                             <div class="${ids.headerCell} ${ids.textClass} tx_700"
                                                                  style="min-width: ${widthList[index]}px;">${dd.key}
                                                             </div>`;
-                                    })
-                                        .join('');
-                                },
-                                divCreate: {
-                                    class: `d-flex align-items-center mb-2 ${ids.header}`,
-                                    style: `height: 40px !important;`,
-                                },
-                                onCreate: () => {
-                                    if (!created.header) {
-                                        let timer = 0;
-                                        const si = setInterval(() => {
-                                            timer++;
-                                            const header = document.querySelector(`.${ids.header}`);
-                                            if (!created.header && header && header.offsetWidth > 0) {
-                                                let n = 0;
-                                                const htmlTags = new RegExp(/<[^>]*>/);
-                                                header === null || header === void 0 ? void 0 : header.querySelectorAll('div').forEach((div) => {
-                                                    if (div.classList.contains(ids.headerCell)) {
-                                                        const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.replace(/\n/g, '').trim().length * 24;
-                                                        widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
-                                                        n++;
-                                                    }
-                                                });
-                                                fullWidth = header.offsetWidth;
-                                                created.header = !created.header;
-                                                clearInterval(si);
-                                            }
-                                            if (timer > 500) {
-                                                clearInterval(si);
-                                            }
-                                        }, 50);
-                                    }
-                                },
-                            });
-                        },
-                    })}
+                                        })
+                                            .join('');
+                                    },
+                                    divCreate: {
+                                        class: `d-flex align-items-center mb-2 ${ids.header}`,
+                                        style: `height: 40px !important;`,
+                                    },
+                                    onCreate: () => {
+                                        if (!created.header) {
+                                            let timer = 0;
+                                            const si = setInterval(() => {
+                                                timer++;
+                                                const header = gvc.glitter.document.querySelector(`.${ids.header}`);
+                                                if (!created.header && header && header.offsetWidth > 0) {
+                                                    let n = 0;
+                                                    const htmlTags = new RegExp(/<[^>]*>/);
+                                                    header === null || header === void 0 ? void 0 : header.querySelectorAll('div').forEach((div) => {
+                                                        if (div.classList.contains(ids.headerCell)) {
+                                                            const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.replace(/\n/g, '').trim().length * 24;
+                                                            widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
+                                                            n++;
+                                                        }
+                                                    });
+                                                    fullWidth = header.offsetWidth;
+                                                    created.header = !created.header;
+                                                    clearInterval(si);
+                                                }
+                                                if (timer > 500) {
+                                                    clearInterval(si);
+                                                }
+                                            }, 50);
+                                        }
+                                    },
+                                });
+                            },
+                        })}
                             <table class="table table-centered table-nowrap text-center table-hover"
                                    style="width: ${defWidth}px;">
                                 <tbody>
                                 ${vm.tableData
-                        .map((dd, trIndex) => {
-                        return html `
+                            .map((dd, trIndex) => {
+                            return html `
                                                 <tr
                                                         class="${trIndex === 0 ? ids.tr : ''}"
                                                         onclick="${gvc.event(() => {
-                            obj.rowClick && obj.rowClick(dd, trIndex);
-                        })}"
+                                obj.rowClick && obj.rowClick(dd, trIndex);
+                            })}"
                                                         onmouseover="${gvc.event(() => {
-                            $(`#${ids.pencil}${trIndex}`).removeClass('d-none');
-                        })}"
+                                $(`#${ids.pencil}${trIndex}`).removeClass('d-none');
+                            })}"
                                                         onmouseout="${gvc.event(() => {
-                            $(`#${ids.pencil}${trIndex}`).addClass('d-none');
-                        })}"
+                                $(`#${ids.pencil}${trIndex}`).addClass('d-none');
+                            })}"
                                                 >
                                                     ${dd
-                            .map((d3, tdIndex) => {
-                            const tdClass = Tool.randomString(5);
-                            gvc.addStyle(`
+                                .map((d3, tdIndex) => {
+                                const tdClass = Tool.randomString(5);
+                                gvc.addStyle(`
                                                             .${tdClass} {
                                                                 border: none;
                                                                 vertical-align: middle;
@@ -1402,7 +1408,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                 ${dd.length === 1 ? 'border-radius: 10px;' : ''}
                                                             }
                                                         `);
-                            return html `
+                                return html `
                                                                     <td
                                                                             class="${ids.textClass} ${tdClass} tx_normal"
                                                                             ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
@@ -1412,24 +1418,29 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                             ${d3.value}
                                                                         </div>
                                                                     </td>`;
+                            })
+                                .join('')}
+                                                </tr>`;
                         })
                             .join('')}
-                                                </tr>`;
-                    })
-                        .join('')}
                                 </tbody>
                             </table>
                         </div>
                         <div>
                             ${obj.hiddenPageSplit
-                        ? ''
-                        : ps.pageSplitV2(vm.pageSize, vm.page, (page) => {
-                            vm.tableData = [];
-                            vm.page = page;
-                            vm.loading = true;
-                            gvc.notifyDataChange(ids.container);
-                        }, false)}
+                            ? ''
+                            : ps.pageSplitV2(vm.pageSize, vm.page, (page) => {
+                                vm.tableData = [];
+                                vm.page = page;
+                                vm.loading = true;
+                                gvc.notifyDataChange(ids.container);
+                            }, false)}
                         </div>`;
+                    }
+                    catch (e) {
+                        console.log(e);
+                        return `${e}`;
+                    }
                 },
                 divCreate: {},
                 onCreate: () => {
@@ -1443,7 +1454,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 timer++;
                                 if (created.header) {
                                     const checkbox = obj.filter.length > 0;
-                                    const tr = document.querySelector(`.${ids.tr}`);
+                                    console.log(`query==>`, ids.tr);
+                                    const tr = gvc.glitter.document.querySelector(`.${ids.tr}`);
                                     tr === null || tr === void 0 ? void 0 : tr.querySelectorAll('td').forEach((td, index) => {
                                         if (checkbox && index === 0) {
                                             widthList[index] = 60;
@@ -2470,6 +2482,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 bind: vm.id,
                 view: () => {
                     var _a, _b, _c;
+                    const footer = (_a = obj.footer_html(gvc)) !== null && _a !== void 0 ? _a : '';
                     if (vm.loading) {
                         return html `
                                     <div class="my-4">${this.spinner()}</div>`;
@@ -2477,7 +2490,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     return html `
                                 <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                                     <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                        <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                        <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
                                         <div class="flex-fill"></div>
                                         <i
                                                 class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -2493,9 +2506,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         <div class="c_dialog_body">
                                             <div class="c_dialog_main"
                                                  style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">
-                                                ${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}
+                                                ${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}
                                             </div>
-                                            <div class="c_dialog_bar">${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
+                                            ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                                         </div>
                                     </div>
                                 </div>`;

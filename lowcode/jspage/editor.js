@@ -361,7 +361,7 @@ ${dd.title}</a></li>`;
                                             </div>
                             `}
                             <div class="border-end d-none d-sm-block"
-                                 style="width:38px;height: 56px; "></div>
+                                 style="width:37px;height: 56px; "></div>
 
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {

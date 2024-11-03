@@ -676,7 +676,8 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建網頁設計師
-        const query = `幫我過濾出要調整的項目和內容`;
+        const query = `幫我過濾出我要調整的項目和內容，另外這點請你非常注意，內容一定和我的敘述有關，請不要自行生成內容
+        `;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '網頁設計師',
