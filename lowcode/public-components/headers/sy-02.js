@@ -168,7 +168,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                                 ${widget.formData.logo.value}
                             </div>
                         ` : html `
-                            <img src="${widget.formData.logo.value}" style="height: 100%;">
+                            <div class="d-flex align-items-center justify-content-center h-100 py-2">  <img src="${widget.formData.logo.value}" style="height: 100%;"></div>
                         `}
                         </div>
                     </div>

@@ -166,7 +166,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                 ${widget.formData.logo.value}
                             </div>
                         ` : html`
-                            <img src="${widget.formData.logo.value}" style="height: 100%;">
+                            <div class="d-flex align-items-center justify-content-center h-100 py-2">  <img src="${widget.formData.logo.value}" style="height: 100%;"></div>
                         `}
                         </div>
                     </div>

@@ -52,7 +52,7 @@ export declare class AiRobot {
     }>;
     static uploadFile(file_name: string, fileData: Buffer): Promise<string>;
     static convertS3Link(link: string): Promise<unknown>;
-    static codeEditor(app_name: string, question: string, format: any): Promise<{
+    static codeEditor(app_name: string, question: string, format: any, assistant?: string): Promise<{
         usage: number;
         obj?: undefined;
     } | {

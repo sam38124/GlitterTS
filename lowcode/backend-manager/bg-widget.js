@@ -246,7 +246,7 @@ export class BgWidget {
         const text = (_a = obj.title) !== null && _a !== void 0 ? _a : (() => {
             switch (obj.select) {
                 case 'writer':
-                    return '使用AI文案寫手';
+                    return 'AI助手';
                 case 'order_analysis':
                     return '使用AI分析工具';
                 case 'operation_guide':

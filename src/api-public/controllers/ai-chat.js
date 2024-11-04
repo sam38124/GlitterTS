@@ -180,7 +180,7 @@ router.post('/edit-component', async (req, resp) => {
     try {
         return response_js_1.default.succ(resp, {
             result: true,
-            data: await ai_robot_js_1.AiRobot.codeEditor(req.get('g-app'), req.body.text, req.body.format)
+            data: await ai_robot_js_1.AiRobot.codeEditor(req.get('g-app'), req.body.text, req.body.format, req.body.assistant)
         });
     }
     catch (err) {
