@@ -20,7 +20,8 @@ export class AiEditor {
                     })
                     return schema
                 })()
-            }
+            },
+            assistant: ''
         }).then((dd) => {
             if (!dd.result || !dd.response.result) {
                 callback(false)
