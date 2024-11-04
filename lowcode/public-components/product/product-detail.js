@@ -138,101 +138,6 @@ export class ProductDetail {
         const loadings = {
             page: true,
         };
-        gvc.addStyle(`
-            .add-wish-container {
-                align-items: center;
-                justify-content: center;
-                gap: 5px;
-                cursor: pointer;
-                font-size: 15px;
-                text-decoration: none !important;
-                color: #333333;
-            }
-
-            .spec-option {
-                display: flex;
-                padding: 10px;
-                justify-content: center;
-                align-items: center;
-                border-radius: 5px;
-                gap: 10px;
-                border: 1px solid #333333;
-                cursor: pointer;
-                transition: 0.3s;
-            }
-
-            .spec-option.selected-option {
-                background: #333333;
-                color: #fff;
-            }
-
-            .spec-option:not(.selected-option):hover {
-                background: #ddd;
-            }
-
-            .add-cart-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                border-radius: 5px;
-                border: 1px solid #333333;
-                background: #fff;
-                color: #333333;
-                width: 200px;
-                height: 100%;
-                transition: 0.3s;
-            }
-
-            .add-cart-btn:hover {
-                background: #ddd;
-            }
-
-            .no-stock {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                border-radius: 5px;
-                border: 1px solid #333333;
-                background: #dddddd;
-                color: #333333;
-                width: 200px;
-                height: 100%;
-            }
-
-            .custom-select {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background: transparent;
-                background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
-                background-repeat: no-repeat;
-                background-position-x: 97.5%;
-                background-position-y: 0.75rem;
-                border: 1px solid #dfdfdf;
-                border-radius: 2px;
-                margin-right: 2rem;
-                padding: 0.5rem 1rem;
-                padding-right: 2rem;
-                height: 46px;
-            }
-
-            .swiper-slide.swiper-slide-sm {
-                opacity: 0.5;
-            }
-
-            .swiper-slide.swiper-slide-sm.swiper-slide-thumb-active {
-                opacity: 1;
-            }
-
-            .swiper-button-prev {
-                --swiper-theme-color: #dddddd;
-            }
-
-            .swiper-button-next {
-                --swiper-theme-color: #dddddd;
-            }
-        `);
         function ObjCompare(obj1, obj2) {
             const Obj1_keys = Object.keys(obj1);
             const Obj2_keys = Object.keys(obj2);
@@ -252,14 +157,122 @@ export class ProductDetail {
                 <span class="mt-3">載入中</span>
             </div>`;
         }
+        function lightenColor(color, percent) {
+            var num = parseInt(color.slice(1), 16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = ((num >> 8) & 0x00ff) + amt, B = (num & 0x0000ff) + amt;
+            return '#' + (0x1000000 + (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 + (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 + (B < 255 ? (B < 1 ? 0 : B) : 255)).toString(16).slice(1);
+        }
         return gvc.bindView({
             bind: ids.page,
             view: () => {
+                var _a, _b, _c, _d, _e;
                 if (loadings.page) {
                     return spinner();
                 }
                 else {
                     const prod = vm.data.content;
+                    const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+                    const borderButtonBgr = (_b = glitter.share.globalValue['theme_color.0.border-button-bg']) !== null && _b !== void 0 ? _b : '#fff';
+                    const borderButtonText = (_c = glitter.share.globalValue['theme_color.0.border-button-text']) !== null && _c !== void 0 ? _c : '#333333';
+                    const solidButtonBgr = (_d = glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _d !== void 0 ? _d : '#dddddd';
+                    const solidButtonText = (_e = glitter.share.globalValue['theme_color.0.solid-button-text']) !== null && _e !== void 0 ? _e : '#000000';
+                    gvc.addStyle(`
+                        .add-wish-container {
+                            align-items: center;
+                            justify-content: center;
+                            gap: 5px;
+                            cursor: pointer;
+                            font-size: 15px;
+                            text-decoration: none !important;
+                            color: ${titleFontColor};
+                        }
+
+                        .spec-option {
+                            display: flex;
+                            padding: 10px;
+                            justify-content: center;
+                            align-items: center;
+                            border-radius: 5px;
+                            gap: 10px;
+                            border: 1px solid ${borderButtonText};
+                            background: ${borderButtonBgr};
+                            color: ${borderButtonText};
+                            cursor: pointer;
+                            transition: 0.3s;
+                        }
+
+                        .spec-option.selected-option {
+                            background: ${solidButtonBgr};
+                            color: ${solidButtonText};
+                        }
+
+                        .spec-option:not(.selected-option):hover {
+                            background: ${lightenColor(solidButtonBgr, 50)};
+                        }
+
+                        .add-cart-btn {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 100%;
+                            border-radius: 5px;
+                            border: 1px solid ${solidButtonText};
+                            background: ${solidButtonBgr};
+                            color: ${solidButtonText};
+                            width: 200px;
+                            height: 100%;
+                            transition: 0.3s;
+                        }
+
+                        .add-cart-btn:hover {
+                            background: ${lightenColor(solidButtonBgr, 50)};
+                        }
+
+                        .no-stock {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 100%;
+                            border-radius: 5px;
+                            border: 1px solid ${solidButtonText};
+                            background: ${lightenColor(solidButtonBgr, 50)};
+                            color: ${solidButtonText};
+                            width: 200px;
+                            height: 100%;
+                            cursor: not-allowed;
+                        }
+
+                        .custom-select {
+                            -webkit-appearance: none;
+                            -moz-appearance: none;
+                            background: transparent;
+                            background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+                            background-repeat: no-repeat;
+                            background-position-x: 97.5%;
+                            background-position-y: 0.75rem;
+                            border: 1px solid #dfdfdf;
+                            border-radius: 2px;
+                            margin-right: 2rem;
+                            padding: 0.5rem 1rem;
+                            padding-right: 2rem;
+                            height: 46px;
+                        }
+
+                        .swiper-slide.swiper-slide-sm {
+                            opacity: 0.5;
+                        }
+
+                        .swiper-slide.swiper-slide-sm.swiper-slide-thumb-active {
+                            opacity: 1;
+                        }
+
+                        .swiper-button-prev {
+                            --swiper-theme-color: ${lightenColor(borderButtonBgr, 50)};
+                        }
+
+                        .swiper-button-next {
+                            --swiper-theme-color: ${lightenColor(borderButtonBgr, 50)};
+                        }
+                    `);
                     vm.specs =
                         vm.specs.length > 0
                             ? vm.specs
@@ -295,8 +308,8 @@ export class ProductDetail {
                                 </div>
                             </div>
                             <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">
-                                <h1>${prod.title}</h1>
-                                <h2>
+                                <h1 style="color: ${titleFontColor}">${prod.title}</h1>
+                                <h2 style="color: ${titleFontColor}">
                                     ${gvc.bindView({
                         bind: ids.price,
                         view: () => {
