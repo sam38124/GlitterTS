@@ -13,92 +13,71 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { AiChat } from '../glitter-base/route/ai-chat.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { AiPointsApi } from "../glitter-base/route/ai-points-api.js";
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 export class AiMessage {
-    static aiRobot(cf) {
-        const gvc = cf.gvc;
-        const html = String.raw;
-        cf.userID = `${cf.userID}`;
-        const chatID = [cf.userID, cf.toUser || 'manager'].sort().join('-');
-        const vm = {
-            visible: false,
-            id: gvc.glitter.getUUID(),
-        };
-        return gvc.bindView(() => {
-            AiMessage.toggle = (vis, option) => {
-                if (!option) {
-                    AiMessage.ai_support = [
-                        {
-                            key: 'writer',
-                            label: '文案寫手',
-                        },
-                        {
-                            key: 'order_analysis',
-                            label: '訂單分析',
-                        },
-                        {
-                            key: 'design',
-                            label: '圖片生成',
-                        },
-                        {
-                            key: 'operation_guide',
-                            label: '操作引導',
-                        }
-                    ];
+    static setDrawer(gvc, option) {
+        if (!option) {
+            AiMessage.ai_support = [
+                {
+                    key: 'writer',
+                    label: '文案寫手',
+                },
+                {
+                    key: 'order_analysis',
+                    label: '訂單分析',
+                },
+                {
+                    key: 'design',
+                    label: '圖片生成',
+                },
+                {
+                    key: 'operation_guide',
+                    label: '操作引導',
                 }
-                else {
-                    AiMessage.ai_support = option;
-                }
-                vm.visible = vis;
-                $(document.querySelector('.ai-left')).addClass(`scroll-out`);
-                setTimeout(() => {
-                    gvc.notifyDataChange(vm.id);
-                }, 250);
-            };
-            return {
-                bind: vm.id,
-                view: () => {
-                    if (!vm.visible) {
-                        return ``;
-                    }
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(html `
-                                <div
+            ];
+        }
+        else {
+            AiMessage.ai_support = option;
+        }
+        if (!AiMessage.ai_support.find((dd) => {
+            return dd.key === AiMessage.vm.select_bt;
+        })) {
+            AiMessage.vm.select_bt = AiMessage.ai_support[0].key;
+        }
+        gvc.glitter.setDrawer(`<div
                                         class="position-fixed start-0 top-0 vw-100 vh-100"
                                         style="background: rgba(0,0,0,0.5);z-index:999;"
                                         onclick="${gvc.event(() => {
-                            AiMessage.toggle(false);
-                        })}"
+            gvc.glitter.closeDrawer();
+        })}"
                                 >
                                     <div
                                             class="position-fixed vh-100 top-0 scroll-in bg-white ai-left"
                                             style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
                                             onclick="${gvc.event((e, event) => {
-                            event.stopPropagation();
-                        })}"
+            event.stopPropagation();
+        })}"
                                     >
-                                        ${AiMessage.detail({
-                            gvc: gvc,
-                            user_id: cf.userID,
-                            containerHeight: $('body').height() + 10 + 'px',
-                            document: document,
-                            goBack: () => {
-                            },
-                            close: () => {
-                                AiMessage.toggle(false);
-                            },
-                        })}
+                                        ${(() => {
+            return AiMessage.detail({
+                gvc: gvc,
+                user_id: 'manager',
+                containerHeight: $('body').height() + 10 + 'px',
+                document: document,
+                goBack: () => {
+                },
+                close: () => {
+                    gvc.glitter.closeDrawer();
+                },
+            });
+        })()}
                                     </div>
-                                </div>`);
-                    }));
-                },
-                divCreate: {
-                    elem: 'div',
-                    style: `z-index:99999;bottom:0px;left:0px;`,
-                },
-                onCreate: () => __awaiter(this, void 0, void 0, function* () {
-                }),
-            };
+                                </div>`, () => {
+            gvc.glitter.openDrawer((document.body.clientWidth > 768) ? 500 : document.body.clientWidth);
         });
+    }
+    static toggle() {
+        AiMessage.setDrawer(window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc);
     }
     static detail(cf) {
         const gvc = cf.gvc;
@@ -247,7 +226,60 @@ export class AiMessage {
                                     },
                                 };
                             }),
-                            gvc.bindView(() => {
+                            (AiMessage.vm.select_bt === 'page_editor') ? (() => {
+                                const html = String.raw;
+                                let message = '';
+                                return ` <div class="p-5">
+                                    ${[
+                                    html `
+                                            <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4" speed="1"
+                                                           style="max-width: 100%;width: 250px;height:250px;" loop
+                                                           autoplay></lottie-player>`,
+                                    `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('點擊想要調整的元件之後，在輸入 AI 語句進行調整', `font-weight: 500;`)}</div>`,
+                                    html `
+                                            <div class="w-100" onclick="${gvc.event(() => {
+                                        if (!gvc.glitter.share.editorViewModel.selectItem) {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.errorMessage({ text: '請先點擊要編輯的元件' });
+                                        }
+                                    })}">
+                                                ${EditorElem.editeText({
+                                        gvc: gvc,
+                                        title: '',
+                                        default: '',
+                                        placeHolder: `字體大小20px，距離左邊20px，背景顏色黃色，字體顏色藍色，標題為歡迎來到SHOPNEX開店平台.`,
+                                        callback: (text) => {
+                                            message = text;
+                                        },
+                                        min_height: 100
+                                    })}
+                                            </div>`,
+                                    `<div class="w-100 d-flex align-items-center justify-content-end">
+${BgWidget.save(gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        if (!message) {
+                                            dialog.errorMessage({ text: '請輸入描述語句' });
+                                            return;
+                                        }
+                                        dialog.dataLoading({ visible: true });
+                                        gvc.glitter.getModule(new URL('./editor/ai-editor.js', gvc.glitter.root_path).href, (AiEditor) => {
+                                            AiEditor.editView(message, gvc.glitter.share.editorViewModel.selectItem, (result) => {
+                                                dialog.dataLoading({ visible: false });
+                                                if (result) {
+                                                    dialog.successMessage({ text: `已為你調整元件『${result}』` });
+                                                    gvc.glitter.share.editorViewModel.selectItem.refreshComponent();
+                                                    gvc.glitter.closeDrawer();
+                                                }
+                                                else {
+                                                    dialog.errorMessage({ text: 'AI無法理解你的意思，請輸入更確切的需求' });
+                                                }
+                                            });
+                                        });
+                                    }), "調整元素", "w-100 mt-3 py-2")}
+</div>`
+                                ].join('<div class="my-2"></div>')}
+                                </div>`;
+                            })() : gvc.bindView(() => {
                                 const viewId = gvc.glitter.getUUID();
                                 const messageID = gvc.glitter.getUUID();
                                 const vm = {
@@ -542,7 +574,12 @@ export class AiMessage {
                                                     else {
                                                         return html `
                                                                     <div class="d-flex px-2"
-                                                                         style="overflow-x: auto;gap:5px;">
+                                                                         style="overflow-x: auto;gap:5px;"
+                                                                         ontouchmove="${gvc.event((e, event) => {
+                                                            event.stopPropagation();
+                                                        })}" onmouseup="${gvc.event((e, event) => {
+                                                            event.stopPropagation();
+                                                        })}">
                                                                         ${(_a = [
                                                             {
                                                                 key: 'writer',
@@ -827,7 +864,5 @@ AiMessage.vm = {
     select_bt: 'writer',
 };
 AiMessage.id = `dsmdklweew3`;
-AiMessage.toggle = (visible) => {
-};
 AiMessage.ai_support = [];
 window.glitter.setModule(import.meta.url, AiMessage);

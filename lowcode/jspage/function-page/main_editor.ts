@@ -601,7 +601,7 @@ export class Main_editor {
                                                 gvc.glitter.closeDrawer()
                                             })}"
                             >
-                                <i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i>
+                                <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
                             </div>
                         </div>`
                                         } else {

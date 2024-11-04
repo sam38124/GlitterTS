@@ -403,6 +403,14 @@ export class ManagerNotify {
                 [cf.user_id]
             )
         )[0];
+        //贈送Ai-points
+        await db.query(`insert into \`${saas.brand}\`.t_ai_points (orderID,userID,money,status,note) values (?,?,?,?,?)`,[
+            `${new Date().getTime()}`,
+            cf.user_id,
+            500,
+            1,
+            {text:'註冊贈送500點AI Points',type:'free'}
+        ])
         if (await this.checkNotify('register')) {
             const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
             const body = html`新用戶『 ${user_data.userData.name || user_data.account} 』註冊了帳號。`;
@@ -452,6 +460,14 @@ export class ManagerNotify {
                   return text;
               })()}」`;
 
+        console.log(`fireBase==>`,{
+            title: `收到客服訊息`,
+            userID: saas.user,
+            tag: 'message',
+            link: link,
+            body: message,
+            pass_store: true,
+        })
         await new Firebase(saas.brand).sendMessage({
             title: `收到客服訊息`,
             userID: saas.user,

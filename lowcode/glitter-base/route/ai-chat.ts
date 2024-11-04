@@ -5,7 +5,7 @@ export class AiChat{
 
     public static sync_data(json: {
        app_name?:string,
-        type:'writer' | 'order_analysis' | 'operation_guide'
+        type:'writer' | 'order_analysis' | 'operation_guide' | 'page_editor'
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ai/sync-data`,
@@ -20,7 +20,7 @@ export class AiChat{
     }
 
     public static reset(json: {   app_name?:string,
-        type:'writer' | 'order_analysis' | 'operation_guide'
+        type:'writer' | 'order_analysis' | 'operation_guide' | 'page_editor'
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ai/reset`,
@@ -44,6 +44,22 @@ export class AiChat{
                 "Content-Type": "application/json",
                 "g-app": json.app_name || getConfig().config.appName,
                 "Authorization": GlobalUser.token
+            },
+            "data":JSON.stringify(json)
+        })
+    }
+    public static editorHtml(json: {   app_name?:string,
+        text:string,
+        format:any,
+        token?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ai/edit-component`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": json.app_name || getConfig().config.appName,
+                "Authorization": json.token || GlobalUser.token
             },
             "data":JSON.stringify(json)
         })

@@ -7,11 +7,7 @@ import {BaseApi} from "../../glitterBundle/api/base.js";
 import {GlobalWidget} from "../../glitterBundle/html-component/global-widget.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {RenderValue} from "../../glitterBundle/html-component/render-value.js";
-import {EditorElem} from "../../glitterBundle/plugins/editor-elem";
-import {BgWidget} from "../../backend-manager/bg-widget.js";
-import {ApiUser} from "../../glitter-base/route/user.js";
-import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
-import {FileItem} from "../../modules/file-system.js";
+
 
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
@@ -1291,11 +1287,11 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                     },
                                                                                                     custom_edit: true,
                                                                                                     toggle_visible: (bool) => {
-                                                                                                        if (bool) {
-                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
-                                                                                                        } else {
-                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
-                                                                                                        }
+                                                                                                        // if (bool) {
+                                                                                                        //     $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
+                                                                                                        // } else {
+                                                                                                        //     $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
+                                                                                                        // }
                                                                                                     }
                                                                                                 })
                                                                                             ].join('')}

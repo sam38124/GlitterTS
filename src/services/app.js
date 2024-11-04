@@ -138,9 +138,9 @@ class App {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     if (!['editorGuide', 'guideable', 'guide'].includes(dd.key)) {
                         await trans.execute(`
-                            insert into \`${cf.appName}\`.public_config
-                            SET ?;
-                        `, [dd]);
+                                insert into \`${cf.appName}\`.public_config
+                                SET ?;
+                            `, [dd]);
                     }
                 }
                 for (const dd of await database_1.default.query(`SELECT *
@@ -181,15 +181,20 @@ class App {
                     `, [this.token.userID, cf.appName, 'index', '', '首頁']);
             }
             await trans.commit();
-            const store_information = (await database_1.default.query(`select * from \`${cf.appName}\`.t_user_public_config
-                            where \`key\` = ? `, [`store-information`]))[0];
+            const store_information = (await database_1.default.query(`select *
+                     from \`${cf.appName}\`.t_user_public_config
+                     where \`key\` = ? `, [`store-information`]))[0];
             if (store_information) {
-                await database_1.default.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`, ['store-information']);
+                await database_1.default.query(`delete
+                                from \`${cf.appName}\`.t_user_public_config
+                                where \`key\` = ?
+                                  and id > 0`, ['store-information']);
             }
             for (const b of app_initial_js_1.AppInitial.main(cf.appName)) {
                 await database_1.default.query(b.sql, [b.obj]);
             }
-            await database_1.default.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [{
+            await database_1.default.query(`insert into \`${cf.appName}\`.t_user_public_config
+                            set ?`, [{
                     key: 'store-information',
                     user_id: 'manager',
                     updated_at: new Date(),
@@ -279,10 +284,14 @@ class App {
     async getAPP(query) {
         var _a;
         try {
-            const empStores = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
-                WHERE user = '${this.token.userID}' AND status = 1 AND invited = 1;`, []);
-            const allStores = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                    WHERE ${(() => {
+            const empStores = await database_1.default.query(`SELECT *
+                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                 WHERE user = '${this.token.userID}'
+                   AND status = 1
+                   AND invited = 1;`, []);
+            const allStores = await database_1.default.query(`SELECT *
+                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                 WHERE ${(() => {
                 const sql = [
                     `(user = '${this.token.userID}' OR appName = 
                             (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
@@ -385,7 +394,9 @@ class App {
         };
     }
     static async preloadPageData(appName, refer_page) {
+        const start = (new Date()).getTime();
         const page = await template_js_1.Template.getRealPage(refer_page, appName);
+        console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
         const app = new App();
         const preloadData = {
             component: [],
@@ -416,25 +427,41 @@ class App {
             return {};
         }
         preloadData.component.push(pageData);
-        async function loop(array) {
-            var _a;
-            for (const dd of array) {
-                if (dd.type === 'container') {
-                    await loop(dd.data.setting);
-                }
-                else if (dd.type === 'component') {
-                    const pageData = (await new template_js_1.Template(undefined).getPage({
-                        appName: dd.data.refer_app || appName,
-                        tag: dd.data.tag,
-                    }))[0];
-                    if (pageData && pageData.config) {
-                        preloadData.component.push(pageData);
-                        await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+        let checkPass = 0;
+        await new Promise(async (resolve, reject) => {
+            function loop(array) {
+                for (const dd of array) {
+                    if (dd.type === 'container') {
+                        loop(dd.data.setting);
+                    }
+                    else if (dd.type === 'component') {
+                        checkPass++;
+                        new Promise(async (resolve, reject) => {
+                            var _a;
+                            const pageData = (await new template_js_1.Template(undefined).getPage({
+                                appName: dd.data.refer_app || appName,
+                                tag: dd.data.tag,
+                            }))[0];
+                            if (pageData && pageData.config) {
+                                preloadData.component.push(pageData);
+                                loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                            }
+                            resolve(true);
+                        }).then(() => {
+                            checkPass--;
+                            if (checkPass === 0) {
+                                resolve(true);
+                            }
+                        });
                     }
                 }
             }
-        }
-        await loop(pageData && pageData.config);
+            loop(pageData && pageData.config);
+            if (checkPass === 0) {
+                resolve(true);
+            }
+        });
+        console.log(`preload-2==>`, (new Date().getTime() - start) / 1000);
         let mapPush = {};
         mapPush['getPlugin'] = {
             callback: [],
@@ -449,6 +476,7 @@ class App {
             };
         });
         let eval_code_hash = {};
+        console.log(`preload-3==>`, (new Date().getTime() - start) / 1000);
         const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
         const code = JSON.stringify(preloadData.component).match(/\{"code":"[^"]+","/g);
         (code || []).map((dd) => {
@@ -460,6 +488,7 @@ class App {
                 console.log(`error->`, dd);
             }
         });
+        console.log(`preload-4==>`, (new Date().getTime() - start) / 1000);
         if (match1) {
             match1.map((d1) => {
                 if (!preloadData.event.find((dd) => {
@@ -472,6 +501,7 @@ class App {
         else {
             console.log('未找到匹配的字串');
         }
+        console.log(`preload-5==>`, (new Date().getTime() - start) / 1000);
         mapPush.eval_code_hash = eval_code_hash;
         mapPush.event = preloadData.event;
         return mapPush;
@@ -546,7 +576,9 @@ class App {
                      where domain =${database_1.default.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
-                original_domain: (await database_1.default.query(`SELECT domain FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?;`, [cf.app_name]))[0]['domain'],
+                original_domain: (await database_1.default.query(`SELECT domain
+                                                  FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                  where appName=?;`, [cf.app_name]))[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -720,7 +752,8 @@ server {
             try {
                 await new backend_service_js_1.BackendService(config.appName).stopServer();
             }
-            catch (e) { }
+            catch (e) {
+            }
             await database_1.default.execute(`delete
                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${database_1.default.escape(config.appName)}

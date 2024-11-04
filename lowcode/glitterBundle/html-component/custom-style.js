@@ -583,6 +583,7 @@ export class CustomStyle {
                                             callback: (text) => {
                                                 widget.data._background_setting.value = text;
                                                 (callback || widget.refreshComponent)();
+                                                gvc.notifyDataChange(id);
                                             },
                                             def: widget.data._background_setting.value,
                                             gvc: gvc,

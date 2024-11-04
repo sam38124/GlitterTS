@@ -459,6 +459,7 @@ export declare class Shopping {
         min_price?: string;
         max_price?: string;
         stockCount?: string;
+        productType?: string;
     }): Promise<{
         data: any;
         result: boolean;

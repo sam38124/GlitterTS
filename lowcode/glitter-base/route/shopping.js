@@ -738,6 +738,7 @@ export class ApiShop {
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.productType && par.push(`productType=${json.productType}`);
                     if (json.stockCount && json.stockCount.key !== '') {
                         par.push(`stockCount=${json.stockCount.key},${json.stockCount.value}`);
                     }

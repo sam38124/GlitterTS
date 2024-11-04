@@ -35,7 +35,7 @@ const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-    glitter.share.ai_message = AiMessage
+
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
 
     const css = String.raw;
@@ -270,7 +270,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             tag: glitter.getUrlParameter('page'),
                             appName: gBundle.appName
                         }, (d2: any) => {
-                            if (glitter.getUrlParameter('page').startsWith('pages')) {
+                            if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden')) {
                                 Article.get({
                                     page: 0,
                                     limit: 1,
@@ -477,7 +477,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         } else {
                             return new Promise(async (resolve) => {
                                 let result = true;
-                                if (glitter.getUrlParameter('page').startsWith('pages')) {
+                                if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden')) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
@@ -697,8 +697,12 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                     }
                                                                 })();
                                                                 if (document.body.offsetWidth < 800) {
-                                                                    glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
-                                                                    });
+                                                                    glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {});
+                                                                    glitter.share.toggle_left_bar=()=>{
+                                                                        glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
+                                                                            glitter.openDrawer()
+                                                                        });
+                                                                    }
                                                                     return ``;
                                                                 } else {
                                                                     return view;
@@ -814,8 +818,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
         }
         glitter.setUrlParameter('function', EditorConfig.backend_page())
     },50)
-
-
+    //AI聊天室功能開關
+    glitter.share.ai_message = AiMessage
     //AI代碼生成
     glitter.share.ai_code_generator=(message:string,callback:(text:string)=>void)=>{
         const dialog = new ShareDialog(gvc.glitter)

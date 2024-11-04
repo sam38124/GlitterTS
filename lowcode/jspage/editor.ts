@@ -237,10 +237,10 @@ export class Editor {
             return html`
                 <div class="position-relative vh-100 vw-100 overflow-auto"
                      style="word-break: break-word;white-space: nowrap;background:whitesmoke;">
-                    <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top"
+                    <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top "
                             data-scroll-header
                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;` : `height:56px;`}">
-                        <div class="container-fluid pe-lg-4" style="position: relative">
+                        <div class="${(document.body.clientWidth<800) ? `d-flex w-100 align-items-center`:`container-fluid pe-lg-4`}" style="position: relative">
                             <div
                                     class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
                                     style="${(() => {
@@ -278,11 +278,11 @@ color: transparent;"
 
                             ${(document.body.clientWidth > 800 || EditorConfig.backend_page() === 'backend-manger') ? `
                              <div
-                                    class="border-end d-flex align-items-center justify-content-center ms-n2 fs-3 d-sm-none"
+                                    class="border-end d-flex align-items-center justify-content-center ${(document.body.clientWidth>800?`ms-n2`:``)} fs-3 d-sm-none"
                                     style="width:56px;height: 56px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                 if ((EditorConfig.backend_page() === 'backend-manger')) {
-                                    glitter.openDrawer();
+                                    glitter.share.toggle_left_bar()
                                 } else {
                                     goBack()
                                 }
@@ -293,10 +293,9 @@ color: transparent;"
                             </div>
                             ` : `
                              <li class="nav-item dropdown">
-                             <div class="border-end d-flex align-items-center justify-content-center flex-column  fs-3 ms-n2 pt-2"  style="width:56px;height: 56px;cursor: pointer;"
+                             <div class="border-end d-flex align-items-center justify-content-center flex-column  fs-3 "  style="width:56px;height: 56px;cursor: pointer;"
                                                  >
-                                                  <i class="fa-duotone fa-solid fa-toolbox"></i>
-                                                <span class="fw-500" style="font-size: 10px;">功能</span>
+                                                <i class="fa-regular fa-ellipsis"></i>
                                             </div>
                                 <ul class="dropdown-menu">
                                 ${[
@@ -328,7 +327,7 @@ color: transparent;"
                                     gvc.glitter.share.editorViewModel.selectItem = undefined;
                                     Storage.page_setting_item = dd.index as any;
                                     if (document.body.clientWidth < 800) {
-                                        glitter.openDrawer()
+                                        glitter.share.toggle_left_bar()
                                     }
                                     Storage.lastSelect = '';
                                     gvc.notifyDataChange(["MainEditorLeft", "top_sm_bar"]);
@@ -338,9 +337,30 @@ ${dd.title}</a></li>`
                             }).join('')}
                                 </ul>
                             </li>
+                             <div class="border-end d-flex align-items-center justify-content-center flex-column  fs-5 fw-bold   linear_text"
+                                                 style="width:56px;height: 56px;cursor: pointer;"
+                                                 onclick="${gvc.event(() => {
+                                AiMessage.vm.select_bt='page_editor'
+                                AiMessage.setDrawer(gvc, [
+                                    {
+                                        key: 'page_editor',
+                                        label: '元件編輯',
+                                    },
+                                    {
+                                        key: 'writer',
+                                        label: '文案寫手',
+                                    },
+                                    {
+                                        key: 'design',
+                                        label: '圖片生成',
+                                    }
+                                ]);
+                            })}">
+                                            AI
+                                            </div>
                             `}
                             <div class="border-end d-none d-sm-block"
-                                 style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `39.5px`};height: 56px; "></div>
+                                 style="width:37px;height: 56px; "></div>
 
                             ${(() => {
                                 if (Storage.select_function === 'backend-manger') {
@@ -379,26 +399,50 @@ ${dd.title}</a></li>`
                                         view: () => {
                                             const size = document.body.clientWidth > 768 ? 24 : 18;
                                             return [
-                                                html`
+                                            //     ` <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
+                                            //      style="width:56px;height: 56px;cursor: pointer;"
+                                            //      onclick="${gvc.event(() => {
+                                            //         AiMessage.setDrawer(gvc, [
+                                            //             {
+                                            //                 key: 'writer',
+                                            //                 label: '文案寫手',
+                                            //             },
+                                            //             {
+                                            //                 key: 'design',
+                                            //                 label: '圖片生成',
+                                            //             }
+                                            //         ]);
+                                            //     })}">
+                                            //    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                            //                  class="me-2" style="width:${size}px;height: ${size}px;">
+                                            //     <span class="fw-500" style="font-size: 10px;">AI</span>
+                                            // </div>`,
+                                                (document.body.clientWidth<800) ? ``: html`
                                                     <div
-                                                            class="ms-auto me-2 bt_orange_lin"
+                                                            class="ms-auto me-2 bt_orange_lin_mb d-md-flex"
                                                             style=""
                                                             onclick="${gvc.event(() => {
-                                                                AiMessage.toggle(true,[
-                                                                    {
-                                                                        key: 'writer',
-                                                                        label: '文案寫手',
-                                                                    },
-                                                                    {
-                                                                        key: 'design',
-                                                                        label: '圖片生成',
-                                                                    }
-                                                                ]);
-                                                            })}"
+                                                                AiMessage.vm.select_bt='page_editor'
+                                                    AiMessage.setDrawer(gvc, [
+                                                        {
+                                                            key: 'page_editor',
+                                                            label: '元件編輯',
+                                                        },
+                                                        {
+                                                            key: 'writer',
+                                                            label: '文案寫手',
+                                                        },
+                                                        {
+                                                            key: 'design',
+                                                            label: '圖片生成',
+                                                        }
+                                                    ]);
+                                                })}"
                                                     >
                                                         <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                             class="me-2" style="width:${size}px;height: ${size}px;">AI助手
-                                                    </div>`,
+                                                             class="me-2" style="width:25px;height:25px;">AI助手
+                                                    </div>`
+                                               ,
                                                 // html`
                                                 //                         <div class="indexGuideBTN d-none d-sm-block"
                                                 //                              style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
@@ -756,21 +800,19 @@ ${dd.title}</a></li>`
                                 ${document.body.clientWidth > 768 ? getSizeSelection() : ``}
                                 ${document.body.clientWidth < 768
                                         ? html`
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 "
                                                  style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
                                                      preView()
                                                  })}">
-                                                <i class="fa-solid fa-eyes"></i>
-                                                <span class="fw-500" style="font-size: 10px;">預覽</span>
+                                                <i class="fa-regular fa-eye"></i>
                                             </div>
-                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3 me-n2 pt-2"
+                                            <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  "
                                                  style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
                                                      glitter.htmlGenerate.saveEvent(false);
                                                  })}">
                                                 <i class="fa-regular fa-floppy-disk"></i>
-                                                <span class="fw-500" style="font-size: 10px;">儲存</span>
                                             </div>
                                         `
                                         : html`
@@ -815,22 +857,16 @@ color:white;
                                                 儲存
                                             </button>`}
                             </div>
-                            <div>${AiMessage.aiRobot({
-                                gvc: gvc,
-                                userID: 'manager',
-                                toUser: 'robot'
-                            })}
-                            </div>
                             ${(() => {
                                 if (Storage.select_function === 'backend-manger') {
                                     const size = document.body.clientWidth > 768 ? 24 : 18;
                                     return (
                                             html`
                                                 <div
-                                                        class="ms-auto me-2 bt_orange_lin"
+                                                        class="ms-auto me-2 bt_orange_lin_mb"
                                                         style=""
                                                         onclick="${gvc.event(() => {
-                                                            AiMessage.toggle(true);
+                                                            AiMessage.setDrawer(gvc);
                                                         })}"
                                                 >
                                                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
@@ -838,7 +874,7 @@ color:white;
                                                 </div>
                                                 <div class="position-relative">
                                                     <div
-                                                            class="me-2 bt_orange_lin position-relative"
+                                                            class="me-2 bt_orange_lin_mb position-relative"
                                                             style="width:42px;"
                                                             onclick="${gvc.event(() => {
                                                                 BgCustomerMessage.toggle(true, gvc);
@@ -969,7 +1005,7 @@ color:white;
                                                             let view = [
                                                                 html`
                                                                     <div
-                                                                            class="me-2 bt_orange_lin position-relative"
+                                                                            class="me-2 bt_orange_lin_mb position-relative"
                                                                             style="width: 42px;"
                                                                             onclick="${gvc.event(() => {
                                                                                 toggle = !toggle;

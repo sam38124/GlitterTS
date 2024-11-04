@@ -11,6 +11,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
+import {ProductAi} from "./ai-generator/product-ai.js";
 
 interface variant {
     save_stock?: string;
@@ -448,7 +449,7 @@ export class ShoppingProductSetting {
         const vm: {
             id: string;
             tableId: string;
-            type: 'list' | 'add' | 'replace' | 'editSpec';
+            type: 'list' | 'add' | 'replace' | 'editSpec' | 'ai-initial';
             dataList: any;
             query: string;
             last_scroll: number;
@@ -456,6 +457,7 @@ export class ShoppingProductSetting {
             orderString: string;
             filter?: any;
             replaceData: any;
+            ai_initial:any;
         } = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
@@ -467,6 +469,7 @@ export class ShoppingProductSetting {
             orderString: '',
             filter: {},
             replaceData: '',
+            ai_initial:{}
         };
         const rowInitData: {
             name: string;
@@ -590,6 +593,8 @@ export class ShoppingProductSetting {
                         }
                     `);
                     switch (vm.type) {
+                        case 'ai-initial':
+                            return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add', product_type: type,initial_data:vm.ai_initial });
                         case 'add':
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add', product_type: type });
                         case 'list':
@@ -636,7 +641,7 @@ export class ShoppingProductSetting {
                                                         })()
                                                     )}
                                                     <div class="flex-fill"></div>
-                                                    <div style="display: flex; gap: 14px;">
+                                                    <div style="display: flex; gap: 10px;">
                                                         ${[
                                                             BgWidget.grayButton(
                                                                 '匯入',
@@ -1149,6 +1154,42 @@ export class ShoppingProductSetting {
                                                                     }, 'export');
                                                                     return;
                                                                 })
+                                                            ),
+                                                            BgWidget.grayButton(
+                                                                    "AI 生成",
+                                                                    gvc.event(() => {
+                                                                        vm.ai_initial={
+                                                                            title: '',
+                                                                            productType: {
+                                                                                product: true,
+                                                                                addProduct: false,
+                                                                                giveaway: false,
+                                                                            },
+                                                                            content: '',
+                                                                            visible: 'true',
+                                                                            status: 'active',
+                                                                            collection: [],
+                                                                            hideIndex: 'false',
+                                                                            preview_image: [],
+                                                                            specs: [],
+                                                                            variants: [],
+                                                                            seo: {
+                                                                                title: '',
+                                                                                content: '',
+                                                                                keywords: '',
+                                                                                domain: '',
+                                                                            },
+                                                                            relative_product: [],
+                                                                            template: '',
+                                                                            content_array: [],
+                                                                            content_json: [],
+                                                                        }
+                                                                        ProductAi.setProduct(gvc,vm.ai_initial,()=>{
+                                                                            vm.type='ai-initial'
+                                                                            
+                                                                        })
+                                                                    }),
+                                                                    {  }
                                                             ),
                                                             BgWidget.darkButton(
                                                                 '新增',
@@ -2053,7 +2094,7 @@ export class ShoppingProductSetting {
         </div>`;
     }
 
-    public static async editProduct(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any; product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden' }) {
+    public static async editProduct(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any;initial_data?:any, product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden' }) {
         let postMD: {
             shipment_type?: string;
             id?: string;
@@ -2084,7 +2125,7 @@ export class ShoppingProductSetting {
                 id: string;
                 list: { key: string; value: string }[];
             }[];
-        } = {
+        } = obj.initial_data || {
             title: '',
             productType: {
                 product: true,
@@ -2339,6 +2380,16 @@ export class ShoppingProductSetting {
                                     <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
                                     <div class="flex-fill"></div>
                                     ${BgWidget.grayButton(
+                                            "AI 生成",
+                                            gvc.event(() => {
+                                                ProductAi.setProduct(gvc,postMD,()=>{
+                                                    gvc.notifyDataChange(vm.id)
+                                                })
+                                            }),
+                                            {  }
+                                    )}
+                                    <div class="mx-1"></div>
+                                    ${BgWidget.grayButton(
                                         document.body.clientWidth > 768 ? '預覽商品' : '預覽',
                                         gvc.event(() => {
                                             const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
@@ -2571,7 +2622,7 @@ export class ShoppingProductSetting {
                                                                         openOnInit: true,
                                                                     })}
                                                                     ${BgWidget.mbContainer(8)}
-                                                                    ${vm.documents
+                                                                    ${(vm.documents || [])
                                                                         .filter((item: any) => {
                                                                             return postMD.content_array.includes(item.id);
                                                                         })

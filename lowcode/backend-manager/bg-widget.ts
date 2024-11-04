@@ -157,6 +157,13 @@ export class BgWidget {
                 <span class="tx_700_white">${text}</span>
             </button>`;
     }
+    static ai_generator(gvc:GVC,format:any,callback:(data:any)=>void) {
+        return ``
+        // return html`
+        //     <button class="btn btn-black ${customClass ?? ``}" type="button" onclick="${event}">
+        //         <span class="tx_700_white">${text}</span>
+        //     </button>`;
+    }
 
     static cancel(event: string, text: string = '取消') {
         return html`
@@ -1411,6 +1418,7 @@ ${obj.default ?? ''}</textarea
             option?: boolean;
             event: (data: any) => void;
         }[];
+        item_select?:()=>void,
         hiddenPageSplit?: boolean;
     }) {
         const gvc = obj.gvc;
@@ -1463,211 +1471,214 @@ ${obj.default ?? ''}</textarea
             return {
                 bind: ids.container,
                 view: () => {
-                    if (vm.loading) {
-                        return html`
+                  try {
+                      if (vm.loading) {
+                          return html`
                             <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">資料載入中
                                 ....
                             </div>`;
-                    }
-                    if (vm.tableData.length === 0) {
-                        return html`
+                      }
+                      if (vm.tableData.length === 0) {
+                          return html`
                             <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">
                                 暫無資料
                             </div>`;
-                    }
+                      }
 
-                    // 表頭行爲全選按鈕
-                    function checkAllBox(changeView: boolean) {
-                        return EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: vm.originalData.every((item: any) => item.checked),
-                            callback: (result) => {
-                                vm.originalData.map((dd: any, index: number) => {
-                                    const checkboxParent = document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
-                                    if (checkboxParent) {
-                                        const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ') as any;
-                                        if (checkboxIcon) {
-                                            checkboxIcon.click();
-                                        }
-                                    }
-                                });
-                                gvc.notifyDataChange(ids.filter);
-                                changeHeaderStyle();
-                            },
-                            stopChangeView: changeView,
-                        });
-                    }
+                      // 表頭行爲全選按鈕
+                      function checkAllBox(changeView: boolean) {
+                          return EditorElem.checkBoxOnly({
+                              gvc: gvc,
+                              def: vm.originalData.every((item: any) => item.checked),
+                              callback: (result) => {
+                                  vm.originalData.map((dd: any, index: number) => {
+                                      const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
+                                      if (checkboxParent) {
+                                          const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ') as any;
+                                          if (checkboxIcon) {
+                                              checkboxIcon.click();
+                                          }
+                                      }
+                                  });
+                                  gvc.notifyDataChange(ids.filter);
+                                  obj.item_select &&  obj.item_select()
+                                  changeHeaderStyle();
+                              },
+                              stopChangeView: changeView,
+                          });
+                      }
 
-                    // 表頭位置設定
-                    function changeHeaderStyle() {
-                        const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`) as HTMLElement;
-                        if (target) {
-                            if (vm.originalData.find((dd: any) => dd.checked)) {
-                                target.style.position = 'sticky';
-                                target.style.top = '0';
-                                target.style.left = '0';
-                            } else {
-                                target.style.position = 'relative';
-                                target.style.top = '';
-                                target.style.left = '';
-                            }
-                        }
-                    }
+                      // 表頭位置設定
+                      function changeHeaderStyle() {
+                          const target = document.querySelector(`[gvc-id="${gvc.id(ids.header)}"]`) as HTMLElement;
+                          if (target) {
+                              if (vm.originalData.find((dd: any) => dd.checked)) {
+                                  target.style.position = 'sticky';
+                                  target.style.top = '0';
+                                  target.style.left = '0';
+                              } else {
+                                  target.style.position = 'relative';
+                                  target.style.top = '';
+                                  target.style.left = '';
+                              }
+                          }
+                      }
 
-                    // 判斷是否添加行爲按鈕
-                    if (!created.checkbox) {
-                        vm.tableData = vm.tableData.map((item, index: number) => {
-                            if (obj.filter.length > 0) {
-                                return [
-                                    {
-                                        key: checkAllBox(true),
-                                        value: EditorElem.checkBoxOnly({
-                                            gvc: gvc,
-                                            def: false,
-                                            callback: (result) => {
-                                                vm.originalData[index].checked = result;
-                                                gvc.notifyDataChange(ids.filter);
-                                                changeHeaderStyle();
-                                            },
-                                        }),
-                                    },
-                                    ...item,
-                                ];
-                            }
-                            return item;
-                        });
-                        created.checkbox = !created.checkbox;
-                    }
+                      // 判斷是否添加行爲按鈕
+                      if (!created.checkbox) {
+                          vm.tableData = vm.tableData.map((item, index: number) => {
+                              if (obj.filter.length > 0) {
+                                  return [
+                                      {
+                                          key: checkAllBox(true),
+                                          value: EditorElem.checkBoxOnly({
+                                              gvc: gvc,
+                                              def: false,
+                                              callback: (result) => {
+                                                  vm.originalData[index].checked = result;
+                                                  gvc.notifyDataChange(ids.filter);
+                                                  changeHeaderStyle();
+                                                  obj.item_select &&  obj.item_select()
+                                              },
+                                          }),
+                                      },
+                                      ...item,
+                                  ];
+                              }
+                              return item;
+                          });
+                          created.checkbox = !created.checkbox;
+                      }
 
-                    return html`
+                      return html`
                         <div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
                             <div class="w-100 h-100 bg-white top-0"
                                  style="position: absolute; z-index: ${defWidth > 0 ? 0 : 2}; display: ${defWidth > 0 ? 'none' : 'block'};"></div>
                             ${gvc.bindView({
-                                bind: ids.header,
-                                view: () => {
-                                    return gvc.bindView({
-                                        bind: ids.filter,
-                                        view: () => {
-                                            // 顯示行為列
-                                            if (vm.originalData.find((dd: any) => dd.checked)) {
-                                                const checkedData = vm.originalData.filter((dd: any) => dd.checked);
+                          bind: ids.header,
+                          view: () => {
+                              return gvc.bindView({
+                                  bind: ids.filter,
+                                  view: () => {
+                                      // 顯示行為列
+                                      if (vm.originalData.find((dd: any) => dd.checked)) {
+                                          const checkedData = vm.originalData.filter((dd: any) => dd.checked);
 
-                                                // 手機版
-                                                if (document.body.clientWidth < 768) {
-                                                    return BgWidget.selNavbar({
-                                                        checkbox: checkAllBox(false),
-                                                        count: checkedData.length,
-                                                        buttonList: [
-                                                            BgWidget.selEventDropmenu({
-                                                                gvc: gvc,
-                                                                options: obj.filter.map((item) => {
-                                                                    return {
-                                                                        name: item.name,
-                                                                        event: gvc.event(() => item.event(checkedData)),
-                                                                    };
-                                                                }),
-                                                                text: '',
-                                                            }),
-                                                        ],
-                                                    });
-                                                }
+                                          // 手機版
+                                          if (document.body.clientWidth < 768) {
+                                              return BgWidget.selNavbar({
+                                                  checkbox: checkAllBox(false),
+                                                  count: checkedData.length,
+                                                  buttonList: [
+                                                      BgWidget.selEventDropmenu({
+                                                          gvc: gvc,
+                                                          options: obj.filter.map((item) => {
+                                                              return {
+                                                                  name: item.name,
+                                                                  event: gvc.event(() => item.event(checkedData)),
+                                                              };
+                                                          }),
+                                                          text: '',
+                                                      }),
+                                                  ],
+                                              });
+                                          }
 
-                                                // 電腦版
-                                                const inButtons = obj.filter.filter((item) => item.option);
-                                                const outButtons = obj.filter.filter((item) => !item.option);
-                                                const inList =
-                                                        inButtons.length > 0
-                                                                ? [
-                                                                    BgWidget.selEventDropmenu({
-                                                                        gvc: gvc,
-                                                                        options: inButtons.map((item) => {
-                                                                            return {
-                                                                                name: item.name,
-                                                                                event: gvc.event(() => item.event(checkedData)),
-                                                                            };
-                                                                        }),
-                                                                        text: '更多操作',
-                                                                    }),
-                                                                ]
-                                                                : [];
-                                                const outList = outButtons.map((item) => {
-                                                    return BgWidget.selEventButton(
-                                                            item.name,
-                                                            gvc.event(() => item.event(checkedData))
-                                                    );
-                                                });
-                                                return BgWidget.selNavbar({
-                                                    checkbox: checkAllBox(false),
-                                                    count: checkedData.length,
-                                                    buttonList: [...inList, ...outList],
-                                                });
-                                            }
-                                            // 顯示表頭
-                                            return vm.tableData[0]
-                                                    .map((dd, index: number) => {
-                                                        return html`
+                                          // 電腦版
+                                          const inButtons = obj.filter.filter((item) => item.option);
+                                          const outButtons = obj.filter.filter((item) => !item.option);
+                                          const inList =
+                                              inButtons.length > 0
+                                                  ? [
+                                                      BgWidget.selEventDropmenu({
+                                                          gvc: gvc,
+                                                          options: inButtons.map((item) => {
+                                                              return {
+                                                                  name: item.name,
+                                                                  event: gvc.event(() => item.event(checkedData)),
+                                                              };
+                                                          }),
+                                                          text: '更多操作',
+                                                      }),
+                                                  ]
+                                                  : [];
+                                          const outList = outButtons.map((item) => {
+                                              return BgWidget.selEventButton(
+                                                  item.name,
+                                                  gvc.event(() => item.event(checkedData))
+                                              );
+                                          });
+                                          return BgWidget.selNavbar({
+                                              checkbox: checkAllBox(false),
+                                              count: checkedData.length,
+                                              buttonList: [...inList, ...outList],
+                                          });
+                                      }
+                                      // 顯示表頭
+                                      return vm.tableData[0]
+                                          .map((dd, index: number) => {
+                                              return html`
                                                             <div class="${ids.headerCell} ${ids.textClass} tx_700"
                                                                  style="min-width: ${widthList[index]}px;">${dd.key}
                                                             </div>`;
-                                                    })
-                                                    .join('');
-                                        },
-                                        divCreate: {
-                                            class: `d-flex align-items-center mb-2 ${ids.header}`,
-                                            style: `height: 40px !important;`,
-                                        },
-                                        onCreate: () => {
-                                            if (!created.header) {
-                                                let timer = 0;
-                                                const si = setInterval(() => {
-                                                    timer++;
-                                                    const header = document.querySelector(`.${ids.header}`) as HTMLElement;
-                                                    if (!created.header && header && header.offsetWidth > 0) {
-                                                        let n = 0;
-                                                        const htmlTags = new RegExp(/<[^>]*>/);
-                                                        header?.querySelectorAll('div').forEach((div: any) => {
-                                                            if (div.classList.contains(ids.headerCell)) {
-                                                                const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.replace(/\n/g, '').trim().length * 24;
-                                                                widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
-                                                                n++;
-                                                            }
-                                                        });
-                                                        fullWidth = header.offsetWidth;
-                                                        created.header = !created.header;
-                                                        clearInterval(si);
-                                                    }
-                                                    if (timer > 500) {
-                                                        clearInterval(si);
-                                                    }
-                                                }, 50);
-                                            }
-                                        },
-                                    });
-                                },
-                            })}
+                                          })
+                                          .join('');
+                                  },
+                                  divCreate: {
+                                      class: `d-flex align-items-center mb-2 ${ids.header}`,
+                                      style: `height: 40px !important;`,
+                                  },
+                                  onCreate: () => {
+                                      if (!created.header) {
+                                          let timer = 0;
+                                          const si = setInterval(() => {
+                                              timer++;
+                                              const header = gvc.glitter.document.querySelector(`.${ids.header}`) as HTMLElement;
+                                              if (!created.header && header && header.offsetWidth > 0) {
+                                                  let n = 0;
+                                                  const htmlTags = new RegExp(/<[^>]*>/);
+                                                  header?.querySelectorAll('div').forEach((div: any) => {
+                                                      if (div.classList.contains(ids.headerCell)) {
+                                                          const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.replace(/\n/g, '').trim().length * 24;
+                                                          widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
+                                                          n++;
+                                                      }
+                                                  });
+                                                  fullWidth = header.offsetWidth;
+                                                  created.header = !created.header;
+                                                  clearInterval(si);
+                                              }
+                                              if (timer > 500) {
+                                                  clearInterval(si);
+                                              }
+                                          }, 50);
+                                      }
+                                  },
+                              });
+                          },
+                      })}
                             <table class="table table-centered table-nowrap text-center table-hover"
                                    style="width: ${defWidth}px;">
                                 <tbody>
                                 ${vm.tableData
-                                        .map((dd, trIndex: number) => {
-                                            return html`
+                          .map((dd, trIndex: number) => {
+                              return html`
                                                 <tr
                                                         class="${trIndex === 0 ? ids.tr : ''}"
                                                         onclick="${gvc.event(() => {
-                                                            obj.rowClick && obj.rowClick(dd, trIndex);
-                                                        })}"
+                                  obj.rowClick && obj.rowClick(dd, trIndex);
+                              })}"
                                                         onmouseover="${gvc.event(() => {
-                                                            $(`#${ids.pencil}${trIndex}`).removeClass('d-none');
-                                                        })}"
+                                  $(`#${ids.pencil}${trIndex}`).removeClass('d-none');
+                              })}"
                                                         onmouseout="${gvc.event(() => {
-                                                            $(`#${ids.pencil}${trIndex}`).addClass('d-none');
-                                                        })}"
+                                  $(`#${ids.pencil}${trIndex}`).addClass('d-none');
+                              })}"
                                                 >
                                                     ${dd
-                                                            .map((d3, tdIndex: number) => {
-                                                                const tdClass = Tool.randomString(5);
-                                                                gvc.addStyle(`
+                                  .map((d3, tdIndex: number) => {
+                                      const tdClass = Tool.randomString(5);
+                                      gvc.addStyle(`
                                                             .${tdClass} {
                                                                 border: none;
                                                                 vertical-align: middle;
@@ -1677,7 +1688,7 @@ ${obj.default ?? ''}</textarea
                                                                 ${dd.length === 1 ? 'border-radius: 10px;' : ''}
                                                             }
                                                         `);
-                                                                return html`
+                                      return html`
                                                                     <td
                                                                             class="${ids.textClass} ${tdClass} tx_normal"
                                                                             ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
@@ -1687,29 +1698,33 @@ ${obj.default ?? ''}</textarea
                                                                             ${d3.value}
                                                                         </div>
                                                                     </td>`;
-                                                            })
-                                                            .join('')}
+                                  })
+                                  .join('')}
                                                 </tr>`;
-                                        })
-                                        .join('')}
+                          })
+                          .join('')}
                                 </tbody>
                             </table>
                         </div>
                         <div>
                             ${obj.hiddenPageSplit
-                                    ? ''
-                                    : ps.pageSplitV2(
-                                            vm.pageSize,
-                                            vm.page,
-                                            (page) => {
-                                                vm.tableData = [];
-                                                vm.page = page;
-                                                vm.loading = true;
-                                                gvc.notifyDataChange(ids.container);
-                                            },
-                                            false
-                                    )}
+                          ? ''
+                          : ps.pageSplitV2(
+                              vm.pageSize,
+                              vm.page,
+                              (page) => {
+                                  vm.tableData = [];
+                                  vm.page = page;
+                                  vm.loading = true;
+                                  gvc.notifyDataChange(ids.container);
+                              },
+                              false
+                          )}
                         </div>`;
+                  }catch (e) {
+                      console.log(e)
+                      return  `${e}`
+                  }
                 },
                 divCreate: {},
                 onCreate: () => {
@@ -1722,7 +1737,8 @@ ${obj.default ?? ''}</textarea
                                 timer++;
                                 if (created.header) {
                                     const checkbox = obj.filter.length > 0;
-                                    const tr = document.querySelector(`.${ids.tr}`) as HTMLElement;
+                                    console.log(`query==>`,ids.tr)
+                                    const tr = gvc.glitter.document.querySelector(`.${ids.tr}`) as HTMLElement;
 
                                     tr?.querySelectorAll('td').forEach((td: any, index: number) => {
                                         if (checkbox && index === 0) {
@@ -2931,6 +2947,7 @@ ${obj.default ?? ''}</textarea
                     ${gvc.bindView({
                         bind: vm.id,
                         view: () => {
+                            const footer =obj.footer_html(gvc) ?? ''
                             if (vm.loading) {
                                 return html`
                                     <div class="my-4">${this.spinner()}</div>`;
@@ -2956,7 +2973,7 @@ ${obj.default ?? ''}</textarea
                                                  style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">
                                                 ${obj.innerHTML(gvc) ?? ''}
                                             </div>
-                                            <div class="c_dialog_bar">${obj.footer_html(gvc) ?? ''}</div>
+                                            ${footer ? `<div class="c_dialog_bar">${footer}</div>`:``}
                                         </div>
                                     </div>
                                 </div>`;

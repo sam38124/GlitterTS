@@ -20,7 +20,7 @@ export declare class AiRobot {
         usage?: undefined;
     } | {
         prompt: any;
-        image: string | undefined;
+        image: unknown;
         usage: number;
         text?: undefined;
     } | {
@@ -44,6 +44,15 @@ export declare class AiRobot {
         usage: number;
     } | undefined>;
     static codeGenerator(app_name: string, question: string): Promise<{
+        usage: number;
+        obj?: undefined;
+    } | {
+        obj: string;
+        usage: number;
+    }>;
+    static uploadFile(file_name: string, fileData: Buffer): Promise<string>;
+    static convertS3Link(link: string): Promise<unknown>;
+    static codeEditor(app_name: string, question: string, format: any): Promise<{
         usage: number;
         obj?: undefined;
     } | {

@@ -1059,7 +1059,7 @@ class Add_item_dia {
                 })}">轉換代碼
                         </button>
                     </div>
-                    <lottie-player src="lottie/ai.json" class="mx-auto my-n4" speed="1"
+                    <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4" speed="1"
                                    style="max-width: 100%;width: 250px;height:300px;" loop autoplay></lottie-player>
                     ${gvc.bindView(() => {
                     return {

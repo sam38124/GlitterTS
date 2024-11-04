@@ -67,7 +67,7 @@ export class AddComponent {
                                         AddComponent.toggle(false);
                                     })}"
                             >
-                                <i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i>
+                                <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
                             </div>
                         </div>
                         <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
@@ -295,35 +295,43 @@ export class AddComponent {
                 gvc.glitter.closeDiaLog('dataLoading');
             };
             AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                gvc.glitter.share.addComponent({
-                    id: gvc.glitter.getUUID(),
-                    js: './official_view_component/official.js',
-                    css: {
-                        class: {},
-                        style: {},
-                    },
-                    data: {
-                        refer_app: tdata.copyApp,
-                        tag: tdata.copy,
-                        list: [],
-                        carryData: {},
-                    },
-                    type: 'component',
-                    class: 'w-100',
-                    index: 0,
-                    label: tdata.title,
-                    style: '',
-                    bundle: {},
-                    global: [],
-                    toggle: false,
-                    stylist: [],
-                    dataType: 'static',
-                    style_from: 'code',
-                    classDataType: 'static',
-                    preloadEvenet: {},
-                    share: {},
-                });
-                gvc.glitter.closeDiaLog();
+                ((window as any).glitterInitialHelper).getPageData({
+                    tag: tdata.copy,
+                    appName: tdata.copyApp
+                }, (d3: any) => {
+
+                    gvc.glitter.share.addComponent({
+                        id: gvc.glitter.getUUID(),
+                        js: './official_view_component/official.js',
+                        css: {
+                            class: {},
+                            style: {},
+                        },
+                        data: {
+                            refer_app: tdata.copyApp,
+                            tag: tdata.copy,
+                            list: [],
+                            carryData: {},
+                            refer_form_data:d3.response.result[0].page_config.formData
+                        },
+                        type: 'component',
+                        class: 'w-100',
+                        index: 0,
+                        label: tdata.title,
+                        style: '',
+                        bundle: {},
+                        global: [],
+                        toggle: false,
+                        stylist: [],
+                        dataType: 'static',
+                        style_from: 'code',
+                        classDataType: 'static',
+                        preloadEvenet: {},
+                        share: {},
+                    });
+                    gvc.glitter.closeDiaLog();
+                })
+
             };
             $('#addComponentViewHover').removeClass('d-none');
             $('#addComponentView').removeClass('scroll-out');
@@ -433,14 +441,9 @@ export class AddComponent {
                                                 key: 'basic',
                                                 label: '設計元件',
                                             },
-                                            // {
-                                            //     key: 'ai',
-                                            //     label: `更多設計`,
-                                            // },
                                             {
-                                                key: 'ai',
-                                                label: `<img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                             style="width: 25px;height: 25px;" class="me-1">AI 生成`,
+                                                key: 'all',
+                                                label: `更多設計`,
                                             },
                                             {
                                                 key: 'idea',
@@ -449,6 +452,11 @@ export class AddComponent {
                                                     AddComponent.toggle(false);
                                                     SearchIdea.open(gvc);
                                                 }),
+                                            },
+                                            {
+                                                key: 'ai',
+                                                label: `AI`,
+                                                width:48
                                             },
                                         ];
                                         return list
@@ -460,13 +468,13 @@ cursor: pointer;
 color: white;
 font-size: 16px;
 height: 48px;
-flex:1;
+${dd.width ? `width:${dd.width}px;`:`flex:1;`}
 border: 1px solid #FFB400;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
                                                     } else {
                                                         return `<div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500" style="
 border-radius: 7px;
-flex:1;
+${dd.width ? `width:${dd.width}px;`:`flex:1;`}
 font-size: 16px;
 border: 1px solid #FFB400;
 cursor: pointer;
@@ -578,7 +586,7 @@ background-clip: text;
                                 <div class="p-2">
                                     ${[
                                         html`
-                                            <lottie-player src="lottie/ai.json" class="mx-auto my-n4" speed="1"
+                                            <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4" speed="1"
                                                            style="max-width: 100%;width: 250px;height:300px;" loop
                                                            autoplay></lottie-player>`,
                                         EditorElem.editeText({
@@ -749,6 +757,7 @@ ${BgWidget.save(gvc.event(() => {
                                     data = res;
                                     gvc.notifyDataChange(id);
                                 });
+                                let toggle:any=[]
                                 return {
                                     bind: id,
                                     view: () => {
@@ -805,22 +814,24 @@ ${BgWidget.save(gvc.event(() => {
                                                                     value: 'basic',
                                                                 },
                                                                 {
-                                                                    title: '商品顯示元件',
-                                                                    value: 'product_show',
-                                                                },
-                                                                {
-                                                                    title: '其餘設計模塊',
-                                                                    value: 'layout',
-                                                                },
-                                                                {
                                                                     title: '包裝容器元件',
                                                                     value: 'container',
                                                                 },
+                                                                // {
+                                                                //     title: '商品顯示元件',
+                                                                //     value: 'product_show',
+                                                                // },
+                                                                {
+                                                                    title: '其餘設計模塊',
+                                                                    value: 'layout',
+                                                                }
                                                             ]
                                                                     .map((d1) => {
                                                                         return gvc.bindView(() => {
                                                                             let vm_c = {
-                                                                                toggle: false,
+                                                                                toggle: toggle.find((dd:any)=>{
+                                                                                  return dd===d1.value  
+                                                                                }),
                                                                                 id: gvc.glitter.getUUID(),
                                                                             };
                                                                             return {
@@ -831,8 +842,12 @@ ${BgWidget.save(gvc.event(() => {
                                                                                             <div
                                                                                                     class="hoverF2 d-flex align-items-center p-3"
                                                                                                     onclick="${gvc.event(() => {
-                                                                                                        vm_c.toggle = !vm_c.toggle;
-                                                                                                        gvc.notifyDataChange(vm_c.id);
+                                                                                                        if(vm_c.toggle){
+                                                                                                            toggle=[]
+                                                                                                        }else{
+                                                                                                            toggle=[d1.value]
+                                                                                                        }
+                                                                                                        gvc.notifyDataChange(id);
                                                                                                     })}"
                                                                                             >
                                                                                             <span

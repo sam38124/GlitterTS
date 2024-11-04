@@ -44,14 +44,19 @@ export class Entry {
         Entry.checkRedirectPage(glitter);
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
-            @media (prefers-reduced-motion: no-preference) {
+        @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
-            .hide-elem {
-                display: none !important;
-            }
+            
+        .hide-elem {
+            display: none !important;
+        }
+        
+        .hy-drawer-left {
+           left:-1000px !important;
+        }
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
@@ -59,7 +64,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.4';
+        glitter.share.editerVersion = 'V_13.8.59';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;

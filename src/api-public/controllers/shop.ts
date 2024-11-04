@@ -852,6 +852,7 @@ router.get('/product/variants', async (req: express.Request, resp: express.Respo
             id_list: req.query.id_list as string,
             order_by: req.query.order_by as string,
             stockCount: req.query.stockCount as string,
+            productType:req.query.productType as string
         });
         return response.succ(resp, shopping);
     } catch (err) {

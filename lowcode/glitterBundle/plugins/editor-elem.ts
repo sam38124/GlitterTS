@@ -442,7 +442,7 @@ export class EditorElem {
             },
             divCreate: {
                 elem: `textArea`,
-                style: `max-height:${obj.max_height || 400}px!important;min-height:${obj.min_height || 100}px;`,
+                style: `max-height:${obj.max_height || 400}px!important;min-height:${obj.min_height || 100}px !important;`,
                 class: `form-control`,
                 option: [
                     { key: 'placeholder', value: obj.placeHolder },

@@ -3754,6 +3754,7 @@ export class Shopping {
         min_price?: string;
         max_price?: string;
         stockCount?: string;
+        productType?:string
     }) {
         try {
             let querySql = ['1=1'];
@@ -3782,6 +3783,25 @@ export class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
+
+            //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
+            if(query.productType !== 'all'){
+                const queryOR=[]
+                if (query.productType) {
+                    query.productType.split(',').map((dd) => {
+                        if(dd==='hidden'){
+                            queryOR.push(`(p.content->>'$.visible' = "false")`);
+                        }else{
+                            queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
+                        }
+                    });
+                } else if (!query.id) {
+                    queryOR.push(`(p.content->>'$.productType.product' = "true")`);
+                }
+                querySql.push(`(${queryOR.map((dd)=>{
+                    return ` ${dd} `
+                }).join(' or ')})`)
+            }
 
             if (query.stockCount) {
                 const stockCount = query.stockCount?.split(',');

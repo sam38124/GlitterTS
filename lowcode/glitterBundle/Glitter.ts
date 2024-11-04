@@ -321,6 +321,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     };
 
     public openDrawer(width?:number) {
+        width=width || 300
         if ((window as any).drawer !== undefined) {
             $("#Navigation").show();
             (window as any).drawer.open();

@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -116,7 +118,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -154,17 +155,23 @@ async function createAPP(dd) {
                         appName = req.query.appName;
                     }
                     req.headers['g-app'] = appName;
-                    await monitor_js_1.Monitor.insertHistory({
+                    const start = (new Date()).getTime();
+                    monitor_js_1.Monitor.insertHistory({
                         req_type: 'file',
                         req: req,
                     });
+                    console.log(`insertHistory==>`, (new Date().getTime() - start) / 1000);
                     await public_table_check_js_1.ApiPublic.createScheme(appName);
+                    console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
+                    console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
+                    console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
                     let customCode = await new user_js_1.User(appName).getConfigV2({
                         key: 'ga4_config',
                         user_id: 'manager',
                     });
+                    console.log(`customCode==>`, (new Date().getTime() - start) / 1000);
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -243,6 +250,7 @@ async function createAPP(dd) {
                                 location.href='${page.redirect}${redURL.search}';
                             `;
                         }
+                        console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html `${(() => {
                             var _a;
                             const d = data.page_config.seo;
@@ -252,41 +260,45 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e, _f, _g, _h;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                                <link rel="canonical" href="/index" />
-                                                <meta name="keywords" content="SHOPNEX,電商平台" />
-                                                <link
+                                            <link rel="canonical" href="/index"/>
+                                            <meta name="keywords" content="SHOPNEX,電商平台"/>
+                                            <link
                                                     id="appImage"
                                                     rel="shortcut icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
-                                                />
-                                                <link
+                                            />
+                                            <link
                                                     rel="icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/png"
                                                     sizes="128x128"
-                                                />
-                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-                                                <meta property="og:title" content="SHOPNEX後台系統" />
-                                                <meta
+                                            />
+                                            <meta property="og:image"
+                                                  content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
+                                            <meta property="og:title" content="SHOPNEX後台系統"/>
+                                            <meta
                                                     name="description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />
-                                                <meta
+                                            />
+                                            <meta
                                                     name="og:description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />`;
+                                            />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
-                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
-                                                <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
-                                                <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
-                                                <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
-                                                <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
-                                                <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
-                                                <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />`;
+                                            <link rel="canonical"
+                                                  href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
+                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
+                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}"
+                                                  type="image/x-icon"/>
+                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
+                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
+                                            <meta name="og:description"
+                                                  content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
                                 }
                             })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -300,13 +312,14 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html ` <link
-                                                                type="text/css"
-                                                                rel="stylesheet"
-                                                                href="${dd.data.attr.find((dd) => {
+                                                return html `
+                                                                    <link
+                                                                            type="text/css"
+                                                                            rel="stylesheet"
+                                                                            href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                            />`;
+                                                                    />`;
                                             }
                                         }
                                         catch (e) {
@@ -340,7 +353,9 @@ async function createAPP(dd) {
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                            return html `
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                type="${dd.type}"></script>`;
                         })
                             .join('')}
                         ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
@@ -352,7 +367,9 @@ async function createAPP(dd) {
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
+                            return html `
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                type="module"></script>`;
                         })
                             .join('')}
                         </head>
@@ -365,7 +382,8 @@ async function createAPP(dd) {
                                     ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                <script async
+                                                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                 <script>
                                                     window.dataLayer = window.dataLayer || [];
 
@@ -386,10 +404,10 @@ async function createAPP(dd) {
                                                 <script>
                                                     (function (w, d, s, l, i) {
                                                         w[l] = w[l] || [];
-                                                        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                                                        w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
                                                         var f = d.getElementsByTagName(s)[0],
-                                                            j = d.createElement(s),
-                                                            dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                                j = d.createElement(s),
+                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
                                                         j.async = true;
                                                         j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                         f.parentNode.insertBefore(j, f);
@@ -517,7 +535,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

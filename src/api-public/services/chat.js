@@ -389,7 +389,6 @@ class Chat {
                 return dd.user_id === 'manager';
             }) &&
                 room.user_id !== 'manager') {
-                console.log(`收到客服訊息---`, JSON.stringify(room));
                 let message_setting = await (new user_js_1.User(this.app)).getConfigV2({
                     key: 'message_setting',
                     user_id: 'manager'
@@ -397,30 +396,30 @@ class Chat {
                 const ai_response_toggle = message_setting.ai_toggle;
                 if (ai_response_toggle) {
                     if (room.message.text) {
-                        const aiResponse = await ai_robot_js_1.AiRobot.aiResponse(this.app, room.message.text);
-                        if (aiResponse) {
-                            if (aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) {
-                                if ((aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) !== 'no-data') {
-                                    await this.addMessage({
-                                        "chat_id": room.chat_id,
-                                        "user_id": "manager",
-                                        "message": { "text": aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text, "attachment": "", ai_usage: aiResponse.usage, "type": "robot" }
-                                    });
+                        new Promise(async () => {
+                            const aiResponse = await ai_robot_js_1.AiRobot.aiResponse(this.app, room.message.text);
+                            if (aiResponse) {
+                                if (aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) {
+                                    if ((aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text) !== 'no-data') {
+                                        await this.addMessage({
+                                            "chat_id": room.chat_id,
+                                            "user_id": "manager",
+                                            "message": { "text": aiResponse === null || aiResponse === void 0 ? void 0 : aiResponse.text, "attachment": "", ai_usage: aiResponse.usage, "type": "robot" }
+                                        });
+                                    }
                                 }
                             }
-                        }
+                        });
                     }
                 }
-                else {
-                    const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
-                    await new notify_js_1.ManagerNotify(this.app).customerMessager({
-                        title: template.title,
-                        content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
-                        user_name: user.userData.name,
-                        room_image: room.message.image,
-                        room_text: room.message.text,
-                    });
-                }
+                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                await new notify_js_1.ManagerNotify(this.app).customerMessager({
+                    title: template.title,
+                    content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),
+                    user_name: (user) ? user.userData.name : '訪客',
+                    room_image: room.message.image,
+                    room_text: room.message.text,
+                });
             }
         }
         catch (e) {

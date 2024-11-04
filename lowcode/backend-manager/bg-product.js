@@ -6,7 +6,7 @@ const html = String.raw;
 export class BgProduct {
     static variantsSelector(obj) {
         let add_items = [];
-        return obj.gvc.glitter.innerDialog((gvc) => {
+        return window.parent.glitter.innerDialog((gvc) => {
             return html `
                 <div class="bg-white shadow rounded-3 ">
                     <div class="px-3" style="max-height: calc(100vh - 100px);overflow-y: auto;">
@@ -14,14 +14,14 @@ export class BgProduct {
                 title: '選擇商品',
                 select_data: add_items,
                 select_mode: true,
-                filter_variants: obj.filter_variants,
-            })}
+                filter_variants: obj.filter_variants
+            }, 'hidden')}
                     </div>
                     <div class="c_dialog_bar">
-                        ${BgWidget.cancel(obj.gvc.event(() => {
+                        ${BgWidget.cancel(gvc.event(() => {
                 gvc.closeDialog();
             }))}
-                        ${BgWidget.save(obj.gvc.event(() => {
+                        ${BgWidget.save(gvc.event(() => {
                 obj.callback(add_items);
                 gvc.closeDialog();
             }), '確認')}

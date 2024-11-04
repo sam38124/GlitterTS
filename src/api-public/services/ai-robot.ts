@@ -14,6 +14,13 @@ import {Beta, ResponseFormatJSONSchema} from "openai/resources";
 import {z} from "zod";
 import {zodResponseFormat} from "openai/helpers/zod";
 import ResponseFormatText = OpenAI.ResponseFormatText;
+import axios from "axios";
+import {Jimp} from "jimp";
+import Logger from "../../modules/logger.js";
+import config from "../../config.js";
+import s3bucket from "../../modules/AWSLib.js";
+
+const mime = require('mime');
 
 export class AiRobot {
     // 操作引導
@@ -167,7 +174,7 @@ export class AiRobot {
                 })
             )[0] ?? {
                 value: {
-                    design:''
+                    design: ''
                 },
             }
         ).value;
@@ -201,12 +208,12 @@ export class AiRobot {
             }
         });
         //對話線程ID
-        const threads_id =  cf.design;
+        const threads_id = cf.design;
         //添加訊息
         const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: question});
         //建立數據流
         const stream = await openai.beta.threads.runs.create(threads_id, {assistant_id: myAssistant.id, stream: true});
-        let text:any = undefined;
+        let text: any = undefined;
         let use_tokens = 0
         for await (const event of stream) {
             if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
@@ -216,10 +223,8 @@ export class AiRobot {
                 use_tokens += (event.data as any).usage.total_tokens;
             }
         }
-
         await openai.beta.assistants.del(myAssistant.id);
-        if(text){
-            console.log(text.prompt)
+        if (text) {
             const response = await openai.images.generate({
                 model: "dall-e-3",
                 prompt: text.prompt,
@@ -228,9 +233,9 @@ export class AiRobot {
             });
             if (response.data[0]) {
                 return {
-                    prompt:text.prompt,
-                    image: response.data[0].url,
-                    usage: await this.usePoints(app_name, 100000+use_tokens, question, `使用AI進行圖片生成`)
+                    prompt: text.prompt,
+                    image: await this.convertS3Link(response.data[0].url!),
+                    usage: await this.usePoints(app_name, 100000 + use_tokens, question, `使用AI進行圖片生成`)
                 }
             } else {
                 return {
@@ -238,7 +243,7 @@ export class AiRobot {
                     usage: 0
                 }
             }
-        }else{
+        } else {
             return {
                 text: '生成失敗，請輸入更具體一點的描述',
                 usage: 0
@@ -570,6 +575,115 @@ export class AiRobot {
                         "additionalProperties": false
                     }
                 }
+            }
+        });
+        //對話線程ID
+        const threads_id = (await openai.beta.threads.create()).id
+        //添加訊息
+        const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: question});
+        //建立數據流
+        const stream = await openai.beta.threads.runs.create(threads_id, {assistant_id: myAssistant.id, stream: true});
+        let text = '';
+        let use_tokens = 0
+        for await (const event of stream) {
+            if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
+                text = JSON.parse((event.data as any).content[0].text.value);
+            }
+            if ((event.data as any).usage) {
+                use_tokens += (event.data as any).usage.total_tokens;
+            }
+        }
+        await openai.beta.assistants.del(myAssistant.id);
+        return {
+            obj: text,
+            usage: await this.usePoints(app_name, use_tokens, question, text)
+        }
+    }
+
+    //上傳檔案
+    public static async uploadFile(file_name: string, fileData: Buffer) {
+        const TAG = `[AWS-S3][Upload]`;
+        const logger = new Logger();
+        const s3bucketName = config.AWS_S3_NAME;
+        const s3path = file_name;
+        const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            //If you use other contentType will response 403 error
+            ContentType: (() => {
+                if (config.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`;
+                } else {
+                    return mime.getType(<string>fullUrl.split('.').pop());
+                }
+            })(),
+        };
+        return new Promise<string>((resolve, reject) => {
+            s3bucket.getSignedUrl('putObject', params, async (err: any, url: any) => {
+                if (err) {
+                    logger.error(TAG, String(err));
+                    // use console.log here because logger.info cannot log err.stack correctly
+                    console.log(err, err.stack);
+                    reject(false);
+                } else {
+                    axios({
+                        method: 'PUT',
+                        url: url,
+                        data: fileData,
+                        headers: {
+                            'Content-Type': params.ContentType,
+                        },
+                    })
+                        .then(() => {
+                            console.log(fullUrl);
+                            resolve(fullUrl);
+                        })
+                        .catch(() => {
+                            console.log(`convertError:${fullUrl}`);
+                        });
+                }
+            });
+        });
+    }
+
+    //轉換檔案連結至s3
+    public static async convertS3Link(link: string) {
+        // 下載圖片並讀取
+        return await new Promise(async (resolve, reject) => {
+            axios
+                .get(link, {responseType: 'arraybuffer'})
+                .then((response) => Buffer.from(response.data))
+                .then((buffer) => {
+                    this.uploadFile(`ai/file/${new Date().getTime()}.png`, buffer).then((url) => {
+                        resolve(url)
+                    });
+                })
+                .catch((err) => {
+                    console.error('處理圖片時發生錯誤:', err);
+                    resolve(false)
+                });
+        })
+    }
+
+    //頁面調整
+    public static async codeEditor(app_name: string, question: string, format: any) {
+        if (!await AiRobot.checkPoints(app_name)) {
+            return {usage: 0}
+        }
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+        //創建網頁設計師
+        const query = `幫我過濾出我要調整的項目和內容，另外這點請你非常注意，內容一定和我的敘述有關，請不要自行生成內容
+        `;
+        const myAssistant = await openai.beta.assistants.create({
+            instructions: query,
+            name: '網頁設計師',
+            model: 'gpt-4o-mini',
+            response_format: {
+                "type": "json_schema", "json_schema": format
             }
         });
         //對話線程ID

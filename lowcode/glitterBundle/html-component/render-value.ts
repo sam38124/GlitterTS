@@ -120,7 +120,7 @@ export class RenderValue {
             widget.data._background && (style_string += `background:${widget.data._background};`)
             widget.data._radius && (style_string += `background:${widget.data._background};`);
             widget.data._z_index && (style_string += `z-index:${widget.data._z_index};`);
-            widget.data._max_height && (style_string += `max-height:${(isNaN(widget.data._max_height)) ? widget.data._max_height : `${widget.data._max_height}px`};`)
+            widget.data._max_height && (style_string += `height:${(isNaN(widget.data._max_height)) ? widget.data._max_height : `${widget.data._max_height}px`};`)
             switch (widget.data._hor_position) {
                 case "left":
                     if (widget.data._display_block === 'vertical') {

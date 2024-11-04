@@ -771,6 +771,7 @@ router.get('/product/variants', async (req, resp) => {
             id_list: req.query.id_list,
             order_by: req.query.order_by,
             stockCount: req.query.stockCount,
+            productType: req.query.productType
         });
         return response_1.default.succ(resp, shopping);
     }

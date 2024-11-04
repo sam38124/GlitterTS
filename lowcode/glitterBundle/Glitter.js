@@ -757,6 +757,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
     ;
     openDrawer(width) {
+        width = width || 300;
         if (window.drawer !== undefined) {
             $("#Navigation").show();
             window.drawer.open();

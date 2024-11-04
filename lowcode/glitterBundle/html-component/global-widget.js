@@ -192,15 +192,18 @@ export class GlobalWidget {
                         return {
                             bind: id,
                             view: () => {
-                                return `<div class="my-auto tx_title fw-normal d-flex align-items-center" style="white-space: nowrap;font-size: 16px;">在${(() => {
+                                return html `
+                                                <div class="my-auto tx_title fw-normal d-flex align-items-center"
+                                                     style="white-space: nowrap;font-size: 16px;">在${(() => {
                                     if (GlobalWidget.glitter_view_type === "mobile") {
                                         return `手機`;
                                     }
                                     else {
                                         return `電腦`;
                                     }
-                                })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示</div>
-${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
+                                })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示
+                                                </div>
+                                                ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
                                     if (bool) {
                                         obj.widget[key].refer = 'def';
                                     }
@@ -215,7 +218,8 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                                 })}`;
                             },
                             divCreate: {
-                                class: `d-flex align-content-center px-3`, style: `gap:10px;margin-bottom:18px;margin-top:13px;`
+                                class: `d-flex align-content-center px-3`,
+                                style: `gap:10px;margin-bottom:18px;margin-top:13px;`
                             }
                         };
                     })
@@ -245,7 +249,8 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) 
                                             })}`;
                                         },
                                         divCreate: {
-                                            class: `d-flex align-content-center px-3`, style: `gap:10px;margin-top:13px;`
+                                            class: `d-flex align-content-center px-3`,
+                                            style: `gap:10px;margin-top:13px;`
                                         }
                                     };
                                 }) + `<div class="px-3 pt-2" style="white-space: normal;word-break: break-all;color: #8D8D8D; font-size: 14px; font-weight: 400; ">透過設定獨立樣式在${(() => {
