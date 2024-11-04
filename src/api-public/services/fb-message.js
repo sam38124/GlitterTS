@@ -423,17 +423,19 @@ class FbMessage {
     async sendCustomerFB(tag, order_id, fb_id) {
         const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
         customerMail.tag = "POST_PURCHASE_UPDATE";
-        await new Promise(async (resolve) => {
-            resolve(await this.sendMessage({
-                data: {
-                    text: "出貨訊息",
-                    attachment: [],
-                    tag: 'POST_PURCHASE_UPDATE'
-                },
-                fbID: fb_id,
-            }, (res) => {
-            }));
-        });
+        if (customerMail.toggle) {
+            await new Promise(async (resolve) => {
+                resolve(await this.sendMessage({
+                    data: {
+                        text: "出貨訊息",
+                        attachment: [],
+                        tag: 'POST_PURCHASE_UPDATE'
+                    },
+                    fbID: fb_id,
+                }, (res) => {
+                }));
+            });
+        }
     }
     async uploadFile(file_name, fileData) {
         const TAG = `[AWS-S3][Upload]`;

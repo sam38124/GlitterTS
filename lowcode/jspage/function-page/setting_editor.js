@@ -828,6 +828,14 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'invoice_list',
+            group: '訂單管理',
+            title: '發票列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+        },
+        {
+            icon: '',
             page: 'member_manager',
             group: '顧客管理',
             title: '顧客註冊設定',
