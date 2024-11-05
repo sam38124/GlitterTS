@@ -339,7 +339,6 @@ export class ProductList {
         `);
 
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
-
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
@@ -432,7 +431,7 @@ export class ProductList {
             }
         }
 
-        async function getProductList(callback: (dataList: any) => void) {
+        async function getProductList() {
             const orderByParam = glitter.getUrlParameter('order_by');
             const page = parseInt(`${vm.pageIndex}`, 10) - 1;
             const limit = vm.limit;
@@ -452,12 +451,18 @@ export class ProductList {
                 orderBy: orderBy as string,
                 with_hide_index: 'false',
             };
-            return ApiShop.getProduct(inputObj).then((data) => {
-                vm.pageSize = Math.ceil(data.response.total / parseInt(limit as any, 10));
-                if (parseInt(`${vm.pageIndex}`, 10) >= data.response.data.pageSize) {
-                    vm.pageIndex = vm.pageSize - 1;
-                }
-                callback(data.response.data);
+            return new Promise<[]>((resolve, reject) => {
+                ApiShop.getProduct(inputObj).then((data) => {
+                    try {
+                        vm.pageSize = Math.ceil(data.response.total / parseInt(limit as any, 10));
+                        if (parseInt(`${vm.pageIndex}`, 10) >= data.response.data.pageSize) {
+                            vm.pageIndex = vm.pageSize - 1;
+                        }
+                        resolve(data.response.data);
+                    } catch (error) {
+                        resolve([]);
+                    }
+                });
             });
         }
 
@@ -687,8 +692,20 @@ export class ProductList {
                                         gvc.addMtScript(
                                             [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
                                             () => {
-                                                getProductList((dataList) => {
-                                                    vm.dataList = dataList;
+                                                Promise.all([
+                                                    getProductList(),
+                                                    new Promise<[]>((resolve) => {
+                                                        ApiShop.getWishList().then((data) => {
+                                                            try {
+                                                                resolve(data.response.data);
+                                                            } catch (error) {
+                                                                resolve([]);
+                                                            }
+                                                        });
+                                                    }),
+                                                ]).then((dataList) => {
+                                                    vm.dataList = dataList[0];
+                                                    (window as any).glitter.share.wishList = dataList[1];
                                                     loadings.product = false;
                                                     gvc.notifyDataChange(ids.product);
                                                 });
