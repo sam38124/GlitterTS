@@ -2,16 +2,17 @@ export class ApiCart {
     static get cart() {
         const cart = (() => {
             try {
-                const cart = localStorage.getItem(ApiCart.cartID + `${window.appName}`) || JSON.stringify({
-                    line_items: [],
-                    give_away: []
-                });
+                const cart = localStorage.getItem(ApiCart.cartID + `${window.appName}`) ||
+                    JSON.stringify({
+                        line_items: [],
+                        give_away: [],
+                    });
                 return JSON.parse(cart);
             }
             catch (e) {
                 return {
                     line_items: [],
-                    give_away: []
+                    give_away: [],
                 };
             }
         })();
@@ -28,10 +29,12 @@ export class ApiCart {
             id,
             spec,
             count,
-            voucher_id
+            voucher_id,
         };
         ApiCart.setCart((updated_cart) => {
-            const find = updated_cart.give_away.find((dd) => { return (dd.spec.join('') === spec.join('')) && `${dd.id}` === `${id}` && dd.voucher_id === voucher_id; });
+            const find = updated_cart.give_away.find((dd) => {
+                return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}` && dd.voucher_id === voucher_id;
+            });
             if (find) {
                 find.count += count;
             }
@@ -46,10 +49,12 @@ export class ApiCart {
         const product = {
             id,
             spec,
-            count
+            count,
         };
         ApiCart.setCart((updated_cart) => {
-            const find = updated_cart.line_items.find((dd) => { return (dd.spec.join('') === spec.join('')) && `${dd.id}` === `${id}`; });
+            const find = updated_cart.line_items.find((dd) => {
+                return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
+            });
             if (find) {
                 find.count += count;
             }
@@ -64,10 +69,12 @@ export class ApiCart {
         const product = {
             id,
             spec,
-            count
+            count,
         };
         ApiCart.setCart((updated_cart) => {
-            const find = updated_cart.line_items.find((dd) => { return (dd.spec.join('') === spec.join('')) && `${dd.id}` === `${id}`; });
+            const find = updated_cart.line_items.find((dd) => {
+                return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
+            });
             if (find) {
                 find.count = count;
             }
@@ -79,7 +86,7 @@ export class ApiCart {
     static clearCart() {
         ApiCart.cart = {
             line_items: [],
-            give_away: []
+            give_away: [],
         };
     }
     static setCart(exe) {

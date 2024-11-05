@@ -964,37 +964,6 @@ export class ShoppingProductSetting {
                                                 }, 'export');
                                                 return;
                                             })),
-                                            BgWidget.grayButton("AI 生成", gvc.event(() => {
-                                                vm.ai_initial = {
-                                                    title: '',
-                                                    productType: {
-                                                        product: true,
-                                                        addProduct: false,
-                                                        giveaway: false,
-                                                    },
-                                                    content: '',
-                                                    visible: 'true',
-                                                    status: 'active',
-                                                    collection: [],
-                                                    hideIndex: 'false',
-                                                    preview_image: [],
-                                                    specs: [],
-                                                    variants: [],
-                                                    seo: {
-                                                        title: '',
-                                                        content: '',
-                                                        keywords: '',
-                                                        domain: '',
-                                                    },
-                                                    relative_product: [],
-                                                    template: '',
-                                                    content_array: [],
-                                                    content_json: [],
-                                                };
-                                                ProductAi.setProduct(gvc, vm.ai_initial, () => {
-                                                    vm.type = 'ai-initial';
-                                                });
-                                            }), {}),
                                             BgWidget.darkButton('新增', gvc.event(() => {
                                                 vm.type = 'add';
                                             }), {

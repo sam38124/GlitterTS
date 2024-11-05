@@ -24,7 +24,7 @@ export class ProductAi {
                                     ${BgWidget.textArea({
                         gvc: gvc,
                         title: '',
-                        default: '',
+                        default: '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。',
                         placeHolder: `商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。`,
                         callback: (text) => {
                             message = text;
@@ -39,6 +39,7 @@ ${BgWidget.save(gvc.event(() => {
                         AiChat.editorHtml({
                             text: message,
                             format: ProductAi.schema,
+                            assistant: `你是後台商品上架小幫手，幫我過濾出要調整的項目和內容，另外一點請你非常注意，variants中的規格標題不要包含規格單位，像是『顏色:灰色，尺寸:XS』這樣是錯誤的，請顯示成這樣這樣就好["灰色","XS"]`,
                             token: window.parent.saasConfig.config.token
                         }).then((res) => {
                             dialog.dataLoading({ visible: false });
@@ -48,7 +49,7 @@ ${BgWidget.save(gvc.event(() => {
                                 if (usage) {
                                     (obj.name) && (product_data.title = obj.name);
                                     (obj.content) && (product_data.content = obj.content);
-                                    if (obj.spec_define && obj.spec_define.length) {
+                                    if (obj.spec_define && obj.spec_define.length > 1) {
                                         product_data.specs = obj.spec_define.map((dd) => {
                                             return {
                                                 "title": dd.value,
@@ -65,7 +66,9 @@ ${BgWidget.save(gvc.event(() => {
                                             return {
                                                 "sku": "",
                                                 "cost": 0,
-                                                "spec": (obj.spec.length === 1) ? [] : (dd.value.includes('-')) ? dd.value.split('-') : dd.value.split(' '),
+                                                "spec": (obj.spec.length === 1) ? [] : dd.value.map((dd) => {
+                                                    return dd.value;
+                                                }),
                                                 "type": "variants",
                                                 "stock": 0,
                                                 "profit": 0,
@@ -84,6 +87,8 @@ ${BgWidget.save(gvc.event(() => {
                                             };
                                         });
                                     }
+                                    (obj.seo_title) && (product_data.seo.title = obj.seo_title);
+                                    (obj.seo_content) && (product_data.seo.content = obj.seo_content);
                                     dialog.successMessage({ text: `生成成功，消耗了『${usage}』點 AI-Points` });
                                     refresh();
                                     gvc.closeDialog();
@@ -125,7 +130,7 @@ ProductAi.schema = {
                     "properties": {
                         "value": {
                             "type": "string",
-                            "description": "規格標題"
+                            "description": "規格單位"
                         },
                         "spec_define": {
                             "type": "array",
@@ -134,7 +139,7 @@ ProductAi.schema = {
                                 "properties": {
                                     "value": {
                                         "type": "string",
-                                        "description": "規格內容"
+                                        "description": "規格標題"
                                     }
                                 },
                                 "additionalProperties": false,
@@ -142,7 +147,7 @@ ProductAi.schema = {
                                     "value"
                                 ]
                             },
-                            "description": "代表規格內容"
+                            "description": "規格標題"
                         }
                     },
                     "additionalProperties": false,
@@ -151,7 +156,7 @@ ProductAi.schema = {
                         "spec_define"
                     ]
                 },
-                "description": "代表規格類型"
+                "description": "定義的規格列表"
             },
             "spec": {
                 "type": "array",
@@ -159,8 +164,21 @@ ProductAi.schema = {
                     "type": "object",
                     "properties": {
                         "value": {
-                            "type": "string",
-                            "description": "規格名稱使用-號進行分割"
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "規格標題"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "value"
+                                ]
+                            },
+                            "description": "對應到規格列表裡的規格標題組合，並依據位置進行排序"
                         },
                         "original_price": {
                             "type": "number",
@@ -178,18 +196,28 @@ ProductAi.schema = {
                         "sale_price"
                     ]
                 },
-                "description": "代表variants，依據規格內容進行組合"
+                "description": "代表規格列表裡所有組合的variants"
             },
             "content": {
                 "type": "string",
                 "description": "商品內文"
+            },
+            "seo_title": {
+                "type": "string",
+                "description": "SEO標題"
+            },
+            "seo_content": {
+                "type": "string",
+                "description": "SEO中繼描述"
             }
         },
         "required": [
             "name",
             "spec",
             "spec_define",
-            "content"
+            "content",
+            "seo_title",
+            "seo_content"
         ],
         "additionalProperties": false
     }

@@ -403,7 +403,7 @@ export class ApiPageConfig {
                             return `png`;
                         }
                     })()}`
-                ).replace(/ /g, '')
+                ).replace(/ /g, '').replace(/'/g,'').replace(/"/g,'')
 
                 if(file.type.startsWith('image')){
                     file_name=`${size ?`size${size}_`:``}s*px$_${file_id}_${file_name}`
@@ -484,7 +484,7 @@ export class ApiPageConfig {
                     }
                 }
             }else{
-                const s3res= (await ApiPageConfig.uploadFile(file.name)).response;
+                const s3res= (await ApiPageConfig.uploadFile(file.name.replace(/ /g, '').replace(/'/g,'').replace(/"/g,''))).response;
                 const res= await BaseApi.create({
                     url: s3res.url,
                     type: 'put',

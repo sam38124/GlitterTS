@@ -51,6 +51,7 @@ export class AiChat{
     public static editorHtml(json: {   app_name?:string,
         text:string,
         format:any,
+        assistant:any
         token?:string
     }) {
         return BaseApi.create({

@@ -26,7 +26,8 @@ export class AiEditor {
                         });
                         return schema;
                     })()
-                }
+                },
+                assistant: ''
             }).then((dd) => {
                 var _a, _b;
                 if (!dd.result || !dd.response.result) {

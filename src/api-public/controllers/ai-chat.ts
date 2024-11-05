@@ -193,7 +193,7 @@ router.post('/edit-component', async (req: express.Request, resp: express.Respon
     try {
         return response.succ(resp, {
             result: true,
-            data:await AiRobot.codeEditor(req.get('g-app') as string,req.body.text,req.body.format)
+            data:await AiRobot.codeEditor(req.get('g-app') as string,req.body.text,req.body.format,req.body.assistant)
         });
     } catch (err) {
         return response.fail(resp, err);
