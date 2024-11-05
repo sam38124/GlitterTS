@@ -49,6 +49,7 @@ export class ApiPublic {
                     table: `t_invoice_memory`,
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
+  \`status\` int NOT NULL DEFAULT 1,
   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`invoice_data\` json DEFAULT NULL,
@@ -56,9 +57,27 @@ export class ApiPublic {
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`order_id\`),
   KEY \`index3\` (\`invoice_no\`),
-  KEY \`index4\` (\`create_date\`)
+  KEY \`index4\` (\`create_date\`),
+  KEY \`index5\` (\`status\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
+//                 {
+//                     scheme: appName,
+//                     table: `t_invoice_credit`,
+//                     sql: `(
+//   \`id\` int NOT NULL AUTO_INCREMENT,
+//   \`status\` int NOT NULL DEFAULT 1,
+//   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+//   \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+//   \`invoice_data\` json DEFAULT NULL,
+//   \`create_date\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//   PRIMARY KEY (\`id\`),
+//   KEY \`index2\` (\`order_id\`),
+//   KEY \`index3\` (\`invoice_no\`),
+//   KEY \`index4\` (\`create_date\`),
+//   KEY \`index5\` (\`status\`)
+// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+//                 },
                 {
                     scheme: appName,
                     table: 't_variants',

@@ -882,6 +882,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
+        let layer2Delay = true;
         let totalStep = 4;
         return gvc.bindView({
             bind: 'layoutInit',
@@ -924,6 +925,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange('layoutInit');
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide7-2`, viewID, '佈景主題', totalStep);
                     }
                     case 3: {
@@ -1440,6 +1449,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
+        let layer2Delay = true;
         return gvc.bindView({
             bind: 'messageInit',
             dataList: [],
@@ -1481,6 +1491,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange('messageInit');
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide6-2`, viewID, '商店訊息', 5);
                     }
                     case 3: {
@@ -1549,6 +1567,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
+        let layer2Delay = true;
         return gvc.bindView({
             bind: 'productInit',
             dataList: [],
@@ -1589,6 +1608,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange('productInit');
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide5-2`, 'productInit', '商品列表', 8);
                     }
                     case 3: {
@@ -1761,6 +1788,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
+        let layer2Delay = true;
         return gvc.bindView({
             bind: 'logisticsInit',
             dataList: [],
@@ -1801,6 +1829,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange('logisticsInit');
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide4-2`, 'logisticsInit', '運費設定', 8);
                     }
                     case 3: {
@@ -1999,6 +2035,7 @@ export class BgGuide {
             step: this.step,
         };
         const that = this;
+        let layer2Delay = true;
         return gvc.bindView({
             bind: 'shipInit',
             dataList: [],
@@ -2039,6 +2076,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange('shipInit');
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide3-2`, 'shipInit', '配送設定', 5);
                     }
                     case 3: {
@@ -2281,6 +2326,7 @@ export class BgGuide {
         };
         let viewID = 'financeInit';
         let tempHTML = ``;
+        let layer2Delay = true;
         return gvc.bindView({
             bind: viewID,
             dataList: [],
@@ -2321,6 +2367,14 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
+                        if (layer2Delay) {
+                            const timer = setInterval(() => {
+                                layer2Delay = false;
+                                clearInterval(timer);
+                                gvc.notifyDataChange(viewID);
+                            }, 500);
+                            return ``;
+                        }
                         return this.drawSecondRowBG(BG, vm, `.guide2-2`, 'financeInit', '金流設定', 6);
                     }
                     case 3: {
@@ -2844,9 +2898,13 @@ export class BgGuide {
                             bind: 'guideDirect',
                             view: () => {
                                 let dialog = new ShareDialog(gvc.glitter);
-                                dialog.dataLoading({ visible: true });
-                                setTimeout(() => {
+                                if (vm.progress.length == 0) {
+                                    dialog.dataLoading({ visible: true });
+                                }
+                                else {
                                     dialog.dataLoading({ visible: false });
+                                }
+                                setTimeout(() => {
                                 }, 300);
                                 return vm.progress
                                     .map((data, index) => {

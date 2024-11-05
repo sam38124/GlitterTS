@@ -359,6 +359,26 @@ export class ApiShop {
         }
         return list;
     }
+    static invoiceListFilterString(obj) {
+        if (!obj)
+            return [];
+        let list = [];
+        if (obj) {
+            if (obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+                list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (obj.invoice_type.length > 0) {
+                list.push(`invoice_type=${obj.shipment.join(',')}`);
+            }
+            if (obj.issue_method.length > 0) {
+                list.push(`issue_method=${obj.issue_method.join(',')}`);
+            }
+            if (obj.status.length > 0) {
+                list.push(`status=${obj.status.join(',')}`);
+            }
+        }
+        return list;
+    }
     static getOrder(json) {
         const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
@@ -523,6 +543,27 @@ export class ApiShop {
                 config[`collection-manager`] = res;
                 resolve(res);
             });
+        });
+    }
+    static getInvoice(json) {
+        let filterString = this.invoiceListFilterString(json.filter);
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/invoice?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`orderString=${json.orderString}`);
+                    json.filter && par.push(`filter=${json.filter}`);
+                    filterString.length > 0 && par.push(filterString.join('&'));
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
         });
     }
     static getInvoiceType() {

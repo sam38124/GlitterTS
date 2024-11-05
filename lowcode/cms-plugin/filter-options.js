@@ -93,6 +93,12 @@ FilterOptions.returnOrderFilterFrame = {
     refund: [],
     created_time: ['', ''],
 };
+FilterOptions.invoiceFilterFrame = {
+    invoice_type: [],
+    issue_method: [],
+    status: [],
+    created_time: ['', ''],
+};
 FilterOptions.orderFunnel = [
     {
         key: 'orderStatus',
@@ -185,6 +191,49 @@ FilterOptions.returnOrderFunnel = [
         },
     },
 ];
+FilterOptions.invoiceFunnel = [
+    {
+        key: 'invoice_type',
+        type: 'multi_checkbox',
+        name: '發票種類',
+        data: [
+            { key: 'B2B', name: 'B2B' },
+            { key: 'B2C', name: 'B2C' },
+        ],
+    },
+    {
+        key: 'issue_method',
+        type: 'multi_checkbox',
+        name: '開立方式',
+        data: [
+            { key: 'auto', name: '自動' },
+            { key: 'manual', name: '手動' },
+        ],
+    },
+    {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '發票狀態',
+        data: [
+            { key: '2', name: '已折讓' },
+            { key: '1', name: '已開立' },
+            { key: '0', name: '待審核' },
+            { key: '-1', name: '已作廢' },
+        ],
+    },
+    {
+        key: 'created_time',
+        type: 'during',
+        name: '開立日期',
+        data: {
+            centerText: '至',
+            list: [
+                { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+            ],
+        },
+    },
+];
 FilterOptions.orderOrderBy = [
     { key: 'created_time_desc', value: '訂單時間新 > 舊' },
     { key: 'created_time_asc', value: '訂單時間舊 > 新' },
@@ -194,6 +243,12 @@ FilterOptions.orderOrderBy = [
 FilterOptions.returnOrderOrderBy = [
     { key: 'created_time_desc', value: '訂單時間新 > 舊' },
     { key: 'created_time_asc', value: '訂單時間舊 > 新' },
+];
+FilterOptions.invoiceOrderBy = [
+    { key: 'created_time_desc', value: '發票時間新 > 舊' },
+    { key: 'created_time_asc', value: '發票時間舊 > 新' },
+    { key: 'order_total_desc', value: '發票金額高 > 低' },
+    { key: 'order_total_asc', value: '發票金額低 > 高' },
 ];
 FilterOptions.orderSelect = [
     { key: 'cart_token', value: '訂單編號' },
@@ -208,6 +263,15 @@ FilterOptions.returnOrderSelect = [
     { key: 'return_order_id', value: '退貨單編號' },
     { key: 'name', value: '退貨人名稱' },
     { key: 'phone', value: '退貨人電話' },
+];
+FilterOptions.invoiceSelect = [
+    { key: 'invoice_number', value: '發票號碼' },
+    { key: 'order_number', value: '訂單編號' },
+    { key: 'name', value: '買受人名稱' },
+    { key: 'business_number', value: '買受人統編' },
+    { key: 'phone', value: '買受人手機' },
+    { key: 'product_name', value: '商品名稱' },
+    { key: 'product_number', value: '商品編號' },
 ];
 FilterOptions.productFilterFrame = {
     status: [],

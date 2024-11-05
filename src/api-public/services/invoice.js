@@ -191,6 +191,91 @@ class Invoice {
             return true;
         }
     }
+    async getInvoice(query) {
+        try {
+            let querySql = [`1=1`];
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'order_number':
+                        querySql.push(`order_id LIKE '%${query.search}%'`);
+                        break;
+                    case 'name':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerEmail') LIKE '%${query.search}%'`);
+                        break;
+                    case 'business_number':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.business_number') LIKE '%${query.search}%'`);
+                        break;
+                    case 'phone':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerPhone') LIKE '%${query.search}%'`);
+                        break;
+                    case 'product_name':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemName') LIKE '%${query.search}%'`);
+                        break;
+                    case 'product_number':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemNumber') LIKE '%${query.search}%'`);
+                        break;
+                    case 'invoice_number':
+                    default:
+                        querySql.push(`invoice_no LIKE '%${query.search}%'`);
+                        break;
+                }
+            }
+            if (query.invoice_type) {
+                const invoice_type = query.invoice_type;
+            }
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            query.status && querySql.push(`status IN (${query.status})`);
+            query.orderString = (() => {
+                switch (query.orderString) {
+                    case 'created_time_desc':
+                        return `order by create_date desc`;
+                    case 'created_time_asc':
+                        return `order by create_date ASC`;
+                    case 'order_total_desc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
+                    case 'order_total_asc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
+                    case 'default':
+                    default:
+                        return `order by id desc`;
+                }
+            })();
+            let sql = `SELECT *
+                   FROM \`${this.appName}\`.t_invoice_memory
+                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+        `;
+            return {
+                data: await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                total: (await database_js_1.default.query(`SELECT count(1)
+                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
+    async querySql(querySql, query) {
+        let sql = `SELECT *
+                   FROM \`${this.appName}\`.t_invoice_memory
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        try {
+            return await database_js_1.default.query(sql, []);
+        }
+        catch (e) {
+            console.log("get invoice failed:", e);
+        }
+    }
 }
 exports.Invoice = Invoice;
 //# sourceMappingURL=invoice.js.map

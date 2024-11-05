@@ -404,4 +404,121 @@ export class Invoice {
             return true;
         }
     }
+
+    public async getInvoice(query: {
+        page: number;
+        limit: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        created_time?: string;
+        invoice_type?: string;
+        issue_method?: string;
+        status?: string;
+        filter?: string;
+    }) {
+        try {
+            let querySql = [`1=1`];
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'order_number':
+                        querySql.push(`order_id LIKE '%${query.search}%'`);
+                        break;
+                    case 'name':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerEmail') LIKE '%${query.search}%'`);
+                        break;
+                    case 'business_number':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.business_number') LIKE '%${query.search}%'`);
+                        break;
+                    case 'phone':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerPhone') LIKE '%${query.search}%'`);
+                        break;
+                    case 'product_name':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemName') LIKE '%${query.search}%'`);
+                        break;
+                    case 'product_number':
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemNumber') LIKE '%${query.search}%'`);
+                        break;
+                    case 'invoice_number':
+                    default:
+                        querySql.push(
+                            `invoice_no LIKE '%${query.search}%'`
+                        );
+                        break;
+                }
+            }
+
+            if (query.invoice_type){
+                const invoice_type = query.invoice_type;
+            }
+
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (created_time BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            // 發票種類 B2B B2C , 發票開立方式 自動 手動
+            // query.invoice_type && querySql.push(`JSON_UNQUOTE(JSON_EXTRACT(invoice_data, '$.orderStatus')) IN (${query.invoice_type})`);
+            // query.issue_method && querySql.push(`JSON_UNQUOTE(JSON_EXTRACT(invoice_data, '$.orderStatus')) IN (${query.issue_method})`);
+            query.status && querySql.push(`status IN (${query.status})`);
+            query.orderString = (() => {
+                switch (query.orderString) {
+                    case 'created_time_desc':
+                        return `order by create_date desc`;
+                    case 'created_time_asc':
+                        return `order by create_date ASC`;
+                    case 'order_total_desc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
+                    case 'order_total_asc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
+                    case 'default':
+                    default:
+                        return `order by id desc`;
+                }
+            })();
+            let sql = `SELECT *
+                   FROM \`${this.appName}\`.t_invoice_memory
+                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+        `;
+            // const invoices = await this.querySql(querySql, query);
+
+            return {
+                data: await db.query(
+                    `SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                    []
+                ),
+                total: (
+                    await db.query(
+                        `SELECT count(1)
+                             FROM (${sql}) as subqyery`,
+                        []
+                    )
+                )[0]['count(1)'],
+            };
+        } catch (e) {
+            console.error(e);
+            throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
+
+    public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
+        let sql = `SELECT *
+                   FROM \`${this.appName}\`.t_invoice_memory
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+
+        try {
+            return await db.query(sql, []);
+        }catch (e){
+            console.log("get invoice failed:", e);
+        }
+
+
+    }
 }
+

@@ -7,6 +7,7 @@ const response_1 = __importDefault(require("../../modules/response"));
 const invoice_1 = require("../services/ezpay/invoice");
 const app_1 = __importDefault(require("../../app"));
 const invoice_js_1 = require("../services/invoice.js");
+const ut_permission_1 = require("../utils/ut-permission");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
@@ -131,6 +132,27 @@ router.post('/getInvoice', async (req, resp) => {
 });
 router.get('/invoice-type', async (req, resp) => {
     const config = await app_1.default.getAdConfig(req.get('g-app'), "invoice_setting");
+    return response_1.default.succ(resp, { method: config.fincial });
+});
+router.get('/', async (req, resp) => {
+    var _a, _b;
+    const config = await app_1.default.getAdConfig(req.get('g-app'), "invoice_setting");
+    if (await ut_permission_1.UtPermission.isManager(req)) {
+        return response_1.default.succ(resp, await new invoice_js_1.Invoice(req.get('g-app')).getInvoice({
+            page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
+            limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
+            search: req.query.search,
+            searchType: req.query.searchType,
+            orderString: req.query.orderString,
+            created_time: req.query.created_time,
+            invoice_type: req.query.invoice_type,
+            issue_method: req.query.issue_method,
+            status: req.query.status,
+            filter: req.query.filter,
+        }));
+    }
+    else {
+    }
     return response_1.default.succ(resp, { method: config.fincial });
 });
 module.exports = router;

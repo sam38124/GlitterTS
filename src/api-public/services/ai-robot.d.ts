@@ -1,3 +1,4 @@
+/// <reference types="node" />
 export declare class AiRobot {
     static guide(app_name: string, question: string): Promise<{
         text: string;

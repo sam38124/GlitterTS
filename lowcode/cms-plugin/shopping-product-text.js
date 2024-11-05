@@ -688,7 +688,7 @@ export class ProductText {
                                             return html `
                                                 <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;">
                                                     
-                                                    <div class="d-flex align-items-center justify-content-center" style="width: 72px;height: 72px;">${data.shape}</div>
+                                                    <div class="d-flex align-items-center justify-content-center" style="width: 80px;height: 80px;">${data.shape}</div>
                                                     <div class="d-flex align-items-center justify-content-center" style="font-size: 16px;font-style: normal;font-weight: 400;gap: 6px;cursor:pointer;" onclick="${gvc.event(() => {
                                                 vm.data.data.shape = data.title;
                                                 gvc.notifyDataChange(['shape', 'drawPreview']);
@@ -702,7 +702,7 @@ export class ProductText {
                                                     
                                                 `;
                                         }).join('');
-                                    }, divCreate: { class: 'w-100 d-flex', style: `gap:42px;` }
+                                    }, divCreate: { class: 'w-100 d-flex flex-wrap', style: `gap:42px;` }
                                 })}
                                 `;
                             }, divCreate: {
@@ -817,7 +817,7 @@ export class ProductText {
                                             switch (labelPosition) {
                                                 case "左上": {
                                                     return html `
-                                            <div style="display: inline-block;position: relative">
+                                            <div style="display: inline-block;position: relative;">
                                                 <div style="position: absolute;left: 5px;top: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data.text_color};transform: rotate(-44.938deg);">${text}</div>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="62" height="66" viewBox="0 0 62 66" fill="none">
                                                     <g filter="url(#filter0_d_14130_126851)">
@@ -841,7 +841,7 @@ export class ProductText {
                                                 }
                                                 case "左下": {
                                                     return html `
-                                                        <div style="display: inline-block;position: relative">
+                                                        <div style="display: inline-block;position: relative;min-height:79px;">
                                                             <div style="position: absolute;left: 5px;bottom: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data.text_color};transform: rotate(45deg);">${text}</div>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 58 58" fill="none">
                                                                 <g filter="url(#filter0_d_14378_119252)">
@@ -865,7 +865,7 @@ export class ProductText {
                                                 }
                                                 case "右上": {
                                                     return html `
-                                                        <div style="display: inline-block;position: relative">
+                                                        <div style="display: inline-block;position: relative;min-height:79px;">
                                                             <div style="position: absolute;right: 5px;top: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data.text_color};transform: rotate(45deg);">${text}</div>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="63" height="66" viewBox="0 0 63 66" fill="none">
                                                                 <g filter="url(#filter0_d_14378_119247)">
@@ -889,7 +889,7 @@ export class ProductText {
                                                 }
                                                 default: {
                                                     return html `
-                                                        <div style="display: inline-block;position: relative">
+                                                        <div style="display: inline-block;position: relative;min-height:79px;">
                                                             <div style="position: absolute;right: 5px;bottom: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data.text_color};transform: rotate(-45deg);">${text}</div>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 58 58" fill="none">
                                                                 <g filter="url(#filter0_d_14378_119257)">
@@ -920,7 +920,7 @@ export class ProductText {
                                 })) === null || _d === void 0 ? void 0 : _d.shape;
                                 vm.data.data.content = labelHTML !== null && labelHTML !== void 0 ? labelHTML : "";
                                 return html `
-                                    <div class="w-50 " style="display: flex;height: 270px;justify-content: center;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;">
+                                    <div class="w-100 w-lg-50" style="display: flex;height: 270px;justify-content: center;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;">
                                         <div class="d-flex flex-wrap" style="height: 178px;width: 178px;">
                                             ${position.map((data, index) => {
                                     if (vm.data.data.position == data) {
@@ -940,7 +940,7 @@ export class ProductText {
                                             
                                         </div>
                                     </div>
-                                    <div class="w-50" style="display: flex;padding: 14px 114px 13.713px 113px;justify-content: center;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;">
+                                    <div class="w-100 w-lg-50" style="display: flex;padding: 14px 114px 13.713px 113px;justify-content: center;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;">
                                         <div class="" style="padding: 11.67px;border-radius: 2px;border: 1px solid #DDD;background: #FFF;display: flex;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
                                             <div class="d-flex flex-column align-items-center position-relative" style="width:178px;height: 178px;padding-top: 10px;border-radius: 2px;background-image: url('https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sdsfs9sbs5ses7sb_Frame127.png')">
                                                 <div style="position:absolute;${(vm.data.data.position == "左上" || vm.data.data.position == "左下") ? 'left' : 'right'}: 0;${(vm.data.data.position == "左上" || vm.data.data.position == "右上") ? 'top' : 'bottom'}: 0;z-index:2;">
@@ -966,7 +966,7 @@ export class ProductText {
                                         </div>
                                     </div>
                                 `;
-                            }, divCreate: { style: `display: flex;align-items: flex-start;gap: 18px;align-self: stretch;` }
+                            }, divCreate: { style: `display: flex;align-items: flex-start;gap: 18px;align-self: stretch;`, class: `flex-column flex-lg-row` }
                         });
                     }
                     return BgWidget.container([
