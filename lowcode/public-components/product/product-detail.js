@@ -101,7 +101,7 @@ export class ProductDetail {
                                     <div class="swiper-button-prev"></div>
                                     <div class="swiper-button-next"></div>
                                 </div>
-                                <div class="swiper-sm mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: scroll;">
+                                <div class="swiper-sm mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
                                     <div class="swiper-wrapper">
                                         ${prod.preview_image
                         .map((image, index) => {
