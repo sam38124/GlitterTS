@@ -1716,6 +1716,7 @@ ${obj.default ?? ''}</textarea
                                   vm.tableData = [];
                                   vm.page = page;
                                   vm.loading = true;
+                                  created.checkbox=false
                                   gvc.notifyDataChange(ids.container);
                               },
                               false

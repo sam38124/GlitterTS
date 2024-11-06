@@ -707,4 +707,84 @@ export class AiRobot {
             usage: await this.usePoints(app_name, use_tokens, question, text)
         }
     }
+
+    //搜尋商品
+    public static async searchProduct(app_name: string, question: string, thread:string) {
+        try {
+            if (!await AiRobot.checkPoints(app_name)) {
+                return {usage: 0}
+            }
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+
+            //建立客服
+            const myAssistant = await openai.beta.assistants.create({
+                instructions: `你是一個商品搜索員，首先我會提供給你多個商品資訊，請先協助將商品加入分析資料庫，最後我會向你提出問題，請找出符合敘述的商品。`,
+                name: '數據分析師',
+                response_format: {
+                    "type": "json_schema", "json_schema": {
+                        "name": "product_array",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "products": {
+                                    "type": "array",
+                                    "description": "包含商品的陣列，每個商品都有ID和名稱。",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "product_id": {
+                                                "type": "string",
+                                                "description": "商品的ID。"
+                                            },
+                                            "product_name": {
+                                                "type": "string",
+                                                "description": "商品的名稱。"
+                                            }
+                                        },
+                                        "required": [
+                                            "product_id",
+                                            "product_name"
+                                        ],
+                                        "additionalProperties": false
+                                    }
+                                }
+                            },
+                            "required": [
+                                "products"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "strict": true
+                    }
+                },
+                model: 'gpt-4o-mini',
+            });
+            //對話線程ID
+            const threads_id = thread
+            //添加訊息
+            const threadMessages = await openai.beta.threads.messages.create(threads_id, {role: 'user', content: `幫我尋找`+question});
+            //建立數據流
+            const stream = await openai.beta.threads.runs.create(threads_id, {assistant_id: myAssistant.id, stream: true});
+            let text:any = '';
+            let use_tokens = 0
+            for await (const event of stream) {
+                if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
+                    text =  JSON.parse((event.data as any).content[0].text.value)
+                }
+                if ((event.data as any).usage) {
+                    use_tokens += (event.data as any).usage.total_tokens;
+                }
+            }
+            await openai.beta.assistants.del(myAssistant.id);
+            return {
+                obj:text,
+                usage: await this.usePoints(app_name, use_tokens, question, text)
+            }
+        }catch (e){
+            console.log(e)
+        }
+
+    }
 }

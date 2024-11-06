@@ -9,6 +9,7 @@ import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -64,7 +65,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.7';
+        glitter.share.editerVersion = 'V_13.8.61';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -239,7 +240,15 @@ export class Entry {
                 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
                 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css',
             ]);
+            // <script src="https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js"
+            // integrity="sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg=="
+            // crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            //     <script type="text/javascript" src="https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js"></script>
+            //     <script src="//oss-sg.imin.sg/web/iMinPartner2/js/jquery.min.js"></script>
+            //     <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.9.1/vconsole.min.js"></script>
             await new Promise((resolve, reject) => {
+
+
                 glitter.addMtScript(
                     [
                         'jslib/pickr.min.js',
@@ -248,7 +257,7 @@ export class Entry {
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
                         'https://kit.fontawesome.com/cccedec0f8.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'
                     ],
                     () => {
                         resolve(true);

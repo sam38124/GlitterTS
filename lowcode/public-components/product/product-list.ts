@@ -332,15 +332,18 @@ export class ProductList {
                 border-radius: none !important;
                 background-color: black;
                 border-radius: 5px;
-                background: #333333;
-                color: #ffffff;
+                background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+                color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
                 font-size: 16px;
             }
         `);
 
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
-            changePage = cl.changePage;
+            changePage = (index: string, type: 'page' | 'home', subData: any)=>{
+                gvc.glitter.setUrlParameter('ai-search',undefined)
+                cl.changePage(index,type,subData)
+            };
         });
 
         function updateCollections(data: { products: Product[]; collections: Collection[] }): Collection[] {
@@ -450,6 +453,7 @@ export class ProductList {
                 status: 'active',
                 orderBy: orderBy as string,
                 with_hide_index: 'false',
+                id_list:gvc.glitter.getUrlParameter('ai-search') || undefined
             };
             return new Promise<[]>((resolve, reject) => {
                 ApiShop.getProduct(inputObj).then((data) => {
@@ -490,7 +494,7 @@ export class ProductList {
                                                 gvc.glitter.closeDrawer();
                                             })}"
                                         >
-                                            所有商品
+                                            ${(gvc.glitter.getUrlParameter('ai-search')) ? `AI 選品`:`所有商品`}
                                         </div>
                                     </li>
                                     ${cols
@@ -580,13 +584,14 @@ export class ProductList {
         }
 
         function updatePageTitle() {
+            const all_text=(gvc.glitter.getUrlParameter('ai-search')) ? `AI 選品`:`所有商品`
             if (!vm.collections || vm.collections.length === 0) {
-                vm.title = '所有商品';
+                vm.title = all_text;
             } else {
                 const collectionObj = vm.collections.find((item: { code: string }) => {
                     return item.code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                 });
-                vm.title = collectionObj ? collectionObj.title : '所有商品';
+                vm.title = collectionObj ? collectionObj.title : all_text;
             }
             gvc.notifyDataChange(ids.pageTitle);
         }
@@ -651,7 +656,7 @@ export class ProductList {
                                     if (loadings.product) {
                                         return this.spinner();
                                     } else {
-                                        return html`<div class="row">
+                                        return html`<div class="row mx-n2 mx-sm-auto">
                                                 ${vm.dataList.length > 0
                                                     ? gvc.map(
                                                           vm.dataList.map((item: any) => {

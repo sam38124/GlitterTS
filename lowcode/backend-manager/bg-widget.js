@@ -1433,6 +1433,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.tableData = [];
                                 vm.page = page;
                                 vm.loading = true;
+                                created.checkbox = false;
                                 gvc.notifyDataChange(ids.container);
                             }, false)}
                         </div>`;

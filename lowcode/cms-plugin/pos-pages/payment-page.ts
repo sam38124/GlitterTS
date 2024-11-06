@@ -1661,178 +1661,198 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                     const invoice = res.response.data.invoice
                     if (res.response.data.invoice && PayConfig.deviceType === 'pos' && c_vm.invoice_select !== 'carry') {
                         POSSetting.config.pickup_number++
-                       function print(type:'save'|'client'){
-                           let command_line: any = []
 
-                           function addCommandLine(cmd: string, data: any, callback: () => void) {
-                               command_line.push({cmd, data, callback})
-                           }
-                           if(type==='client'){
-                               addCommandLine("print_text", {
-                                   size: 2,
-                                   align: 1,
-                                   text: PayConfig.pos_config.shop_name
-                               }, () => {
-                               })
-                               addCommandLine("print_text", {size: 2, align: 1, text: ""}, () => {
-                               })
-                               addCommandLine("print_text", {size: 2, align: 1, text: "電子發證明聯"}, () => {
-                               })
-                               addCommandLine("print_text", {size: 2, align: 1, text: invoice.date}, () => {
-                               })
-                               addCommandLine("print_text", {size: 2, align: 1, text: invoice.invoice_code}, () => {
-                               })
-                               addCommandLine("print_text", {size: 1, align: 0, text: invoice.create_date}, () => {
-                               })
-                               addCommandLine("print_text", {
-                                   size: 1,
-                                   align: 0,
-                                   text: `${invoice.random_code}     ${invoice.total}`
-                               }, () => {
-                               })
-                               addCommandLine("print_text", {
-                                   size: 1,
-                                   align: 0,
-                                   text: `${invoice.sale_gui}  ${invoice.buy_gui}`
-                               }, () => {
-                               })
-                               addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                               })
-                               addCommandLine("print_bar_code", {text: invoice.bar_code}, () => {
-                               })
-                               addCommandLine("print_qr_code_2", {
-                                   qrcode_0: invoice.qrcode_0,
-                                   qrcode_1: invoice.qrcode_1
-                               }, () => {
-                               })
-                           }else{
-                               addCommandLine("print_text", {size: 2, align: 1, text: "收執聯"}, () => {
-                               })
-                           }
-                           if (PayConfig.pos_config.pos_type === 'eat') {
+                        function print(type: 'save' | 'client') {
+                            let command_line: any = []
 
-                               if (orderDetail.table_set) {
-                                   addCommandLine("print_text", {
-                                       size: 2,
-                                       align: 1,
-                                       text: "桌位選擇:" + orderDetail.table_set
-                                   }, () => {
-                                   })
-                               }
-                               if (PayConfig.pos_config.call_order) {
-                                   addCommandLine("print_text", {
-                                       size: 2, align: 1, text: "取餐編號:" + (() => {
-                                           let numb = `${POSSetting.config.pickup_number}`;
-                                           while (numb.length < 4) {
-                                               numb = `0${numb}`
-                                           }
-                                           return numb
-                                       })()
-                                   }, () => {
-                                   })
-                               }
+                                /***
+                                 * 列印間隔
+                                 * IminPrintInstance.printAndFeedPaper(100)
+                                 * 設定字體位置0-2
+                                 * IminPrintInstance.setAlignment(1);
+                                 * 設定字體大小
+                                 * IminPrintInstance.setTextSize(28)
+                                 * 設定字體[DEFAULT,MONOSPACE,DEFAULT_BOLD,SANS_SERIF,SERIF]
+                                 * IminPrintInstance.setTextTypeface(0)
+                                 * 設定字體粗度[NORMAL,BOLD,ITALIC,BOLD_ITALIC]
+                                 * IminPrintInstance.setTextStyle(0)
+                                 * 打印文字
+                                 * IminPrintInstance.printText('萊恩設計')
+                                 * */
 
-                               addCommandLine("print_text", {size: 2, align: 0, text: "\n\n\n\n"}, () => {
-                               })
-                           }
 
-                           addCommandLine("print_text", {size: 2, align: 1, text: "交易明細"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 1, align: 0, text: "2024-09-14 01:27:39"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           addCommandLine("print_text", {
-                               size: 1,
-                               align: 0,
-                               text: "品名       單價*數量      金額"
-                           }, () => {
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           PaymentPage.stripHtmlTags(invoice.pay_detail).map((dd, index) => {
-                               addCommandLine("print_text", {size: 1, align: index % 3, text: dd}, () => {
-                               })
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 1, align: 1, text: "------------------------"}, () => {
-                           });
-                           (() => {
-                               let tempDiv = document.createElement("div");
-                               // 设置其内容为给定的HTML字符串
-                               tempDiv.innerHTML = invoice.pay_detail_footer;
-                               addCommandLine("print_text", {
-                                   size: 1,
-                                   align: 0,
-                                   text: `${tempDiv.querySelector('.invoice-detail-sum')!!.children[0].textContent}
+
+                            function addCommandLine(cmd: string, data: any, callback: () => void) {
+                                command_line.push({cmd, data, callback})
+                            }
+
+                            if (type === 'client') {
+                                addCommandLine("print_text", {
+                                    size: 2,
+                                    align: 1,
+                                    text: PayConfig.pos_config.shop_name
+                                }, () => {
+                                })
+                                addCommandLine("print_text", {size: 2, align: 1, text: ""}, () => {
+                                })
+                                addCommandLine("print_text", {size: 2, align: 1, text: "電子發證明聯"}, () => {
+                                })
+                                addCommandLine("print_text", {size: 2, align: 1, text: invoice.date}, () => {
+                                })
+                                addCommandLine("print_text", {size: 2, align: 1, text: invoice.invoice_code}, () => {
+                                })
+                                addCommandLine("print_text", {size: 1, align: 0, text: invoice.create_date}, () => {
+                                })
+                                addCommandLine("print_text", {
+                                    size: 1,
+                                    align: 0,
+                                    text: `${invoice.random_code}     ${invoice.total}`
+                                }, () => {
+                                })
+                                addCommandLine("print_text", {
+                                    size: 1,
+                                    align: 0,
+                                    text: `${invoice.sale_gui}  ${invoice.buy_gui}`
+                                }, () => {
+                                })
+                                addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                                })
+                                addCommandLine("print_bar_code", {text: invoice.bar_code}, () => {
+                                })
+                                addCommandLine("print_qr_code_2", {
+                                    qrcode_0: invoice.qrcode_0,
+                                    qrcode_1: invoice.qrcode_1
+                                }, () => {
+                                })
+                            } else {
+                                addCommandLine("print_text", {size: 2, align: 1, text: "收執聯"}, () => {
+                                })
+                            }
+                            if (PayConfig.pos_config.pos_type === 'eat') {
+
+                                if (orderDetail.table_set) {
+                                    addCommandLine("print_text", {
+                                        size: 2,
+                                        align: 1,
+                                        text: "桌位選擇:" + orderDetail.table_set
+                                    }, () => {
+                                    })
+                                }
+                                if (PayConfig.pos_config.call_order) {
+                                    addCommandLine("print_text", {
+                                        size: 2, align: 1, text: "取餐編號:" + (() => {
+                                            let numb = `${POSSetting.config.pickup_number}`;
+                                            while (numb.length < 4) {
+                                                numb = `0${numb}`
+                                            }
+                                            return numb
+                                        })()
+                                    }, () => {
+                                    })
+                                }
+
+                                addCommandLine("print_text", {size: 2, align: 0, text: "\n\n\n\n"}, () => {
+                                })
+                            }
+
+                            addCommandLine("print_text", {size: 2, align: 1, text: "交易明細"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 1, align: 0, text: "2024-09-14 01:27:39"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            addCommandLine("print_text", {
+                                size: 1,
+                                align: 0,
+                                text: "品名       單價*數量      金額"
+                            }, () => {
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            PaymentPage.stripHtmlTags(invoice.pay_detail).map((dd, index) => {
+                                addCommandLine("print_text", {size: 1, align: index % 3, text: dd}, () => {
+                                })
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 1, align: 1, text: "------------------------"}, () => {
+                            });
+                            (() => {
+                                let tempDiv = document.createElement("div");
+                                // 设置其内容为给定的HTML字符串
+                                tempDiv.innerHTML = invoice.pay_detail_footer;
+                                addCommandLine("print_text", {
+                                    size: 1,
+                                    align: 0,
+                                    text: `${tempDiv.querySelector('.invoice-detail-sum')!!.children[0].textContent}
 ${tempDiv.querySelector('.invoice-detail-sum')!!.children[1].textContent}
 ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replace(/ /g, '')}`
-                               }, () => {
-                               })
-                           })()
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                           })
-                           new Promise(async (resolve, reject) => {
-                               for (const b of command_line) {
-                                   await new Promise(async (resolve, reject) => {
-                                       glitter.runJsInterFace(b.cmd, b.data, () => {
-                                           resolve(true)
-                                       })
-                                   })
-                               }
-                               resolve(true)
-                           })
-                       }
-                       if(PayConfig.pos_config.execution_slip){
-                           print('save')
-                           await new Promise((resolve, reject)=>{
-                               gvc.glitter.innerDialog(
-                                   (gvc: GVC) => {
-                                       return html`
-                    <div class="dialog-box">
-                        <div class="dialog-content position-relative pb-5"
-                             style="width: 452px;max-width: calc(100% - 20px);">
-                            <div
-                                    class="my-3 fs-6 fw-500 text-center"
-                                    style="white-space: normal; overflow-wrap: anywhere;font-size: 36px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
-                            >
-                                請撕取收執聯後，在按下『 下一步 』。
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
-                                <div
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:240px;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            gvc.closeDialog()
-                                           print('client')
-                                           resolve(true)
-                                       })}"
-                                >
-                                    下一步
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                                   },
-                                   'save_invoice',
-                                   {
-                                       dismiss: () => {
-                                           // vm.type = "list";
-                                       },
-                                   }
-                               );
-                           })
-                       }else{
-                           print('client')
-                       }
+                                }, () => {
+                                })
+                            })()
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
+                            })
+                            new Promise(async (resolve, reject) => {
+                                for (const b of command_line) {
+                                    await new Promise(async (resolve, reject) => {
+                                        glitter.runJsInterFace(b.cmd, b.data, () => {
+                                            resolve(true)
+                                        })
+                                    })
+                                }
+                                resolve(true)
+                            })
+                        }
+
+                        if (PayConfig.pos_config.execution_slip) {
+                            print('save')
+                            await new Promise((resolve, reject) => {
+                                gvc.glitter.innerDialog(
+                                    (gvc: GVC) => {
+                                        return html`
+                                            <div class="dialog-box">
+                                                <div class="dialog-content position-relative pb-5"
+                                                     style="width: 452px;max-width: calc(100% - 20px);">
+                                                    <div
+                                                            class="my-3 fs-6 fw-500 text-center"
+                                                            style="white-space: normal; overflow-wrap: anywhere;font-size: 36px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
+                                                    >
+                                                        請撕取收執聯後，在按下『 下一步 』。
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-center"
+                                                         style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                                                        <div
+                                                                style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:240px;text-align:center;"
+                                                                onclick="${gvc.event(() => {
+                                                                    gvc.closeDialog()
+                                                                    print('client')
+                                                                    resolve(true)
+                                                                })}"
+                                                        >
+                                                            下一步
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    },
+                                    'save_invoice',
+                                    {
+                                        dismiss: () => {
+                                            // vm.type = "list";
+                                        },
+                                    }
+                                );
+                            })
+                        } else {
+                            print('client')
+                        }
                     }
                     dialog.dataLoading({visible: false});
                     orderDetail.lineItems = [];

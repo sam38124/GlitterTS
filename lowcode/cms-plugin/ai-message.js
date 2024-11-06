@@ -19,20 +19,20 @@ export class AiMessage {
         if (!option) {
             AiMessage.ai_support = [
                 {
-                    key: 'writer',
-                    label: '文案寫手',
-                },
-                {
                     key: 'order_analysis',
                     label: '訂單分析',
+                },
+                {
+                    key: 'operation_guide',
+                    label: '操作引導',
                 },
                 {
                     key: 'design',
                     label: '圖片生成',
                 },
                 {
-                    key: 'operation_guide',
-                    label: '操作引導',
+                    key: 'writer',
+                    label: '文案寫手',
                 }
             ];
         }
@@ -861,7 +861,7 @@ AiMessage.config = {
 AiMessage.vm = {
     type: 'list',
     chat_user: '',
-    select_bt: 'writer',
+    select_bt: 'order_analysis',
 };
 AiMessage.id = `dsmdklweew3`;
 AiMessage.ai_support = [];

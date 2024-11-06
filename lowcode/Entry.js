@@ -64,7 +64,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.7';
+        glitter.share.editerVersion = 'V_13.8.61';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -234,7 +234,7 @@ export class Entry {
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
                         'https://kit.fontawesome.com/cccedec0f8.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'
                     ], () => {
                         resolve(true);
                     }, () => {

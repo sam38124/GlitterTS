@@ -126,7 +126,8 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'DELETE' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PATCH' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' }
+    { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' }
 ];
 async function doAuthAction(req, resp, next_step) {
     var _a, _b, _c, _d;

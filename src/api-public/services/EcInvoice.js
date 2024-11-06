@@ -168,6 +168,7 @@ class EcInvoice {
                     maxBodyLength: Infinity,
                     url: resp.InvoiceHtml
                 });
+                console.log(`resp.InvoiceHtml=>`, resp.InvoiceHtml);
                 const dom = new jsdom_1.default.JSDOM(htmlData.data);
                 const document = dom.window.document;
                 const inputs = document.querySelectorAll("input");
@@ -180,7 +181,7 @@ class EcInvoice {
                 bigTitles.forEach(input => {
                     bigTitle.push(input.innerHTML);
                 });
-                resolve({
+                const resolve_data = {
                     create_date: document.querySelector('font').innerHTML,
                     date: bigTitle[0].replace(/\n/g, '').trim(),
                     invoice_code: bigTitle[1].replace(/\n/g, '').trim(),
@@ -194,7 +195,9 @@ class EcInvoice {
                     pay_detail: document.querySelectorAll('table')[2].outerHTML,
                     pay_detail_footer: document.querySelector('.invoice-detail-sum').outerHTML,
                     bar_code: qrcode[0].substring(10, 15) + invoice_data.invoice_data.response.InvoiceNo + invoice_data.invoice_data.response.RandomNumber
-                });
+                };
+                console.log(`invoice_data==>`, resolve_data);
+                resolve(resolve_data);
             })
                 .catch((error) => {
                 console.error(`取得失敗::`, error);

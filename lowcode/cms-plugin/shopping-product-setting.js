@@ -413,6 +413,7 @@ export class ShoppingProductSetting {
             barcode: '',
         };
         const excel = new Excel(gvc, [
+            '商品ID',
             '商品名稱',
             '啟用狀態',
             '商品類別',
@@ -857,6 +858,7 @@ export class ShoppingProductSetting {
                                                             response.response.data.map((productData) => {
                                                                 var _a;
                                                                 let rowData = {
+                                                                    id: '',
                                                                     name: (_a = productData.content.title) !== null && _a !== void 0 ? _a : '未命名商品',
                                                                     status: '',
                                                                     category: '',
@@ -931,6 +933,7 @@ export class ShoppingProductSetting {
                                                                     rowData.stock = (_17 = variant.stock) !== null && _17 !== void 0 ? _17 : '0';
                                                                     rowData.save_stock = (_18 = variant.save_stock) !== null && _18 !== void 0 ? _18 : '0';
                                                                     rowData.barcode = (_19 = variant.barcode) !== null && _19 !== void 0 ? _19 : '';
+                                                                    rowData.id = productData.content.id;
                                                                     if (variant.shipment_type) {
                                                                         switch (variant.shipment_type) {
                                                                             case 'volume': {

@@ -51,7 +51,7 @@ export class AiChat{
     public static editorHtml(json: {   app_name?:string,
         text:string,
         format:any,
-        assistant:any
+        assistant?:any
         token?:string
     }) {
         return BaseApi.create({
@@ -61,6 +61,19 @@ export class AiChat{
                 "Content-Type": "application/json",
                 "g-app": json.app_name || getConfig().config.appName,
                 "Authorization": json.token || GlobalUser.token
+            },
+            "data":JSON.stringify(json)
+        })
+    }
+    public static searchProduct(json: {   app_name?:string,
+        text:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ai/search-product`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": json.app_name || getConfig().config.appName
             },
             "data":JSON.stringify(json)
         })

@@ -54,6 +54,11 @@ export class ProductDetail {
     }
 
     public static main(gvc: GVC, widget: any, subData: any) {
+        //移除所有查詢
+        const url=new URL(location.href)
+        for (const b of url.searchParams.keys()){
+            gvc.glitter.setUrlParameter(b,undefined);
+        }
         const glitter = gvc.glitter;
         const isPhone = document.body.clientWidth < 768;
 
@@ -127,7 +132,7 @@ export class ProductDetail {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor, prod, vm })}</div>
+              <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor, prod, vm })}</div>
                         </div>
                         <div style="d-flex flex-column align-items-center mt-4">
                             ${gvc.bindView(

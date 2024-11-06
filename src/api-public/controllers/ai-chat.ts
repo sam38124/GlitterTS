@@ -188,7 +188,30 @@ router.post('/generate-html', async (req: express.Request, resp: express.Respons
         return response.fail(resp, err);
     }
 })
+router.post('/search-product', async (req: express.Request, resp: express.Response)=>{
+    try {
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+        const thread=(await openai.beta.threads.create()).id
 
+        const pd=await new Shopping(req.get('g-app') as string, req.body.token).getProduct({page:0,limit:10000})
+     for (const b of pd.data){
+         await openai.beta.threads.messages.create(thread, { role: 'user', content: `新增一件商品，商品的JSON資料格式為:${JSON.stringify({
+                 id:b.content.id,
+                 title:b.content.title,
+                 variants:b.content.variants
+             })}`})
+     }
+
+        return response.succ(resp, {
+            result: true,
+            data:await AiRobot.searchProduct(req.get('g-app') as string,req.body.text,thread)
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
 router.post('/edit-component', async (req: express.Request, resp: express.Response)=>{
     try {
         return response.succ(resp, {

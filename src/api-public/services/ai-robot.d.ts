@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export declare class AiRobot {
     static guide(app_name: string, question: string): Promise<{
         text: string;
@@ -60,4 +59,11 @@ export declare class AiRobot {
         obj: string;
         usage: number;
     }>;
+    static searchProduct(app_name: string, question: string, thread: string): Promise<{
+        usage: number;
+        obj?: undefined;
+    } | {
+        obj: any;
+        usage: number;
+    } | undefined>;
 }

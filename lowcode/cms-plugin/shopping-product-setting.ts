@@ -535,6 +535,7 @@ export class ShoppingProductSetting {
         const excel = new Excel(
             gvc,
             [
+                '商品ID',
                 '商品名稱',
                 '啟用狀態',
                 '商品類別',
@@ -1012,6 +1013,7 @@ export class ShoppingProductSetting {
                                                                                                 let exportData: any = [];
                                                                                                 response.response.data.map((productData: any) => {
                                                                                                     let rowData: {
+                                                                                                        id:string;
                                                                                                         name: string;
                                                                                                         status: string;
                                                                                                         category: string;
@@ -1042,6 +1044,7 @@ export class ShoppingProductSetting {
                                                                                                         save_stock: string;
                                                                                                         barcode: string;
                                                                                                     } = {
+                                                                                                        id:'',
                                                                                                         name: productData.content.title ?? '未命名商品',
                                                                                                         status: '',
                                                                                                         category: '',
@@ -1117,7 +1120,7 @@ export class ShoppingProductSetting {
                                                                                                         rowData.stock = variant.stock ?? '0';
                                                                                                         rowData.save_stock = variant.save_stock ?? '0';
                                                                                                         rowData.barcode = variant.barcode ?? '';
-
+                                                                                                        rowData.id=productData.content.id
                                                                                                         if (variant.shipment_type) {
                                                                                                             switch (variant.shipment_type) {
                                                                                                                 case 'volume': {

@@ -221,6 +221,7 @@ export class EcInvoice {
                         maxBodyLength: Infinity,
                         url: resp.InvoiceHtml
                     })
+                    console.log(`resp.InvoiceHtml=>`,resp.InvoiceHtml)
                     const dom = new JSDOM.JSDOM(htmlData.data);
                     const document = dom.window.document;
                     //Qrcode取得
@@ -235,8 +236,7 @@ export class EcInvoice {
                     bigTitles.forEach(input => {
                         bigTitle.push(input.innerHTML)
                     });
-
-                    resolve({
+                    const resolve_data={
                         //開立日期
                         create_date:document.querySelector('font')!!.innerHTML,
                         //發票區間
@@ -262,7 +262,9 @@ export class EcInvoice {
                         //底部付款資訊
                         pay_detail_footer:(document.querySelector('.invoice-detail-sum') as any).outerHTML,
                         bar_code:qrcode[0].substring(10,15)+invoice_data.invoice_data.response.InvoiceNo+invoice_data.invoice_data.response.RandomNumber
-                    })
+                    }
+                    console.log(`invoice_data==>`,resolve_data)
+                    resolve(resolve_data)
                 })
                 .catch((error) => {
                     console.error(`取得失敗::`,error)

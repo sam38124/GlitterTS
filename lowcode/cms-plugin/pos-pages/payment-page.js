@@ -1712,31 +1712,31 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                                 yield new Promise((resolve, reject) => {
                                     gvc.glitter.innerDialog((gvc) => {
                                         return html `
-                    <div class="dialog-box">
-                        <div class="dialog-content position-relative pb-5"
-                             style="width: 452px;max-width: calc(100% - 20px);">
-                            <div
-                                    class="my-3 fs-6 fw-500 text-center"
-                                    style="white-space: normal; overflow-wrap: anywhere;font-size: 36px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
-                            >
-                                請撕取收執聯後，在按下『 下一步 』。
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
-                                <div
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:240px;text-align:center;"
-                                        onclick="${gvc.event(() => {
+                                            <div class="dialog-box">
+                                                <div class="dialog-content position-relative pb-5"
+                                                     style="width: 452px;max-width: calc(100% - 20px);">
+                                                    <div
+                                                            class="my-3 fs-6 fw-500 text-center"
+                                                            style="white-space: normal; overflow-wrap: anywhere;font-size: 36px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
+                                                    >
+                                                        請撕取收執聯後，在按下『 下一步 』。
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-center"
+                                                         style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                                                        <div
+                                                                style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:240px;text-align:center;"
+                                                                onclick="${gvc.event(() => {
                                             gvc.closeDialog();
                                             print('client');
                                             resolve(true);
                                         })}"
-                                >
-                                    下一步
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                                                        >
+                                                            下一步
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
                                     }, 'save_invoice', {
                                         dismiss: () => {
                                         },
