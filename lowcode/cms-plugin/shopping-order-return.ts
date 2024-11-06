@@ -1136,7 +1136,7 @@ export class ShoppingOrderManager {
 
     public static searchOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: '1723795690101',
+            searchOrder: '',
             searchData: '',
             errorReport: '',
         };
@@ -1157,6 +1157,7 @@ export class ShoppingOrderManager {
                     )}
                     ${BgWidget.title('新增退貨單')}
                 </div>
+                <div style="margin-top: 24px;"></div>
                 ${BgWidget.mainCard(html`
                     <div style="display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                         <div style="font-size: 16px;font-weight: 700;">訂單編號*</div>

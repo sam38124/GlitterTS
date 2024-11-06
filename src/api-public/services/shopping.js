@@ -889,6 +889,7 @@ class Shopping {
                 if (carData.user_info.shipment === 'now') {
                     carData.progress = 'finish';
                 }
+                console.log("carData -- ", carData);
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1597,6 +1598,7 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
+            console.log("here -- ");
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {

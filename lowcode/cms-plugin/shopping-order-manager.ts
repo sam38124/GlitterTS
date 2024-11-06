@@ -802,6 +802,11 @@ export class ShoppingOrderManager {
         let userData: any = {};
         const mainViewID = gvc.glitter.getUUID();
         orderData.orderData.progress = orderData.orderData.progress ?? 'wait';
+        if(orderData.orderData.shipment_selector && !orderData.orderData.shipment_selector.find((dd)=>{
+            return dd.value==='now'
+        })){
+            orderData.orderData.shipment_selector.push({name: '立即取貨', value: 'now'})
+        }
         let userDataLoading = true;
 
         function formatDateString(isoDate?: string): string {
@@ -1083,6 +1088,7 @@ export class ShoppingOrderManager {
                                         `),
                                         BgWidget.mainCard(
                                             gvc.bindView(() => {
+                                                console.log(`orderData.orderData.shipment_selector=>`,orderData.orderData.user_info.shipment)
                                                 const vm: {
                                                     mode: 'edit' | 'read';
                                                 } = {
@@ -1120,9 +1126,9 @@ export class ShoppingOrderManager {
                                                                 ${BgWidget.mbContainer(12)}
                                                                 <div class="d-flex w-100 align-items-center gap-2">
                                                                     <div style="tx_normal">
-                                                                        ${(orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd: any) => {
+                                                                        ${((orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd: any) => {
                                                                             return dd.value === orderData.orderData.user_info.shipment;
-                                                                        })!.name}
+                                                                        })|| {name:'門市取貨'})!.name}
                                                                     </div>
                                                                     ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(orderData.orderData.user_info.shipment)
                                                                         ? BgWidget.customButton({
@@ -1167,7 +1173,7 @@ export class ShoppingOrderManager {
                                                                         }
                                                                         const formData: any = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                                             return dd.value === orderData.orderData.user_info.shipment;
-                                                                        });
+                                                                        }) ;
                                                                         if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
                                                                             return html`
                                                                                 <div class="d-flex flex-wrap">
