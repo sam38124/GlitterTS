@@ -132,7 +132,35 @@ export class Footer02 {
                     </div>
                     <div class="row f-row">
                         ${(() => {
-            return '';
+            try {
+                return formData.list
+                    .map((item) => {
+                    return html `<div class="f-ul-div col-12 col-md-4 mt-2">
+                                            <h6 class="heading-xxs mb-3 f-title">${item.title}</h6>
+                                            <ul class="list-unstyled mb-7 f-ul">
+                                                ${item.child
+                        .map((chi) => {
+                        return html `<li
+                                                            class="f-li"
+                                                            style="${chi.page ? 'cursor: pointer;' : ''}"
+                                                            onclick="${gvc.event(() => {
+                            if (chi.page) {
+                                changePage(chi.page, 'page', {});
+                            }
+                        })}"
+                                                        >
+                                                            <a class="f-aclass">${chi.title}</a>
+                                                        </li>`;
+                    })
+                        .join('')}
+                                            </ul>
+                                        </div>`;
+                })
+                    .join('');
+            }
+            catch (error) {
+                return '';
+            }
         })()}
                     </div>
                 </div>
