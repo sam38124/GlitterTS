@@ -237,8 +237,7 @@ export class PdClass {
                 align-items: center;
                 border-radius: 5px;
                 gap: 10px;
-                border: 1px solid ${borderButtonText};
-                background: ${borderButtonBgr};
+                border: 1px solid ${borderButtonBgr};
                 color: ${borderButtonText};
                 cursor: pointer;
                 transition: 0.3s;
@@ -259,7 +258,7 @@ export class PdClass {
                 justify-content: center;
                 width: 100%;
                 border-radius: 5px;
-                border: 1px solid ${solidButtonText};
+                border: 1px solid ${solidButtonBgr};
                 background: ${solidButtonBgr};
                 color: ${solidButtonText};
                 width: 200px;
@@ -269,6 +268,7 @@ export class PdClass {
 
             .add-cart-btn:hover {
                 background: ${this.lightenColor(solidButtonBgr, 50)};
+                border: 1px solid ${this.lightenColor(solidButtonBgr, 50)};
             }
 
             .no-stock {
@@ -277,7 +277,7 @@ export class PdClass {
                 justify-content: center;
                 width: 100%;
                 border-radius: 5px;
-                border: 1px solid ${solidButtonText};
+                border: 1px solid ${this.lightenColor(solidButtonBgr, 50)};
                 background: ${this.lightenColor(solidButtonBgr, 50)};
                 color: ${solidButtonText};
                 width: 200px;
