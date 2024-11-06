@@ -1334,11 +1334,6 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                     }
                 }
 
-                gvc.glitter.share.scan_back = (text: string) => {
-                    c_vm.value = text;
-                    gvc.recreateView();
-                    next();
-                };
                 return html`
                     <div class="dialog-box">
                         <div class="dialog-content position-relative "
@@ -1370,7 +1365,10 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                         style="background: grey;width: 50px;"
                                         class="d-flex align-items-center justify-content-center text-white h-100"
                                         onclick="${gvc.event(() => {
-                                            gvc.glitter.runJsInterFace('start_scan', {}, () => {
+                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
+                                                c_vm.value=res.text
+                                                gvc.recreateView();
+                                                next();
                                             });
                                         })}"
                                 >
@@ -1431,11 +1429,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                     }
                 }
 
-                gvc.glitter.share.scan_back = (text: string) => {
-                    c_vm.value = text;
-                    gvc.recreateView();
-                    next();
-                };
+
                 return html`
                     <div class="dialog-box">
                         <div class="dialog-content position-relative "
@@ -1467,7 +1461,10 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                         style="background: grey;width: 50px;"
                                         class="d-flex align-items-center justify-content-center text-white h-100"
                                         onclick="${gvc.event(() => {
-                                            gvc.glitter.runJsInterFace('start_scan', {}, () => {
+                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
+                                                c_vm.value = res.text;
+                                                gvc.recreateView();
+                                                next();
                                             });
                                         })}"
                                 >
@@ -1665,65 +1662,146 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         function print(type: 'save' | 'client') {
                             let command_line: any = []
 
-                                /***
-                                 * 列印間隔
-                                 * IminPrintInstance.printAndFeedPaper(100)
-                                 * 設定字體位置0-2
-                                 * IminPrintInstance.setAlignment(1);
-                                 * 設定字體大小
-                                 * IminPrintInstance.setTextSize(28)
-                                 * 設定字體[DEFAULT,MONOSPACE,DEFAULT_BOLD,SANS_SERIF,SERIF]
-                                 * IminPrintInstance.setTextTypeface(0)
-                                 * 設定字體粗度[NORMAL,BOLD,ITALIC,BOLD_ITALIC]
-                                 * IminPrintInstance.setTextStyle(0)
-                                 * 打印文字
-                                 * IminPrintInstance.printText('萊恩設計')
-                                 * */
-
-
 
                             function addCommandLine(cmd: string, data: any, callback: () => void) {
                                 command_line.push({cmd, data, callback})
                             }
 
                             if (type === 'client') {
-                                addCommandLine("print_text", {
-                                    size: 2,
-                                    align: 1,
-                                    text: PayConfig.pos_config.shop_name
-                                }, () => {
-                                })
-                                addCommandLine("print_text", {size: 2, align: 1, text: ""}, () => {
-                                })
-                                addCommandLine("print_text", {size: 2, align: 1, text: "電子發證明聯"}, () => {
-                                })
-                                addCommandLine("print_text", {size: 2, align: 1, text: invoice.date}, () => {
-                                })
-                                addCommandLine("print_text", {size: 2, align: 1, text: invoice.invoice_code}, () => {
-                                })
-                                addCommandLine("print_text", {size: 1, align: 0, text: invoice.create_date}, () => {
-                                })
-                                addCommandLine("print_text", {
-                                    size: 1,
-                                    align: 0,
-                                    text: `${invoice.random_code}     ${invoice.total}`
-                                }, () => {
-                                })
-                                addCommandLine("print_text", {
-                                    size: 1,
-                                    align: 0,
-                                    text: `${invoice.sale_gui}  ${invoice.buy_gui}`
-                                }, () => {
-                                })
-                                addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                                })
-                                addCommandLine("print_bar_code", {text: invoice.bar_code}, () => {
-                                })
-                                addCommandLine("print_qr_code_2", {
-                                    qrcode_0: invoice.qrcode_0,
-                                    qrcode_1: invoice.qrcode_1
-                                }, () => {
-                                })
+                                (async () => {
+                                    const IminPrintInstance:any=(window as any).IminPrintInstance
+                                    function generateBarcodeBase64(barcodeString:any) {
+                                        const canvas = document.createElement("canvas");
+
+                                        // 使用 JsBarcode 將條碼字串渲染到 canvas
+                                        //@ts-ignore
+                                        JsBarcode(canvas, barcodeString, {
+                                            format: "CODE128", // 條碼格式，可根據需求更換
+                                            lineColor: "#000000", // 條碼顏色
+                                            width: 2,            // 條碼寬度
+                                            height: 50,          // 條碼高度
+                                            displayValue: false   // 是否顯示條碼值
+                                        });
+
+                                        // 將 canvas 轉換為 base64 圖片
+                                        const base64String = canvas.toDataURL("image/png");
+                                        console.log("Base64 Barcode:", base64String);
+
+                                        return base64String;
+                                    }
+                                    //列印公司名稱
+                                    await IminPrintInstance.setAlignment(1);
+                                    await IminPrintInstance.setTextSize(50)
+                                    await IminPrintInstance.setTextStyle(1)
+                                    await IminPrintInstance.printText(PayConfig.pos_config.shop_name)
+                                    await IminPrintInstance.printAndFeedPaper(20)
+                                    //列印電子發票證明聯
+                                    await IminPrintInstance.setAlignment(1);
+                                    await IminPrintInstance.setTextSize(40)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText('電子發票證明聯')
+                                    await IminPrintInstance.printAndFeedPaper(5)
+                                    //列印電子發票證明聯
+                                    await IminPrintInstance.setAlignment(1);
+                                    await IminPrintInstance.setTextSize(50)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText(invoice.date)
+                                    //列印電子發票號碼
+                                    await IminPrintInstance.setAlignment(1);
+                                    await IminPrintInstance.setTextSize(50)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText(invoice.invoice_code)
+                                    //列印日期
+                                    await IminPrintInstance.printAndFeedPaper(5)
+                                    await IminPrintInstance.setAlignment(0);
+                                    await IminPrintInstance.setTextSize(24)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText(invoice.create_date)
+                                    //列印日期和總計
+                                    await IminPrintInstance.printAndFeedPaper(5)
+                                    await IminPrintInstance.setAlignment(0);
+                                    await IminPrintInstance.setTextSize(24)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText(`${invoice.random_code}             ${invoice.total}`)
+                                    //賣方與買方
+                                    await IminPrintInstance.printAndFeedPaper(5)
+                                    await IminPrintInstance.setAlignment(0);
+                                    await IminPrintInstance.setTextSize(24)
+                                    await IminPrintInstance.setTextStyle(0)
+                                    await IminPrintInstance.printText(`${invoice.sale_gui}        ${invoice.buy_gui}`)
+                                    //列印條碼
+                                    await IminPrintInstance.printAndFeedPaper(5)
+                                    IminPrintInstance.printSingleBitmap(generateBarcodeBase64(invoice.bar_code))
+                                    setTimeout(async ()=>{
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setQrCodeSize(2);
+                                        await IminPrintInstance.setDoubleQRSize(3)
+                                        await IminPrintInstance.setDoubleQR1MarginLeft(10)
+                                        await IminPrintInstance.setDoubleQR2MarginLeft(520)
+                                        const ba=(new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size))*1.1
+                                        for (let a=0;a<=ba;a++){
+                                            invoice.qrcode_1+='*'
+                                        }
+                                        await IminPrintInstance.printDoubleQR([invoice.qrcode_0,invoice.qrcode_1])
+                                        await IminPrintInstance.printAndFeedPaper(100)
+                                        //列印交易明細
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setAlignment(1);
+                                        await IminPrintInstance.setTextSize(40)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('交易明細')
+                                        //列印日期
+                                        await IminPrintInstance.printAndFeedPaper(10)
+                                        await IminPrintInstance.setAlignment(0);
+                                        await IminPrintInstance.setTextSize(24)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('時間:'+invoice.create_date)
+                                        //營業人統編
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setAlignment(0);
+                                        await IminPrintInstance.setTextSize(24)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('營業人統編:'+invoice.sale_gui.replace('賣方 ',''))
+                                        //訂單號碼
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setAlignment(0);
+                                        await IminPrintInstance.setTextSize(24)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('訂單編號:'+res.response.data.orderID)
+                                        //訂單號碼
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setAlignment(0);
+                                        await IminPrintInstance.setTextSize(24)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('發票號碼:'+invoice.invoice_code)
+                                        //員工
+                                        await IminPrintInstance.printAndFeedPaper(5)
+                                        await IminPrintInstance.setAlignment(0);
+                                        await IminPrintInstance.setTextSize(24)
+                                        await IminPrintInstance.setTextStyle(0)
+                                        await IminPrintInstance.printText('員工:'+glitter.share.staff_title)
+                                        //分隔線
+                                        await IminPrintInstance.printAndFeedPaper(30)
+                                        await IminPrintInstance.printText('品名               單價*數量               金額 ')
+                                        const pay_what=PaymentPage.stripHtmlTags(invoice.pay_detail)
+                                        for (let a=0;a<pay_what.length;a++){
+                                            await IminPrintInstance.printAndFeedPaper(5)
+                                            await IminPrintInstance.setAlignment(a%3);
+                                            await IminPrintInstance.setTextSize(24)
+                                            await IminPrintInstance.setTextStyle(0)
+                                            await IminPrintInstance.printText(pay_what[a])
+                                        }
+                                        await IminPrintInstance.setAlignment(0)
+                                        let tempDiv = document.createElement("div");
+                                        // 设置其内容为给定的HTML字符串
+                                        tempDiv.innerHTML = invoice.pay_detail_footer;
+                                        const text=`${tempDiv.querySelector('.invoice-detail-sum')!!.children[0].textContent}
+${tempDiv.querySelector('.invoice-detail-sum')!!.children[1].textContent}
+${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replace(/ /g, '')}`
+                                        await IminPrintInstance.printText(text)
+                                        await IminPrintInstance.printAndFeedPaper(100)
+                                    },1000)
+                                })()
                             } else {
                                 addCommandLine("print_text", {size: 2, align: 1, text: "收執聯"}, () => {
                                 })
@@ -1755,59 +1833,6 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                 })
                             }
 
-                            addCommandLine("print_text", {size: 2, align: 1, text: "交易明細"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 1, align: 0, text: "2024-09-14 01:27:39"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            addCommandLine("print_text", {
-                                size: 1,
-                                align: 0,
-                                text: "品名       單價*數量      金額"
-                            }, () => {
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            PaymentPage.stripHtmlTags(invoice.pay_detail).map((dd, index) => {
-                                addCommandLine("print_text", {size: 1, align: index % 3, text: dd}, () => {
-                                })
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 1, align: 1, text: "------------------------"}, () => {
-                            });
-                            (() => {
-                                let tempDiv = document.createElement("div");
-                                // 设置其内容为给定的HTML字符串
-                                tempDiv.innerHTML = invoice.pay_detail_footer;
-                                addCommandLine("print_text", {
-                                    size: 1,
-                                    align: 0,
-                                    text: `${tempDiv.querySelector('.invoice-detail-sum')!!.children[0].textContent}
-${tempDiv.querySelector('.invoice-detail-sum')!!.children[1].textContent}
-${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replace(/ /g, '')}`
-                                }, () => {
-                                })
-                            })()
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            addCommandLine("print_text", {size: 2, align: 0, text: "\n"}, () => {
-                            })
-                            new Promise(async (resolve, reject) => {
-                                for (const b of command_line) {
-                                    await new Promise(async (resolve, reject) => {
-                                        glitter.runJsInterFace(b.cmd, b.data, () => {
-                                            resolve(true)
-                                        })
-                                    })
-                                }
-                                resolve(true)
-                            })
                         }
 
                         if (PayConfig.pos_config.execution_slip) {
@@ -1979,17 +2004,15 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
                                 </div>
                                 ${(() => {
                                     if (c_vm.invoice_select === 'carry') {
-                                        gvc.glitter.share.scan_back = (text: string) => {
-                                            c_vm.value = text;
-                                            gvc.recreateView();
-                                        };
                                         return `<div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
                             <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描載具" oninput="${gvc.event((e, event) => {
                                             c_vm.value = e.value;
                                         })}" value="${c_vm.value}">
                             <div class="flex-fill"></div>
                             <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100" onclick="${gvc.event(() => {
-                                            gvc.glitter.runJsInterFace('start_scan', {}, () => {
+                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
+                                                c_vm.value = res.text;
+                                                gvc.recreateView();
                                             });
                                         })}">
                                 <i class="fa-regular fa-barcode-read"></i>
@@ -2002,7 +2025,9 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
                                         })}">
                             <div class="flex-fill"></div>
                             <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100" onclick="${gvc.event(() => {
-                                            gvc.glitter.runJsInterFace('start_scan', {}, () => {
+                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
+                                                c_vm.value = res.text;
+                                                gvc.recreateView();
                                             });
                                         })}">
                                 <i class="fa-regular fa-barcode-read"></i>

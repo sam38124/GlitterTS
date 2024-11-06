@@ -184,30 +184,34 @@ height: 51px;
 
     public static main(gvc: GVC) {
         const glitter = gvc.glitter
-        if (glitter.deviceType === glitter.deviceTypeEnum.Android) {
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
-            script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg=='
-            script.referrerPolicy = 'no-referrer'
-            script.crossOrigin = 'anonymous'
-            // 当脚本加载完成后执行回调函数
-            document.head.appendChild(script);
-        }
-        glitter.addMtScript([
-            'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js'
-        ], () => {
-        }, () => {
-        })
-        setTimeout(()=>{
-            //@ts-ignore
-            window.IminPrintInstance = new IminPrinter();
-            //@ts-ignore
-            window.IminPrintInstance.connect()
-        },3000)
+        localStorage.setItem('on-pos','true')
+        // https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js
         //設定裝置類型
         gvc.glitter.runJsInterFace("pos-device", {}, (res) => {
-            PayConfig.deviceType = res.deviceType || 'web';
+            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
+            //POS機台啟用列印功能
+            if (PayConfig.deviceType === 'pos') {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
+                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg=='
+                script.referrerPolicy = 'no-referrer'
+                script.crossOrigin = 'anonymous'
+                // 当脚本加载完成后执行回调函数
+                document.head.appendChild(script);
+                glitter.addMtScript([
+                    'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
+                    'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'
+                ], () => {
+                }, () => {
+                })
+                setTimeout(() => {
+                    //@ts-ignore
+                    window.IminPrintInstance = new IminPrinter();
+                    //@ts-ignore
+                    window.IminPrintInstance.connect()
+                }, 3000)
+            }
         })
         gvc.addStyle(`
                 .dialog-box {
@@ -478,6 +482,7 @@ cursor: pointer;
                                                     const select_member = member_auth.find((dd: any) => {
                                                         return dd.config.member_id === POSSetting.config.who
                                                     }) ?? {config: {title: '管理員', name: 'manager'}}
+                                                    glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who
                                                     // POSSetting.login(gvc);
                                                     resolve(`<div class="h-100 group dropdown border-start ps-1 d-flex align-items-center" style="" >
 <div class=" btn btn-outline-secondary  border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -597,6 +602,12 @@ cursor: pointer;
                                                         }
                                                         return view
                                                     })().join('<div class="dropdown-divider"></div>')}
+                                ${(POSSetting.config.who==='manager') ? `<div class="dropdown-divider"></div>
+    <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(()=>{
+        localStorage.removeItem('on-pos')
+        location.href=`${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`
+                                                    })}">返回全通路後臺</a>
+`:``}
                             </div>
                             </div>`)
                                                 })

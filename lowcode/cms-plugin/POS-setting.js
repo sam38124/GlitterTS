@@ -156,26 +156,28 @@ height: 51px;
     }
     static main(gvc) {
         const glitter = gvc.glitter;
-        if (glitter.deviceType === glitter.deviceTypeEnum.Android) {
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
-            script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
-            script.referrerPolicy = 'no-referrer';
-            script.crossOrigin = 'anonymous';
-            document.head.appendChild(script);
-        }
-        glitter.addMtScript([
-            'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js'
-        ], () => {
-        }, () => {
-        });
-        setTimeout(() => {
-            window.IminPrintInstance = new IminPrinter();
-            window.IminPrintInstance.connect();
-        }, 3000);
+        localStorage.setItem('on-pos', 'true');
         gvc.glitter.runJsInterFace("pos-device", {}, (res) => {
-            PayConfig.deviceType = res.deviceType || 'web';
+            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
+            if (PayConfig.deviceType === 'pos') {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
+                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
+                script.referrerPolicy = 'no-referrer';
+                script.crossOrigin = 'anonymous';
+                document.head.appendChild(script);
+                glitter.addMtScript([
+                    'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
+                    'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'
+                ], () => {
+                }, () => {
+                });
+                setTimeout(() => {
+                    window.IminPrintInstance = new IminPrinter();
+                    window.IminPrintInstance.connect();
+                }, 3000);
+            }
         });
         gvc.addStyle(`
                 .dialog-box {
@@ -437,6 +439,7 @@ cursor: pointer;
                                     const select_member = (_a = member_auth.find((dd) => {
                                         return dd.config.member_id === POSSetting.config.who;
                                     })) !== null && _a !== void 0 ? _a : { config: { title: '管理員', name: 'manager' } };
+                                    glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who;
                                     resolve(`<div class="h-100 group dropdown border-start ps-1 d-flex align-items-center" style="" >
 <div class=" btn btn-outline-secondary  border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <div class="d-flex align-items-center px-2" style="gap:5px;">
@@ -553,6 +556,12 @@ cursor: pointer;
                                         }
                                         return view;
                                     })().join('<div class="dropdown-divider"></div>')}
+                                ${(POSSetting.config.who === 'manager') ? `<div class="dropdown-divider"></div>
+    <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
+                                        localStorage.removeItem('on-pos');
+                                        location.href = `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`;
+                                    })}">返回全通路後臺</a>
+` : ``}
                             </div>
                             </div>`);
                                 }));
