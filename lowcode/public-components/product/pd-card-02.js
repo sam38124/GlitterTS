@@ -13,7 +13,7 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
 const html = String.raw;
-export class ProductCardC02 {
+export class ProductCard02 {
     static main(gvc, widget, subData) {
         var _a, _b;
         const glitter = gvc.glitter;
@@ -282,5 +282,5 @@ export class ProductCardC02 {
         </div>`;
     }
 }
-ProductCardC02.noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
-window.glitter.setModule(import.meta.url, ProductCardC02);
+ProductCard02.noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
+window.glitter.setModule(import.meta.url, ProductCard02);

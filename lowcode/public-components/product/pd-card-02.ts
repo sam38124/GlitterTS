@@ -7,7 +7,7 @@ import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
-export class ProductCardC02 {
+export class ProductCard02 {
     static noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
 
     static main(gvc: GVC, widget: any, subData: any) {
@@ -291,4 +291,4 @@ export class ProductCardC02 {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ProductCardC02);
+(window as any).glitter.setModule(import.meta.url, ProductCard02);
