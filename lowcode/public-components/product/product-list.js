@@ -260,7 +260,7 @@ export class ProductList {
                 return '';
             }
         }
-        function getProductList(callback) {
+        function getProductList() {
             return __awaiter(this, void 0, void 0, function* () {
                 const orderByParam = glitter.getUrlParameter('order_by');
                 const page = parseInt(`${vm.pageIndex}`, 10) - 1;
@@ -281,12 +281,19 @@ export class ProductList {
                     orderBy: orderBy,
                     with_hide_index: 'false',
                 };
-                return ApiShop.getProduct(inputObj).then((data) => {
-                    vm.pageSize = Math.ceil(data.response.total / parseInt(limit, 10));
-                    if (parseInt(`${vm.pageIndex}`, 10) >= data.response.data.pageSize) {
-                        vm.pageIndex = vm.pageSize - 1;
-                    }
-                    callback(data.response.data);
+                return new Promise((resolve, reject) => {
+                    ApiShop.getProduct(inputObj).then((data) => {
+                        try {
+                            vm.pageSize = Math.ceil(data.response.total / parseInt(limit, 10));
+                            if (parseInt(`${vm.pageIndex}`, 10) >= data.response.data.pageSize) {
+                                vm.pageIndex = vm.pageSize - 1;
+                            }
+                            resolve(data.response.data);
+                        }
+                        catch (error) {
+                            resolve([]);
+                        }
+                    });
                 });
             });
         }
@@ -507,8 +514,21 @@ export class ProductList {
                 onCreate: () => {
                     if (loadings.product) {
                         gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
-                            getProductList((dataList) => {
-                                vm.dataList = dataList;
+                            Promise.all([
+                                getProductList(),
+                                new Promise((resolve) => {
+                                    ApiShop.getWishList().then((data) => {
+                                        try {
+                                            resolve(data.response.data);
+                                        }
+                                        catch (error) {
+                                            resolve([]);
+                                        }
+                                    });
+                                }),
+                            ]).then((dataList) => {
+                                vm.dataList = dataList[0];
+                                window.glitter.share.wishList = dataList[1];
                                 loadings.product = false;
                                 gvc.notifyDataChange(ids.product);
                             });
