@@ -272,9 +272,9 @@ export class ProductDetail {
                     }, 200);
 
                     function updateSwiperHeight() {
-                        const container = document.getElementById('swiper-container');
-                        const swiper = document.getElementById('dynamic-swiper');
                         const size = setTimeout(() => {
+                            const container = document.getElementById('swiper-container');
+                            const swiper = document.getElementById('dynamic-swiper');
                             if (swiper && container) {
                                 const rem = document.body.clientWidth > 768 ? '2rem' : '0rem';
                                 swiper.style.height = `calc(${container.clientWidth}px - ${rem})`;
