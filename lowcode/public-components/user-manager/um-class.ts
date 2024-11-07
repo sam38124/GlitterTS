@@ -6,7 +6,7 @@ const html = String.raw;
 export class UmClass {
     static nav(gvc: GVC) {
         gvc.addStyle(`
-            .um-nav-container {
+            .um-container {
                 width: 1000px;
                 max-width: 100%;
             }
@@ -100,7 +100,7 @@ export class UmClass {
     }
 
     static spinner() {
-        return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
+        return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: 100vh">
             <div class="spinner-border" role="status"></div>
             <span class="mt-3">載入中</span>
         </div>`;
