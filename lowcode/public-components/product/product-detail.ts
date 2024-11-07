@@ -55,9 +55,9 @@ export class ProductDetail {
 
     public static main(gvc: GVC, widget: any, subData: any) {
         //移除所有查詢
-        const url=new URL(location.href)
-        for (const b of url.searchParams.keys()){
-            gvc.glitter.setUrlParameter(b,undefined);
+        const url = new URL(location.href);
+        for (const b of url.searchParams.keys()) {
+            gvc.glitter.setUrlParameter(b, undefined);
         }
         const glitter = gvc.glitter;
         const isPhone = document.body.clientWidth < 768;
@@ -106,8 +106,8 @@ export class ProductDetail {
 
                     return html`<div class="container">
                         <div class="row" style="${isPhone ? 'margin: 1rem 0; width: 100%;' : 'margin: 7rem;'}">
-                            <div class="col-12 col-md-6 px-0 px-md-3">
-                                <div class="swiper" style="height: ${document.body.clientWidth > 450 ? 450 : document.body.clientWidth - 40}px;">
+                            <div class="col-12 col-md-6 px-0 px-md-3" id="swiper-container">
+                                <div class="swiper" id="dynamic-swiper">
                                     <div class="swiper-wrapper">
                                         ${prod.preview_image
                                             .map((image, index) => {
@@ -132,7 +132,7 @@ export class ProductDetail {
                                     </div>
                                 </div>
                             </div>
-              <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor, prod, vm })}</div>
+                            <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor, prod, vm })}</div>
                         </div>
                         <div style="d-flex flex-column align-items-center mt-4">
                             ${gvc.bindView(
@@ -267,10 +267,23 @@ export class ProductDetail {
                                     swiper: thumbs,
                                 },
                             });
-
                             clearInterval(si);
                         }
                     }, 200);
+
+                    function updateSwiperHeight() {
+                        const container = document.getElementById('swiper-container');
+                        const swiper = document.getElementById('dynamic-swiper');
+                        const size = setTimeout(() => {
+                            if (swiper && container) {
+                                const rem = document.body.clientWidth > 768 ? '2rem' : '0rem';
+                                swiper.style.height = `calc(${container.clientWidth}px - ${rem})`;
+                                clearInterval(size);
+                            }
+                        }, 200);
+                    }
+                    updateSwiperHeight();
+                    window.addEventListener('resize', updateSwiperHeight);
                 }
             },
         });
