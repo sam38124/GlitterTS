@@ -101,8 +101,7 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => {
-            });
+            await sns.sendSNS({ data: data.content, phone: account }, () => { });
             return {
                 result: true,
             };
@@ -731,6 +730,7 @@ class User {
                             trigger: false,
                             og: dd,
                             leak: leak,
+                            sum: sum,
                         };
                     }
                 }
@@ -1735,8 +1735,7 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;

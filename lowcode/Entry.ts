@@ -64,7 +64,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.663';
+        glitter.share.editerVersion = 'V_13.8.7';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -215,8 +215,8 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
-        if(localStorage.getItem('on-pos')==='true'){
-            location.href=glitter.root_path+'pos?app-id=t_1725992531001'
+        if (localStorage.getItem('on-pos') === 'true') {
+            location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
