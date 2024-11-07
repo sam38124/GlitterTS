@@ -1238,18 +1238,13 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
         function next() {
             PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
         }
-
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
                 gvc.glitter.runJsInterFace(
                     'credit_card',
                     {
                         amount: `${orderDetail.total}`,
-                        memo: orderDetail.lineItems
-                            .map((data: any) => {
-                                return `${data.title} * ${data.count}`;
-                            })
-                            .join(','),
+                        memo: `訂單ID:${orderDetail.id}`,
                     },
                     (res: any) => {
                         if (res.result) {
@@ -1735,7 +1730,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                     setTimeout(async ()=>{
                                         await IminPrintInstance.printAndFeedPaper(5)
                                         await IminPrintInstance.setQrCodeSize(2);
-                                        await IminPrintInstance.setDoubleQRSize(3)
+                                        await IminPrintInstance.setDoubleQRSize(4)
                                         await IminPrintInstance.setDoubleQR1MarginLeft(10)
                                         await IminPrintInstance.setDoubleQR2MarginLeft(520)
                                         const ba=(new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size))*1.1
