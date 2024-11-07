@@ -197,11 +197,16 @@ router.post('/search-product', async (req: express.Request, resp: express.Respon
 
         const pd=await new Shopping(req.get('g-app') as string, req.body.token).getProduct({page:0,limit:10000})
      for (const b of pd.data){
-         await openai.beta.threads.messages.create(thread, { role: 'user', content: `新增一件商品，商品的JSON資料格式為:${JSON.stringify({
-                 id:b.content.id,
-                 title:b.content.title,
-                 variants:b.content.variants
-             })}`})
+         const content=`新增一件商品，商品名稱為:${b.content.title}，商品ID為:${b.content.id}，
+商品價格為:${b.content.min_price}，商品規格有:${b.content.specs.map((dd:any)=>{
+             return dd.title
+         }).join(',')}，其中${b.content.specs.map((dd:any)=>{
+             return `有${dd.option.map((dd:any)=>{
+                 return dd.title
+             }).join(',')}，總共${dd.option.length}種${dd.title}`
+         }).join(',')}`
+         console.log(`content+`,content)
+         await openai.beta.threads.messages.create(thread, { role: 'user', content:content })
      }
 
         return response.succ(resp, {

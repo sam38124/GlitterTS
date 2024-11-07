@@ -558,6 +558,8 @@ cursor: pointer;
                                     })().join('<div class="dropdown-divider"></div>')}
                                 ${(POSSetting.config.who === 'manager') ? `<div class="dropdown-divider"></div>
     <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         location.href = `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`;
                                     })}">返回全通路後臺</a>

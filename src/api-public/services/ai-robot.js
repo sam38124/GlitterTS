@@ -741,7 +741,7 @@ class AiRobot {
                 apiKey: process_1.default.env.OPENAI_API_KEY,
             });
             const myAssistant = await openai.beta.assistants.create({
-                instructions: `你是一個商品搜索員，首先我會提供給你多個商品資訊，請先協助將商品加入分析資料庫，最後我會向你提出問題，請找出符合敘述的商品。`,
+                instructions: `你是一個商品搜索員，首先我會提供給你多個商品資訊，請先協助將商品加入分析資料庫，最後我會向你提出問題，請找出符合規則的商品。`,
                 name: '數據分析師',
                 response_format: {
                     "type": "json_schema", "json_schema": {
@@ -751,7 +751,7 @@ class AiRobot {
                             "properties": {
                                 "products": {
                                     "type": "array",
-                                    "description": "包含商品的陣列，每個商品都有ID和名稱。",
+                                    "description": "代表商品的陣列，每個商品都有ID和名稱。",
                                     "items": {
                                         "type": "object",
                                         "properties": {

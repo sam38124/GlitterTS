@@ -101,7 +101,8 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => { });
+            await sns.sendSNS({ data: data.content, phone: account }, () => {
+            });
             return {
                 result: true,
             };
@@ -187,6 +188,7 @@ class User {
     }
     async createUserHook(userID) {
         const usData = await this.getUserData(userID, 'userID');
+        usData.userData.repeatPwd = undefined;
         await database_1.default.query(`update \`${this.app}\`.t_user
              set userData=?
              where userID = ?`, [
@@ -304,9 +306,9 @@ class User {
                    and status = 1`, [fbResponse.email]))[0];
         data.userData['fb-id'] = fbResponse.id;
         await database_1.default.execute(`update \`${this.app}\`.t_user
-                          set userData=?
-                          where userID = ?
-                            and id > 0`, [JSON.stringify(data.userData), data.userID]);
+             set userData=?
+             where userID = ?
+               and id > 0`, [JSON.stringify(data.userData), data.userID]);
         const usData = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
         usData.token = await UserUtil_1.default.generateToken({
@@ -406,9 +408,9 @@ class User {
             const usData = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = userData.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                              set userData=?
-                              where userID = ?
-                                and id > 0`, [JSON.stringify(data.userData), data.userID]);
+                 set userData=?
+                 where userID = ?
+                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
                 user_id: usData['userID'],
@@ -544,9 +546,9 @@ class User {
                        and status = 1`, [decoded.payload.email]))[0];
             data.userData['apple-id'] = uid;
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                              set userData=?
-                              where userID = ?
-                                and id > 0`, [JSON.stringify(data.userData), data.userID]);
+                 set userData=?
+                 where userID = ?
+                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -1346,13 +1348,13 @@ class User {
         try {
             if (query.id) {
                 await database_1.default.query(`delete
-                 FROM \`${this.app}\`.t_user
-                 where id in (?)`, [query.id.split(',')]);
+                     FROM \`${this.app}\`.t_user
+                     where id in (?)`, [query.id.split(',')]);
             }
             else if (query.email) {
                 await database_1.default.query(`delete
-                 FROM \`${this.app}\`.t_user
-                 where userData->>'$.email'=?`, [query.email]);
+                     FROM \`${this.app}\`.t_user
+                     where userData ->>'$.email'=?`, [query.email]);
             }
             return {
                 result: true,
@@ -1378,11 +1380,21 @@ class User {
             });
             register_form.list = (_a = register_form.list) !== null && _a !== void 0 ? _a : [];
             form_check_js_1.FormCheck.initialRegisterForm(register_form.list);
+            if (par.userData.pwd) {
+                if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
+                    await database_1.default.query(`update \`${this.app}\`.\`t_user\` set pwd=? where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+                }
+                else {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+                        msg: 'email-verify-false',
+                    });
+                }
+            }
             if (par.userData.email && par.userData.email !== userData.userData.email) {
                 const count = (await database_1.default.query(`select count(1)
-                                               from \`${this.app}\`.\`t_user\`
-                                               where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
-                                                 and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                         from \`${this.app}\`.\`t_user\`
+                         where (userData ->>'$.email' = ${database_1.default.escape(par.userData.email)})
+                           and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'email-exists',
@@ -1400,9 +1412,9 @@ class User {
             }
             if (par.userData.phone && par.userData.phone !== userData.userData.phone) {
                 const count = (await database_1.default.query(`select count(1)
-                                               from \`${this.app}\`.\`t_user\`
-                                               where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
-                                                 and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
+                         from \`${this.app}\`.\`t_user\`
+                         where (userData ->>'$.phone' = ${database_1.default.escape(par.userData.phone)})
+                           and (userID != ${database_1.default.escape(userID)}) `, []))[0]['count(1)'];
                 if (count) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', {
                         msg: 'phone-exists',
@@ -1723,7 +1735,8 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) { }
+        catch (e) {
+        }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
