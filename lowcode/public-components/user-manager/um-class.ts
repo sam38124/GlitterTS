@@ -1,6 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
@@ -27,12 +28,12 @@ export class UmClass {
                 title: '訂單記錄',
             },
             {
-                key: 'wish_container',
+                key: 'wishlist',
                 title: '心願單',
             },
             {
                 key: 'reset_password',
-                title: '修改密碼',
+                title: '重設密碼',
             },
             {
                 key: 'logout',
@@ -45,7 +46,7 @@ export class UmClass {
                         class="option px-4 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
                         onclick="${gvc.event(() => {
                             if (item.key === 'reset_password') {
-                                console.log('修改密碼事件');
+                                console.log('重設密碼事件');
                             } else if (item.key === 'logout') {
                                 GlobalUser.token = '';
                                 changePage('index', 'home', {});
@@ -64,7 +65,7 @@ export class UmClass {
             <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title">我的帳號</div>
             ${document.body.clientWidth > 768
                 ? html`<div class="mx-auto mt-3 um-nav-container">
-                      <div class="account-options d-flex gap-4">${buttonHTML}</div>
+                      <div class="account-options d-flex gap-3">${buttonHTML}</div>
                   </div>`
                 : html`<div class="account-navigation w-100">
                       <nav class="nav-links mb-3 mb-md-0">
@@ -74,8 +75,8 @@ export class UmClass {
         </div>`;
     }
 
-    static spinner() {
-        return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: 100vh">
+    static spinner(height?: string): string {
+        return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height ?? '100vh'}">
             <div class="spinner-border" role="status"></div>
             <span class="mt-3">載入中</span>
         </div>`;
@@ -163,7 +164,7 @@ export class UmClass {
                 border-radius: 22px;
                 height: 44px;
                 cursor: pointer;
-                width: 120px;
+                width: 108px;
                 font-size: 16px;
             }
             .um-nav-btn.um-nav-btn-active {
@@ -278,8 +279,8 @@ export class UmClass {
             .um-rb-amount {
                 display: flex;
                 align-items: center;
-                font-size: 36px;
-                line-height: 36px;
+                font-size: 32px;
+                line-height: 32px;
             }
 
             .um-container {
@@ -342,6 +343,49 @@ export class UmClass {
                 color: #292218;
             }
 
+            .um-img-bgr {
+                padding-bottom: 100%;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+
+            .um-card-title {
+                font-weight: 600;
+                color: #292218;
+            }
+
+            .um-icon-container {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: white;
+                color: black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .card-sale-price {
+                font-style: normal;
+                line-height: normal;
+                font-size: 16px;
+                opacity: 0.9;
+                color: #322b25;
+            }
+            .card-cost-price {
+                color: #d45151;
+                font-style: normal;
+                font-weight: 400;
+                line-height: normal;
+                font-size: 14px;
+                margin-right: 4px;
+                letter-spacing: -0.98px;
+            }
+
             @media (min-width: 576px) {
                 .um-container {
                     max-width: 540px;
@@ -359,6 +403,10 @@ export class UmClass {
                 }
                 .um-nav-title {
                     font-size: 30px;
+                }
+                .um-rb-amount {
+                    font-size: 36px;
+                    line-height: 36px;
                 }
             }
 
@@ -380,5 +428,62 @@ export class UmClass {
                 }
             }
         `);
+    }
+
+    static jumpAlert(obj: { gvc: GVC; text: string; justify: 'top' | 'bottom'; align: 'left' | 'center' | 'right'; timeout?: number; width?: number }) {
+        const className = Tool.randomString(5);
+        const fixedStyle = (() => {
+            let style = '';
+            if (obj.justify === 'top') {
+                style += `top: 90px;`;
+            } else if (obj.justify === 'bottom') {
+                style += `bottom: 24px;`;
+            }
+            if (obj.align === 'left') {
+                style += `left: 12px;`;
+            } else if (obj.align === 'center') {
+                style += `left: 50%; right: 50%;`;
+            } else if (obj.align === 'right') {
+                style += `right: 12px;`;
+            }
+            return style;
+        })();
+        const transX = obj.align === 'center' ? '-50%' : '0';
+
+        obj.gvc.addStyle(`
+            .bounce-effect-${className} {
+                animation: bounce 0.5s alternate;
+                animation-iteration-count: 2;
+                position: fixed;
+                ${fixedStyle}
+                background-color: #393939;
+                opacity: 0.85;
+                color: white;
+                padding: 10px;
+                border-radius: 8px;
+                width: ${obj.width ?? 120}px;
+                text-align: center;
+                z-index: 100001;
+                transform: translateX(${transX});
+            }
+
+            @keyframes bounce {
+                0% {
+                    transform: translate(${transX}, 0);
+                }
+                100% {
+                    transform: translate(${transX}, -6px);
+                }
+            }
+        `);
+
+        const htmlString = html`<div class="bounce-effect-${className}">${obj.text}</div>`;
+        obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
+        setTimeout(() => {
+            const element = document.querySelector(`.bounce-effect-${className}`) as HTMLElement;
+            if (element) {
+                element.remove();
+            }
+        }, obj.timeout ?? 2000);
     }
 }

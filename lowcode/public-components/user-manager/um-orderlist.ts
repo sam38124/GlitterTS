@@ -147,12 +147,11 @@ export class UMInfo {
                     return UmClass.spinner();
                 } else {
                     const isWebsite = document.body.clientWidth > 768;
-                    console.log(vm.dataList);
                     return html`
                         <div class="um-container row">
                             <div class="col-12">${UmClass.nav(gvc)}</div>
-                            <div class="col-12 mt-3">
-                                <div class="mx-auto orderList pt-3 mb-4 s158323">
+                            <div class="col-12 mt-2" style="min-height: 500px;">
+                                <div class="mx-auto orderList pt-1 pt-md-3 mb-4">
                                     ${(() => {
                                         if (vm.dataList.length === 0) {
                                             return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
@@ -245,6 +244,9 @@ export class UMInfo {
                                                     return html`<div class="um-mobile-area">
                                                         ${formatText(item)
                                                             .map((dd, index) => {
+                                                                if (header[index].title === '') {
+                                                                    return dd;
+                                                                }
                                                                 return html`<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
                                                             })
                                                             .join('')}

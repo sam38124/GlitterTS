@@ -223,7 +223,7 @@ export class UMInfo {
                                                             bind: id,
                                                             view: () => {
                                                                 if (loading) {
-                                                                    return UmClass.spinner();
+                                                                    return UmClass.spinner('100%');
                                                                 } else {
                                                                     return html` <div style="text-align: center; vertical-align: middle;">
                                                                         <img src="${img}" />
@@ -295,7 +295,7 @@ export class UMInfo {
                                         </div>`;
                                 })()}
                             </div>
-                            <div class="w-100 mt-4">
+                            <div class="w-100 mt-4" style="min-height: 500px;">
                                 <div class="um-title my-2">編輯個人資料</div>
                                 ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();

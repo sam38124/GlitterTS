@@ -134,7 +134,21 @@ export class ProductCard01 {
                 letter-spacing: -0.98px;
             }
         `);
-        return html `<div class="card mb-7 card-border">
+        return html `<div
+            class="card mb-7 card-border"
+            onclick="${gvc.event(() => {
+            let path = '';
+            if (!(prod.seo && prod.seo.domain)) {
+                glitter.setUrlParameter('product_id', subData.id);
+                path = 'products';
+            }
+            else {
+                glitter.setUrlParameter('product_id', undefined);
+                path = `products/${prod.seo.domain}`;
+            }
+            changePage(path, 'page', {});
+        })}"
+        >
             <div
                 class="card-img-top parent card-image"
                 style="background-image: url('${(() => {
@@ -149,18 +163,6 @@ export class ProductCard01 {
             }
             return rela_link;
         })()}')"
-                onclick="${gvc.event(() => {
-            let path = '';
-            if (!(prod.seo && prod.seo.domain)) {
-                glitter.setUrlParameter('product_id', subData.id);
-                path = 'products';
-            }
-            else {
-                glitter.setUrlParameter('product_id', undefined);
-                path = `products/${prod.seo.domain}`;
-            }
-            changePage(path, 'page', {});
-        })}"
             >
                 <div class="child add-cart-child">
                     <div
@@ -265,8 +267,7 @@ export class ProductCard01 {
             return `NT.$ ${minPrice.toLocaleString()}`;
         })()}
                             </div>
-                            <div class="text-decoration-line-through d-none card-cost-price">
-                                ${(() => {
+                            ${(() => {
             var _a, _b;
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
@@ -274,9 +275,11 @@ export class ProductCard01 {
             const comparePrice = (_b = ((_a = prod.variants.find((dd) => {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
-            return `NT.$ ${(minPrice < comparePrice ? comparePrice : minPrice).toLocaleString()}`;
+            if (comparePrice > 0 && minPrice < comparePrice) {
+                return html `<div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+            }
+            return '';
         })()}
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -15,18 +15,20 @@ import { Tool } from '../../modules/tool.js';
 const html = String.raw;
 export class ProductCard02 {
     static main(gvc, widget, subData) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
         const prod = subData.content;
         const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+        const borderButtonBgr = (_b = glitter.share.globalValue['theme_color.0.border-button-bg']) !== null && _b !== void 0 ? _b : '#fff';
+        const borderButtonText = (_c = glitter.share.globalValue['theme_color.0.border-button-text']) !== null && _c !== void 0 ? _c : '#333333';
         const vm = {
             quantity: '1',
             data: prod,
             specs: prod.specs.map((spec) => {
                 return spec.option[0].title;
             }),
-            wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
+            wishStatus: ((_d = glitter.share.wishList) !== null && _d !== void 0 ? _d : []).some((item) => {
                 return item.id === prod.id;
             }),
         };
@@ -73,8 +75,10 @@ export class ProductCard02 {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #322b25;
-                color: #ffffff;
+                background: #fff;
+                color: ${borderButtonText};
+                border: 1px solid ${borderButtonBgr};
+                border-radius: 10px;
             }
             .wish-button {
                 cursor: pointer;
@@ -131,7 +135,22 @@ export class ProductCard02 {
                 letter-spacing: -0.98px;
             }
         `);
-        return html `<div class="card mb-7 card-border">
+        return html `<div
+            class="card mb-7 card-border"
+            style="cursor: pointer"
+            onclick="${gvc.event(() => {
+            let path = '';
+            if (!(prod.seo && prod.seo.domain)) {
+                glitter.setUrlParameter('product_id', subData.id);
+                path = 'products';
+            }
+            else {
+                glitter.setUrlParameter('product_id', undefined);
+                path = `products/${prod.seo.domain}`;
+            }
+            changePage(path, 'page', {});
+        })}"
+        >
             <div
                 class="card-img-top parent card-image"
                 style="background-image: url('${(() => {
@@ -146,22 +165,11 @@ export class ProductCard02 {
             }
             return rela_link;
         })()}')"
-                onclick="${gvc.event(() => {
-            let path = '';
-            if (!(prod.seo && prod.seo.domain)) {
-                glitter.setUrlParameter('product_id', subData.id);
-                path = 'products';
-            }
-            else {
-                glitter.setUrlParameter('product_id', undefined);
-                path = `products/${prod.seo.domain}`;
-            }
-            changePage(path, 'page', {});
-        })}"
             ></div>
             <div
                 class="wishBt wish-button"
-                onclick="${gvc.event(() => {
+                onclick="${gvc.event((e, event) => {
+            event.stopPropagation();
             if (CheckInput.isEmpty(GlobalUser.token)) {
                 changePage('login', 'page', {});
                 return;
@@ -220,8 +228,7 @@ export class ProductCard02 {
             return `NT.$ ${minPrice.toLocaleString()}`;
         })()}
                             </div>
-                            <div class="text-decoration-line-through d-none card-cost-price">
-                                ${(() => {
+                            ${(() => {
             var _a, _b;
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
@@ -229,9 +236,11 @@ export class ProductCard02 {
             const comparePrice = (_b = ((_a = prod.variants.find((dd) => {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
-            return `NT.$ ${(minPrice < comparePrice ? comparePrice : minPrice).toLocaleString()}`;
+            if (comparePrice > 0 && minPrice < comparePrice) {
+                return html `<div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+            }
+            return '';
         })()}
-                            </div>
                         </div>
                     </div>
                     <div class="add-cart-child">

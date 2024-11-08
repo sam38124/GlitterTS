@@ -56,15 +56,15 @@ export class UMInfo {
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>
                                     <div class="${isWebsite ? '' : 'd-flex align-items-center gap-2'}">
                                         <div class="fw-500 fs-6">現有購物金</div>
-                                        <div class="fw-bold mt-0 mt-md-1 um-rb-amount">${vm.amount}</div>
+                                        <div class="fw-bold mt-0 mt-md-1 mb-1 um-rb-amount">${vm.amount}</div>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <div class="d-flex align-items-center gap-3">${vm.oldestText}</div>
                                 </div>
                             </div>
-                            <div class="col-12 mt-3">
-                                <div class="mx-auto orderList pt-3 mb-4 s158323">
+                            <div class="col-12 mt-2" style="min-height: 500px;">
+                                <div class="mx-auto orderList pt-md-3 mb-4">
                                     ${(() => {
                                         if (vm.dataList.length === 0) {
                                             return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
