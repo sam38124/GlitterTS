@@ -355,7 +355,7 @@ background: #FFF;`
                                                                                         <i class="fa-solid fa-magnifying-glass"
                                                                                            style="color: #8D8D8D;"></i>
                                                                                         <div style="flex: 1 1 0; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">
-                                                                                            搜尋會員信箱/電話/編號/名稱
+                                                                                            搜尋會員信箱 / 電話 / 編號
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -810,7 +810,7 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`,
                                                 .map((btn) => {
                                                     return html`
                                                         <div
-                                                                style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 20px;border-radius: 10px;background: #F6F6F6;${vm.paySelect ==
+                                                                style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 15px 15px;border-radius: 10px;background: #F6F6F6;${vm.paySelect ==
                                                                 btn.value
                                                                         ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);`
                                                                         : 'color:#8D8D8D;'}"

@@ -80,10 +80,6 @@ export class Footer02 {
             }
         `);
 
-        let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
-        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
-            changePage = cl.changePage;
-        });
 
         return html`<footer class="f-bgr">
             <div class="border-gray-700 pt-4 pt-md-0">
@@ -104,7 +100,7 @@ export class Footer02 {
                                                                 style="${chi.page ? 'cursor: pointer;' : ''}"
                                                                 onclick="${gvc.event(() => {
                                                                     if (chi.page) {
-                                                                        changePage(chi.page, 'page', {});
+                                                                      gvc.glitter.href=chi.page
                                                                     }
                                                                 })}"
                                                             >
@@ -130,7 +126,7 @@ export class Footer02 {
                                                 return html` <div class="f-icon-div">
                                                     <div
                                                         onclick="${gvc.event(() => {
-                                                            changePage(item.link, 'page', {});
+                                                            gvc.glitter.href=item.link
                                                         })}"
                                                     >
                                                         <img

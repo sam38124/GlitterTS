@@ -147,13 +147,15 @@ export class UMVoucher {
                                         gvc,
                                         tag: 'user-qr-code',
                                         title: '優惠券詳細內容',
-                                        innerHTML: html `
+                                        innerHTML: (gvc) => {
+                                            return html `
                                                                     <div class="d-flex gap-2 flex-column my-2">
                                                                         ${gvc.map(getVoucherTextList(item).map((text) => {
-                                            return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">${text}</div>`;
-                                        }))}
+                                                return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">${text}</div>`;
+                                            }))}
                                                                     </div>
-                                                                `,
+                                                                `;
+                                        },
                                     });
                                 })}"
                                                     >
@@ -166,47 +168,49 @@ export class UMVoucher {
                                         gvc,
                                         tag: 'user-qr-code',
                                         title: '優惠券 QR code',
-                                        innerHTML: gvc.bindView((() => {
-                                            const id = glitter.getUUID();
-                                            let loading = true;
-                                            let img = '';
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    if (loading) {
-                                                        return UmClass.spinner('100%');
-                                                    }
-                                                    else {
-                                                        return html ` <div style="text-align: center; vertical-align: middle;">
+                                        innerHTML: (gvc) => {
+                                            return gvc.bindView((() => {
+                                                const id = glitter.getUUID();
+                                                let loading = true;
+                                                let img = '';
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        if (loading) {
+                                                            return UmClass.spinner('100%');
+                                                        }
+                                                        else {
+                                                            return html ` <div style="text-align: center; vertical-align: middle;">
                                                                                         <img src="${img}" />
                                                                                     </div>`;
-                                                    }
-                                                },
-                                                divCreate: {},
-                                                onCreate: () => {
-                                                    if (loading) {
-                                                        const si = setInterval(() => {
-                                                            const qr = window.QRCode;
-                                                            if (qr) {
-                                                                qr.toDataURL(`voucher-${item.code}`, {
-                                                                    width: 400,
-                                                                    margin: 2,
-                                                                }, (err, url) => {
-                                                                    if (err) {
-                                                                        console.error(err);
-                                                                        return;
-                                                                    }
-                                                                    img = url;
-                                                                    loading = false;
-                                                                    gvc.notifyDataChange(id);
-                                                                });
-                                                                clearInterval(si);
-                                                            }
-                                                        }, 300);
-                                                    }
-                                                },
-                                            };
-                                        })()),
+                                                        }
+                                                    },
+                                                    divCreate: {},
+                                                    onCreate: () => {
+                                                        if (loading) {
+                                                            const si = setInterval(() => {
+                                                                const qr = window.QRCode;
+                                                                if (qr) {
+                                                                    qr.toDataURL(`voucher-${item.code}`, {
+                                                                        width: 400,
+                                                                        margin: 2,
+                                                                    }, (err, url) => {
+                                                                        if (err) {
+                                                                            console.error(err);
+                                                                            return;
+                                                                        }
+                                                                        img = url;
+                                                                        loading = false;
+                                                                        gvc.notifyDataChange(id);
+                                                                    });
+                                                                    clearInterval(si);
+                                                                }
+                                                            }, 300);
+                                                        }
+                                                    },
+                                                };
+                                            })());
+                                        }
                                     });
                                 })}"
                                                     >
