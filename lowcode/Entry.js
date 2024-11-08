@@ -17,6 +17,11 @@ import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.reload = (page, app_name) => {
+            window.appName = app_name || window.appName;
+            window.glitter_page = page;
+            location.reload();
+        };
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -60,11 +65,10 @@ export class Entry {
         `);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
-            config.appName = glitter.getUrlParameter('appName');
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.7';
+        glitter.share.editerVersion = 'V_13.8.71';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -163,12 +167,57 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter);
                 });
+            }
+            else if (glitter.getUrlParameter('page') === 'backend_manager') {
+                if (!GlobalUser.token) {
+                    glitter.setUrlParameter('page', 'login');
+                    location.reload();
+                }
+                else {
+                    try {
+                        const appList = (yield ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
+                        localStorage.setItem('select_item', '0');
+                        if (appList.length === 0) {
+                            glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, (SaasViewModel) => {
+                                glitter.innerDialog((gvc) => {
+                                    return gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return SaasViewModel.createShop(gvc, true);
+                                            }
+                                        };
+                                    });
+                                }, 'change_app');
+                            });
+                        }
+                        else {
+                            let appName = appList[0].appName;
+                            if (appList.find((dd) => {
+                                return dd.appName === localStorage.getItem('select_app_name');
+                            })) {
+                                appName = localStorage.getItem('select_app_name');
+                            }
+                            glitter.setUrlParameter('page', 'index');
+                            glitter.setUrlParameter('type', 'editor');
+                            glitter.setUrlParameter('appName', appName);
+                            glitter.setUrlParameter('function', 'backend-manger');
+                            location.reload();
+                        }
+                    }
+                    catch (e) {
+                        glitter.setUrlParameter('page', 'login');
+                        location.reload();
+                    }
+                }
             }
             else {
                 Entry.toNormalRender(glitter, vm, () => {
@@ -202,7 +251,8 @@ export class Entry {
         }
     }
     static toBackendEditor(glitter, callback) {
-        if (localStorage.getItem('on-pos') === 'true') {
+        if ((localStorage.getItem('on-pos') === 'true') && glitter.getUrlParameter('page') !== 'pos') {
+            localStorage.removeItem('on-pos');
             location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
         glitter.addStyle(`
@@ -296,7 +346,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -330,7 +382,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -394,7 +448,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {
@@ -425,6 +480,20 @@ export class Entry {
         });
     }
     static resourceInitial(glitter, vm, callback) {
+        glitter.runJsInterFace('getTopInset', {}, (response) => {
+            glitter.share.top_inset = (response.data);
+        }, {
+            webFunction: () => {
+                return { data: 0 };
+            },
+        });
+        glitter.runJsInterFace('getBottomInset', {}, (response) => {
+            glitter.share.bottom_inset = (response.data);
+        }, {
+            webFunction: () => {
+                return { data: 0 };
+            },
+        });
         window.glitterInitialHelper.getPlugin((dd) => {
             var _a, _b, _c, _d, _e;
             console.log(`getPlugin-time:`, window.renderClock.stop());
@@ -503,6 +572,37 @@ export class Entry {
     static globalStyle(glitter, dd) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
+            function loopVersion() {
+                ApiPageConfig.getGlitterVersion().then((res) => {
+                    console.log('glitterVersion:', res.response.result);
+                    if (!glitter.share.editerVersion.includes(res.response.result)) {
+                        const dialog = new ShareDialog(glitter);
+                        dialog.checkYesOrNot({
+                            text: '新版本已發佈，是否進行更新?',
+                            callback: (response) => {
+                                if (response) {
+                                    location.reload();
+                                }
+                                else {
+                                    setTimeout(() => {
+                                        loopVersion();
+                                    }, 1000 * 300);
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        setTimeout(() => {
+                            loopVersion();
+                        }, 1000 * 300);
+                    }
+                });
+            }
+            if (glitter.getUrlParameter('type') === 'editor' || glitter.getUrlParameter('page') === 'pos') {
+                setTimeout(() => {
+                    loopVersion();
+                }, 1000 * 300);
+            }
             let countI = dd.response.data.initialList.length;
             const vm = {
                 get count() {

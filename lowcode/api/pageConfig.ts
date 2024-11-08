@@ -25,6 +25,17 @@ export class ApiPageConfig {
         })
     }
 
+    public static getGlitterVersion() {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/version?library=ts-glitter`,
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json"
+            }
+        })
+    }
+
     public static getTemplateList() {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/template?template_from=all`,

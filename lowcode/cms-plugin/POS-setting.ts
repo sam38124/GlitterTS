@@ -184,7 +184,6 @@ height: 51px;
 
     public static main(gvc: GVC) {
         const glitter = gvc.glitter
-        localStorage.setItem('on-pos', 'true')
         // https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js
         //設定裝置類型
         gvc.glitter.runJsInterFace("pos-device", {}, (res) => {
@@ -258,7 +257,6 @@ height: 51px;
         POSSetting.initialStyle(gvc);
         //提供給編輯器使用
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;
-        getConfig().config.appName = gvc.glitter.getUrlParameter('app-id');
         (window as any).glitterBase = 'shopnex';
         (window as any).appName = gvc.glitter.getUrlParameter('app-id');
         (window as any).saasConfig.config.token = GlobalUser.saas_token;
@@ -356,17 +354,17 @@ height: 51px;
                         return html`
                             <div
                                     class="d-flex nav-top"
-                                    style="z-index:20;height: ${(() => {
-                                        if (document.body.offsetWidth > 800) {
-                                            return `86px`
-                                        } else {
-                                            return `66px`
-                                        }
-                                    })()};width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
+                                    style="z-index:20;padding-top:${glitter.share.top_inset}px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
                             >
                                 <div
-                                        class="POS-logo h-100 d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
-                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}"
+                                        class="POS-logo  d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
+                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}height: ${(() => {
+                                            if (document.body.offsetWidth > 800) {
+                                                return `86px`
+                                            } else {
+                                                return `66px`
+                                            }
+                                        })()};"
                                 >
                                     ${document.body.offsetWidth < 800 && vm.type === 'menu'
                                             ? ` `
@@ -604,10 +602,11 @@ cursor: pointer;
                                                     })().join('<div class="dropdown-divider"></div>')}
                                 ${(POSSetting.config.who === 'manager') ? `<div class="dropdown-divider"></div>
     <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter)
-                                                        dialog.dataLoading({visible: true})
-                                                        localStorage.removeItem('on-pos')
-                                                        location.href = `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        dialog.dataLoading({visible: true});
+                                                        localStorage.removeItem('on-pos');
+                                                        (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
+                                                        glitter.share.reload('cms','shopnex');
                                                     })}">返回全通路後臺</a>
 ` : ``}
                             </div>
@@ -655,7 +654,7 @@ cursor: pointer;
                                 },
                                 divCreate: {
                                     class: `h-100 ${document.body.clientWidth < 768 ? `` : `d-flex`}`,
-                                    style: `background: #F7F7F7;`,
+                                    style: `background: #F7F7F7;padding-top:${glitter.share.top_inset}px;`,
                                 },
                             })}
                             ${gvc.bindView({

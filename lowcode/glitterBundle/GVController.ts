@@ -485,7 +485,9 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
         }
 
         if (cf.pageConfig.type === GVCType.Page) {
-            PageManager.setHistory(cf.pageConfig.tag, cf.c_type)
+            if(cf.pageConfig.push_stack){
+                PageManager.setHistory(cf.pageConfig.tag, cf.c_type)
+            }
             cf.pageConfig.carry_search.map((dd)=>{
                 gvc.glitter.setUrlParameter(dd.key,dd.value)
             })

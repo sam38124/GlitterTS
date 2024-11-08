@@ -40,6 +40,7 @@ export class PageConfig {
     public goBack: boolean;
     public src: string;
     public tag: string;
+    public push_stack:boolean;
     public createResource: () => void;
     public deleteResource: (destroy: boolean) => void;
     public type: GVCType;
@@ -63,6 +64,7 @@ export class PageConfig {
         goBack: boolean,
         src: string,
         tag: string,
+        push_stack:boolean,
         createResource: () => void,
         deleteResource: (destroy: boolean) => void,
         type: GVCType,
@@ -73,6 +75,7 @@ export class PageConfig {
         search?: string,
         carry_search?: {key:string,value:string}[]
     }) {
+        this.push_stack=par.push_stack;
         this.carry_search=par.carry_search || []
         this.initial = false
         this.search = par.search || '';
@@ -190,8 +193,10 @@ export class PageManager {
                             id: glitter.getUUID(),
                             obj: obj,
                             goBack: true,
+                            push_stack:false,
                             src: url,
                             tag: tag,
+
                             carry_search: option.carry_search,
                             deleteResource: () => {
                             },
@@ -345,6 +350,7 @@ export class PageManager {
                 goBack: goBack,
                 src: url,
                 tag: tag,
+                push_stack:true,
                 deleteResource: () => {
                 },
                 createResource: () => {
@@ -421,6 +427,7 @@ export class PageManager {
             goBack: true,
             src: url,
             tag: tag,
+            push_stack:false,
             deleteResource: () => {
             },
             createResource: () => {

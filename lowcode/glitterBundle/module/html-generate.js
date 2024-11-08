@@ -2383,6 +2383,11 @@ HtmlGenerate.renameWidgetID = (dd) => {
 HtmlGenerate.setHome = (obj) => {
     var _a, _b;
     const glitter = Glitter.glitter;
+    if (obj.tag === 'backend_manager') {
+        glitter.setUrlParameter('page', 'backend_manager');
+        location.reload();
+        return;
+    }
     glitter.setHome('glitterBundle/plugins/html-render.js', obj.tag, {
         app_config: obj.app_config,
         page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
@@ -2394,6 +2399,11 @@ HtmlGenerate.setHome = (obj) => {
 HtmlGenerate.changePage = (obj) => {
     var _a, _b;
     const glitter = Glitter.glitter;
+    if (obj.tag === 'backend_manager') {
+        glitter.setUrlParameter('page', 'backend_manager');
+        location.reload();
+        return;
+    }
     console.log(`changePage-time:`, window.renderClock.stop());
     glitter.changePage('glitterBundle/plugins/html-render.js', obj.tag, obj.goBack, {
         app_config: obj.app_config,

@@ -156,7 +156,6 @@ height: 51px;
     }
     static main(gvc) {
         const glitter = gvc.glitter;
-        localStorage.setItem('on-pos', 'true');
         gvc.glitter.runJsInterFace("pos-device", {}, (res) => {
             PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
             if (PayConfig.deviceType === 'pos') {
@@ -223,7 +222,6 @@ height: 51px;
             `);
         POSSetting.initialStyle(gvc);
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;
-        getConfig().config.appName = gvc.glitter.getUrlParameter('app-id');
         window.glitterBase = 'shopnex';
         window.appName = gvc.glitter.getUrlParameter('app-id');
         window.saasConfig.config.token = GlobalUser.saas_token;
@@ -315,18 +313,18 @@ height: 51px;
                     return html `
                             <div
                                     class="d-flex nav-top"
-                                    style="z-index:20;height: ${(() => {
+                                    style="z-index:20;padding-top:${glitter.share.top_inset}px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
+                            >
+                                <div
+                                        class="POS-logo  d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
+                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}height: ${(() => {
                         if (document.body.offsetWidth > 800) {
                             return `86px`;
                         }
                         else {
                             return `66px`;
                         }
-                    })()};width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
-                            >
-                                <div
-                                        class="POS-logo h-100 d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
-                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}"
+                    })()};"
                                 >
                                     ${document.body.offsetWidth < 800 && vm.type === 'menu'
                         ? ` `
@@ -561,7 +559,8 @@ cursor: pointer;
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
-                                        location.href = `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`;
+                                        (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
+                                        glitter.share.reload('cms', 'shopnex');
                                     })}">返回全通路後臺</a>
 ` : ``}
                             </div>
@@ -612,7 +611,7 @@ cursor: pointer;
                         }),
                         divCreate: {
                             class: `h-100 ${document.body.clientWidth < 768 ? `` : `d-flex`}`,
-                            style: `background: #F7F7F7;`,
+                            style: `background: #F7F7F7;padding-top:${glitter.share.top_inset}px;`,
                         },
                     })}
                             ${gvc.bindView({

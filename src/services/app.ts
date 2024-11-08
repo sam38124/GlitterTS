@@ -35,6 +35,32 @@ export class App {
         });
     }
 
+    public async checkVersion(libraryName:string){
+        // 获取当前工作目录
+        const currentDir = process.cwd();
+
+        // 获取 package.json 文件的路径
+        const packageJsonPath = path.join(currentDir, 'package.json');
+
+        // 读取 package.json 文件内容
+        if (fs.existsSync(packageJsonPath)) {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+            // 在 dependencies 和 devDependencies 中查找库的版本号
+            const dependencies = packageJson.dependencies || {};
+            const devDependencies = packageJson.devDependencies || {};
+
+            if (dependencies[libraryName]) {
+                return dependencies[libraryName];
+            } else if (devDependencies[libraryName]) {
+                return devDependencies[libraryName];
+            } else {
+                throw new Error(`Library ${libraryName} is not listed in dependencies or devDependencies`);
+            }
+        } else {
+            throw new Error('package.json not found in the current directory');
+        }
+    }
     public async createApp(cf: {
         appName: string;
         copyApp: string;

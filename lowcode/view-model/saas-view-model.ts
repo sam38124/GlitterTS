@@ -166,7 +166,8 @@ export class SaasViewModel {
                                                 callback: (bool) => {
                                                     if (bool) {
                                                         GlobalUser.saas_token = '';
-                                                        location.href = `${gvc.glitter.root_path}login`;
+                                                        window.history.replaceState({},document.title,gvc.glitter.root_path+'login')
+                                                        gvc.glitter.share.reload('login','shopnex')
                                                     }
                                                 },
                                                 text: '確定要登出嗎？',
