@@ -211,7 +211,8 @@ export class ProductCard01 {
             </div>
             <div
                 class="wishBt wish-button"
-                onclick="${gvc.event(() => {
+                onclick="${gvc.event((e, event) => {
+                    event.stopPropagation();
                     if (CheckInput.isEmpty(GlobalUser.token)) {
                         changePage('login', 'page', {});
                         return;
