@@ -92,7 +92,7 @@ interface Product {
     status: number;
 }
 
-export class UMInfo {
+export class UMWishList {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
         const vm = {
@@ -257,4 +257,4 @@ export class UMInfo {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, UMInfo);
+(window as any).glitter.setModule(import.meta.url, UMWishList);

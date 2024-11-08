@@ -11,7 +11,7 @@ import { UmClass } from './um-class.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 const html = String.raw;
-export class UMInfo {
+export class UMRebate {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
         const vm = {
@@ -222,4 +222,4 @@ export class UMInfo {
         });
     }
 }
-window.glitter.setModule(import.meta.url, UMInfo);
+window.glitter.setModule(import.meta.url, UMRebate);

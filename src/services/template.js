@@ -16,12 +16,12 @@ class Template {
             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
             where (user = ${this.token.userID} and appName = ${database_1.default.escape(appName)})
         `, []);
-        return count[0]["count(1)"] === 1;
+        return count[0]['count(1)'] === 1;
     }
     async createPage(config) {
         var _a, _b, _c;
         if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         if (config.copy) {
             const data = (await database_1.default.execute(`
@@ -36,39 +36,30 @@ class Template {
         }
         try {
             await database_1.default.execute(`
-                ${(config.replace) ? `replace` : 'insert'} into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
+                ${config.replace ? `replace` : 'insert'} into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
                                                                      page_config, page_type)
                 values (?, ?, ?, ?, ?, ?, ?, ?);
-            `, [
-                this.token.userID,
-                config.appName,
-                config.tag,
-                config.group,
-                config.name,
-                (_a = config.config) !== null && _a !== void 0 ? _a : [],
-                (_b = config.page_config) !== null && _b !== void 0 ? _b : {},
-                (_c = config.page_type) !== null && _c !== void 0 ? _c : 'page'
-            ]);
+            `, [this.token.userID, config.appName, config.tag, config.group, config.name, (_a = config.config) !== null && _a !== void 0 ? _a : [], (_b = config.page_config) !== null && _b !== void 0 ? _b : {}, (_c = config.page_type) !== null && _c !== void 0 ? _c : 'page']);
             return true;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("Forbidden", "This page already exists.", null);
+            throw exception_1.default.BadRequestError('Forbidden', 'This page already exists.', null);
         }
     }
     async updatePage(config) {
         if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
             const params = {};
-            config.appName && (params["appName"] = config.appName);
-            config.tag && (params["tag"] = config.tag);
-            config.group && (params["group"] = config.group);
-            config.page_type && (params["page_type"] = config.page_type);
-            config.name && (params["name"] = config.name);
-            config.config && (params["config"] = JSON.stringify(config.config));
+            config.appName && (params['appName'] = config.appName);
+            config.tag && (params['tag'] = config.tag);
+            config.group && (params['group'] = config.group);
+            config.page_type && (params['page_type'] = config.page_type);
+            config.name && (params['name'] = config.name);
+            config.config && (params['config'] = JSON.stringify(config.config));
             config.preview_image && (params['preview_image'] = config.preview_image);
-            config.page_config && (params["page_config"] = JSON.stringify(config.page_config));
+            config.page_config && (params['page_config'] = JSON.stringify(config.page_config));
             config.favorite && (params['favorite'] = config.favorite);
             config.updated_time = new Date();
             let sql = `
@@ -87,20 +78,22 @@ class Template {
             return true;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);
         }
     }
     async deletePage(config) {
         if (!(await this.verifyPermission(config.appName))) {
-            throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
             const params = {};
-            let sql = (config.id) ? `
+            let sql = config.id
+                ? `
                 delete
                 from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                 WHERE appName = ${database_1.default.escape(config.appName)}
-                  and id = ${database_1.default.escape(config.id)}` : `
+                  and id = ${database_1.default.escape(config.id)}`
+                : `
                 delete
                 from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                 WHERE appName = ${database_1.default.escape(config.appName)}
@@ -110,7 +103,7 @@ class Template {
             return true;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);
         }
     }
     async getTemplate(query) {
@@ -133,7 +126,7 @@ class Template {
         var _a, _b;
         try {
             if (!(await this.verifyPermission(config.appName))) {
-                throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+                throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
             }
             let template_type = '0';
             if (config.data.post_to === 'all') {
@@ -148,12 +141,12 @@ class Template {
             else if (config.data.post_to === 'me') {
                 template_type = '3';
             }
-            return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+            return ((await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                       set template_config = ?,
                                           template_type=${template_type}
                                       where appName = ${database_1.default.escape(config.appName)}
                                         and tag = ?
-            `, [config.data, config.tag]))['changedRows'] == true;
+            `, [config.data, config.tag]))['changedRows'] == true);
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
@@ -185,7 +178,7 @@ class Template {
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
             const page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
-            return (await Template.getRealPage(page.redirect.substring(1), appName));
+            return await Template.getRealPage(page.redirect.substring(1), appName);
         }
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';
@@ -196,6 +189,9 @@ class Template {
         if (query_page === 'cms') {
             page = 'index';
         }
+        if (query_page === 'voucher-list') {
+            page = 'account_userinfo';
+        }
         return page;
     }
     async getPage(config) {
@@ -203,20 +199,28 @@ class Template {
             config.tag = await Template.getRealPage(config.tag, config.appName);
         }
         try {
-            let sql = `select ${(config.tag || config.id) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
+            let sql = `select ${config.tag || config.id ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                        where ${(() => {
                 let query = [`1 = 1`];
-                (config.user_id) && query.push(`userID=${config.user_id}`);
-                (config.appName) && query.push(`appName=${database_1.default.escape(config.appName)}`);
-                (config.id) && query.push(`id=${database_1.default.escape(config.id)}`);
-                (config.tag) && query.push(` tag in (${config.tag.split(',').map((dd) => {
-                    return database_1.default.escape(dd);
-                }).join(',')})`);
-                (config.page_type) && query.push(`page_type=${database_1.default.escape(config.page_type)}`);
-                (config.group) && query.push(`\`group\` in (${config.group.split(',').map((dd) => {
-                    return database_1.default.escape(dd);
-                }).join(',')})`);
+                config.user_id && query.push(`userID=${config.user_id}`);
+                config.appName && query.push(`appName=${database_1.default.escape(config.appName)}`);
+                config.id && query.push(`id=${database_1.default.escape(config.id)}`);
+                config.tag &&
+                    query.push(` tag in (${config.tag
+                        .split(',')
+                        .map((dd) => {
+                        return database_1.default.escape(dd);
+                    })
+                        .join(',')})`);
+                config.page_type && query.push(`page_type=${database_1.default.escape(config.page_type)}`);
+                config.group &&
+                    query.push(`\`group\` in (${config.group
+                        .split(',')
+                        .map((dd) => {
+                        return database_1.default.escape(dd);
+                    })
+                        .join(',')})`);
                 if (config.favorite && config.favorite === 'true') {
                     query.push(`favorite=1`);
                 }
@@ -238,7 +242,7 @@ class Template {
             return await database_1.default.query(sql, []);
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
+            throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);
         }
     }
     constructor(token) {

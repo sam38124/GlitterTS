@@ -1,12 +1,11 @@
 'use strict';
-import {Glitter} from './glitterBundle/Glitter.js';
-import {config} from './config.js';
-import {ApiPageConfig} from './api/pageConfig.js';
-import {BaseApi} from './glitterBundle/api/base.js';
-import {GlobalUser} from './glitter-base/global/global-user.js';
-import {EditorConfig} from './editor-config.js';
-import {ShareDialog} from './glitterBundle/dialog/ShareDialog.js';
-
+import { Glitter } from './glitterBundle/Glitter.js';
+import { config } from './config.js';
+import { ApiPageConfig } from './api/pageConfig.js';
+import { BaseApi } from './glitterBundle/api/base.js';
+import { GlobalUser } from './glitter-base/global/global-user.js';
+import { EditorConfig } from './editor-config.js';
+import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -14,7 +13,7 @@ export class Entry {
             (window as any).appName = app_name || (window as any).appName;
             (window as any).glitter_page = page;
             location.reload();
-        }
+        };
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -88,14 +87,14 @@ export class Entry {
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
                 ${
-                parseInt((window.parent as any).glitter.share.bottom_inset, 10)
-                    ? `
+                    parseInt((window.parent as any).glitter.share.bottom_inset, 10)
+                        ? `
                               .update-bar-container {
                                   padding-bottom: ${(window.parent as any).glitter.share.bottom_inset}px !important;
                               }
                           `
-                    : ``
-            }
+                        : ``
+                }
 
                 .editorParent .editorChild {
                     display: none;
@@ -176,10 +175,9 @@ export class Entry {
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
-                dialog.dataLoading({visible: true, text: '後台載入中'});
+                dialog.dataLoading({ visible: true, text: '後台載入中' });
                 // 頁面編輯器
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => {});
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -188,14 +186,11 @@ export class Entry {
             } else if (glitter.getUrlParameter('page') === 'backend_manager') {
                 if (!GlobalUser.token) {
                     glitter.setUrlParameter('page', 'login');
-                    location.reload()
+                    location.reload();
                 } else {
                     try {
-                        const appList = (await ApiPageConfig.getAppList(
-                            undefined,
-                            GlobalUser.token
-                        )).response.result;
-                        localStorage.setItem('select_item', '0')
+                        const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
+                        localStorage.setItem('select_item', '0');
                         if (appList.length === 0) {
                             glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, (SaasViewModel) => {
                                 glitter.innerDialog((gvc) => {
@@ -204,29 +199,30 @@ export class Entry {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return SaasViewModel.createShop(gvc, true)
-                                            }
-                                        }
-                                    })
-
-                                }, 'change_app')
-                            })
+                                                return SaasViewModel.createShop(gvc, true);
+                                            },
+                                        };
+                                    });
+                                }, 'change_app');
+                            });
                         } else {
                             let appName = appList[0].appName;
-                            if (appList.find((dd: any) => {
-                                return dd.appName === localStorage.getItem('select_app_name')
-                            })) {
-                                appName = localStorage.getItem('select_app_name')
+                            if (
+                                appList.find((dd: any) => {
+                                    return dd.appName === localStorage.getItem('select_app_name');
+                                })
+                            ) {
+                                appName = localStorage.getItem('select_app_name');
                             }
-                            glitter.setUrlParameter('page', 'index')
-                            glitter.setUrlParameter('type', 'editor')
-                            glitter.setUrlParameter('appName', appName)
-                            glitter.setUrlParameter('function', 'backend-manger')
-                            location.reload()
+                            glitter.setUrlParameter('page', 'index');
+                            glitter.setUrlParameter('type', 'editor');
+                            glitter.setUrlParameter('appName', appName);
+                            glitter.setUrlParameter('function', 'backend-manger');
+                            location.reload();
                         }
                     } catch (e) {
                         glitter.setUrlParameter('page', 'login');
-                        location.reload()
+                        location.reload();
                     }
                 }
             } else {
@@ -265,8 +261,8 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
-        if ((localStorage.getItem('on-pos') === 'true') && glitter.getUrlParameter('page') !== 'pos') {
-            localStorage.removeItem('on-pos')
+        if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
+            localStorage.removeItem('on-pos');
             location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
         glitter.addStyle(`
@@ -375,10 +371,8 @@ export class Entry {
                     src: 'https://kit.fontawesome.com/cccedec0f8.js',
                 },
             ],
-            () => {
-            },
-            () => {
-            }
+            () => {},
+            () => {}
         );
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -419,11 +413,9 @@ export class Entry {
                     type: 'module',
                 };
             }),
-            () => {
-            },
-            () => {
-            },
-            [{key: 'async', value: 'true'}]
+            () => {},
+            () => {},
+            [{ key: 'async', value: 'true' }]
         );
 
         // Preload page script
@@ -444,7 +436,7 @@ export class Entry {
             return eval(evals);
         };
         setTimeout(() => {
-            (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false});
+            (window.parent as any).glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
         }, 2000);
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
@@ -499,8 +491,7 @@ export class Entry {
                     .map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            callback: () => {
-                            },
+                            callback: () => {},
                         };
                     })
             );
@@ -545,11 +536,11 @@ export class Entry {
             'getTopInset',
             {},
             (response: any) => {
-                glitter.share.top_inset = (response.data);
+                glitter.share.top_inset = response.data;
             },
             {
                 webFunction: () => {
-                    return {data: 0};
+                    return { data: 0 };
                 },
             }
         );
@@ -558,11 +549,11 @@ export class Entry {
             'getBottomInset',
             {},
             (response: any) => {
-                glitter.share.bottom_inset = (response.data);
+                glitter.share.bottom_inset = response.data;
             },
             {
                 webFunction: () => {
-                    return {data: 0};
+                    return { data: 0 };
                 },
             }
         );
@@ -593,11 +584,11 @@ export class Entry {
                 glitter.addStyle(`
                     @charset "UTF-8";
                     ${glitter.share.font_theme
-                    .map((dd: any) => {
-                        glitter.share.initial_fonts.push(dd.value);
-                        return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
-                    })
-                    .join('\n')}
+                        .map((dd: any) => {
+                            glitter.share.initial_fonts.push(dd.value);
+                            return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
+                        })
+                        .join('\n')}
                     body {
                         font-family: '${glitter.share.font_theme[0].value}' !important;
                         font-optical-sizing: auto;
@@ -650,32 +641,31 @@ export class Entry {
                 ApiPageConfig.getGlitterVersion().then((res) => {
                     console.log('glitterVersion:', res.response.result);
                     if (!glitter.share.editerVersion.includes(res.response.result)) {
-                        const dialog = new ShareDialog(glitter)
+                        const dialog = new ShareDialog(glitter);
                         dialog.checkYesOrNot({
                             text: '新版本已發佈，是否進行更新?',
                             callback: (response) => {
                                 if (response) {
-                                    location.reload()
+                                    location.reload();
                                 } else {
                                     setTimeout(() => {
-                                        loopVersion()
-                                    }, 1000 * 300)
+                                        loopVersion();
+                                    }, 1000 * 300);
                                 }
-                            }
-                        })
+                            },
+                        });
                     } else {
                         setTimeout(() => {
-                            loopVersion()
-                        }, 1000 * 300)
+                            loopVersion();
+                        }, 1000 * 300);
                     }
-
-                })
+                });
             }
 
             if (glitter.getUrlParameter('type') === 'editor' || glitter.getUrlParameter('page') === 'pos') {
                 setTimeout(() => {
-                    loopVersion()
-                }, 1000 * 300)
+                    loopVersion();
+                }, 1000 * 300);
             }
 
             let countI = dd.response.data.initialList.length;
@@ -736,8 +726,6 @@ export class Entry {
             glitter.setUrlParameter('page', 'login');
         }
     }
-
-
 }
 
 let clockF = () => {

@@ -20,8 +20,12 @@ export class UmClass {
                 title: '個人資料',
             },
             {
+                key: 'voucher-list',
+                title: '我的優惠券',
+            },
+            {
                 key: 'rebate',
-                title: '商店購物金',
+                title: '我的購物金',
             },
             {
                 key: 'order_list',
@@ -384,6 +388,11 @@ export class UmClass {
                 font-size: 14px;
                 margin-right: 4px;
                 letter-spacing: -0.98px;
+            }
+            .gray-line {
+                border-bottom: 1px solid #dddddd;
+                padding-bottom: 6px;
+                margin-bottom: 6px;
             }
 
             @media (min-width: 576px) {

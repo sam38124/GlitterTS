@@ -3,10 +3,14 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { UMVoucher } from './um-voucher.js';
 const html = String.raw;
 export class UMInfo {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
+        if (glitter.getUrlParameter('page') === 'voucher-list') {
+            return UMVoucher.main(gvc, widget, subData);
+        }
         const vm = {
             data: {},
             memberNext: {},
@@ -154,7 +158,7 @@ export class UMInfo {
                                             const si = setInterval(() => {
                                                 const qr = window.QRCode;
                                                 if (qr) {
-                                                    qr.toDataURL(`${vm.data.userID}`, {
+                                                    qr.toDataURL(`user-${vm.data.userID}`, {
                                                         width: 400,
                                                         margin: 2,
                                                     }, (err, url) => {

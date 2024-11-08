@@ -20,7 +20,7 @@ import { Delivery, DeliveryData } from './delivery.js';
 import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
-import {FbMessage} from "./fb-message";
+import { FbMessage } from './fb-message';
 
 type BindItem = {
     id: string;
@@ -34,7 +34,7 @@ type BindItem = {
     times: number;
 };
 
-interface VoucherData {
+export interface VoucherData {
     id: number;
     title: string;
     code?: string;
@@ -1255,7 +1255,7 @@ export class Shopping {
                 if (carData.user_info.shipment === 'now') {
                     (carData as any).progress = 'finish';
                 }
-                console.log("carData -- " , carData)
+                console.log('carData -- ', carData);
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
@@ -2138,7 +2138,7 @@ export class Shopping {
         returnSearch?: string;
     }) {
         try {
-            console.log("here -- ")
+            console.log('here -- ');
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
 
@@ -3757,7 +3757,7 @@ export class Shopping {
         min_price?: string;
         max_price?: string;
         stockCount?: string;
-        productType?:string
+        productType?: string;
     }) {
         try {
             let querySql = ['1=1'];
@@ -3788,22 +3788,26 @@ export class Shopping {
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
 
             //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
-            if(query.productType !== 'all'){
-                const queryOR=[]
+            if (query.productType !== 'all') {
+                const queryOR = [];
                 if (query.productType) {
                     query.productType.split(',').map((dd) => {
-                        if(dd==='hidden'){
+                        if (dd === 'hidden') {
                             queryOR.push(`(p.content->>'$.visible' = "false")`);
-                        }else{
+                        } else {
                             queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
                         }
                     });
                 } else if (!query.id) {
                     queryOR.push(`(p.content->>'$.productType.product' = "true")`);
                 }
-                querySql.push(`(${queryOR.map((dd)=>{
-                    return ` ${dd} `
-                }).join(' or ')})`)
+                querySql.push(
+                    `(${queryOR
+                        .map((dd) => {
+                            return ` ${dd} `;
+                        })
+                        .join(' or ')})`
+                );
             }
 
             if (query.stockCount) {

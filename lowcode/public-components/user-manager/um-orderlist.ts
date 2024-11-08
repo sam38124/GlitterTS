@@ -120,7 +120,7 @@ interface CartOrder {
     index: number;
 }
 
-export class UMInfo {
+export class UMOrderList {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
         const vm = {
@@ -294,4 +294,4 @@ export class UMInfo {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, UMInfo);
+(window as any).glitter.setModule(import.meta.url, UMOrderList);

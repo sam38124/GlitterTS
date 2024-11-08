@@ -12,7 +12,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 const html = String.raw;
-export class UMInfo {
+export class UMWishList {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
         const vm = {
@@ -167,4 +167,4 @@ export class UMInfo {
         });
     }
 }
-window.glitter.setModule(import.meta.url, UMInfo);
+window.glitter.setModule(import.meta.url, UMWishList);

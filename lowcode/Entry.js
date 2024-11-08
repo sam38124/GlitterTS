@@ -167,8 +167,7 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => { });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -193,7 +192,7 @@ export class Entry {
                                             bind: id,
                                             view: () => {
                                                 return SaasViewModel.createShop(gvc, true);
-                                            }
+                                            },
                                         };
                                     });
                                 }, 'change_app');
@@ -251,7 +250,7 @@ export class Entry {
         }
     }
     static toBackendEditor(glitter, callback) {
-        if ((localStorage.getItem('on-pos') === 'true') && glitter.getUrlParameter('page') !== 'pos') {
+        if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
             localStorage.removeItem('on-pos');
             location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
@@ -346,9 +345,7 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -382,9 +379,7 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => {
-        }, () => {
-        }, [{ key: 'async', value: 'true' }]);
+        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -448,8 +443,7 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => {
-                    },
+                    callback: () => { },
                 };
             }));
             function authPass() {
@@ -481,14 +475,14 @@ export class Entry {
     }
     static resourceInitial(glitter, vm, callback) {
         glitter.runJsInterFace('getTopInset', {}, (response) => {
-            glitter.share.top_inset = (response.data);
+            glitter.share.top_inset = response.data;
         }, {
             webFunction: () => {
                 return { data: 0 };
             },
         });
         glitter.runJsInterFace('getBottomInset', {}, (response) => {
-            glitter.share.bottom_inset = (response.data);
+            glitter.share.bottom_inset = response.data;
         }, {
             webFunction: () => {
                 return { data: 0 };
@@ -588,7 +582,7 @@ export class Entry {
                                         loopVersion();
                                     }, 1000 * 300);
                                 }
-                            }
+                            },
                         });
                     }
                     else {

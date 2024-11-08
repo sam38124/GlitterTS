@@ -4,6 +4,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { UMVoucher } from './um-voucher.js';
 
 const html = String.raw;
 
@@ -92,6 +93,11 @@ type RenewCondition = {
 export class UMInfo {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
+
+        if (glitter.getUrlParameter('page') === 'voucher-list') {
+            return UMVoucher.main(gvc, widget, subData);
+        }
+
         const vm = {
             data: {} as User,
             memberNext: {} as Member | undefined,
@@ -237,7 +243,7 @@ export class UMInfo {
                                                                         const qr = (window as any).QRCode;
                                                                         if (qr) {
                                                                             qr.toDataURL(
-                                                                                `${vm.data.userID}`,
+                                                                                `user-${vm.data.userID}`,
                                                                                 {
                                                                                     width: 400,
                                                                                     margin: 2,

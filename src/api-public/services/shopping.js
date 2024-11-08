@@ -889,7 +889,7 @@ class Shopping {
                 if (carData.user_info.shipment === 'now') {
                     carData.progress = 'finish';
                 }
-                console.log("carData -- ", carData);
+                console.log('carData -- ', carData);
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1598,7 +1598,7 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
-            console.log("here -- ");
+            console.log('here -- ');
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
@@ -3030,9 +3030,11 @@ class Shopping {
                 else if (!query.id) {
                     queryOR.push(`(p.content->>'$.productType.product' = "true")`);
                 }
-                querySql.push(`(${queryOR.map((dd) => {
+                querySql.push(`(${queryOR
+                    .map((dd) => {
                     return ` ${dd} `;
-                }).join(' or ')})`);
+                })
+                    .join(' or ')})`);
             }
             if (query.stockCount) {
                 const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');

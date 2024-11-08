@@ -11,7 +11,7 @@ type BindItem = {
     shipment_fee: number;
     times: number;
 };
-interface VoucherData {
+export interface VoucherData {
     id: number;
     title: string;
     code?: string;

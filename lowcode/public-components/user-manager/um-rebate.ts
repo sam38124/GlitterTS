@@ -26,7 +26,7 @@ interface OrderInfo {
     userData: UserData;
 }
 
-export class UMInfo {
+export class UMRebate {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
         const vm = {
@@ -248,4 +248,4 @@ export class UMInfo {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, UMInfo);
+(window as any).glitter.setModule(import.meta.url, UMRebate);
