@@ -92,6 +92,7 @@ export class Invoice {
                 ItemAmt: dd.sale_price * dd.count,
             };
         });
+
         if (order.use_rebate) {
             line_item.push({
                 ItemName: '購物金',
@@ -218,7 +219,20 @@ export class Invoice {
         }
     }
 
-
+    public async updateInvoice(obj: {orderID: string , invoice_data: any}){
+        let data = await db.query(
+            `SELECT *
+                             FROM \`${this.appName}\`.t_invoice_memory
+                             where order_id = ?`,
+            [obj.orderID]
+        );
+        data = data[0];
+        data.invoice_data.remark = obj.invoice_data;
+        await db.query(`UPDATE \`${this.appName}\`.t_invoice_memory set invoice_data = ? WHERE order_id = ?`, [
+            JSON.stringify(data.invoice_data) , obj.orderID
+        ])
+        // console.log("data -- " , data.invoice_data)
+    }
 
     //儲值開立發票
     // public async postCheckoutInvoice(orderID: string|any ,print:boolean) {

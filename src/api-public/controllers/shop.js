@@ -1060,5 +1060,29 @@ router.post('/apple-webhook', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/customer_invoice', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).postCustomerInvoice({
+            orderID: req.body.orderID,
+            invoice_data: req.body.invoiceData,
+            orderData: req.body.orderData
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/void_invoice', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).voidInvoice({
+            invoice_no: req.body.invoiceNo,
+            reason: req.body.voidReason,
+            createDate: req.body.createDate
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=shop.js.map

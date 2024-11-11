@@ -805,7 +805,7 @@ export class ShoppingOrderManager {
         if(orderData.orderData.shipment_selector && !orderData.orderData.shipment_selector.find((dd)=>{
             return dd.value==='now'
         })){
-            orderData.orderData.shipment_selector.push({name: '立即取貨', value: 'now'})
+            orderData.orderData.shipment_selector.push({name: '立即取貨', value: 'now' , form: undefined})
         }
         let userDataLoading = true;
 

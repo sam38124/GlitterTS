@@ -3,52 +3,8 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { Tool } from '../modules/tool.js';
 const html = String.raw;
-export class ShoppingInvoiceManager {
-    static supportShipmentMethod() {
-        return [
-            {
-                title: '門市立即取貨',
-                value: 'now',
-                name: '',
-            },
-            {
-                title: '一般宅配',
-                value: 'normal',
-                name: '',
-            },
-            {
-                title: '全家店到店',
-                value: 'FAMIC2C',
-                name: '',
-            },
-            {
-                title: '萊爾富店到店',
-                value: 'HILIFEC2C',
-                name: '',
-            },
-            {
-                title: 'OK超商店到店',
-                value: 'OKMARTC2C',
-                name: '',
-            },
-            {
-                title: '7-ELEVEN超商交貨便',
-                value: 'UNIMARTC2C',
-                name: '',
-            },
-            {
-                title: '實體門市取貨',
-                value: 'shop',
-                name: '',
-            },
-        ].map((dd) => {
-            dd.name = dd.title;
-            return dd;
-        });
-    }
+export class ShoppingAllowanceManager {
     static main(gvc, query) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
@@ -123,7 +79,7 @@ export class ShoppingInvoiceManager {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
                             <div class="title-container">
-                                ${BgWidget.title('發票列表')}
+                                ${BgWidget.title('折讓單列表')}
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     ${BgWidget.grayButton('匯出', gvc.event(() => {
@@ -253,7 +209,7 @@ export class ShoppingInvoiceManager {
                             },
                         });
                     }))}
-                                    ${BgWidget.darkButton('手動開立發票', gvc.event(() => {
+                                    ${BgWidget.darkButton('手動開立折讓單', gvc.event(() => {
                         vm.type = 'add';
                     }))}
                                 </div>
@@ -347,19 +303,19 @@ export class ShoppingInvoiceManager {
                                                     key: '含稅總計',
                                                     value: html `
                                                                         <div style="padding-left: 5px;">
-                                                                            $ ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
+                                                                            ${dd.invoice_data.original_data.SalesAmount}
                                                                         </div>`,
                                                 },
                                                 {
                                                     key: '買受人',
                                                     value: html `
                                                                         <div style="padding-left: 5px;">
-                                                                            ${Tool.truncateString(dd.invoice_data.original_data.CustomerName, 7)}
+                                                                            ${dd.invoice_data.original_data.CustomerName}
                                                                         </div>`,
                                                 },
                                                 {
                                                     key: '發票日期',
-                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd'),
+                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd hh:mm:ss'),
                                                 },
                                                 {
                                                     key: '發票種類',
@@ -389,7 +345,7 @@ export class ShoppingInvoiceManager {
                                                                                     <div style="padding-left: 5px;">
                                                                                         自動
                                                                                     </div>`;
-                                                            default:
+                                                            case 0:
                                                                 return html `
                                                                                     <div style="padding-left: 5px;">
                                                                                         手動
@@ -465,6 +421,7 @@ export class ShoppingInvoiceManager {
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
+        console.log("invoiceData -- ", invoiceData.create_date);
         ApiShop.getOrder({
             page: 0,
             limit: 100,
@@ -920,7 +877,7 @@ export class ShoppingInvoiceManager {
     }
     static createOrder(gvc, vm) {
         let viewModel = {
-            searchOrder: '1729852608721',
+            searchOrder: 'TZ90990610',
             searchData: '',
             errorReport: '',
             invoiceData: {
@@ -937,15 +894,15 @@ export class ShoppingInvoiceManager {
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-                    ${BgWidget.title('手動開立發票')}
+                    ${BgWidget.title('手動開立折讓單')}
                 </div>
                 <div style="margin-top: 24px;"></div>
                 ${BgWidget.mainCard(html `
                     <div style="display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                        <div style="font-size: 16px;font-weight: 700;">訂單編號*</div>
+                        <div style="font-size: 16px;font-weight: 700;">發票編號*</div>
                         <input
                                 style="display: flex;height: 40px;padding: 9px 18px;align-items: flex-start;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 400;"
-                                placeholder="請輸入訂單編號"
+                                placeholder="請輸入發票編號"
                                 value="${viewModel.searchOrder}"
                                 onchange="${gvc.event((e) => {
             viewModel.searchOrder = e.value;
@@ -957,24 +914,19 @@ export class ShoppingInvoiceManager {
             if (viewModel.searchOrder == '') {
                 return;
             }
-            ApiShop.getOrder({
+            ApiShop.getInvoice({
                 page: 0,
                 limit: 100,
                 search: viewModel.searchOrder,
-                searchType: 'cart_token',
-                archived: `false`,
-                returnSearch: 'true',
+                searchType: 'invoice_number',
             }).then((response) => {
+                console.log("viewModel.searchData -- ", response.response);
                 if (response.response.length == 0) {
                     viewModel.errorReport = '查無此訂單';
                 }
-                if (response.response && response.response.orderData.lineItems.length > 0) {
-                    viewModel.searchData = response.response;
+                if (response.response && response.response.data.length > 0) {
+                    viewModel.searchData = response.response.data[0];
                     console.log("viewModel.searchData -- ", viewModel.searchData);
-                    ApiUser.getUsersDataWithEmailOrPhone(response.response.email).then((res) => {
-                        viewModel.customerInfo = res.response;
-                        gvc.notifyDataChange(['notFind', 'invoiceContent']);
-                    });
                 }
                 else {
                     viewModel.errorReport = '此訂單已無商品可退貨';
@@ -983,7 +935,7 @@ export class ShoppingInvoiceManager {
             });
         })}"
                         >
-                            查詢訂單
+                            查詢發票
                         </div>
 
                         ${gvc.bindView({
@@ -1289,10 +1241,7 @@ export class ShoppingInvoiceManager {
                             });
                             if (pass) {
                                 ApiShop.postInvoice(passData).then(r => {
-                                    dialog.infoMessage({
-                                        text: '發票建立完成'
-                                    });
-                                    vm.type = 'list';
+                                    console.log(r);
                                 });
                             }
                             else {
@@ -1310,4 +1259,4 @@ export class ShoppingInvoiceManager {
             `);
     }
 }
-window.glitter.setModule(import.meta.url, ShoppingInvoiceManager);
+window.glitter.setModule(import.meta.url, ShoppingAllowanceManager);

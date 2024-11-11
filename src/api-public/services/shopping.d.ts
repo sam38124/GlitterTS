@@ -483,5 +483,15 @@ export declare class Shopping {
             variant_content: any;
         }[];
     }>;
+    postCustomerInvoice(obj: {
+        orderID: any;
+        invoice_data: any;
+        orderData: any;
+    }): Promise<void>;
+    voidInvoice(obj: {
+        invoice_no: string;
+        reason: string;
+        createDate: string;
+    }): Promise<void>;
 }
 export {};

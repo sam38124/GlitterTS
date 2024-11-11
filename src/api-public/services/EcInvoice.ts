@@ -165,6 +165,58 @@ export class EcInvoice {
                 });
         })
     }
+    //發票作廢
+    public static voidInvoice(obj: {
+        hashKey: string,
+        hash_IV: string,
+        merchNO: string,
+        app_name: string,
+        invoice_data: any,
+        beta: boolean,
+    }) {
+        const timeStamp = `${new Date().valueOf()}`
+        const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+        let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(obj.invoice_data)), 'utf-8', 'base64');
+        encryptedData += cipher.final('base64');
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/Invalid' : 'https://einvoice.ecpay.com.tw/B2CInvoice/Invalid',
+            headers: {},
+            'Content-Type': 'application/json',
+            data: {
+                MerchantID: obj.merchNO,
+                RqHeader: {
+                    Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                },
+                Data: encryptedData
+            }
+        };
+        //發送通知
+        //PlatformID
+        return new Promise<boolean>((resolve, reject) => {
+            axios.request(config)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+
+                    await db.query(`UPDATE \`${obj.app_name}\`.t_invoice_memory set status = 2 WHERE invoice_no = '${obj.invoice_data.InvoiceNo}'`, [
+
+                    ])
+                    resolve(response.data)
+                })
+                .catch((error) => {
+                    console.log(error)
+                    resolve(false)
+                });
+        })
+    }
 
     //發票列印
     public static printInvoice(obj: {

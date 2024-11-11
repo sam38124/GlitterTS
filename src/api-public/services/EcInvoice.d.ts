@@ -48,6 +48,14 @@ export declare class EcInvoice {
         beta: boolean;
         print: boolean;
     }): Promise<boolean>;
+    static voidInvoice(obj: {
+        hashKey: string;
+        hash_IV: string;
+        merchNO: string;
+        app_name: string;
+        invoice_data: any;
+        beta: boolean;
+    }): Promise<boolean>;
     static printInvoice(obj: {
         hashKey: string;
         hash_IV: string;

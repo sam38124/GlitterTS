@@ -25,6 +25,8 @@ const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
+const EcInvoice_1 = require("./EcInvoice");
+const app_1 = __importDefault(require("../../app"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -1598,7 +1600,6 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
-            console.log("here -- ");
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
@@ -3101,6 +3102,39 @@ class Shopping {
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putVariants Error:' + express_1.default, null);
         }
+    }
+    async postCustomerInvoice(obj) {
+        await this.putOrder({
+            id: obj.orderData.id,
+            orderData: obj.orderData.orderData,
+            status: obj.orderData.status
+        });
+        console.log("obj.orderID -- ", obj.orderID);
+        await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, true);
+        await new invoice_js_1.Invoice(this.app).updateInvoice({
+            orderID: obj.orderData.cart_token,
+            invoice_data: obj.invoice_data
+        });
+    }
+    async voidInvoice(obj) {
+        const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
+        const passData = {
+            "MerchantID": config.merchNO,
+            "InvoiceNo": obj.invoice_no,
+            "InvoiceDate": obj.createDate,
+            "Reason": obj.reason
+        };
+        await EcInvoice_1.EcInvoice.voidInvoice({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name: this.app,
+            invoice_data: passData,
+            beta: config.point === 'beta',
+        });
+        await database_js_1.default.query(`UPDATE \`${this.app}\`.t_invoice_memory
+                     SET ?
+                     WHERE invoice_no = ?`, [{ status: 2 }, obj.invoice_no]);
     }
 }
 exports.Shopping = Shopping;

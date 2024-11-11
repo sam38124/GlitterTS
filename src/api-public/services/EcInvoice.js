@@ -120,6 +120,46 @@ class EcInvoice {
             });
         });
     }
+    static voidInvoice(obj) {
+        const timeStamp = `${new Date().valueOf()}`;
+        const cipher = crypto_1.default.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+        let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(obj.invoice_data)), 'utf-8', 'base64');
+        encryptedData += cipher.final('base64');
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/Invalid' : 'https://einvoice.ecpay.com.tw/B2CInvoice/Invalid',
+            headers: {},
+            'Content-Type': 'application/json',
+            data: {
+                MerchantID: obj.merchNO,
+                RqHeader: {
+                    Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                },
+                Data: encryptedData
+            }
+        };
+        return new Promise((resolve, reject) => {
+            axios_1.default.request(config)
+                .then(async (response) => {
+                const decipher = crypto_1.default.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                try {
+                    decrypted += decipher.final('utf-8');
+                }
+                catch (e) {
+                    e instanceof Error && console.log(e.message);
+                }
+                const resp = JSON.parse(decodeURIComponent(decrypted));
+                await database_1.default.query(`UPDATE \`${obj.app_name}\`.t_invoice_memory set status = 2 WHERE invoice_no = '${obj.invoice_data.InvoiceNo}'`, []);
+                resolve(response.data);
+            })
+                .catch((error) => {
+                console.log(error);
+                resolve(false);
+            });
+        });
+    }
     static printInvoice(obj) {
         return new Promise(async (resolve, reject) => {
             const invoice_data = (await database_1.default.query(`SELECT *

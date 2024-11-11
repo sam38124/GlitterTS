@@ -1141,3 +1141,34 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         return response.fail(resp, err);
     }
 });
+//手動開立發票
+router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
+                orderID:req.body.orderID,
+                invoice_data:req.body.invoiceData,
+                orderData:req.body.orderData
+            })
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+//發票作廢
+router.post('/void_invoice', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).voidInvoice({
+                invoice_no:req.body.invoiceNo,
+                reason:req.body.voidReason,
+                createDate:req.body.createDate
+            })
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});

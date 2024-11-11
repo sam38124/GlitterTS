@@ -828,6 +828,35 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+    static postInvoice(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/customer_invoice`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+    static voidInvoice(invoiceNo, voidReason, createDate) {
+        const passData = {
+            invoiceNo: invoiceNo,
+            voidReason: voidReason,
+            createDate: createDate
+        };
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/void_invoice`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
 }
 ApiShop.rebateID = 'asko323';
 ApiShop.voucherID = 'voucxasw';

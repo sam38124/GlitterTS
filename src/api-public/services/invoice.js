@@ -181,6 +181,16 @@ class Invoice {
             return 'no_need';
         }
     }
+    async updateInvoice(obj) {
+        let data = await database_js_1.default.query(`SELECT *
+                             FROM \`${this.appName}\`.t_invoice_memory
+                             where order_id = ?`, [obj.orderID]);
+        data = data[0];
+        data.invoice_data.remark = obj.invoice_data;
+        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory set invoice_data = ? WHERE order_id = ?`, [
+            JSON.stringify(data.invoice_data), obj.orderID
+        ]);
+    }
     static checkWhiteList(config, invoice_data) {
         if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
             return config.whiteList.find((dd) => {

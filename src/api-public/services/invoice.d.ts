@@ -6,6 +6,10 @@ export declare class Invoice {
         print: boolean;
     }): Promise<boolean | undefined>;
     postCheckoutInvoice(orderID: string | any, print: boolean): Promise<boolean | "no_need" | undefined>;
+    updateInvoice(obj: {
+        orderID: string;
+        invoice_data: any;
+    }): Promise<void>;
     static checkWhiteList(config: any, invoice_data: any): any;
     getInvoice(query: {
         page: number;

@@ -21,6 +21,8 @@ import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import {FbMessage} from "./fb-message";
+import {EcInvoice} from "./EcInvoice";
+import app from "../../app";
 
 type BindItem = {
     id: string;
@@ -1993,6 +1995,7 @@ export class Shopping {
 
     public async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
+
             const update: any = {};
             if (data.status !== undefined) {
                 update.status = data.status;
@@ -2138,7 +2141,6 @@ export class Shopping {
         returnSearch?: string;
     }) {
         try {
-            console.log("here -- ")
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
 
@@ -3880,5 +3882,49 @@ export class Shopping {
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'putVariants Error:' + e, null);
         }
+    }
+
+    async postCustomerInvoice(obj:{
+        orderID : any,
+        invoice_data : any,
+        orderData:any
+    }){
+        await this.putOrder({
+            id:obj.orderData.id,
+            orderData:obj.orderData.orderData,
+            status:obj.orderData.status
+        })
+        await new Invoice(this.app).postCheckoutInvoice(obj.orderID, true);
+        await new Invoice(this.app).updateInvoice({
+            orderID: obj.orderData.cart_token,
+            invoice_data: obj.invoice_data
+        })
+    }
+    async voidInvoice(obj:{
+        invoice_no:string,
+        reason:string,
+        createDate:string
+    }){
+        const config = await app.getAdConfig(this.app, 'invoice_setting');
+        const passData = {
+            "MerchantID": config.merchNO,
+            "InvoiceNo": obj.invoice_no,
+            "InvoiceDate": obj.createDate,
+            "Reason": obj.reason
+        }
+        await EcInvoice.voidInvoice({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name:this.app,
+            invoice_data: passData,
+            beta: config.point === 'beta',
+        })
+        await db.query(
+            `UPDATE \`${this.app}\`.t_invoice_memory
+                     SET ?
+                     WHERE invoice_no = ?`,
+            [{ status : 2}, obj.invoice_no]
+        );
     }
 }
