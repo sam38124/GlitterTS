@@ -94,9 +94,6 @@ export class UMInfo {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
 
-        if (glitter.getUrlParameter('page') === 'voucher-list') {
-            return UMVoucher.main(gvc, widget, subData);
-        }
 
         const vm = {
             data: {} as User,
@@ -246,7 +243,7 @@ export class UMInfo {
                                                                                 const qr = (window as any).QRCode;
                                                                                 if (qr) {
                                                                                     qr.toDataURL(
-                                                                                            `${vm.data.userID}`,
+                                                                                            `user-${vm.data.userID}`,
                                                                                             {
                                                                                                 width: 400,
                                                                                                 margin: 2,
@@ -567,11 +564,15 @@ export class UMInfo {
             onCreate: () => {
                 if (loadings.view) {
                     UmClass.getUserData(gvc).then((resp: any) => {
-                        vm.data = resp;
-                        const members = JSON.parse(JSON.stringify(vm.data.member)).reverse() as Member[];
-                        vm.memberNext = members.find((dd) => !dd.trigger);
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
+                        try {
+                            vm.data = resp;
+                            const members = JSON.parse(JSON.stringify(vm.data.member)).reverse() as Member[];
+                            vm.memberNext = members.find((dd) => !dd.trigger);
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        }catch (e){
+                            gvc.glitter.href='./login'
+                        }
                     });
                 }
             },

@@ -266,7 +266,7 @@ export class UMVoucher {
                 }
             },
             divCreate: {
-                class: 'container',
+                class: '',
             },
             onCreate: () => {
                 if (loadings.view) {

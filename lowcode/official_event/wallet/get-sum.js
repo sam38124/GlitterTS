@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { ApiWallet } from "../../glitter-base/route/wallet.js";
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -18,7 +19,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        ApiWallet.getWallet().then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                        ApiWallet.getWallet(GlobalUser.token).then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             resolve(res.result && res.response.sum);
                         }));
                     }));

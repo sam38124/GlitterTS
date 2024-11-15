@@ -902,7 +902,7 @@ function testStep(parsed: ParsedOptions, entry: unknown): void {
     }
 
     // The step option can still be used to set stepping
-    // for linear sliders. Overwritten if set in 'range'.
+    // for linear.svg sliders. Overwritten if set in 'range'.
     parsed.singleStep = entry;
 }
 
@@ -1053,7 +1053,7 @@ function testLimit(parsed: ParsedOptions, entry: unknown): void {
     parsed.limit = parsed.spectrum.getDistance(entry);
 
     if (!parsed.limit || parsed.handles < 2) {
-        throw new Error("noUiSlider: 'limit' option is only supported on linear sliders with 2 or more handles.");
+        throw new Error("noUiSlider: 'limit' option is only supported on linear.svg sliders with 2 or more handles.");
     }
 }
 

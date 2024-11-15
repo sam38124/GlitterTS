@@ -190,7 +190,7 @@ class Template {
             page = 'index';
         }
         if (query_page === 'voucher-list') {
-            page = 'account_userinfo';
+            page = 'rebate';
         }
         return page;
     }

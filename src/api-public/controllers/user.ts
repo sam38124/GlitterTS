@@ -23,7 +23,10 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         } else if (req.query.type === 'account' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.email as any, 'account'));
-        } else if (req.query.type === 'email_or_phone') {
+        }else if (req.query.type === 'email' && (await UtPermission.isManager(req))) {
+            const user = new User(req.get('g-app') as string);
+            return response.succ(resp, await user.getUserData(req.query.email as any, 'email_or_phone'));
+        }else if (req.query.type === 'email_or_phone') {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.search as any, 'email_or_phone'));
         } else {

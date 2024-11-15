@@ -913,7 +913,7 @@ export class SaasViewModel {
                                 </div>`;
                         },
                         divCreate: {
-                            style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
+                            style: `max-height:calc(100vh - 250px);overflow-y:auto;`,
                             class: ``,
                         },
                     };

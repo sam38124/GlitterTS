@@ -3,6 +3,7 @@ import {AddComponent} from "./add-component.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 import {Storage} from "../glitterBundle/helper/storage.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
+import {EditorConfig} from "../editor-config.js";
 
 const html = String.raw
 
@@ -7306,6 +7307,16 @@ export class BasicComponent {
                 "refreshComponentParameter": {}
             },
             image: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s3scsfs8sbs5scs9_Screenshot2024-09-19at9.13.27 PM.jpg`
+        },
+        {
+            title: '一頁購物',
+            config: {"id":"sas5s2s0s1s6s1sf","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","tag":"sy01_checkout_detail","list":[],"carryData":{},"refer_form_data":{"carry_info":[{"index":0,"title":"預購商品大約7~21個工作天","c_v_id":"s1s9sds9s4s2s4sa","toggle":false},{"index":1,"title":"現貨商品將於下單後隔天寄出（不包含例假日）","c_v_id":"s7s9sbsas4s2s0sc","toggle":false},{"index":2,"title":"如訂單量較大或是有缺貨狀況，寄出時間將不一定，敬請見諒","c_v_id":"s9sbs4sasds6s7s9","toggle":false},{"index":3,"title":"寄出後大概2至3天會送達指定地點（週末不配送）","c_v_id":"s6s4s6s1s4s0s9s9","toggle":false}]},"_style_refer_global":{"index":"0"},"_style_refer":"custom","elem":"div","inner":"","attr":[],"_padding":{},"_margin":{},"_border":{},"_max_width":"","_gap":"","_background":"","_other":{},"_radius":"","_reverse":"false","_hor_position":"center","_background_setting":{"type":"none"}},"type":"component","class":"w-100","index":0,"label":"一頁購物","style":"","bundle":{},"global":[],"toggle":false,"stylist":[],"dataType":"static","style_from":"code","classDataType":"static","preloadEvenet":{},"share":{},"refreshAllParameter":{},"editor_bridge":{},"refreshComponentParameter":{},"list":[],"version":"v2","storage":{},"mobile":{"id":"sas5s2s0s1s6s1sf","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"type":"component","class":"w-100","index":0,"label":"一頁購物","style":"","global":[],"toggle":false,"stylist":[],"dataType":"static","style_from":"code","classDataType":"static","preloadEvenet":{},"refreshAllParameter":{},"editor_bridge":{},"refreshComponentParameter":{},"list":[],"version":"v2","mobile_editable":[],"desktop_editable":[],"refer":"custom"},"mobile_editable":[],"desktop":{"id":"sas5s2s0s1s6s1sf","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"type":"component","class":"w-100","index":0,"label":"一頁購物","style":"","global":[],"toggle":false,"stylist":[],"dataType":"static","style_from":"code","classDataType":"static","preloadEvenet":{},"refreshAllParameter":{},"editor_bridge":{},"refreshComponentParameter":{},"list":[],"version":"v2","mobile_editable":[],"desktop_editable":[],"refer":"custom"},"desktop_editable":[],"container_fonts":0},
+            image:`https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1715050097413-Screenshot2024-05-07at10.48.09 AM.jpg`
+        },
+        {
+            title:'地圖組合',
+            config: {"id":"s6sbsas6s8ses5sc","js":"http://127.0.0.1:4000/shopnex/official_view_component/official.js","css":{"class":{},"style":{}},"data":{"_gap":"","attr":[],"elem":"div","list":[],"inner":"","_gap_x":"30","_gap_y":"30","_other":{},"_border":{},"_layout":"proportion","_margin":{},"_radius":"","setting":[{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"google-map","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"map":"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3625.9857346364677!2d121.56387331536634!3d25.033964283970027!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3442abbff9f1f2cd%3A0xa5e9e25b96d47b6!2z5p2x5Y2A5rC45bq36Zmi!5e0!3m2!1szh-TW!2stw!4v1697247462832!5m2!1szh-TW!2stw","width":{"unit":"px","value":"550px","number":"550"},"height":{"unit":"px","value":"350px","number":"350"}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"mobile":{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"s1s7sfs1s7sbs9sa","js":"http://127.0.0.1:4000/shopnex/official_view_component/official.js","css":{"class":{},"style":{}},"data":{"_gap":"15","attr":[],"elem":"div","list":[],"inner":"","_gap_x":"30","_gap_y":"30","_other":{},"_border":{},"_layout":"vertical","_margin":{},"_radius":"","setting":[{"id":"sfs5sfs4sascsbs6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"basic-title","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#393939","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"我們的據點","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"700","import_":"false","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"24","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"toggle":true},"padding_phone":{"toggle":true}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":0,"label":"標題","style":"","global":[],"mobile":{"id":"sfs5sfs4sascsbs6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":0,"label":"標題","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sfsasfscses0sds6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"content","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#919191","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"台中市北區崇德路一段631號9樓","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"500","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"18","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"top":"30","bottom":"30","toggle":false},"padding_phone":{}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":1,"label":"副標題","style":"","global":[],"mobile":{"id":"sfsasfscses0sds6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"list":[],"type":"component","class":"w-100","index":1,"label":"副標題","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sas2sas0sbs9s8sd","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"content","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#393939","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"輸入一些內容或者活度來宣傳您的商店，例如關於我們，聯絡我們，付款資訊...等。","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"500","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"16","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"top":"30","bottom":"30","toggle":false},"padding_phone":{}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":2,"label":"內文","style":"","global":[],"mobile":{"id":"sas2sas0sbs9s8sd","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":2,"label":"內文","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sas2s7s4s7ses7sa","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"sy00-btn","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{"top":"10","left":"0","right":"0","bottom":"0"},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"link":"/all-product","theme":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","sec-title":"@{{theme_color.0.sec-title}}","background":"@{{theme_color.0.background}}","sec-background":"@{{theme_color.0.sec-background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"title":"了解更多","width":{"unit":"px","value":"100px","number":"100"},"height":{"unit":"px","value":"44px","number":"44"},"radius":"10","distance":{"margin":{"top":"20","bottom":"20","toggle":false},"toggle":false,"padding":{"top":"10","left":"20","right":"20","bottom":"10","toggle":true},"margin_pc":{"toggle":false},"padding_pc":{"toggle":false}},"font-size":"16"},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":3,"label":"按鈕","style":"","global":[],"mobile":{"id":"sas2s7s4s7ses7sa","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":3,"label":"按鈕","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}}],"version":"v2","_padding":{"top":"30","left":"15","right":"15","bottom":"30"},"_reverse":"false","_x_count":"2","_y_count":"2","atrExpand":{},"_max_width":"1200","elemExpand":{},"_background":"","_style_refer":"custom","_hor_position":"center","_ver_position":"flex-start","_background_setting":{"type":"none","value":""},"_style_refer_global":{"index":"0"}},"type":"container","index":1,"label":"文字組合","global":[],"mobile":{"refer":"def"},"toggle":false,"desktop":{"refer":"def"},"visible":true,"def_editable":[],"editor_bridge":{},"preloadEvenet":{},"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}}],"version":"v2","_padding":{"top":"30","left":"15","right":"15","bottom":"30"},"_reverse":"false","atrExpand":{},"_max_width":"1200","elemExpand":{},"_background":"","_style_refer":"custom","_hor_position":"center","_background_setting":{"type":"none"},"_ratio_layout_value":"50,50","_style_refer_global":{"index":"0"}},"type":"container","index":0,"label":"地圖組合","global":[],"mobile":{"id":"s6sbsas6s8ses5sc","js":"http://127.0.0.1:4000/shopnex/official_view_component/official.js","css":{"class":{},"style":{}},"data":{"_gap":"","attr":[],"elem":"div","list":[],"inner":"","_gap_x":"0","_gap_y":"0","_other":{},"_border":{},"_layout":"proportion","_margin":{},"_radius":"","setting":[{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"google-map","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"map":"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3625.9857346364677!2d121.56387331536634!3d25.033964283970027!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3442abbff9f1f2cd%3A0xa5e9e25b96d47b6!2z5p2x5Y2A5rC45bq36Zmi!5e0!3m2!1szh-TW!2stw!4v1697247462832!5m2!1szh-TW!2stw","width":{"unit":"px","value":"550px","number":"550"},"height":{"unit":"px","value":"350px","number":"350"}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"mobile":{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"id":"s7sascs3sbs8sfs4","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"list":[],"type":"component","class":"w-100","index":0,"label":"Google地圖","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"stylist":[],"version":"v2","visible":"visible","dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"s1s7sfs1s7sbs9sa","js":"http://127.0.0.1:4000/shopnex/official_view_component/official.js","css":{"class":{},"style":{}},"data":{"_gap":"15","attr":[],"elem":"div","list":[],"inner":"","_gap_x":"30","_gap_y":"30","_other":{},"_border":{},"_layout":"vertical","_margin":{},"_radius":"","setting":[{"id":"sfs5sfs4sascsbs6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"basic-title","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#393939","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"我們的據點","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"700","import_":"false","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"24","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"toggle":true},"padding_phone":{"toggle":true}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":0,"label":"標題","style":"","global":[],"mobile":{"id":"sfs5sfs4sascsbs6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":0,"label":"標題","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sfsasfscses0sds6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"content","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#919191","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"台中市北區崇德路一段631號9樓","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"500","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"18","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"top":"30","bottom":"30","toggle":false},"padding_phone":{}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":1,"label":"副標題","style":"","global":[],"mobile":{"id":"sfsasfscses0sds6","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"list":[],"type":"component","class":"w-100","index":1,"label":"副標題","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sas2sas0sbs9s8sd","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"content","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"kkw":"./?page=index","size":"40","color":{"id":"custom-color","title":"#393939","content":"#000000","sec-title":"#000000","background":"#ffffff","sec-background":"#FFFFFF","solid-button-bg":"#000000","border-button-bg":"#000000","solid-button-text":"#ffffff","border-button-text":"#000000"},"title":"輸入一些內容或者活度來宣傳您的商店，例如關於我們，聯絡我們，付款資訊...等。","margin":{"top":"10","left":"7","right":"9","bottom":"8","toggle":true},"weight":"500","justify":"center","padding":{"top":"20","left":"14","right":"18","bottom":"16","toggle":true},"size_pc":"16","distance":{"toggle":true,"margin_pc":{"toggle":true},"padding_pc":{"toggle":true},"margin_phone":{"top":"30","bottom":"30","toggle":false},"padding_phone":{}},"margin_pc":{"top":"50","left":"0","right":"0","bottom":"50","toggle":false},"padding_pc":{"top":"0","left":"0","right":"0","bottom":"0","toggle":false},"size_phone":"28","theme_color":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","background":"@{{theme_color.0.background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"margin_phone":{"top":"40","left":"0","right":"0","bottom":"40","toggle":false},"padding_phone":{"top":"-27","left":"0","right":"0","bottom":"0","toggle":false},"r_1716801819158":{},"r_1718616868830":{"type":"image","value":""},"r_1718616877262":{"type":"image","value":""},"r_1718616885960":{"type":"image","value":""}},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":2,"label":"內文","style":"","global":[],"mobile":{"id":"sas2sas0sbs9s8sd","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":2,"label":"內文","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},{"id":"sas2s7s4s7ses7sa","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"tag":"sy00-btn","_gap":"","attr":[],"elem":"div","list":[],"inner":"","_other":{},"_border":{},"_margin":{},"_radius":"","_padding":{"top":"10","left":"0","right":"0","bottom":"0"},"_reverse":"false","carryData":{},"refer_app":"shop_template_black_style","_max_width":"","_background":"","_style_refer":"custom","_hor_position":"center","refer_form_data":{"link":"/all-product","theme":{"id":"0","title":"@{{theme_color.0.title}}","content":"@{{theme_color.0.content}}","sec-title":"@{{theme_color.0.sec-title}}","background":"@{{theme_color.0.background}}","sec-background":"@{{theme_color.0.sec-background}}","solid-button-bg":"@{{theme_color.0.solid-button-bg}}","border-button-bg":"@{{theme_color.0.border-button-bg}}","solid-button-text":"@{{theme_color.0.solid-button-text}}","border-button-text":"@{{theme_color.0.border-button-text}}"},"title":"了解更多","width":{"unit":"px","value":"100px","number":"100"},"height":{"unit":"px","value":"44px","number":"44"},"radius":"10","distance":{"margin":{"top":"20","bottom":"20","toggle":false},"toggle":false,"padding":{"top":"10","left":"20","right":"20","bottom":"10","toggle":true},"margin_pc":{"toggle":false},"padding_pc":{"toggle":false}},"font-size":"16"},"_background_setting":{"type":"none"},"_style_refer_global":{"index":"0"}},"list":[],"type":"component","class":"w-100","index":3,"label":"按鈕","style":"","global":[],"mobile":{"id":"sas2s7s4s7ses7sa","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style"},"list":[],"type":"component","class":"w-100","index":3,"label":"按鈕","style":"","global":[],"toggle":false,"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":false,"desktop":{"data":{"refer_app":"shop_template_black_style","refer_form_data":{}},"refer":"custom"},"stylist":[],"version":"v2","visible":true,"dataType":"static","style_from":"code","classDataType":"static","editor_bridge":{},"preloadEvenet":{},"container_fonts":0,"mobile_editable":[],"desktop_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}}],"version":"v2","_padding":{"top":"30","left":"15","right":"15","bottom":"30"},"_reverse":"false","_x_count":"2","_y_count":"2","atrExpand":{},"_max_width":"1200","elemExpand":{},"_background":"","_style_refer":"custom","_hor_position":"center","_ver_position":"flex-start","_background_setting":{"type":"none","value":""},"_style_refer_global":{"index":"0"}},"type":"container","index":1,"label":"文字組合","global":[],"mobile":{"refer":"def"},"toggle":false,"desktop":{"refer":"def"},"visible":true,"def_editable":[],"editor_bridge":{},"preloadEvenet":{},"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}}],"version":"v2","_padding":{"top":"0","left":"0","right":"0","bottom":"0"},"_reverse":"false","atrExpand":{},"_max_width":"1200","elemExpand":{},"_background":"","_style_refer":"custom","_hor_position":"center","_background_setting":{"type":"none"},"_ratio_layout_value":"100,100","_style_refer_global":{"index":"0"}},"type":"container","index":0,"label":"地圖組合","global":[],"toggle":true,"visible":true,"def_editable":[],"editor_bridge":{},"preloadEvenet":{},"mobile_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"refer":"custom"},"toggle":true,"desktop":{"refer":"def"},"visible":true,"def_editable":[],"editor_bridge":{},"preloadEvenet":{},"mobile_editable":[],"refreshAllParameter":{},"refreshComponentParameter":{},"formData":{}},
+            image:`https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_scs0sfs1sasbs1sf_Screenshot2024-11-14at2.03.47 AM.jpg`
         }
     ]
 
@@ -9954,16 +9965,18 @@ export class BasicComponent {
     ]
 
     public static main(gvc: GVC) {
-        return html`
-            <div class="row m-0 pt-3 w-100 border-top pb-5" style="max-height: calc(100vh - 125px);overflow-y: auto;">
-                <div class="fw-500 fs-6 col-12 mt-0 pt-0 pb-3" style="color:dimgray;">
-                    <div class="alert bg-secondary w-100 fs-6 mb-3 p-3" style="color: dimgray;white-space: normal;">
-                        統合了所有電商網站常使用到的基本元件，透過基礎設計元件，即可達成基本設計需求。
+        return [
+            html`
+                <div class="row m-0 pt-3 w-100 border-top pb-5"
+                     style="max-height: calc(100vh - 125px);overflow-y: auto;">
+                    <div class="fw-500 fs-6 col-12 mt-0 pt-0 pb-3" style="color:dimgray;">
+                        <div class="alert bg-secondary w-100 fs-6 mb-3 p-3" style="color: dimgray;white-space: normal;">
+                            統合了所有電商網站常使用到的基本元件，透過基礎設計元件，即可達成基本設計需求。
+                        </div>
+                        內容
                     </div>
-                    內容
-                </div>
-                ${BasicComponent.componentList.map((dd) => {
-                    return `<div class="col-6  mb-3 ${dd.title == "文字組合" ? 'simpleAddGuide' : ''}">
+                    ${BasicComponent.componentList.map((dd) => {
+                        return `<div class="col-6  mb-3 ${dd.title == "文字組合" ? 'simpleAddGuide' : ''}">
                                         <div class="d-flex flex-column  justify-content-center w-100"
                                              style="gap:5px;cursor:pointer;">
                                             <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
@@ -9978,12 +9991,12 @@ export class BasicComponent {
                                                      style="background: rgba(0,0,0,0.5);gap:5px;">
                                                     <button class="btn btn-primary-c  d-flex align-items-center"
                                                             style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(() => {
-                        dd.config.label = dd.title;
-                        gvc.glitter.share.loading_dialog.dataLoading({text: '模組添加中...', visible: true})
-                        setTimeout(() => {
-                            AddComponent.addWidget(gvc, JSON.parse(JSON.stringify(dd.config)));
-                        }, 100)
-                    })}">
+                            dd.config.label = dd.title;
+                            gvc.glitter.share.loading_dialog.dataLoading({text: '模組添加中...', visible: true})
+                            setTimeout(() => {
+                                AddComponent.addWidget(gvc, JSON.parse(JSON.stringify(dd.config)));
+                            }, 100)
+                        })}">
                                                         <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
                                                     </button>
                                                 </div>
@@ -9997,10 +10010,10 @@ export class BasicComponent {
 
                                         </div>
                                     </div>`
-                }).join('')}
-                <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">商品顯示方式</div>
-                ${BasicComponent.productList.map((dd) => {
-                    return `<div class="col-6  mb-3 ">
+                    }).join('')}
+                    <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">商品顯示方式</div>
+                    ${BasicComponent.productList.map((dd) => {
+                        return `<div class="col-6  mb-3 ">
                                         <div class="d-flex flex-column  justify-content-center w-100"
                                              style="gap:5px;cursor:pointer;">
                                             <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
@@ -10015,9 +10028,9 @@ export class BasicComponent {
                                                      style="background: rgba(0,0,0,0.5);gap:5px;">
                                                     <button class="btn btn-primary-c  d-flex align-items-center"
                                                             style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(() => {
-                        dd.config.label = dd.title;
-                        AddComponent.addWidget(gvc, dd.config);
-                    })}">
+                            dd.config.label = dd.title;
+                            AddComponent.addWidget(gvc, dd.config);
+                        })}">
                                                         <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
                                                     </button>
                                                 </div>
@@ -10031,43 +10044,202 @@ export class BasicComponent {
 
                                         </div>
                                     </div>`
-                }).join('')}
-              
-            </div>`
-        //     <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">更多插件</div>
-        // ${BasicComponent.moreComponent.map((dd) => {
-        //     return `<div class="col-6  mb-3 ">
-        //                                 <div class="d-flex flex-column  justify-content-center w-100"
-        //                                      style="gap:5px;cursor:pointer;">
-        //                                     <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
-        //                                          style="padding-bottom: 58%;overflow: hidden;">
-        //                                         <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
-        //                                              style="overflow: hidden;">
-        //                                             <img class="w-100 "
-        //                                                  src="${dd.image}">
-        //                                         </div>
-        //
-        //                                         <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
-        //                                              style="background: rgba(0,0,0,0.5);gap:5px;">
-        //                                             <button class="btn btn-primary-c  d-flex align-items-center"
-        //                                                     style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(() => {
-        //         dd.config.label = dd.title;
-        //         AddComponent.addWidget(gvc, dd.config);
-        //     })}">
-        //                                                 <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
-        //                                             </button>
-        //                                         </div>
-        //                                     </div>
-        //                                     <h3 class="fs-6 mb-0">
-        //                                         ${dd.title}</h3>
-        //                                     <div class="d-flex flex-wrap">
-        //
-        //
-        //                                     </div>
-        //
-        //                                 </div>
-        //                             </div>`
-        // }).join('')}
+                    }).join('')}
+                    <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">基本元件</div>
+                    ${
+                            BasicComponent.getComponentList(gvc, [
+                                {
+                                    title: '基礎設計元件',
+                                    value: 'basic',
+                                }
+                            ])
+                    }
+                    <div class="fw-bold fs-6 col-12 mt-0 pt-3 pb-3 border-top" style="color:dimgray;">包裝容器</div>
+                    ${
+                            BasicComponent.getComponentList(gvc, [
+                                {
+                                    title: '包裝容器元件',
+                                    value: 'container',
+                                }
+                            ])
+                    }
+                </div>`
+        ].join('')
 
+    }
+
+    public static getComponentList(gvc: GVC, list: { title: string, value: string }[ ],tag:string='基本元件') {
+        return gvc.bindView(() => {
+            let data: any = undefined;
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return html`
+                        <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column"
+                             style="gap: 10px;">
+                            <div class="spinner-border fs-5"></div>
+                            <div class="fs-6 fw-500">載入中...</div>
+                        </div>`;
+                },
+                divCreate: {
+                    style: '', class: `col-12`
+                },
+                onCreate: () => {
+                    ApiPageConfig.getPageTemplate({
+                        template_from: 'all',
+                        page: '0',
+                        limit: '3000',
+                        type: 'module',
+                        tag: tag,
+                        search: '',
+                    }).then((res) => {
+                        data = res;
+                        if (document.querySelector(`[gvc-id='${gvc.id(id)}']`)) {
+                            (document.querySelector(`[gvc-id='${gvc.id(id)}']`) as any).outerHTML = (() => {
+                                return list.map((d1) => {
+                                    return data.response.result.data
+                                        .concat(
+                                            (() => {
+                                                if (d1.value === 'container') {
+                                                    return [
+                                                        {
+                                                            template_config: {
+                                                                image: [
+                                                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Screenshot 2024-08-12 at 2.11.09 PM.jpg',
+                                                                ],
+                                                                tag: [],
+                                                                name: '網格容器',
+                                                            },
+                                                            type: '容器',
+                                                            name: '網格容器',
+                                                        },
+                                                        {
+                                                            template_config: {
+                                                                image: [
+                                                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_Screenshot2024-08-16at5.04.35 PM.jpg',
+                                                                ],
+                                                                tag: [],
+                                                                name: '垂直排版',
+                                                            },
+                                                            type: '容器',
+                                                            name: '垂直排版',
+                                                        },
+                                                        {
+                                                            template_config: {
+                                                                image: [
+                                                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg',
+                                                                ],
+                                                                tag: [],
+                                                                name: '比例佈局',
+                                                            },
+                                                            type: '容器',
+                                                            name: '比例佈局',
+                                                        },
+                                                    ];
+                                                } else {
+                                                    return [];
+                                                }
+                                            })()
+                                        )
+                                        .filter((dd: any) => {
+                                            if (d1.value === 'basic') {
+                                                return ((dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '基本元件';
+                                                })) && (dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '設計元件';
+                                                });
+                                            } else if (d1.value === 'layout') {
+                                                return !(dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '基本元件' || dd === '商品元件';
+                                                });
+                                            } else if (d1.value === 'product_show') {
+                                                return (dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '商品元件';
+                                                });
+                                            } else if (d1.value === 'container') {
+                                                return dd.type === '容器';
+                                            } else if (d1.value === 'layout') {
+                                                return (!((dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '基本元件';
+                                                }))) && (dd.template_config.tag ?? []).find((dd: any) => {
+                                                    return dd === '設計元件';
+                                                })
+                                            }
+                                        }).map((dd: any) => {
+                                            return `<div class="col-6  mb-3 ">
+                                        <div class="d-flex flex-column  justify-content-center w-100"
+                                             style="gap:5px;cursor:pointer;">
+                                            <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
+                                                 style="padding-bottom: 58%;overflow: hidden;">
+                                                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                                                     style="overflow: hidden;">
+                                                    <img class="w-100 "
+                                                         src="${dd.template_config.image[0] || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}">
+                                                </div>
+
+                                                <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                     style="background: rgba(0,0,0,0.5);gap:5px;">
+                                                    <button class="btn btn-primary-c  d-flex align-items-center"
+                                                            style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(() => {
+                                                ((window as any).glitterInitialHelper).getPageData({
+                                                    tag: dd.tag,
+                                                    appName: dd.appName
+                                                }, (d3: any) => {
+
+                                                    gvc.glitter.share.addComponent({
+                                                        id: gvc.glitter.getUUID(),
+                                                        js: './official_view_component/official.js',
+                                                        css: {
+                                                            class: {},
+                                                            style: {},
+                                                        },
+                                                        data: {
+                                                            refer_app: dd.appName,
+                                                            tag: dd.tag,
+                                                            list: [],
+                                                            carryData: {},
+                                                            refer_form_data: d3.response.result[0].page_config.formData
+                                                        },
+                                                        type: 'component',
+                                                        class: 'w-100',
+                                                        index: 0,
+                                                        label: dd.template_config.name,
+                                                        style: '',
+                                                        bundle: {},
+                                                        global: [],
+                                                        toggle: false,
+                                                        stylist: [],
+                                                        dataType: 'static',
+                                                        style_from: 'code',
+                                                        classDataType: 'static',
+                                                        preloadEvenet: {},
+                                                        share: {},
+                                                    });
+                                                    gvc.glitter.closeDiaLog();
+                                                })
+                                            })}">
+                                                        <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <h3 class="fs-6 mb-0">
+                                                ${dd.template_config.name}</h3>
+                                            <div class="d-flex flex-wrap">
+
+
+                                            </div>
+
+                                        </div>
+                                    </div>`
+                                        }).join('');
+                                })
+                                    .join('')
+                            })()
+                        }
+                    });
+                }
+            };
+        })
     }
 }

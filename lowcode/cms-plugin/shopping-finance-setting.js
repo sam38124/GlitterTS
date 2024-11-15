@@ -292,7 +292,8 @@ export class ShoppingFinanceSetting {
                 ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${BgWidget.save(gvc.event(() => {
-            if (keyData.TYPE &&
+            var _a;
+            if (['newWebPay', 'ecPay'].includes((_a = keyData.TYPE) !== null && _a !== void 0 ? _a : "") &&
                 !['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].some((dd) => {
                     return keyData[dd];
                 })) {

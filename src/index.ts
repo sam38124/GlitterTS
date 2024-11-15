@@ -95,7 +95,6 @@ export async function initial(serverPort: number) {
             new SystemSchedule().start();
         }
         WebSocket.start();
-
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -158,6 +157,14 @@ export async function createAPP(dd: any) {
                     console.log(`brandAndMemberType==>`,(new Date().getTime() - start)/1000)
                     //取得頁面資訊
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
+                    //首頁SEO
+                    let home_page_data =  await ((async ()=>{
+                        if(data && data.config){
+                            return (await Seo.getPageInfo(appName, data.config.homePage))
+                        }else{
+                           return (await Seo.getPageInfo(appName, 'index'));
+                        }
+                    })())
                     console.log(`getPageInfo==>`,(new Date().getTime() - start)/1000)
                     let customCode = await new User(appName).getConfigV2({
                         key: 'ga4_config',
@@ -210,7 +217,7 @@ export async function createAPP(dd: any) {
                                 data.page_config.seo.keywords = article.data[0].content.seo.keywords;
                             }
                         } else if (d.type !== 'custom') {
-                            data = await Seo.getPageInfo(appName, data.config.homePage);
+                            data =home_page_data;
                         }
                         const preload = req.query.isIframe === 'true' ? {} : await App.preloadPageData(appName, req.query.page as any);
                         data.page_config = data.page_config ?? {};
@@ -249,6 +256,7 @@ export async function createAPP(dd: any) {
                         console.log(`wait_return==>`,(new Date().getTime() - start)/1000)
                         return html`${(() => {
                             const d = data.page_config.seo;
+                            const home_seo=home_page_data.page_config.seo;
                             return html`
                                 <head>
                                     ${(() => {
@@ -284,10 +292,10 @@ export async function createAPP(dd: any) {
                                             <link rel="canonical"
                                                   href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
                                             <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
-                                            <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}"
+                                            <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}"
                                                   type="image/x-icon"/>
-                                            <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128"/>
-                                            <meta property="og:image" content="${d.image ?? ''}"/>
+                                            <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
                                             <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}"/>
                                             <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
                                             <meta name="og:description"

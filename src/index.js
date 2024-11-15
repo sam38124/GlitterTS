@@ -166,6 +166,14 @@ async function createAPP(dd) {
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
+                    let home_page_data = await ((async () => {
+                        if (data && data.config) {
+                            return (await seo_js_1.Seo.getPageInfo(appName, data.config.homePage));
+                        }
+                        else {
+                            return (await seo_js_1.Seo.getPageInfo(appName, 'index'));
+                        }
+                    })());
                     console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
                     let customCode = await new user_js_1.User(appName).getConfigV2({
                         key: 'ga4_config',
@@ -218,7 +226,7 @@ async function createAPP(dd) {
                             }
                         }
                         else if (d.type !== 'custom') {
-                            data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
+                            data = home_page_data;
                         }
                         const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
@@ -254,10 +262,11 @@ async function createAPP(dd) {
                         return html `${(() => {
                             var _a;
                             const d = data.page_config.seo;
+                            const home_seo = home_page_data.page_config.seo;
                             return html `
                                 <head>
                                     ${(() => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h;
+                                var _a, _b, _c, _d, _e;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
                                             <link rel="canonical" href="/index"/>
@@ -291,14 +300,14 @@ async function createAPP(dd) {
                                             <link rel="canonical"
                                                   href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
                                             <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}"
+                                            <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}"
                                                   type="image/x-icon"/>
-                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
-                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
-                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
-                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
+                                            <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
+                                            <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}"/>
                                             <meta name="og:description"
-                                                  content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
+                                                  content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}"/>`;
                                 }
                             })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}

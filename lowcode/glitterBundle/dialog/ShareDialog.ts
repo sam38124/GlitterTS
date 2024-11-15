@@ -3,7 +3,7 @@ import { Glitter } from '../Glitter.js';
 export class ShareDialog {
     public dataLoading = (obj: { text?: string; visible: boolean }) => {};
     public infoMessage = (obj: { text?: string }) => {};
-    public errorMessage = (obj: { text?: string }) => {};
+    public errorMessage = (obj: { text?: string,tag?:string }) => {};
     public successMessage = (obj: { text?: string }) => {};
     public warningMessage: (obj: { callback: (response: boolean) => void; text: string }) => void;
     public checkYesOrNot: (obj: { callback: (response: boolean) => void; text: string; icon?: string }) => void;
@@ -29,8 +29,8 @@ export class ShareDialog {
                 obj: obj,
             });
         };
-        this.errorMessage = (obj: { text?: string }) => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'errorMessage', {
+        this.errorMessage = (obj: { text?: string,tag?:string }) => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', obj.tag || 'errorMessage', {
                 type: 'errorMessage',
                 obj: obj,
             });

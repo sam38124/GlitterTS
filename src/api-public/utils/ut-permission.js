@@ -27,6 +27,25 @@ class UtPermission {
             }
         });
     }
+    static isManagerTokenCheck(app_name, user_id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const result = await database_js_1.default.query(`SELECT count(1) 
+                    FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
+                    WHERE 
+                        (user = ? and appName = ?)
+                        OR appName in (
+                            (SELECT appName FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
+                    `, [user_id, app_name, user_id, app_name]);
+                resolve(result[0]['count(1)'] == 1);
+            }
+            catch (e) {
+                resolve(false);
+            }
+        });
+    }
     static isAppUser(req) {
         return new Promise(async (resolve, reject) => {
             try {

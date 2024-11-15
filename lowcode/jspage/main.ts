@@ -236,8 +236,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             },
             async () => {
                 return await new Promise(async (resolve) => {
-
-
                     viewModel.data = await new Promise((resolve, reject) => {
                         ((window as any).glitterInitialHelper).getPageData({
                             tag: glitter.getUrlParameter('page'),
@@ -533,7 +531,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             viewModel.selectContainer = undefined;
             lod();
         };
-
     });
 
     return {
@@ -636,7 +633,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                 return `p-0`;
                                                         }
                                                     })()}"
-                                                    style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
+                                                    style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - ${(document.body.clientWidth<800 || document.body.clientWidth>1200) ? 56:(parseInt(glitter.share.top_inset, 10)+56)}px);"
                                             >
                                                 <div class="h-120" style="">
                                                     ${gvc.bindView(() => {
@@ -669,7 +666,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                             return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                                                     }
                                                                 })();
-                                                                if (document.body.offsetWidth < 800) {
+                                                                if (document.body.offsetWidth < 992) {
                                                                     glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {});
                                                                     glitter.share.toggle_left_bar=()=>{
                                                                         glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
@@ -739,9 +736,9 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
                                 if (document.body.clientWidth > 1000) {
-
                                     ApiShop.getGuideable().then(r => {
                                         if (!r.response.value || !r.response.value.view) {
+                                            ApiShop.setFEGuideable({})
                                             bgGuide.drawGuide();
                                         }
                                     })

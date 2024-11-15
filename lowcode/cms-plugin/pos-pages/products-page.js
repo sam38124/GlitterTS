@@ -13,7 +13,7 @@ export class ProductsPage {
         orderDetail.total = orderDetail.total || 0;
         return html `
             <div class="left-panel"
-                 style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding-top: 32px` : `width:calc(100% - 352px);padding: 32px 36px`};overflow: hidden;">
+                 style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding-top: 42px` : `width:calc(100% - 352px);padding-top: 32px ;padding-bottom:32px;`}overflow: hidden;">
                 ${gvc.bindView({
             bind: `category`,
             view: () => {
@@ -52,8 +52,8 @@ export class ProductsPage {
                 }
             },
             divCreate: {
-                class: `d-flex px-3 px-lg-2`,
-                style: `width:100%;overflow: scroll;padding-bottom:32px;`
+                class: `d-flex px-3 `,
+                style: `width:100%;overflow: scroll;padding-bottom:32px;${(document.body.clientWidth > 992) ? `padding-left:32px !important;padding-right:32px !important;` : `padding-top:20px;`}`
             }
         })}
                 ${gvc.bindView({
@@ -362,7 +362,7 @@ export class ProductsPage {
                 else {
                     return {
                         class: `d-flex flex-wrap w-100 product-show p-2`,
-                        style: `gap:26px;overflow:scroll;max-height:100%;`
+                        style: `gap:26px;overflow:scroll;max-height:100%;padding-bottom:100px !important;margin-left:32px;margin-right:32px;`
                     };
                 }
             }

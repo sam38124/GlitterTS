@@ -11,6 +11,7 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from './bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 import { Article } from '../glitter-base/route/article.js';
 import { MenusSetting } from '../cms-plugin/menus-setting.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
@@ -277,69 +278,128 @@ export class BgBlog {
                         return gvc.bindView(() => {
                             let data = undefined;
                             const id = gvc.glitter.getUUID();
-                            Article.get({
-                                page: 0,
-                                limit: 20,
-                                search: ``,
-                                for_index: `false`,
-                                status: '0,1',
-                                page_type: page_tab,
-                                app_name: 't_1726217714800',
-                            }).then((dd) => {
-                                data = {
-                                    response: {
-                                        result: {
-                                            data: [
-                                                {
-                                                    id: 20739,
-                                                    userID: '234285319',
-                                                    tag: 'empty',
-                                                    name: '空白內容',
-                                                    page_type: 'page',
-                                                    preview_image: null,
-                                                    appName: 'shop_template_black_style',
-                                                    template_type: 2,
-                                                    template_config: {
-                                                        tag: ['頁面範例'],
-                                                        desc: '',
+                            if (page_tab === 'page') {
+                                Article.get({
+                                    page: 0,
+                                    limit: 20,
+                                    search: ``,
+                                    for_index: `false`,
+                                    status: '0,1',
+                                    page_type: page_tab,
+                                    app_name: 't_1726217714800',
+                                }).then((dd) => {
+                                    data = {
+                                        response: {
+                                            result: {
+                                                data: [
+                                                    {
+                                                        id: 20739,
+                                                        userID: '234285319',
+                                                        tag: 'empty',
                                                         name: '空白內容',
-                                                        image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                                        status: 'wait',
-                                                        post_to: 'all',
-                                                        version: '1.0',
-                                                        created_by: 'liondesign.io',
-                                                        preview_img: '',
+                                                        page_type: 'page',
+                                                        preview_image: null,
+                                                        appName: 'shop_template_black_style',
+                                                        template_type: 2,
+                                                        template_config: {
+                                                            tag: ['頁面範例'],
+                                                            desc: '',
+                                                            name: '空白內容',
+                                                            image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                            status: 'wait',
+                                                            post_to: 'all',
+                                                            version: '1.0',
+                                                            created_by: 'liondesign.io',
+                                                            preview_img: '',
+                                                        },
                                                     },
-                                                },
-                                            ].concat(dd.response.data.map((dd) => {
-                                                return {
-                                                    id: 20739,
-                                                    userID: '234285319',
-                                                    tag: dd.content.tag,
-                                                    name: dd.content.name,
-                                                    page_type: 'page',
-                                                    preview_image: null,
-                                                    _config: dd.content.config,
-                                                    appName: 't_1726217714800',
-                                                    template_type: 2,
-                                                    template_config: {
-                                                        tag: [],
-                                                        desc: '',
+                                                ].concat(dd.response.data.map((dd) => {
+                                                    return {
+                                                        id: 20739,
+                                                        userID: '234285319',
+                                                        tag: dd.content.tag,
                                                         name: dd.content.name,
-                                                        image: [dd.content.seo.image],
-                                                        status: 'wait',
-                                                        post_to: 'all',
-                                                        version: '1.0',
-                                                        created_by: 'liondesign.io',
-                                                        preview_img: '',
-                                                    },
-                                                };
-                                            })),
+                                                        page_type: 'page',
+                                                        preview_image: null,
+                                                        _config: dd.content.config,
+                                                        appName: 't_1726217714800',
+                                                        template_type: 2,
+                                                        template_config: {
+                                                            tag: [],
+                                                            desc: '',
+                                                            name: dd.content.name,
+                                                            image: [dd.content.seo.image],
+                                                            status: 'wait',
+                                                            post_to: 'all',
+                                                            version: '1.0',
+                                                            created_by: 'liondesign.io',
+                                                            preview_img: '',
+                                                        },
+                                                    };
+                                                })),
+                                            },
                                         },
-                                    },
-                                };
-                                gvc.notifyDataChange(id);
-                            });
+                                    };
+                                    gvc.notifyDataChange(id);
+                                });
+                            }
+                            else {
+                                ApiPageConfig.getTemplateList().then((res) => {
+                                    data = {
+                                        response: {
+                                            result: {
+                                                data: [
+                                                    {
+                                                        id: 20739,
+                                                        userID: '234285319',
+                                                        tag: 'empty',
+                                                        name: '空白內容',
+                                                        page_type: 'page',
+                                                        preview_image: null,
+                                                        appName: 'shop_template_black_style',
+                                                        template_type: 2,
+                                                        template_config: {
+                                                            tag: ['頁面範例'],
+                                                            desc: '',
+                                                            name: '空白內容',
+                                                            image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                            status: 'wait',
+                                                            post_to: 'all',
+                                                            version: '1.0',
+                                                            created_by: 'liondesign.io',
+                                                            preview_img: '',
+                                                        },
+                                                    },
+                                                ].concat(res.response.result.map((dd) => {
+                                                    return {
+                                                        id: 20739,
+                                                        userID: '234285319',
+                                                        tag: 'index',
+                                                        domain: dd.domain,
+                                                        name: dd.template_config.name,
+                                                        page_type: 'page',
+                                                        preview_image: null,
+                                                        appName: dd.appName,
+                                                        template_type: 2,
+                                                        template_config: {
+                                                            tag: [],
+                                                            desc: '',
+                                                            name: dd.template_config.name,
+                                                            image: [dd.template_config.image[0]],
+                                                            status: 'wait',
+                                                            post_to: 'all',
+                                                            version: '1.0',
+                                                            created_by: 'liondesign.io',
+                                                            preview_img: '',
+                                                        },
+                                                    };
+                                                }).reverse()),
+                                            },
+                                        }
+                                    };
+                                    gvc.notifyDataChange(id);
+                                });
+                            }
                             return {
                                 bind: id,
                                 view: () => {
@@ -373,7 +433,12 @@ export class BgBlog {
                                                         return b.tag === 'empty' ? 1 : -1;
                                                     }
                                                     else {
-                                                        return a.template_config.name.localeCompare(b.template_config.name);
+                                                        if (page_tab === 'page') {
+                                                            return a.template_config.name.localeCompare(b.template_config.name);
+                                                        }
+                                                        else {
+                                                            return 1;
+                                                        }
                                                     }
                                                 })
                                                     .map((dd, index) => {
@@ -418,6 +483,9 @@ export class BgBlog {
                                                                     type: 'get',
                                                                 }).then((res) => {
                                                                     res.response.result[0].config.name = dd.template_config.name;
+                                                                    res.response.result[0].config.splice(0, 1);
+                                                                    res.response.result[0].config.splice(res.response.result[0].config.length - 1, 1);
+                                                                    res.response.result[0].config.push({ "id": "sas5s2s0s1s6s1sf", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style", "tag": "sy01_checkout_detail", "list": [], "carryData": {}, "refer_form_data": { "carry_info": [{ "index": 0, "title": "預購商品大約7~21個工作天", "c_v_id": "s1s9sds9s4s2s4sa", "toggle": false }, { "index": 1, "title": "現貨商品將於下單後隔天寄出（不包含例假日）", "c_v_id": "s7s9sbsas4s2s0sc", "toggle": false }, { "index": 2, "title": "如訂單量較大或是有缺貨狀況，寄出時間將不一定，敬請見諒", "c_v_id": "s9sbs4sasds6s7s9", "toggle": false }, { "index": 3, "title": "寄出後大概2至3天會送達指定地點（週末不配送）", "c_v_id": "s6s4s6s1s4s0s9s9", "toggle": false }] }, "_style_refer_global": { "index": "0" }, "_style_refer": "custom", "elem": "div", "inner": "", "attr": [], "_padding": {}, "_margin": {}, "_border": {}, "_max_width": "", "_gap": "", "_background": "", "_other": {}, "_radius": "", "_reverse": "false", "_hor_position": "center", "_background_setting": { "type": "none" } }, "type": "component", "class": "w-100", "index": 0, "label": "一頁購物", "style": "", "bundle": {}, "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "share": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "storage": {}, "mobile": { "id": "sas5s2s0s1s6s1sf", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "一頁購物", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "refer": "custom" }, "mobile_editable": [], "desktop": { "id": "sas5s2s0s1s6s1sf", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style" }, "type": "component", "class": "w-100", "index": 0, "label": "一頁購物", "style": "", "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "refreshAllParameter": {}, "editor_bridge": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "mobile_editable": [], "desktop_editable": [], "refer": "custom" }, "desktop_editable": [], "container_fonts": 0 });
                                                                     callback(res.response.result[0].config);
                                                                 });
                                                             }
@@ -434,7 +502,12 @@ export class BgBlog {
                                                                                             class="fa-solid fa-eye ${dd.tag === 'empty' ? `d-none` : ``}"
                                                                                             style="cursor:pointer;"
                                                                                             onclick="${gvc.event(() => {
-                                                        window.parent.glitter.openNewTab(`${gvc.glitter.root_path}pages/${dd.tag}?appName=${dd.appName}`);
+                                                        if (page_tab !== 'page') {
+                                                            window.parent.glitter.openNewTab(`https://${dd.domain}/index`);
+                                                        }
+                                                        else {
+                                                            window.parent.glitter.openNewTab(`${gvc.glitter.root_path}pages/${dd.tag}?appName=${dd.appName}`);
+                                                        }
                                                     })}"
                                                                                         ></i>
                                                                                     </h3>

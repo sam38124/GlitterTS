@@ -439,7 +439,6 @@ router.get('/voucher', async (req, resp) => {
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
             id: req.query.id,
         });
-        console.log(`object: ${!(await ut_permission_1.UtPermission.isManager(req))}`);
         if (!(await ut_permission_1.UtPermission.isManager(req))) {
             const userClass = new user_js_1.User(req.get('g-app'));
             const userLevels = await userClass.getUserLevel([{ userId: req.body.token.userID }]);
@@ -447,10 +446,6 @@ router.get('/voucher', async (req, resp) => {
             vouchers.data = vouchers.data.filter((d) => {
                 const dd = d.content;
                 if (dd.target === 'customer') {
-                    console.log('dd.targetList');
-                    console.log(dd.targetList);
-                    console.log('userID');
-                    console.log(req.body.token.userID);
                     return dd.targetList.includes(req.body.token.userID);
                 }
                 if (dd.target === 'levels') {

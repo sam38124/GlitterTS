@@ -993,6 +993,9 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             return fun();
         }
     }
+    isTouchDevice() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+    }
     getUUID(format) {
         let d = Date.now();
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {

@@ -572,6 +572,9 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
+    public isTouchDevice(){
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || ((navigator as any).msMaxTouchPoints > 0);
+    }
     public getUUID(format?: string): string {
         let d = Date.now();
 

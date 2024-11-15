@@ -327,6 +327,9 @@ export class StockList {
                                                                 // gvc.notifyDataChange(vm.filterId);
                                                             },
                                                             rowClick: (data, index) => {
+                                                                if(option.select_mode){
+                                                                    return
+                                                                }
                                                                 const product = vm.dataList[index].product_content;
                                                                 const variant = vm.dataList[index].variant_content;
                                                                 product.variants.map((dd: any) => {

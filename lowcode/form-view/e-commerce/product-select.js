@@ -116,10 +116,12 @@ export class ProductSelect {
                                 return [];
                             }
                         }))();
-                        resolve(html `<div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
-                            <div class="d-flex align-items-center gray-bottom-line-18 pb-2" style="gap: 10px; justify-content: space-between;">
-                                <div class="flex-fill">
-                                    ${EditorElem.select({
+                        resolve(html `
+                            <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
+                                <div class="d-flex align-items-center gray-bottom-line-18 pb-2"
+                                     style="gap: 10px; justify-content: space-between;">
+                                    <div class="flex-fill">
+                                        ${EditorElem.select({
                             title: bundle.title,
                             gvc: gvc,
                             def: bundle.formData[bundle.key].select,
@@ -135,9 +137,10 @@ export class ProductSelect {
                                 gvc.notifyDataChange(subVM.id);
                             },
                         })}
-                                </div>
-                                <div class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}" style="margin-top: 30px;">
-                                    ${BgWidget.grayButton((() => {
+                                    </div>
+                                    <div class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}"
+                                         style="margin-top: 30px;">
+                                        ${BgWidget.grayButton((() => {
                             switch (bundle.formData[bundle.key].select) {
                                 case 'product':
                                     return `選取`;
@@ -172,43 +175,49 @@ export class ProductSelect {
                                 });
                             }
                         }), { textStyle: 'font-weight: 400;' })}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
-                                ${gvc.map(subVM.dataList.map((opt, index) => {
+                                <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
+                                    ${gvc.map(subVM.dataList.map((opt, index) => {
                             switch (bundle.formData[bundle.key].select) {
                                 case 'collection':
-                                    return html `<div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                    <span class="tx_normal">${index + 1}. ${opt}</span>
-                                                </div>`;
+                                    return html `
+                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                <span class="tx_normal">${index + 1}. ${opt}</span>
+                                                            </div>`;
                                 case 'product':
-                                    return html ` <div class="d-flex align-items-center form-check-label c_updown_label px-1" style="justify-content: space-between" data-index="${opt.key}">
-                                                    <div class="d-flex align-items-center gap-3 cursor_move">
-                                                        <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
-                                                        ${BgWidget.validImageBox({
+                                    return html `
+                                                            <div class="d-flex align-items-center form-check-label c_updown_label px-1"
+                                                                 style="justify-content: space-between"
+                                                                 data-index="${opt.key}">
+                                                                <div class="d-flex align-items-center gap-3 cursor_move">
+                                                                    <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
+                                                                    ${BgWidget.validImageBox({
                                         gvc,
                                         image: opt.image,
                                         width: 40,
                                     })}
-                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                    </div>
-                                                    <i
-                                                        class="fa-regular fa-trash cursor_pointer"
-                                                        onclick="${gvc.event(() => {
+                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                        ${opt.value}
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                        class="fa-regular fa-trash cursor_pointer"
+                                                                        onclick="${gvc.event(() => {
                                         bundle.formData[bundle.key].value = bundle.formData[bundle.key].value.filter((id) => {
                                             return id !== opt.key;
                                         });
                                         bundle.callback(bundle.formData[bundle.key].value);
                                         gvc.notifyDataChange(subVM.id);
                                     })}"
-                                                    ></i>
-                                                </div>`;
+                                                                ></i>
+                                                            </div>`;
                                 case 'all':
                                     return ``;
                             }
                         }))}
-                            </div>
-                        </div>`);
+                                </div>
+                            </div>`);
                     }));
                 },
                 onCreate: () => {
@@ -225,7 +234,8 @@ export class ProductSelect {
                                     gvc.notifyDataChange(subVM.id);
                                 }
                             }, 300);
-                        }, () => { });
+                        }, () => {
+                        });
                     }
                     else {
                         const el = document.querySelector(`#${subVM.containerId}`);

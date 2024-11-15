@@ -338,7 +338,7 @@ export class ShoppingFinanceSetting {
                     ${BgWidget.save(
                             gvc.event(() => {
                                 if (
-                                        keyData.TYPE &&
+                                        ['newWebPay' ,'ecPay'].includes(keyData.TYPE ?? "") &&
                                         !['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].some((dd) => {
                                             return (keyData as any)[dd];
                                         })

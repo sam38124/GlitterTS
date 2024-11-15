@@ -93,7 +93,7 @@ export class ProductAi {
                 },
                 "content": {
                     "type": "string",
-                    "description": "商品內文"
+                    "description": "商品內文，至少200字"
                 },
                 "seo_title": {
                     "type": "string",
@@ -122,7 +122,7 @@ export class ProductAi {
             title: 'AI 商品生成',
             innerHTML: (gvc: GVC) => {
                 const html = String.raw
-                let message = ''
+                let message = '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。'
                 return html`
                     <div class="">
                         ${[
@@ -137,7 +137,7 @@ export class ProductAi {
                                     ${BgWidget.textArea({
                                         gvc: gvc,
                                         title: '',
-                                        default: '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。',
+                                        default: message,
                                         placeHolder: `商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。`,
                                         callback: (text) => {
                                             message = text;
@@ -185,6 +185,9 @@ ${BgWidget.save(gvc.event(() => {
                                                         "sku": "",
                                                         "cost": 0,
                                                         "spec": (obj.spec.length===1) ? []:dd.value.map((dd:any)=>{
+                                                            if(dd.value.includes(':')){
+                                                                return dd.value.split(':')[1]
+                                                            }
                                                             return dd.value
                                                         }),
                                                         "type": "variants",
@@ -208,7 +211,11 @@ ${BgWidget.save(gvc.event(() => {
                                             //seo_title
                                             (obj.seo_title) && (product_data.seo.title=obj.seo_title);
                                             //seo_content
-                                            (obj.seo_content) && (product_data.seo.content=obj.seo_content)
+                                            (obj.seo_content) && (product_data.seo.content=obj.seo_content);
+                                            //ai描述語句
+                                            obj.ai_description && (product_data.ai_description=obj.ai_description);
+                                            //
+                                            console.log(`obj.ai_description==>`,obj.ai_description)
                                             dialog.successMessage({text:`生成成功，消耗了『${usage}』點 AI-Points`})
                                             refresh()
                                             gvc.closeDialog()

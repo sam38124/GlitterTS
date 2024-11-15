@@ -1278,12 +1278,25 @@ export class User {
                 where: querySql,
                 orderBy: query.order_string ?? '',
             });
+            const userData=(await db.query(dataSQL, [])).map((dd: any) => {
+                dd.pwd = undefined;
+                dd.tag_name='一般會員'
+                return dd;
+            })
+            for (const b of await db.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${
+                userData.map((dd:any)=>{
+                    return dd.userID
+                }).concat([-21211]).join(',')
+            }) `,[])){
+                if(b.value.value[0]){
+                    userData.find((dd:any)=>{
+                        return `${dd.userID}`===`${b.user_id}`
+                    }).tag_name=b.value.value[0].tag_name
+                }
+            }
             return {
                 // 所有註冊會員的詳細資料
-                data: (await db.query(dataSQL, [])).map((dd: any) => {
-                    dd.pwd = undefined;
-                    return dd;
-                }),
+                data: userData,
                 // 所有註冊會員的數量
                 total: (await db.query(countSQL, []))[0]['count(1)'],
                 // 額外資料（例如未註冊的訂閱者資料）

@@ -21,6 +21,7 @@ import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { FbMessage } from './fb-message';
+import fs from "fs";
 
 type BindItem = {
     id: string;
@@ -1054,12 +1055,12 @@ export class Shopping {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });
-                // 濾出可用的加購商品
-                await this.checkVoucher(carData);
+                // 濾出可用的加購商品，避免折扣被double所以要stringify
+                const c_carData=await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
                 add_on_items.map((dd) => {
                     try {
                         if (
-                            carData.voucherList?.find((d1) => {
+                            c_carData.voucherList?.find((d1) => {
                                 return (
                                     d1.reBackType === 'add_on_items' &&
                                     (d1.add_on_products as string[]).find((d2) => {
@@ -1069,7 +1070,7 @@ export class Shopping {
                             })
                         ) {
                             //把加購品加回去
-                            carData.lineItems.push(dd);
+                            c_carData.lineItems.push(dd);
                         }
                     } catch (e) {}
                 });
@@ -1253,9 +1254,9 @@ export class Shopping {
                 carData.orderSource = 'POS';
                 const trans = await db.Transaction.build();
                 if (carData.user_info.shipment === 'now') {
+                    (carData as any).orderStatus = '1';
                     (carData as any).progress = 'finish';
                 }
-                console.log('carData -- ', carData);
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
@@ -1917,7 +1918,6 @@ export class Shopping {
                                 } else {
                                     d2.discount_price += discount / d2.count;
                                     cart.discount! += discount;
-                                    dd.discount_total += discount;
                                 }
                             }
                             if (remain - discount > 0) {
@@ -1989,6 +1989,7 @@ export class Shopping {
         // 回傳折扣後總金額與優惠券陣列
         cart.total -= cart.discount;
         cart.voucherList = voucherList;
+        return cart
     }
 
     public async putOrder(data: { id: string; orderData: any; status: any }) {
@@ -2138,7 +2139,7 @@ export class Shopping {
         returnSearch?: string;
     }) {
         try {
-            console.log('here -- ');
+
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
 
@@ -2585,7 +2586,9 @@ export class Shopping {
                 let pass = 0;
                 await new Promise(async (resolve, reject) => {
                     for (const tag of tags) {
-                        new Promise(async (resolve, reject) => {
+                         new Promise(async (resolve, reject) => {
+                            let start=new Date()
+                            console.log(`${tag}_start`)
                             try {
                                 switch (tag) {
                                     case 'recent_active_user':
@@ -2638,6 +2641,8 @@ export class Shopping {
                             } catch (e) {
                                 resolve(false);
                             }
+
+                            console.log(`${tag}_end`, ((new Date().getTime() - start.getTime()) / 1000))
                         }).then((res) => {
                             pass++;
                             if (pass === tags.length) {
@@ -2660,23 +2665,36 @@ export class Shopping {
     async getActiveRecentYear() {
         try {
             const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${saasConfig.SAAS_NAME}\`.t_monitor
                     WHERE app_name = ${db.escape(this.app)}
-                      and req_type = 'file'
-                      and (
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        );
+                      and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await db.query(monthRegisterSQL, [])).length);
+            const start_date=new Date();
+            start_date.setDate(new Date().getDate()-365);
+            start_date.setHours(0,0,0)
+            const data=(await db.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 12; index++) {
+                let mac_address:string[]=[]
+                const now_date=new Date()
+                now_date.setMonth(now_date.getMonth()-index)
+                countArray.push(data.filter((dd:any)=>{
+                    if(mac_address.includes(dd.mac_address)){
+                        return false
+                    }
+                    const date=(new Date(dd.created_time))
+                    if(date.getMonth()==now_date.getMonth()){
+                        mac_address.push(dd.mac_address)
+                        return true
+                    }else{
+                        return false
+                    }
+                }).length);
             }
             return {
-                count_array: countArray,
+                count_array: countArray.reverse(),
             };
         } catch (e) {
             console.error(e);
@@ -2687,20 +2705,28 @@ export class Shopping {
     async getActiveRecent2Weak() {
         try {
             const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)}
-                      and req_type = 'file'
-                      and (DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY)));
+                    WHERE app_name = ${db.escape(this.app)} and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await db.query(monthRegisterSQL, [])).length);
+            const start_date=new Date();
+            start_date.setDate(new Date().getDate()-14);
+            start_date.setHours(0,0,0)
+            const data=(await db.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 14; index++) {
+                let cp_date=new Date()
+                let mac_address:string[]=[]
+                cp_date.setDate(cp_date.getDate()-index)
+                countArray.unshift(data.filter((dd:any)=>{
+                    if(!mac_address.includes(dd.mac_address)){
+                        mac_address.push(dd.mac_address)
+                        return (new Date(dd.created_time).getDate())==cp_date.getDate()
+                    }else{
+                        return  false
+                    }
+                }).length);
             }
             return {
                 count_array: countArray,

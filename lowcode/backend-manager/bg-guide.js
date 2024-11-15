@@ -136,9 +136,13 @@ export class BgGuide {
         });
     }
     leaveGuide(vm, step) {
-        const element = document.querySelector('.guide-BG');
-        this.clearEvent();
-        element.remove();
+        try {
+            const element = document.querySelector('.guide-BG');
+            this.clearEvent();
+            element.remove();
+        }
+        catch (e) {
+        }
         this.step = step !== null && step !== void 0 ? step : -1;
         if (!step) {
             ApiShop.getFEGuideLeave().then(r => {
@@ -150,7 +154,13 @@ export class BgGuide {
                     });
                 }
                 else {
-                    document.querySelector(`.guide-BG`).remove();
+                    try {
+                        document.querySelector(`.guide-BG`).remove();
+                    }
+                    catch (e) {
+                    }
+                    this.guide = 0;
+                    this.drawBG();
                 }
             });
         }
@@ -275,7 +285,6 @@ export class BgGuide {
         let target = document.querySelector(targetSelector);
         let rect = target ? target.getBoundingClientRect() : '';
         if (rect) {
-            target.scrollIntoView();
             target = document.querySelector(targetSelector);
             rect = target.getBoundingClientRect();
             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
@@ -4535,12 +4544,16 @@ export class BgGuide {
             document.querySelector('.guide-BG').innerHTML = innerHTML !== null && innerHTML !== void 0 ? innerHTML : ``;
         }
         else {
+            document.querySelector('.scrollbar-hover').scrollTop = 0;
             const innerHTML = this.guidePage[this.guide].innerHTML();
             document.querySelector('.guide-BG').innerHTML = innerHTML !== null && innerHTML !== void 0 ? innerHTML : ``;
         }
         return html ``;
     }
     drawGuide() {
+        if (document.body.clientWidth < 922) {
+            return;
+        }
         const that = this;
         const timer = setInterval(function () {
             if (document.querySelector('iframe')) {

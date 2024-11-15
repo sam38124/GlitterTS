@@ -306,8 +306,8 @@ export class ApiShop {
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
-                    if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
-                        par.push(`show_hidden=true`);
+                    if (location.pathname.includes('/hidden/')) {
+                        par.push(`filter_visible=false`);
                     }
                     return par.join('&');
                 })()}`,

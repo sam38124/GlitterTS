@@ -113,6 +113,7 @@ export class ApiUser {
         });
     }
 
+
     public static getSaasUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,

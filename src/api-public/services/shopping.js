@@ -719,17 +719,17 @@ class Shopping {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });
-                await this.checkVoucher(carData);
+                const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
                 add_on_items.map((dd) => {
                     var _a;
                     try {
-                        if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
+                        if ((_a = c_carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
                             return (d1.reBackType === 'add_on_items' &&
                                 d1.add_on_products.find((d2) => {
                                     return `${dd.id}` === `${d2}`;
                                 }));
                         })) {
-                            carData.lineItems.push(dd);
+                            c_carData.lineItems.push(dd);
                         }
                     }
                     catch (e) { }
@@ -887,9 +887,9 @@ class Shopping {
                 carData.orderSource = 'POS';
                 const trans = await database_js_1.default.Transaction.build();
                 if (carData.user_info.shipment === 'now') {
+                    carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                console.log('carData -- ', carData);
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1431,7 +1431,6 @@ class Shopping {
                             else {
                                 d2.discount_price += discount / d2.count;
                                 cart.discount += discount;
-                                dd.discount_total += discount;
                             }
                         }
                         if (remain - discount > 0) {
@@ -1496,6 +1495,7 @@ class Shopping {
         }
         cart.total -= cart.discount;
         cart.voucherList = voucherList;
+        return cart;
     }
     async putOrder(data) {
         try {
@@ -1598,7 +1598,6 @@ class Shopping {
     }
     async getCheckOut(query) {
         try {
-            console.log('here -- ');
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
@@ -1963,6 +1962,8 @@ class Shopping {
                 await new Promise(async (resolve, reject) => {
                     for (const tag of tags) {
                         new Promise(async (resolve, reject) => {
+                            let start = new Date();
+                            console.log(`${tag}_start`);
                             try {
                                 switch (tag) {
                                     case 'recent_active_user':
@@ -2016,6 +2017,7 @@ class Shopping {
                             catch (e) {
                                 resolve(false);
                             }
+                            console.log(`${tag}_end`, ((new Date().getTime() - start.getTime()) / 1000));
                         }).then((res) => {
                             pass++;
                             if (pass === tags.length) {
@@ -2038,23 +2040,37 @@ class Shopping {
     async getActiveRecentYear() {
         try {
             const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                     WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      and req_type = 'file'
-                      and (
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        );
+                      and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            const start_date = new Date();
+            start_date.setDate(new Date().getDate() - 365);
+            start_date.setHours(0, 0, 0);
+            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 12; index++) {
+                let mac_address = [];
+                const now_date = new Date();
+                now_date.setMonth(now_date.getMonth() - index);
+                countArray.push(data.filter((dd) => {
+                    if (mac_address.includes(dd.mac_address)) {
+                        return false;
+                    }
+                    const date = (new Date(dd.created_time));
+                    if (date.getMonth() == now_date.getMonth()) {
+                        mac_address.push(dd.mac_address);
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }).length);
             }
             return {
-                count_array: countArray,
+                count_array: countArray.reverse(),
             };
         }
         catch (e) {
@@ -2065,20 +2081,29 @@ class Shopping {
     async getActiveRecent2Weak() {
         try {
             const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      and req_type = 'file'
-                      and (DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY)));
+                    WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            const start_date = new Date();
+            start_date.setDate(new Date().getDate() - 14);
+            start_date.setHours(0, 0, 0);
+            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 14; index++) {
+                let cp_date = new Date();
+                let mac_address = [];
+                cp_date.setDate(cp_date.getDate() - index);
+                countArray.unshift(data.filter((dd) => {
+                    if (!mac_address.includes(dd.mac_address)) {
+                        mac_address.push(dd.mac_address);
+                        return (new Date(dd.created_time).getDate()) == cp_date.getDate();
+                    }
+                    else {
+                        return false;
+                    }
+                }).length);
             }
             return {
                 count_array: countArray,

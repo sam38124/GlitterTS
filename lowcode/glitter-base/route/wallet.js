@@ -25,14 +25,14 @@ export class ApiWallet {
             data: JSON.stringify(json),
         });
     }
-    static getWallet() {
+    static getWallet(token) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/wallet/sum`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: getConfig().config.token,
+                Authorization: token || getConfig().config.token,
             },
         });
     }

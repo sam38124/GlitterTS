@@ -208,7 +208,7 @@ export class imageLibrary {
                                                            gvc.notifyDataChange(vm.id)
                                                            event.stopPropagation();
                                                        })}"
-                                                             ${document.body.clientWidth>800 ? `
+                                                             ${(!gvc.glitter.isTouchDevice()) ? `
                                                              onmouseenter="${gvc.event(() => {
                                                                  if (opt?.onlyRead || cf.key == "album") {
                                                                      return

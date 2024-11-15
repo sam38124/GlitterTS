@@ -10,10 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { UmClass } from './um-class.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { UMVoucher } from "./um-voucher.js";
 const html = String.raw;
 export class UMRebate {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
+        if (glitter.getUrlParameter('page') === 'voucher-list') {
+            return UMVoucher.main(gvc, widget, subData);
+        }
         const vm = {
             dataList: [],
             amount: 0,

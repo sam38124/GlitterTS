@@ -1324,9 +1324,14 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
                                                        speed="1" loop="true"
                                                        background="transparent"></lottie-player>
-                                        <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                        <h3 class="text-dark fs-6 mt-n3 px-2 mb-3 "
                                             style="line-height: 200%;text-align: center;">
-                                            此模塊無可編輯內容。</h3>
+                                            此模塊無可編輯內容</h3>
+                                            ${BgWidget.save(gvc.event(() => {
+                                                                    Storage.lastSelect = '';
+                                                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                    gvc.glitter.share.selectEditorItem();
+                                                                }), '返回上層')}
                                     </div>`);
                                                             }
                                                             else {

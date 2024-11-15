@@ -110,6 +110,9 @@ export class ColorThemeSelector {
                                                     cf.gvc.notifyDataChange(id);
                                                 },
                                                 filter: (key) => {
+                                                    if(cf.widget.bundle.form_config.support_color){
+                                                        return  cf.widget.bundle.form_config.support_color.split(',').includes(key)
+                                                    }
                                                     if(cf.widget.bundle.root_widget.find((dd:any)=>{
                                                         return dd.data._color_editor_able!==undefined
                                                     })){
@@ -214,6 +217,9 @@ export class ColorThemeSelector {
                                                                         cf.gvc.notifyDataChange(id);
                                                                     },
                                                                     filter: (key) => {
+                                                                        if(cf.widget.bundle.form_config.support_color){
+                                                                            return  cf.widget.bundle.form_config.support_color.split(',').includes(key)
+                                                                        }
                                                                         if(cf.widget.bundle.root_widget.find((dd:any)=>{
                                                                             return dd.data._color_editor_able!==undefined
                                                                         })){
@@ -250,6 +256,7 @@ export class ColorThemeSelector {
 
                             </div>`;
                     } catch (e) {
+                        console.log(e)
                         return `<div style="white-space: normal;">${e}</div>`;
                     }
                 },

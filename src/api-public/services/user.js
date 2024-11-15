@@ -1068,11 +1068,22 @@ class User {
                 where: querySql,
                 orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
             });
+            const userData = (await database_1.default.query(dataSQL, [])).map((dd) => {
+                dd.pwd = undefined;
+                dd.tag_name = '一般會員';
+                return dd;
+            });
+            for (const b of await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${userData.map((dd) => {
+                return dd.userID;
+            }).concat([-21211]).join(',')}) `, [])) {
+                if (b.value.value[0]) {
+                    userData.find((dd) => {
+                        return `${dd.userID}` === `${b.user_id}`;
+                    }).tag_name = b.value.value[0].tag_name;
+                }
+            }
             return {
-                data: (await database_1.default.query(dataSQL, [])).map((dd) => {
-                    dd.pwd = undefined;
-                    return dd;
-                }),
+                data: userData,
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
                 extra: {
                     noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,

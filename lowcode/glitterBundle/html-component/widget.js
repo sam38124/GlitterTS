@@ -38,6 +38,7 @@ export const widgetComponent = {
                     }, 500);
                 };
                 function showCaseData() {
+                    const oWidget = widget;
                     return GlobalWidget.showCaseData({
                         gvc: gvc,
                         widget: widget,
@@ -365,6 +366,7 @@ export const widgetComponent = {
                                             switch (widget.data.elem) {
                                                 case 'select':
                                                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                        const widget = oWidget;
                                                         const vm = {
                                                             callback: () => {
                                                             },
@@ -389,7 +391,8 @@ export const widgetComponent = {
                                                                 resolve(true);
                                                             }
                                                         });
-                                                        formData[widget.data.key] = innerText;
+                                                        console.log(`widget.data.key=>`, widget.data.key);
+                                                        console.log(oWidget);
                                                         if (widget.data.selectType === 'api') {
                                                             resolve(vm.data.map((dd) => {
                                                                 var _a;
@@ -407,16 +410,19 @@ export const widgetComponent = {
                                                         else if (widget.data.selectType === 'trigger') {
                                                             const data = yield TriggerEvent.trigger({
                                                                 gvc: gvc,
-                                                                widget: widget,
-                                                                clickEvent: widget.data.selectTrigger,
+                                                                widget: oWidget,
+                                                                clickEvent: oWidget.data.selectTrigger,
                                                                 subData: subData
                                                             });
                                                             const selectItem = yield TriggerEvent.trigger({
                                                                 gvc: gvc,
-                                                                widget: widget,
-                                                                clickEvent: widget.data.selectItem,
+                                                                widget: oWidget,
+                                                                clickEvent: oWidget.data.selectItem,
                                                                 subData: subData
                                                             });
+                                                            if (!data) {
+                                                                console.log(`area_json_IS`, oWidget.share.area_json);
+                                                            }
                                                             resolve(data.map((dd) => {
                                                                 return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}

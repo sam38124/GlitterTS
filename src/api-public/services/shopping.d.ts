@@ -129,7 +129,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -323,7 +323,7 @@ export declare class Shopping {
         limit?: number;
         condition?: number;
     }>;
-    checkVoucher(cart: Cart): Promise<void>;
+    checkVoucher(cart: Cart): Promise<Cart>;
     putOrder(data: {
         id: string;
         orderData: any;

@@ -46,7 +46,9 @@ export class Entry {
         };
         glitter.page = window.glitter_page;
         glitter.share.GlobalUser = GlobalUser;
-        Entry.checkRedirectPage(glitter);
+        if (glitter.getUrlParameter('page') !== 'backend_manager') {
+            Entry.checkRedirectPage(glitter);
+        }
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
         @media (prefers-reduced-motion: no-preference) {
@@ -68,7 +70,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.734';
+        glitter.share.editerVersion = 'V_13.8.81';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -213,6 +215,7 @@ export class Entry {
                         }
                     }
                     catch (e) {
+                        console.log(e);
                         glitter.setUrlParameter('page', 'login');
                         location.reload();
                     }
@@ -646,7 +649,7 @@ export class Entry {
     }
     static checkRedirectPage(glitter) {
         const url = new URL(location.href);
-        if (url.searchParams.get('state') === 'google_login') {
+        if (url.searchParams.get('state') === 'google_login' && glitter.getUrlParameter('page') !== 'backend_manager') {
             glitter.setUrlParameter('page', 'login');
         }
     }

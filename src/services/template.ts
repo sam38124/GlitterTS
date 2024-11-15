@@ -263,7 +263,7 @@ export class Template {
         }
         //當判斷是Voucher-list頁面時
         if (query_page === 'voucher-list') {
-            page = 'account_userinfo';
+            page = 'rebate';
         }
         return page;
     }

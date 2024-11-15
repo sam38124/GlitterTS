@@ -50,7 +50,7 @@ export class UmClass {
             .map((item) => {
                 return html`
                     <div
-                            class="option px-4 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
+                            class="option px-2 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
                             onclick="${gvc.event(async () => {
                                 if (item.key === 'reset_password') {
                                     const dialog = new ShareDialog(gvc.glitter);
@@ -290,7 +290,7 @@ export class UmClass {
                 border-radius: 22px;
                 height: 44px;
                 cursor: pointer;
-                width: 108px;
+                min-width: 108px;
                 font-size: 16px;
             }
 
