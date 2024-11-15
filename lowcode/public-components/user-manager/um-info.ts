@@ -4,7 +4,6 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
-import { UMVoucher } from './um-voucher.js';
 
 const html = String.raw;
 
@@ -94,7 +93,6 @@ export class UMInfo {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
 
-
         const vm = {
             data: {} as User,
             memberNext: {} as Member | undefined,
@@ -174,15 +172,15 @@ export class UMInfo {
                                                 gvc,
                                                 tag: 'level-of-detail',
                                                 title: '規則說明',
-                                                innerHTML: ((gvc:GVC)=>{
-                                                    return `<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
-                                                        <div class="um-title">會員等級規則</div>
-                                                        <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
-                                                    </div>
-                                                    ${(() => {
-                                                        const members = JSON.parse(JSON.stringify(vm.data.member)) as Member[];
-                                                        members.pop();
-                                                        return members
+                                                innerHTML: (gvc: GVC) => {
+                                                    return html`<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
+                                                            <div class="um-title">會員等級規則</div>
+                                                            <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
+                                                        </div>
+                                                        ${(() => {
+                                                            const members = JSON.parse(JSON.stringify(vm.data.member)) as Member[];
+                                                            members.pop();
+                                                            return members
                                                                 .reverse()
                                                                 .map((leadData) => {
                                                                     const detail = (() => {
@@ -198,15 +196,15 @@ export class UMInfo {
                                                                         }
                                                                     })();
                                                                     return html`
-                                                                    <div class="mt-3">
-                                                                        <div class="um-title">${leadData.tag_name}</div>
-                                                                        <div class="um-content">${detail}</div>
-                                                                    </div>
-                                                                `;
+                                                                        <div class="mt-3">
+                                                                            <div class="um-title">${leadData.tag_name}</div>
+                                                                            <div class="um-content">${detail}</div>
+                                                                        </div>
+                                                                    `;
                                                                 })
                                                                 .join('');
-                                                    })()}`
-                                                }),
+                                                        })()}`;
+                                                },
                                             });
                                         })}"
                                     >
@@ -219,30 +217,37 @@ export class UMInfo {
                                                 gvc,
                                                 tag: 'user-qr-code',
                                                 title: '會員條碼',
-                                                innerHTML: (gvc)=>{
+                                                innerHTML: (gvc) => {
                                                     return gvc.bindView(
-                                                            (() => {
-                                                                const id = glitter.getUUID();
-                                                                let loading = true;
-                                                                let img = '';
-                                                                return {
-                                                                    bind: id,
-                                                                    view: () => {
-                                                                        if (loading) {
-                                                                            return UmClass.spinner('100%');
-                                                                        } else {
-                                                                            return html` <div style="text-align: center; vertical-align: middle;">
-                                                                        <img src="${img}" />
-                                                                    </div>`;
-                                                                        }
-                                                                    },
-                                                                    divCreate: {},
-                                                                    onCreate: () => {
-                                                                        if (loading) {
-                                                                            const si = setInterval(() => {
-                                                                                const qr = (window as any).QRCode;
-                                                                                if (qr) {
-                                                                                    qr.toDataURL(
+                                                        (() => {
+                                                            const id = glitter.getUUID();
+                                                            let loading = true;
+                                                            let img = '';
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    if (loading) {
+                                                                        return UmClass.spinner('100%');
+                                                                    } else {
+                                                                        return html` <div style="text-align: center; vertical-align: middle;">
+                                                                            <img src="${img}" />
+                                                                        </div>`;
+                                                                    }
+                                                                },
+                                                                divCreate: {},
+                                                                onCreate: () => {
+                                                                    if (loading) {
+                                                                        glitter.addMtScript(
+                                                                            [
+                                                                                {
+                                                                                    src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
+                                                                                },
+                                                                            ],
+                                                                            () => {
+                                                                                const si = setInterval(() => {
+                                                                                    const qr = (window as any).QRCode;
+                                                                                    if (qr) {
+                                                                                        qr.toDataURL(
                                                                                             `user-${vm.data.userID}`,
                                                                                             {
                                                                                                 width: 400,
@@ -257,15 +262,18 @@ export class UMInfo {
                                                                                                 loading = false;
                                                                                                 gvc.notifyDataChange(id);
                                                                                             }
-                                                                                    );
-                                                                                    clearInterval(si);
-                                                                                }
-                                                                            }, 300);
-                                                                        }
-                                                                    },
-                                                                };
-                                                            })()
-                                                    )
+                                                                                        );
+                                                                                        clearInterval(si);
+                                                                                    }
+                                                                                }, 300);
+                                                                            },
+                                                                            () => {}
+                                                                        );
+                                                                    }
+                                                                },
+                                                            };
+                                                        })()
+                                                    );
                                                 },
                                             });
                                         })}"
@@ -570,8 +578,8 @@ export class UMInfo {
                             vm.memberNext = members.find((dd) => !dd.trigger);
                             loadings.view = false;
                             gvc.notifyDataChange(ids.view);
-                        }catch (e){
-                            gvc.glitter.href='./login'
+                        } catch (e) {
+                            gvc.glitter.href = './login';
                         }
                     });
                 }

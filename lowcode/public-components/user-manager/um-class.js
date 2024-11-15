@@ -10,14 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { Tool } from '../../modules/tool.js';
-import { BgWidget } from "../../backend-manager/bg-widget.js";
-import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class UmClass {
     static nav(gvc) {
         this.addStyle(gvc);
-        let changePage = (index, type, subData) => {
-        };
+        let changePage = (index, type, subData) => { };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
@@ -55,12 +54,12 @@ export class UmClass {
             .map((item) => {
             return html `
                     <div
-                            class="option px-2 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
-                            onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                        class="option px-2 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
+                        onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                 if (item.key === 'reset_password') {
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });
-                    const userData = (yield UmClass.getUserData(gvc));
+                    const userData = yield UmClass.getUserData(gvc);
                     dialog.dataLoading({ visible: false });
                     UmClass.dialog({
                         gvc: gvc,
@@ -69,30 +68,40 @@ export class UmClass {
                         innerHTML: (gvc) => {
                             let update_vm = {
                                 verify_code: '',
-                                pwd: ''
+                                pwd: '',
                             };
                             let get_verify_timer = 0;
                             let repeat_pwd = '';
                             return [
                                 html `<div class="tx_normal fw-normal mb-1" style="">密碼</div>`,
-                                html `<input class="bgw-input " style="" type="password"
-                                                            placeholder="請輸入密碼"
-                                                            oninput="${gvc.event((e, event) => {
+                                html `<input
+                                                class="bgw-input "
+                                                style=""
+                                                type="password"
+                                                placeholder="請輸入密碼"
+                                                oninput="${gvc.event((e, event) => {
                                     update_vm.pwd = e.value;
-                                })}" value="${update_vm.pwd}">`,
+                                })}"
+                                                value="${update_vm.pwd}"
+                                            />`,
                                 html `<div class="tx_normal fw-normal mt-2 mb-1" style="">確認密碼</div>`,
-                                html `<input class="bgw-input mb-2" style="" type="password"
-                                                            placeholder="請再次輸入密碼"
-                                                            oninput="${gvc.event((e, event) => {
+                                html `<input
+                                                class="bgw-input mb-2"
+                                                style=""
+                                                type="password"
+                                                placeholder="請再次輸入密碼"
+                                                oninput="${gvc.event((e, event) => {
                                     repeat_pwd = e.value;
-                                })}" value="${repeat_pwd}">`,
+                                })}"
+                                                value="${repeat_pwd}"
+                                            />`,
                                 gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
                                         bind: id,
                                         view: () => {
                                             return html `重設密碼驗證碼
-                                                                ${BgWidget.blueNote(get_verify_timer ? `驗證碼已發送至『${userData.userData.email}』` : '點我取得驗證碼', gvc.event(() => {
+                                                        ${BgWidget.blueNote(get_verify_timer ? `驗證碼已發送至『${userData.userData.email}』` : '點我取得驗證碼', gvc.event(() => {
                                                 if (!get_verify_timer) {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.dataLoading({ visible: true });
@@ -118,13 +127,22 @@ export class UmClass {
                                         },
                                     };
                                 }),
-                                html `<input class="bgw-input mt-2 mb-4" style="" type="text"
-                                                            placeholder="請輸入驗證碼"
-                                                            oninput="${gvc.event((e, event) => {
+                                html `<input
+                                                class="bgw-input mt-2 mb-4"
+                                                style=""
+                                                type="text"
+                                                placeholder="請輸入驗證碼"
+                                                oninput="${gvc.event((e, event) => {
                                     update_vm.verify_code = e.value;
-                                })}" value="${update_vm.verify_code}">`,
-                                `<div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
-<div class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center" style="cursor:pointer;" type="button" onclick="${gvc.event(() => {
+                                })}"
+                                                value="${update_vm.verify_code}"
+                                            />`,
+                                html `<div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                                <div
+                                                    class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
+                                                    style="cursor:pointer;"
+                                                    type="button"
+                                                    onclick="${gvc.event(() => {
                                     if (update_vm.pwd.length < 8) {
                                         dialog.errorMessage({ text: '密碼必須大於8位數' });
                                         return;
@@ -158,12 +176,13 @@ export class UmClass {
                                             gvc.closeDialog();
                                         }
                                     });
-                                })}">
-                <span class="tx_700_white">確認重設</span>
-            </div>
-</div>`
+                                })}"
+                                                >
+                                                    <span class="tx_700_white">確認重設</span>
+                                                </div>
+                                            </div>`,
                             ].join('');
-                        }
+                        },
                     });
                     console.log('重設密碼事件');
                 }
@@ -181,63 +200,51 @@ export class UmClass {
                 `;
         })
             .join('');
-        return html `
-            <div class="account-section">
-                <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title">我的帳號</div>
-                ${document.body.clientWidth > 768
-            ? html `
-                            <div class="mx-auto mt-3 um-nav-container">
-                                <div class="account-options d-flex gap-3">${buttonHTML}</div>
-                            </div>`
-            : html `
-                            <div class="account-navigation w-100">
-                                <nav class="nav-links mb-3 mb-md-0">
-                                    <div class="nav-options d-flex flex-wrap um-nav-mobile-tags-container">
-                                        ${buttonHTML}
-                                    </div>
-                                </nav>
-                            </div>`}
-            </div>`;
+        return html ` <div class="account-section">
+            <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title">我的帳號</div>
+            ${document.body.clientWidth > 768
+            ? html ` <div class="mx-auto mt-3 um-nav-container">
+                      <div class="account-options d-flex gap-3">${buttonHTML}</div>
+                  </div>`
+            : html ` <div class="account-navigation w-100">
+                      <nav class="nav-links mb-3 mb-md-0">
+                          <div class="nav-options d-flex flex-wrap justify-content-between um-nav-mobile-tags-container px-2">${buttonHTML}</div>
+                      </nav>
+                  </div>`}
+        </div>`;
     }
     static spinner(height) {
-        return html `
-            <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto"
-                 style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
-                <div class="spinner-border" role="status"></div>
-                <span class="mt-3">載入中</span>
-            </div>`;
+        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
+            <div class="spinner-border" role="status"></div>
+            <span class="mt-3">載入中</span>
+        </div>`;
     }
     static dialog(obj) {
         return obj.gvc.glitter.innerDialog((gvc) => {
             var _a;
-            return html `
-                <div
-                        class="bg-white shadow rounded-3"
-                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-                >
-                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                             style="position: sticky; top: 0; background: #fff;">
-                            <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
-                            <div class="flex-fill"></div>
-                            <i
-                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                    style="cursor: pointer"
-                                    onclick="${gvc.event(() => {
+            return html ` <div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
+                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"
-                            ></i>
-                        </div>
-                        <div class="c_dialog">
-                            <div class="c_dialog_body">
-                                <div class="c_dialog_main"
-                                     style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                    ${obj.innerHTML(gvc)}
-                                </div>
-                            </div>
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
         }, obj.tag);
     }
     static getUserData(gvc) {
@@ -293,8 +300,9 @@ export class UmClass {
                 border-radius: 22px;
                 height: 44px;
                 cursor: pointer;
-                min-width: 108px;
                 font-size: 16px;
+                min-width: 31%;
+                max-width: 180px;
             }
 
             .um-nav-btn.um-nav-btn-active {
@@ -547,7 +555,7 @@ export class UmClass {
                 }
 
                 .um-nav-btn {
-                    width: 110px;
+                    min-width: 110px;
                     font-size: 14px;
                     height: 40px;
                 }
@@ -631,8 +639,7 @@ export class UmClass {
                 }
             }
         `);
-        const htmlString = html `
-            <div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`);

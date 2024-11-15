@@ -87,12 +87,12 @@ export class UMInfo {
                             gvc,
                             tag: 'level-of-detail',
                             title: '規則說明',
-                            innerHTML: ((gvc) => {
-                                return `<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
-                                                        <div class="um-title">會員等級規則</div>
-                                                        <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
-                                                    </div>
-                                                    ${(() => {
+                            innerHTML: (gvc) => {
+                                return html `<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
+                                                            <div class="um-title">會員等級規則</div>
+                                                            <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
+                                                        </div>
+                                                        ${(() => {
                                     const members = JSON.parse(JSON.stringify(vm.data.member));
                                     members.pop();
                                     return members
@@ -113,15 +113,15 @@ export class UMInfo {
                                             }
                                         })();
                                         return html `
-                                                                    <div class="mt-3">
-                                                                        <div class="um-title">${leadData.tag_name}</div>
-                                                                        <div class="um-content">${detail}</div>
-                                                                    </div>
-                                                                `;
+                                                                        <div class="mt-3">
+                                                                            <div class="um-title">${leadData.tag_name}</div>
+                                                                            <div class="um-content">${detail}</div>
+                                                                        </div>
+                                                                    `;
                                     })
                                         .join('');
                                 })()}`;
-                            }),
+                            },
                         });
                     })}"
                                     >
@@ -147,31 +147,37 @@ export class UMInfo {
                                             }
                                             else {
                                                 return html ` <div style="text-align: center; vertical-align: middle;">
-                                                                        <img src="${img}" />
-                                                                    </div>`;
+                                                                            <img src="${img}" />
+                                                                        </div>`;
                                             }
                                         },
                                         divCreate: {},
                                         onCreate: () => {
                                             if (loading) {
-                                                const si = setInterval(() => {
-                                                    const qr = window.QRCode;
-                                                    if (qr) {
-                                                        qr.toDataURL(`user-${vm.data.userID}`, {
-                                                            width: 400,
-                                                            margin: 2,
-                                                        }, (err, url) => {
-                                                            if (err) {
-                                                                console.error(err);
-                                                                return;
-                                                            }
-                                                            img = url;
-                                                            loading = false;
-                                                            gvc.notifyDataChange(id);
-                                                        });
-                                                        clearInterval(si);
-                                                    }
-                                                }, 300);
+                                                glitter.addMtScript([
+                                                    {
+                                                        src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
+                                                    },
+                                                ], () => {
+                                                    const si = setInterval(() => {
+                                                        const qr = window.QRCode;
+                                                        if (qr) {
+                                                            qr.toDataURL(`user-${vm.data.userID}`, {
+                                                                width: 400,
+                                                                margin: 2,
+                                                            }, (err, url) => {
+                                                                if (err) {
+                                                                    console.error(err);
+                                                                    return;
+                                                                }
+                                                                img = url;
+                                                                loading = false;
+                                                                gvc.notifyDataChange(id);
+                                                            });
+                                                            clearInterval(si);
+                                                        }
+                                                    }, 300);
+                                                }, () => { });
                                             }
                                         },
                                     };
