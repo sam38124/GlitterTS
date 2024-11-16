@@ -148,19 +148,22 @@ export class ProductDetail {
                             else {
                                 const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
                                 const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
-                                if (!template || !jsonData) {
+                                if (!template) {
                                     return '';
                                 }
                                 let htmlString = template.data.content;
-                                jsonData.list.map((data) => {
-                                    var _a, _b, _c;
-                                    const cssStyle = template.data.tags.find((item) => item.key === data.key);
-                                    const regex = new RegExp(`@{{${data.key}}}`, 'g');
-                                    htmlString = htmlString.replace(regex, html `<span style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
-                                                    >${data.value}</span
-                                                >`);
-                                });
-                                return htmlString;
+                                if (jsonData) {
+                                    jsonData.list.map((data) => {
+                                        var _a, _b, _c;
+                                        const cssStyle = template.data.tags.find((item) => item.key === data.key);
+                                        const regex = new RegExp(`@{{${data.key}}}`, 'g');
+                                        htmlString = htmlString.replace(regex, html `<span
+                                                        style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
+                                                        >${data.value}</span
+                                                    >`);
+                                    });
+                                }
+                                return htmlString.replace(/@{{[^}]+}}/g, '');
                             }
                         },
                         divCreate: {

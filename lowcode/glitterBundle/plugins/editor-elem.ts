@@ -431,7 +431,7 @@ export class EditorElem {
         });
     }
 
-    public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; readonly?: boolean,min_height?:number,max_height?:number }) {
+    public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; readonly?: boolean; min_height?: number; max_height?: number }) {
         obj.title = obj.title ?? '';
         const id = obj.gvc.glitter.getUUID();
         return html`${EditorElem.h3(obj.title)}
@@ -619,36 +619,36 @@ export class EditorElem {
                 };
             });
         }
-return  obj.gvc.bindView(() => {
-    const codeID=obj.gvc.glitter.getUUID()
-    return {
-        bind: codeID,
-        view: () => {
-            return (
-                html` <div class="d-flex">
+        return obj.gvc.bindView(() => {
+            const codeID = obj.gvc.glitter.getUUID();
+            return {
+                bind: codeID,
+                view: () => {
+                    return (
+                        html` <div class="d-flex">
                             ${obj.title ? EditorElem.h3(obj.title) : ''}
                             <div
                                 class="d-flex align-items-center justify-content-center"
                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                 onclick="${obj.gvc.event(() => {
-                    EditorElem.openEditorDialog(
-                        obj.gvc,
-                        (gvc: GVC) => {
-                            return getComponent(gvc, window.innerHeight - 100);
-                        },
-                        () => {
-                            obj.gvc.notifyDataChange(codeID);
-                        }
-                    );
-                })}"
+                                    EditorElem.openEditorDialog(
+                                        obj.gvc,
+                                        (gvc: GVC) => {
+                                            return getComponent(gvc, window.innerHeight - 100);
+                                        },
+                                        () => {
+                                            obj.gvc.notifyDataChange(codeID);
+                                        }
+                                    );
+                                })}"
                             >
                                 <i class="fa-solid fa-expand"></i>
                             </div>
                         </div>` + getComponent(obj.gvc, obj.height)
-            );
-        },
-    };
-})
+                    );
+                },
+            };
+        });
     }
 
     public static pageEditor(cf: { page: string; width: number; height: number; par: { key: string; value: string }[] }) {
@@ -857,7 +857,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         );
     }
 
-    public static richText(obj: { gvc: GVC; def: string; callback: (text: string) => void; style?: string; readonly?: boolean }) {
+    public static richText(obj: { gvc: GVC; def: string; hiddenBorder?: boolean; setHeight?: string; callback: (text: string) => void; style?: string; readonly?: boolean }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
@@ -934,17 +934,25 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     #insertImage-2 {
                                         display: none !important;
                                     }
-                                    .fr-sticky-on {
-                                        position: relative !important;
-                                        z-index: 10;
-                                    }
                                     .fr-sticky-dummy {
                                         display: none !important;
+                                    }
+                                    ${
+                                        obj.hiddenBorder
+                                            ? `
+                                                  .fr-box {
+                                                      border: none !important;
+                                                  }
+                                                  .fr-box > div {
+                                                      border: none !important;
+                                                  }
+                                              `
+                                            : ''
                                     }
                                 `);
                                 const editor = new (glitter.window as any).FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
-                                    heightMin: 350,
+                                    heightMin: obj.setHeight ?? 350,
                                     content: obj.def,
                                     events: {
                                         imageMaxSize: 5 * 1024 * 1024,

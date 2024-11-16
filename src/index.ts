@@ -117,6 +117,54 @@ async function createAppRoute() {
     }
 }
 
+function extractCols(data: {
+    value: {
+        code: string;
+        array: { code: string }[];
+    }[];
+    updated_at: Date;
+}) {
+    const items: any = [];
+    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+    data.value.map((item: any) => {
+        items.push({
+            code: item.code,
+            updated_at,
+            seo_title: item.seo_title,
+            seo_image: item.seo_image,
+            seo_content: item.seo_content,
+        });
+        if (item.array && item.array.length > 0) {
+            item.array.map((child: any) => {
+                items.push({
+                    code: child.code,
+                    updated_at,
+                    seo_title: child.seo_title,
+                    seo_image: child.seo_image,
+                    seo_content: child.seo_content,
+                });
+            });
+        }
+    });
+    return items;
+}
+
+function extractProds(data: any) {
+    const items: any = [];
+    data.map((item: any) => {
+        const code = (() => {
+            try {
+                return item.content.seo.domain;
+            } catch (error) {
+                return '';
+            }
+        })();
+        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+        items.push({ code, updated_at });
+    });
+    return items;
+}
+
 export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
@@ -248,6 +296,25 @@ export async function createAPP(dd: any) {
                                 localStorage.setItem('distributionCode','${page.code}');
                                 location.href='${page.redirect}${redURL.search}';
                             `;
+                        }
+                        if ((req.query.page as string).split('/')[0] === 'collections' && (req.query.page as string).split('/')[1]) {
+                            const cols =
+                                (
+                                    await db.query(
+                                        `SELECT * FROM \`${appName}\`.public_config WHERE \`key\` = 'collection';
+                                        `,
+                                        []
+                                    )
+                                )[0] ?? {};
+
+                            const colJson = extractCols(cols);
+                            const urlCode = decodeURI((req.query.page as string).split('/')[1]);
+                            const colData = colJson.find((item: { code: string }) => item.code === urlCode);
+                            if (colData) {
+                                data.page_config.seo.title = colData.seo_title;
+                                data.page_config.seo.content = colData.seo_content;
+                                data.page_config.seo.keywords = colData.seo_keywords;
+                            }
                         }
                         console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html`${(() => {
@@ -404,11 +471,11 @@ export async function createAPP(dd: any) {
                         })()}
                         `;
                     } else {
-                        console.log(`brandAndMemberType->redirect`);
+                        console.log(`brandAndMemberType==>redirect`);
                         return await Seo.redirectToHomePage(appName, req);
                     }
                 } catch (e: any) {
-                    console.log(e);
+                    console.error(e);
                     return `${e}`;
                 }
             },
@@ -443,53 +510,11 @@ export async function createAPP(dd: any) {
                         )
                     )[0] ?? {};
 
-                function extractCols(data: {
-                    value: {
-                        code: string;
-                        array: { code: string }[];
-                    }[];
-                    updated_at: Date;
-                }) {
-                    const items: any = [];
-                    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-                    data.value.map((item: any) => {
-                        items.push({
-                            code: item.code,
-                            updated_at,
-                        });
-                        if (item.array && item.array.length > 0) {
-                            item.array.map((child: any) => {
-                                items.push({
-                                    code: child.code,
-                                    updated_at,
-                                });
-                            });
-                        }
-                    });
-                    return items;
-                }
-
                 const products = await db.query(
                     `SELECT * FROM \`${appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
                 `,
                     []
                 );
-
-                function extractProds(data: any) {
-                    const items: any = [];
-                    data.map((item: any) => {
-                        const code = (() => {
-                            try {
-                                return item.content.seo.domain;
-                            } catch (error) {
-                                return '';
-                            }
-                        })();
-                        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-                        items.push({ code, updated_at });
-                    });
-                    return items;
-                }
 
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">

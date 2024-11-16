@@ -132,6 +132,31 @@ async function createAppRoute() {
         await createAPP(dd);
     }
 }
+function extractCols(data) {
+    const items = [];
+    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+    data.value.map((item) => {
+        items.push({
+            code: item.code,
+            updated_at,
+            seo_title: item.seo_title,
+            seo_image: item.seo_image,
+            seo_content: item.seo_content,
+        });
+        if (item.array && item.array.length > 0) {
+            item.array.map((child) => {
+                items.push({
+                    code: child.code,
+                    updated_at,
+                    seo_title: child.seo_title,
+                    seo_image: child.seo_image,
+                    seo_content: child.seo_content,
+                });
+            });
+        }
+    });
+    return items;
+}
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
@@ -144,7 +169,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -257,6 +282,22 @@ async function createAPP(dd) {
                                 location.href='${page.redirect}${redURL.search}';
                             `;
                         }
+                        console.log('====== daniel lin test strat ======');
+                        if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
+                            const cols = (_k = (await database_2.default.query(`SELECT *
+                                 FROM \`${appName}\`.public_config
+                                 WHERE \`key\` = 'collection';`, []))[0]) !== null && _k !== void 0 ? _k : {};
+                            const colJson = extractCols(cols);
+                            const urlCode = decodeURI(req.query.page.split('/')[1]);
+                            const colData = colJson.find((item) => item.code === urlCode);
+                            console.log(colData);
+                            if (colData) {
+                                data.page_config.seo.title = colData.seo_title;
+                                data.page_config.seo.content = colData.seo_content;
+                                data.page_config.seo.keywords = colData.seo_keywords;
+                            }
+                        }
+                        console.log('====== daniel lin test done ======');
                         console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html `${(() => {
                             var _a;
@@ -336,7 +377,7 @@ async function createAPP(dd) {
                             `;
                         })()}
                         <script>
-                            ${(_k = d.custom_script) !== null && _k !== void 0 ? _k : ''}
+                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''}
                             window.appName = '${appName}';
                             window.glitterBase = '${brandAndMemberType.brand}';
                             window.memberType = '${brandAndMemberType.memberType}';
@@ -359,7 +400,7 @@ async function createAPP(dd) {
                             return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
-                        ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
+                        ${((_m = preload.event) !== null && _m !== void 0 ? _m : [])
                             .filter((dd) => {
                             return dd;
                         })
@@ -447,25 +488,6 @@ async function createAPP(dd) {
                 const cols = (_a = (await database_2.default.query(`SELECT *
                          FROM \`${appName}\`.public_config
                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
-                function extractCols(data) {
-                    const items = [];
-                    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-                    data.value.map((item) => {
-                        items.push({
-                            code: item.code,
-                            updated_at,
-                        });
-                        if (item.array && item.array.length > 0) {
-                            item.array.map((child) => {
-                                items.push({
-                                    code: child.code,
-                                    updated_at,
-                                });
-                            });
-                        }
-                    });
-                    return items;
-                }
                 const products = await database_2.default.query(`SELECT * FROM \`${appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
                 `, []);
                 function extractProds(data) {

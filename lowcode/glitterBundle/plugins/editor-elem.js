@@ -859,6 +859,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     const interval = setInterval(() => {
                         if (glitter.window.FroalaEditor) {
                             setTimeout(() => {
+                                var _a;
                                 gvc.addStyle(`
                                     #insertImage-1 {
                                         display: none !important;
@@ -866,17 +867,23 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     #insertImage-2 {
                                         display: none !important;
                                     }
-                                    .fr-sticky-on {
-                                        position: relative !important;
-                                        z-index: 10;
-                                    }
                                     .fr-sticky-dummy {
                                         display: none !important;
                                     }
+                                    ${obj.hiddenBorder
+                                    ? `
+                                                  .fr-box {
+                                                      border: none !important;
+                                                  }
+                                                  .fr-box > div {
+                                                      border: none !important;
+                                                  }
+                                              `
+                                    : ''}
                                 `);
                                 const editor = new glitter.window.FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
-                                    heightMin: 350,
+                                    heightMin: (_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350,
                                     content: obj.def,
                                     events: {
                                         imageMaxSize: 5 * 1024 * 1024,
