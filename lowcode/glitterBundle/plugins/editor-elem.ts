@@ -857,7 +857,16 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         );
     }
 
-    public static richText(obj: { gvc: GVC; def: string; hiddenBorder?: boolean; setHeight?: string; callback: (text: string) => void; style?: string; readonly?: boolean }) {
+    public static richText(obj: {
+        gvc: GVC;
+        def: string;
+        hiddenBorder?: boolean;
+        setHeight?: string;
+        insertImageEvent?: (editor: any) => void;
+        callback: (text: string) => void;
+        style?: string;
+        readonly?: boolean;
+    }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
@@ -950,10 +959,33 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             : ''
                                     }
                                 `);
+
+                                function generateFontSizeArray() {
+                                    let fontSizes = [];
+
+                                    // 添加8到30的字體大小
+                                    for (let size = 8; size <= 30; size += 1) {
+                                        fontSizes.push(size.toString());
+                                    }
+
+                                    // 添加30到60的字體大小
+                                    for (let size = 32; size <= 60; size += 2) {
+                                        fontSizes.push(size.toString());
+                                    }
+
+                                    // 添加60到96的字體大小
+                                    for (let size = 64; size <= 96; size += 4) {
+                                        fontSizes.push(size.toString());
+                                    }
+
+                                    return fontSizes;
+                                }
+
                                 const editor = new (glitter.window as any).FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
                                     heightMin: obj.setHeight ?? 350,
                                     content: obj.def,
+                                    fontSize: generateFontSizeArray(),
                                     events: {
                                         imageMaxSize: 5 * 1024 * 1024,
                                         imageAllowedTypes: ['jpeg', 'jpg', 'png'],
@@ -1044,37 +1076,42 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         class="fr-command fr-btn "
                                         data-title="插入圖片 (⌘P)"
                                         onclick="${obj.gvc.event(() => {
-                                            glitter.ut.chooseMediaCallback({
-                                                single: true,
-                                                accept: 'image/*',
-                                                callback(data) {
-                                                    const saasConfig = (window as any).saasConfig;
-                                                    const dialog = new ShareDialog(glitter);
-                                                    dialog.dataLoading({ visible: true });
-                                                    const file = data[0].file;
-                                                    saasConfig.api.uploadFile(file.name).then((data: any) => {
-                                                        dialog.dataLoading({ visible: false });
-                                                        const data1 = data.response;
+                                            if (obj.insertImageEvent) {
+                                                obj.insertImageEvent(editor);
+                                            } else {
+                                                glitter.ut.chooseMediaCallback({
+                                                    single: true,
+                                                    accept: 'image/*',
+                                                    callback(data) {
+                                                        const saasConfig = (window as any).saasConfig;
+                                                        const dialog = new ShareDialog(glitter);
                                                         dialog.dataLoading({ visible: true });
-                                                        BaseApi.create({
-                                                            url: data1.url,
-                                                            type: 'put',
-                                                            data: file,
-                                                            headers: {
-                                                                'Content-Type': data1.type,
-                                                            },
-                                                        }).then((res) => {
+                                                        const file = data[0].file;
+                                                        saasConfig.api.uploadFile(file.name).then((data: any) => {
                                                             dialog.dataLoading({ visible: false });
-                                                            if (res.result) {
-                                                                editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
-                                                                editor.undo.saveStep();
-                                                            } else {
-                                                                dialog.errorMessage({ text: '上傳失敗' });
-                                                            }
+                                                            const data1 = data.response;
+                                                            dialog.dataLoading({ visible: true });
+                                                            BaseApi.create({
+                                                                url: data1.url,
+                                                                type: 'put',
+                                                                data: file,
+                                                                headers: {
+                                                                    'Content-Type': data1.type,
+                                                                },
+                                                            }).then((res) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (res.result) {
+                                                                    const imgElement = html`<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
+                                                                    editor.html.insert(imgElement);
+                                                                    editor.undo.saveStep();
+                                                                } else {
+                                                                    dialog.errorMessage({ text: '上傳失敗' });
+                                                                }
+                                                            });
                                                         });
-                                                    });
-                                                },
-                                            });
+                                                    },
+                                                });
+                                            }
                                         })}"
                                     >
                                         <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

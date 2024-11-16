@@ -2264,6 +2264,28 @@ export class ShoppingProductSetting {
                                                                                 def: postMD.content,
                                                                                 setHeight: '100vh',
                                                                                 hiddenBorder: true,
+                                                                                insertImageEvent: (editor) => {
+                                                                                    imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                                                                        if (urlArray.length > 0) {
+                                                                                            for (const url of urlArray) {
+                                                                                                editor.html.insert(html `<img
+                                                                                                                                        src="${url.data}"
+                                                                                                                                        style="max-width: 25%;"
+                                                                                                                                    />`);
+                                                                                            }
+                                                                                            editor.undo.saveStep();
+                                                                                        }
+                                                                                        else {
+                                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                            dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                                        }
+                                                                                    }, html ` <div
+                                                                                                                            class="d-flex flex-column"
+                                                                                                                            style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                        >
+                                                                                                                            圖片庫
+                                                                                                                        </div>`, { mul: true });
+                                                                                },
                                                                                 callback: (text) => {
                                                                                     postMD.content = text;
                                                                                 },
