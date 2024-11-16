@@ -1714,9 +1714,9 @@ export class ShoppingProductSetting {
                                                 placeholder="請輸入成本"
                                                 min="0"
                                                 onchange="${gvc.event((e) => {
-                                                    variant.stock = e.value;
+                                                    variant.cost = e.value;
                                                 })}"
-                                                value="${variant.stock || 0}"
+                                                value="${variant.cost || 0}"
                                                 type="number"
                                             />
                                         </div>
