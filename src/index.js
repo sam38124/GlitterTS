@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -116,7 +118,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -154,6 +155,22 @@ function extractCols(data) {
                 });
             });
         }
+    });
+    return items;
+}
+function extractProds(data) {
+    const items = [];
+    data.map((item) => {
+        const code = (() => {
+            try {
+                return item.content.seo.domain;
+            }
+            catch (error) {
+                return '';
+            }
+        })();
+        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+        items.push({ code, updated_at });
     });
     return items;
 }
@@ -282,22 +299,18 @@ async function createAPP(dd) {
                                 location.href='${page.redirect}${redURL.search}';
                             `;
                         }
-                        console.log('====== daniel lin test strat ======');
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
-                            const cols = (_k = (await database_2.default.query(`SELECT *
-                                 FROM \`${appName}\`.public_config
-                                 WHERE \`key\` = 'collection';`, []))[0]) !== null && _k !== void 0 ? _k : {};
+                            const cols = (_k = (await database_2.default.query(`SELECT * FROM \`${appName}\`.public_config WHERE \`key\` = 'collection';
+                                        `, []))[0]) !== null && _k !== void 0 ? _k : {};
                             const colJson = extractCols(cols);
                             const urlCode = decodeURI(req.query.page.split('/')[1]);
                             const colData = colJson.find((item) => item.code === urlCode);
-                            console.log(colData);
                             if (colData) {
                                 data.page_config.seo.title = colData.seo_title;
                                 data.page_config.seo.content = colData.seo_content;
                                 data.page_config.seo.keywords = colData.seo_keywords;
                             }
                         }
-                        console.log('====== daniel lin test done ======');
                         console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html `${(() => {
                             var _a;
@@ -461,12 +474,12 @@ async function createAPP(dd) {
                         `;
                     }
                     else {
-                        console.log(`brandAndMemberType->redirect`);
+                        console.log(`brandAndMemberType==>redirect`);
                         return await seo_js_1.Seo.redirectToHomePage(appName, req);
                     }
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                     return `${e}`;
                 }
             },
@@ -490,22 +503,6 @@ async function createAPP(dd) {
                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
                 const products = await database_2.default.query(`SELECT * FROM \`${appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
                 `, []);
-                function extractProds(data) {
-                    const items = [];
-                    data.map((item) => {
-                        const code = (() => {
-                            try {
-                                return item.content.seo.domain;
-                            }
-                            catch (error) {
-                                return '';
-                            }
-                        })();
-                        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-                        items.push({ code, updated_at });
-                    });
-                    return items;
-                }
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(await database_2.default.query(`select page_config, tag, updated_time
@@ -616,7 +613,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

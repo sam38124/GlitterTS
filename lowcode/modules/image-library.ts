@@ -184,6 +184,44 @@ export class imageLibrary {
                                                            : (vm.link.find(data => data?.tag?.includes(dd.title))?.data ?? noImageURL);
 
 
+                                                       function itemClick(){
+                                                           if (vm.type == "folder") {
+                                                               //編輯資料夾內容
+                                                               vm.tag = dd.title;
+                                                               that.selectImageLibrary(gvc, (selectData) => {
+                                                                   vm.link = selectData;
+                                                                   gvc.notifyDataChange(vm.id);
+
+                                                               }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                                   key: 'folderEdit',
+                                                                   mul: true,
+                                                                   tag: dd.title,
+                                                               })
+
+                                                           } else {
+                                                               cf.edit(dd, (replace) => {
+                                                                   if (!replace) {
+                                                                       let selectData = vm.link.findIndex(data => {
+                                                                           return data.id == dd.id
+                                                                       })
+                                                                       vm.link.splice(selectData, 1)
+                                                                       save(() => {
+                                                                           gvc.notifyDataChange(vm.id);
+                                                                       })
+                                                                   } else {
+                                                                       let replaceIndex = vm.link.findIndex(data => data.id == replace.id)
+                                                                       vm.link[replaceIndex] = replace;
+                                                                       // console.log("vm.link -- " , vm.link);
+                                                                       save(() => {
+                                                                           gvc.notifyDataChange(vm.id);
+                                                                       })
+
+                                                                   }
+
+                                                               })
+                                                           }
+
+                                                       }
                                                        return html`
                                                         <div class=""
                                                              style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
@@ -232,42 +270,7 @@ export class imageLibrary {
                                                                  style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                                  onclick="${gvc.event((e, event) => {
                                                            event.stopPropagation();
-                                                           if (vm.type == "folder") {
-                                                               //編輯資料夾內容
-                                                               vm.tag = dd.title;
-                                                               that.selectImageLibrary(gvc, (selectData) => {
-                                                                   vm.link = selectData;
-                                                                   gvc.notifyDataChange(vm.id);
-
-                                                               }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
-                                                                   key: 'folderEdit',
-                                                                   mul: true,
-                                                                   tag: dd.title,
-                                                               })
-
-                                                           } else {
-                                                               cf.edit(dd, (replace) => {
-                                                                   if (!replace) {
-                                                                       let selectData = vm.link.findIndex(data => {
-                                                                           return data.id == dd.id
-                                                                       })
-                                                                       vm.link.splice(selectData, 1)
-                                                                       save(() => {
-                                                                           gvc.notifyDataChange(vm.id);
-                                                                       })
-                                                                   } else {
-                                                                       let replaceIndex = vm.link.findIndex(data => data.id == replace.id)
-                                                                       vm.link[replaceIndex] = replace;
-                                                                       // console.log("vm.link -- " , vm.link);
-                                                                       save(() => {
-                                                                           gvc.notifyDataChange(vm.id);
-                                                                       })
-
-                                                                   }
-
-                                                               })
-                                                           }
-
+                                                                     itemClick()
                                                        })}">
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                      width="12"
@@ -287,6 +290,11 @@ export class imageLibrary {
                                                                         </clipPath>
                                                                     </defs>
                                                                 </svg>
+                                                            </div>
+                                                            <div class="position-absolute ${((dd as any).selected) ? `d-blok` : `d-none`} " style="transform: translate(-50%,-50%);left: 50%;top:50%;">
+                                                                ${BgWidget.darkButton('編輯圖片',gvc.event(()=>{
+                                                                    itemClick()
+                                                                }))}
                                                             </div>
                                                             <div class="${((dd as any).selected) ? `d-flex` : `d-none`}  "
                                                                  style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
@@ -314,7 +322,7 @@ export class imageLibrary {
                                                divCreate: {
                                                    style: `${gvc.glitter.ut.frSize({
                                                        sm: `width:15%;`
-                                                   }, `width:33%;`)}cursor:pointer;`
+                                                   }, `width:49%;`)}cursor:pointer;`
                                                }
                                            })
                                        }).join('')
@@ -328,7 +336,7 @@ export class imageLibrary {
                                     class: `w-100 my-2 flex-wrap `,
                                     style: `display:flex;gap:${gvc.glitter.ut.frSize({
                                         sm: `17`
-                                    }, `0`)}px;`,
+                                    }, `0`)}px;${(document.body.clientWidth<800) ? `justify-content: space-between;`:``}`,
                                 },
                                 onCreate: () => {
                                     gvc.glitter.addMtScript(
@@ -990,12 +998,22 @@ export class imageLibrary {
 
     }
 
-    public static selectImageLibrary(gvc: GVC, callback: (id: FileItem[]) => void, title: string, opt?: {
+    public static async selectImageLibrary(gvc: GVC, callback: (id: FileItem[]) => void, title: string, opt?: {
         key?: string;
         mul?: boolean;
         tag?: string;
     }) {
-        function editorView(gvc: GVC, item: FileItem) {
+
+        let alt:any=''
+        let saveAlt=function (){
+
+        }
+         function editorView(gvc: GVC, item: FileItem) {
+
+            // ApiUser.setPublicConfig({
+            //     key:'alt_'+
+            // })
+            // alert(JSON.stringify(item))
             if (item.type === 'folder') {
                 return BgWidget.editeInput({
                     gvc: gvc,
@@ -1008,7 +1026,7 @@ export class imageLibrary {
                 })
             } else {
                 item.data = item.data ?? {}
-                return [BgWidget.editeInput({
+                return `<div>${[BgWidget.editeInput({
                     gvc: gvc,
                     title: `圖片標題`,
                     default: item.title,
@@ -1016,14 +1034,41 @@ export class imageLibrary {
                     callback: (text) => {
                         item.title = text
                     }
-                }), EditorElem.uploadImageContainer({
+                }),
+                    EditorElem.uploadImageContainer({
                     gvc: gvc,
-                    title: `圖片內容`,
+                    title: `圖片資源`,
                     def: item.data ?? '',
                     callback: (text) => {
                         item.data = text;
                     },
-                })].join('')
+                }),
+                    gvc.bindView(()=>{
+                        const id=gvc.glitter.getUUID()
+                        return {
+                            bind:id,
+                            view:async ()=>{
+                                const tag=gvc.glitter.generateCheckSum(item.data,9)
+                                alt=(await ApiUser.getPublicConfig(`alt_`+tag,'manager')).response.value || {alt:''};
+                                saveAlt=async ()=>{
+                                    ApiUser.setPublicConfig({
+                                        key:`alt_`+tag,
+                                        value:alt,
+                                        user_id:'manager'
+                                    })
+                                }
+                                return BgWidget.textArea({
+                                    gvc: gvc,
+                                    title: `ALT描述`,
+                                    default: alt.alt,
+                                    placeHolder: `請輸入ALT描述`,
+                                    callback: (text) => {
+                                        alt.alt = text
+                                    }
+                                })
+                            }
+                        }
+                    })].join('<div class="my-2"></div>')}</div>`
             }
         }
 
@@ -1112,6 +1157,7 @@ export class imageLibrary {
                             gvc.closeDialog()
                         })), BgWidget.save(gvc.event(() => {
                             callback(item);
+                            saveAlt()
                             gvc.closeDialog();
 
                         }), '確定')].join('')

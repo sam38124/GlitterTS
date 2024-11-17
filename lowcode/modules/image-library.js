@@ -140,6 +140,39 @@ export class imageLibrary {
                                                     const imageUrl = (passType.includes(vm.type))
                                                         ? dd.data
                                                         : ((_b = (_a = vm.link.find(data => { var _a; return (_a = data === null || data === void 0 ? void 0 : data.tag) === null || _a === void 0 ? void 0 : _a.includes(dd.title); })) === null || _a === void 0 ? void 0 : _a.data) !== null && _b !== void 0 ? _b : noImageURL);
+                                                    function itemClick() {
+                                                        if (vm.type == "folder") {
+                                                            vm.tag = dd.title;
+                                                            that.selectImageLibrary(gvc, (selectData) => {
+                                                                vm.link = selectData;
+                                                                gvc.notifyDataChange(vm.id);
+                                                            }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                                key: 'folderEdit',
+                                                                mul: true,
+                                                                tag: dd.title,
+                                                            });
+                                                        }
+                                                        else {
+                                                            cf.edit(dd, (replace) => {
+                                                                if (!replace) {
+                                                                    let selectData = vm.link.findIndex(data => {
+                                                                        return data.id == dd.id;
+                                                                    });
+                                                                    vm.link.splice(selectData, 1);
+                                                                    save(() => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
+                                                                    vm.link[replaceIndex] = replace;
+                                                                    save(() => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    });
+                                                                }
+                                                            });
+                                                        }
+                                                    }
                                                     return html `
                                                         <div class=""
                                                              style="padding: 10px 12px;position: relative;${(dd.selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
@@ -187,37 +220,7 @@ export class imageLibrary {
                                                                  style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                                  onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
-                                                        if (vm.type == "folder") {
-                                                            vm.tag = dd.title;
-                                                            that.selectImageLibrary(gvc, (selectData) => {
-                                                                vm.link = selectData;
-                                                                gvc.notifyDataChange(vm.id);
-                                                            }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
-                                                                key: 'folderEdit',
-                                                                mul: true,
-                                                                tag: dd.title,
-                                                            });
-                                                        }
-                                                        else {
-                                                            cf.edit(dd, (replace) => {
-                                                                if (!replace) {
-                                                                    let selectData = vm.link.findIndex(data => {
-                                                                        return data.id == dd.id;
-                                                                    });
-                                                                    vm.link.splice(selectData, 1);
-                                                                    save(() => {
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    });
-                                                                }
-                                                                else {
-                                                                    let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
-                                                                    vm.link[replaceIndex] = replace;
-                                                                    save(() => {
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    });
-                                                                }
-                                                            });
-                                                        }
+                                                        itemClick();
                                                     })}">
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                      width="12"
@@ -237,6 +240,11 @@ export class imageLibrary {
                                                                         </clipPath>
                                                                     </defs>
                                                                 </svg>
+                                                            </div>
+                                                            <div class="position-absolute ${(dd.selected) ? `d-blok` : `d-none`} " style="transform: translate(-50%,-50%);left: 50%;top:50%;">
+                                                                ${BgWidget.darkButton('編輯圖片', gvc.event(() => {
+                                                        itemClick();
+                                                    }))}
                                                             </div>
                                                             <div class="${(dd.selected) ? `d-flex` : `d-none`}  "
                                                                  style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
@@ -265,7 +273,7 @@ export class imageLibrary {
                                             divCreate: {
                                                 style: `${gvc.glitter.ut.frSize({
                                                     sm: `width:15%;`
-                                                }, `width:33%;`)}cursor:pointer;`
+                                                }, `width:49%;`)}cursor:pointer;`
                                             }
                                         });
                                     }).join('');
@@ -280,7 +288,7 @@ export class imageLibrary {
                                 class: `w-100 my-2 flex-wrap `,
                                 style: `display:flex;gap:${gvc.glitter.ut.frSize({
                                     sm: `17`
-                                }, `0`)}px;`,
+                                }, `0`)}px;${(document.body.clientWidth < 800) ? `justify-content: space-between;` : ``}`,
                             },
                             onCreate: () => {
                                 gvc.glitter.addMtScript([
@@ -879,105 +887,138 @@ export class imageLibrary {
     }
     static selectImageLibrary(gvc, callback, title, opt) {
         var _a, _b, _c;
-        function editorView(gvc, item) {
-            var _a, _b;
-            if (item.type === 'folder') {
-                return BgWidget.editeInput({
-                    gvc: gvc,
-                    title: `資料夾標題`,
-                    default: item.title,
-                    placeHolder: `請輸入資料夾標題`,
-                    callback: (text) => {
-                        item.title = text;
-                    }
-                });
-            }
-            else {
-                item.data = (_a = item.data) !== null && _a !== void 0 ? _a : {};
-                return [BgWidget.editeInput({
+        return __awaiter(this, void 0, void 0, function* () {
+            let alt = '';
+            let saveAlt = function () {
+            };
+            function editorView(gvc, item) {
+                var _a, _b;
+                if (item.type === 'folder') {
+                    return BgWidget.editeInput({
                         gvc: gvc,
-                        title: `圖片標題`,
+                        title: `資料夾標題`,
                         default: item.title,
-                        placeHolder: `請輸入圖片標題`,
+                        placeHolder: `請輸入資料夾標題`,
                         callback: (text) => {
                             item.title = text;
                         }
-                    }), EditorElem.uploadImageContainer({
-                        gvc: gvc,
-                        title: `圖片內容`,
-                        def: (_b = item.data) !== null && _b !== void 0 ? _b : '',
-                        callback: (text) => {
-                            item.data = text;
-                        },
-                    })].join('');
-            }
-        }
-        imageLibrary.fileSystem({
-            getSelect: callback,
-            gvc: gvc,
-            key: opt ? ((_a = opt.key) !== null && _a !== void 0 ? _a : 'image-manager') : 'image-manager',
-            title: title,
-            tag: (_b = opt === null || opt === void 0 ? void 0 : opt.tag) !== null && _b !== void 0 ? _b : "",
-            mul: opt ? ((_c = opt.mul) !== null && _c !== void 0 ? _c : false) : false,
-            plus: (gvc, callback) => {
-                const item = {
-                    title: '',
-                    data: {},
-                    items: [],
-                    type: 'file',
-                    tag: [],
-                    id: gvc.glitter.getUUID()
-                };
-                let count = 1;
-                EditorElem.uploadFileFunction({
-                    gvc: gvc,
-                    callback: (text) => {
-                        callback(text.map((item) => {
+                    });
+                }
+                else {
+                    item.data = (_a = item.data) !== null && _a !== void 0 ? _a : {};
+                    return `<div>${[BgWidget.editeInput({
+                            gvc: gvc,
+                            title: `圖片標題`,
+                            default: item.title,
+                            placeHolder: `請輸入圖片標題`,
+                            callback: (text) => {
+                                item.title = text;
+                            }
+                        }),
+                        EditorElem.uploadImageContainer({
+                            gvc: gvc,
+                            title: `圖片資源`,
+                            def: (_b = item.data) !== null && _b !== void 0 ? _b : '',
+                            callback: (text) => {
+                                item.data = text;
+                            },
+                        }),
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
                             return {
-                                title: item.split('_')[3],
-                                data: item,
-                                items: [],
-                                type: 'file',
-                                tag: [],
-                                id: gvc.glitter.getUUID()
-                            };
-                        }));
-                    },
-                    return_array: true,
-                    multiple: true
-                });
-            },
-            edit: (item, callback) => {
-                item = JSON.parse(JSON.stringify(item));
-                BgWidget.settingDialog({
-                    gvc: gvc,
-                    title: '更新圖片',
-                    innerHTML: (gvc) => {
-                        return editorView(gvc, item);
-                    },
-                    footer_html: (gvc) => {
-                        return [BgWidget.danger(gvc.event(() => {
-                                const dialog = new ShareDialog(gvc.glitter);
-                                dialog.checkYesOrNot({
-                                    text: `刪除後使用此資源的內容將被取消關聯，是否確認刪除?`,
-                                    callback: (response) => {
-                                        if (response) {
-                                            callback(undefined);
-                                            gvc.closeDialog();
+                                bind: id,
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    const tag = gvc.glitter.generateCheckSum(item.data, 9);
+                                    alt = (yield ApiUser.getPublicConfig(`alt_` + tag, 'manager')).response.value || { alt: '' };
+                                    saveAlt = () => __awaiter(this, void 0, void 0, function* () {
+                                        ApiUser.setPublicConfig({
+                                            key: `alt_` + tag,
+                                            value: alt,
+                                            user_id: 'manager'
+                                        });
+                                    });
+                                    return BgWidget.textArea({
+                                        gvc: gvc,
+                                        title: `ALT描述`,
+                                        default: alt.alt,
+                                        placeHolder: `請輸入ALT描述`,
+                                        callback: (text) => {
+                                            alt.alt = text;
                                         }
-                                    }
-                                });
-                            })), BgWidget.cancel(gvc.event(() => {
-                                gvc.closeDialog();
-                            })), BgWidget.save(gvc.event(() => {
-                                callback(item);
-                                gvc.closeDialog();
-                            }), '確定')].join('');
-                    },
-                    closeCallback: () => {
-                    }
-                });
+                                    });
+                                })
+                            };
+                        })].join('<div class="my-2"></div>')}</div>`;
+                }
             }
+            imageLibrary.fileSystem({
+                getSelect: callback,
+                gvc: gvc,
+                key: opt ? ((_a = opt.key) !== null && _a !== void 0 ? _a : 'image-manager') : 'image-manager',
+                title: title,
+                tag: (_b = opt === null || opt === void 0 ? void 0 : opt.tag) !== null && _b !== void 0 ? _b : "",
+                mul: opt ? ((_c = opt.mul) !== null && _c !== void 0 ? _c : false) : false,
+                plus: (gvc, callback) => {
+                    const item = {
+                        title: '',
+                        data: {},
+                        items: [],
+                        type: 'file',
+                        tag: [],
+                        id: gvc.glitter.getUUID()
+                    };
+                    let count = 1;
+                    EditorElem.uploadFileFunction({
+                        gvc: gvc,
+                        callback: (text) => {
+                            callback(text.map((item) => {
+                                return {
+                                    title: item.split('_')[3],
+                                    data: item,
+                                    items: [],
+                                    type: 'file',
+                                    tag: [],
+                                    id: gvc.glitter.getUUID()
+                                };
+                            }));
+                        },
+                        return_array: true,
+                        multiple: true
+                    });
+                },
+                edit: (item, callback) => {
+                    item = JSON.parse(JSON.stringify(item));
+                    BgWidget.settingDialog({
+                        gvc: gvc,
+                        title: '更新圖片',
+                        innerHTML: (gvc) => {
+                            return editorView(gvc, item);
+                        },
+                        footer_html: (gvc) => {
+                            return [BgWidget.danger(gvc.event(() => {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.checkYesOrNot({
+                                        text: `刪除後使用此資源的內容將被取消關聯，是否確認刪除?`,
+                                        callback: (response) => {
+                                            if (response) {
+                                                callback(undefined);
+                                                gvc.closeDialog();
+                                            }
+                                        }
+                                    });
+                                })), BgWidget.cancel(gvc.event(() => {
+                                    gvc.closeDialog();
+                                })), BgWidget.save(gvc.event(() => {
+                                    callback(item);
+                                    saveAlt();
+                                    gvc.closeDialog();
+                                }), '確定')].join('');
+                        },
+                        closeCallback: () => {
+                        }
+                    });
+                }
+            });
         });
     }
 }

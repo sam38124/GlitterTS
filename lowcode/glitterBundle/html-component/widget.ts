@@ -130,18 +130,7 @@ export const widgetComponent = {
                                         })
                                     }
                                     if (widget.data.elem === 'img') {
-                                        //判斷是新版響應式連結
-                                        let rela_link = innerText
-                                        if (innerText.includes(`size1440_s*px$_`)) {
-                                            [150, 600, 1200, 1440].reverse().map((dd) => {
-                                                if (document.body.clientWidth < dd) {
-                                                    rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`)
-                                                }
-                                            })
-                                        }
-
-
-                                        option.push({key: 'src', value: rela_link})
+                                        option.push({key: 'src', value: gvc.glitter.ut.resize_img_url(innerText)})
                                     } else if (widget.data.elem === 'input') {
                                         option.push({key: 'value', value: innerText})
                                     }

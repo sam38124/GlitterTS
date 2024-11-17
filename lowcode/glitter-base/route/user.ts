@@ -645,6 +645,9 @@ export class ApiUser {
     }
 
     public static setPublicConfig(cf: { key: string; value: any; user_id?: string; token?: string }) {
+        (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
+        const config = (window as any).glitter.share._public_config;
+        config[cf.key + cf.user_id]=undefined;
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/public/config`,
             type: 'PUT',
@@ -685,6 +688,9 @@ export class ApiUser {
                     case 'message_setting':
                         config[key + user_id] = res;
                         break;
+                }
+                if(key.indexOf('alt_')===0){
+                    config[key + user_id] = res;
                 }
                 resolve(res);
             });

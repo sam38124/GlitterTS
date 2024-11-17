@@ -495,7 +495,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         })
     }
 
-    public generateCheckSum(str: string) {
+    public generateCheckSum(str: string,count?:number) {
         let hash = 0;
 
         for (let i = 0; i < str.length; i++) {
@@ -507,10 +507,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         hash = Math.abs(hash);
 
         // 將hash轉換為6碼字串
-        let checksum = hash.toString().slice(0, 6);
+        let checksum = hash.toString().slice(0, (count ?? 6));
 
         // 如果不足6碼，則補零
-        while (checksum.length < 6) {
+        while (checksum.length < (count ?? 6)) {
             checksum = '0' + checksum;
         }
 
@@ -674,6 +674,15 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     public ut = {
         glitter: this,
         queue: {},
+        resize_img_url:(link:string)=>{
+            let rela_link=link;
+            [150, 600, 1200, 1440].reverse().map((dd) => {
+                if (document.body.clientWidth < dd) {
+                    rela_link = link.replace('size1440_s*px$_', `size${dd}_s*px$_`)
+                }
+            })
+            return rela_link
+        },
         clock() {
             return {
                 start: new Date(),
