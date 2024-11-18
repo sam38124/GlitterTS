@@ -1379,7 +1379,6 @@ export class ShoppingProductSetting {
                             obj.gvc.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', variant.preview_image || BgWidget.noImageURL);
                         })}"
                                                               ></i>
-                                                             
                                                           </div>
                                                       </div>
                                                       <div
@@ -2272,10 +2271,7 @@ export class ShoppingProductSetting {
                                                                                     imageLibrary.selectImageLibrary(gvc, (urlArray) => {
                                                                                         if (urlArray.length > 0) {
                                                                                             for (const url of urlArray) {
-                                                                                                editor.html.insert(html `<img
-                                                                                                                                        src="${url.data}"
-                                                                                                                                        style="width: 25%;"
-                                                                                                                                    />`);
+                                                                                                editor.html.insert(html `<img src="${url.data}" />`);
                                                                                             }
                                                                                             editor.undo.saveStep();
                                                                                         }
