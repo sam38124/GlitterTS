@@ -1572,7 +1572,6 @@ export class ShoppingProductSetting {
     }) {
         const html = String.raw;
         let postMD: any = obj.defData;
-
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
@@ -1584,7 +1583,6 @@ export class ShoppingProductSetting {
                 orignData = data;
             }
         });
-
         function checkStore(next: () => void) {
             const dialog = new ShareDialog(gvc.glitter);
             if (JSON.stringify(orignData) !== JSON.stringify(variant)) {
@@ -1601,7 +1599,6 @@ export class ShoppingProductSetting {
                 next();
             }
         }
-
         document.querySelector('.pd-w-c')!.scrollTop = 0;
         return html` <div class="d-flex" style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
             ${BgWidget.container(
@@ -2212,6 +2209,10 @@ export class ShoppingProductSetting {
             postMD = obj.defData;
         } else {
             obj.vm.replaceData = postMD;
+        }
+        const origin_data=JSON.stringify(postMD);
+        (window.parent as any).glitter.share.checkData=()=>{
+            return origin_data===JSON.stringify(postMD)
         }
         const html = String.raw;
         const gvc = obj.gvc;

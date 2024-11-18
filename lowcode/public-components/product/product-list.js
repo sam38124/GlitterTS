@@ -39,7 +39,6 @@ export class ProductList {
                 position: sticky;
                 top: 0;
                 min-height: 20px;
-                background-color: #fff;
                 z-index: 10;
                 display: flex;
                 padding: 16px;

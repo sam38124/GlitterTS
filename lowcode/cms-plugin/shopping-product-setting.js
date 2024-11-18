@@ -1880,6 +1880,10 @@ export class ShoppingProductSetting {
             else {
                 obj.vm.replaceData = postMD;
             }
+            const origin_data = JSON.stringify(postMD);
+            window.parent.glitter.share.checkData = () => {
+                return origin_data === JSON.stringify(postMD);
+            };
             const html = String.raw;
             const gvc = obj.gvc;
             const seoID = gvc.glitter.getUUID();
