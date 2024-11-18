@@ -2711,6 +2711,7 @@ export class ShoppingProductSetting {
                                                                                                                 callback: (text) => {
                                                                                                                     postMD.content = text;
                                                                                                                 },
+                                                                                                                rich_height: `calc(${(window.parent as any).innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${(document.body.clientWidth<800) ? `70`:`0`}px)`
                                                                                                             })}
                                                                                                         </div>`;
                                                                                                     },

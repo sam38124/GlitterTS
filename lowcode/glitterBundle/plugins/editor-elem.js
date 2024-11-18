@@ -901,7 +901,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     return html ` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
                             <div class="spinner-border" style=""></div>
                         </div>
-                        <div id="${richID}">${obj.def}</div>`;
+                        <div id="${richID}" style="position:relative;">${obj.def}</div>`;
                 },
                 divCreate: {
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
@@ -1082,6 +1082,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         </svg>
                                         <span class="fr-sr-only">插入圖片</span>
                                     </button>`;
+                                    if (obj.rich_height) {
+                                        glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
+                                        glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
+                                        glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
+                                    }
                                     if (obj.readonly) {
                                         editor.edit.off();
                                         editor.toolbar.disable();

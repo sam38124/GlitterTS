@@ -95,7 +95,7 @@ export class Footer02 {
             }
         `);
 
-        return html`<footer class="f-bgr">
+        return html`<footer class="f-bgr border-top">
             <div class="border-gray-700 pt-4 pt-md-0">
                 <div class="container">
                     <div class="row py-sm-5 f-container">

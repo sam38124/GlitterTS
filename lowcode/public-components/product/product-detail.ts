@@ -1,12 +1,13 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { ApiUser } from '../../glitter-base/route/user.js';
-import { PdClass, Product, FileList } from './pd-class.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {ApiShop} from '../../glitter-base/route/shopping.js';
+import {ApiUser} from '../../glitter-base/route/user.js';
+import {PdClass, Product, FileList} from './pd-class.js';
 
 const html = String.raw;
 
 export class ProductDetail {
-    public static titleFontColor:string=""
+    public static titleFontColor: string = ""
+
     static tab(
         data: {
             title: string;
@@ -17,41 +18,44 @@ export class ProductDetail {
         callback: (key: string) => void,
         style?: string
     ) {
-        return html` <div
-            style="width: 100%; justify-content: center; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};"
-        >
-            ${data
-                .map((dd) => {
-                    if (select === dd.key) {
-                        return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                            <div
-                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                onclick="${gvc.event(() => {
-                                    callback(dd.key);
-                                })}"
-                            >
-                                ${dd.title}
-                            </div>
-                            <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
-                        </div>`;
-                    } else {
-                        return html` <div
-                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
-                            onclick="${gvc.event(() => {
-                                callback(dd.key);
-                            })}"
-                        >
-                            <div
-                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                            >
-                                ${dd.title}
-                            </div>
-                            <div style="align-self: stretch; height: 0px"></div>
-                        </div>`;
-                    }
-                })
-                .join('')}
-        </div>`;
+        return html`
+            <div
+                    style="width: 100%; justify-content: center; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};"
+            >
+                ${data
+                        .map((dd) => {
+                            if (select === dd.key) {
+                                return html`
+                                    <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                        <div
+                                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                                                onclick="${gvc.event(() => {
+                                                    callback(dd.key);
+                                                })}"
+                                        >
+                                            ${dd.title}
+                                        </div>
+                                        <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                                    </div>`;
+                            } else {
+                                return html`
+                                    <div
+                                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
+                                            onclick="${gvc.event(() => {
+                                                callback(dd.key);
+                                            })}"
+                                    >
+                                        <div
+                                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                                        >
+                                            ${dd.title}
+                                        </div>
+                                        <div style="align-self: stretch; height: 0px"></div>
+                                    </div>`;
+                            }
+                        })
+                        .join('')}
+            </div>`;
     }
 
     public static main(gvc: GVC, widget: any, subData: any) {
@@ -84,10 +88,11 @@ export class ProductDetail {
         };
 
         function spinner() {
-            return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
-                <div class="spinner-border" role="status"></div>
-                <span class="mt-3">載入中</span>
-            </div>`;
+            return html`
+                <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
+                    <div class="spinner-border" role="status"></div>
+                    <span class="mt-3">載入中</span>
+                </div>`;
         }
 
         return gvc.bindView({
@@ -102,113 +107,189 @@ export class ProductDetail {
                         vm.specs.length > 0
                             ? vm.specs
                             : prod.specs.map((spec) => {
-                                  return spec.option[0].title;
-                              });
+                                return spec.option[0].title;
+                            });
 
-                    return html`<div class="container">
-                        <div class="row" style="${isPhone ? 'margin: 1rem 0; width: 100%;' : 'margin: 7rem;'}">
-                            <div class="col-12 col-md-6 px-0 px-md-3" id="swiper-container">
-                                <div class="swiper" id="dynamic-swiper">
-                                    <div class="swiper-wrapper">
-                                        ${prod.preview_image
-                                            .map((image, index) => {
-                                                return html` <div class="swiper-slide swiper-slide-def">
-                                                    <img src="${image}" alt="${prod.title}-${index}" />
-                                                </div>`;
-                                            })
-                                            .join('')}
+                    return html`
+                        <div class="container">
+                            <div class="row" style="${isPhone ? 'margin: 1rem 0; width: 100%;' : 'margin: 7rem;'}">
+                                <div class="col-12 col-md-6 px-0 px-md-3" id="swiper-container">
+                                    <div class="swiper" id="dynamic-swiper">
+                                        <div class="swiper-wrapper">
+                                            ${prod.preview_image
+                                                    .map((image, index) => {
+                                                        return html`
+                                                            <div class="swiper-slide swiper-slide-def">
+                                                                <img src="${image}" alt="${prod.title}-${index}"/>
+                                                            </div>`;
+                                                    })
+                                                    .join('')}
+                                        </div>
+                                        <div class="swiper-button-prev"></div>
+                                        <div class="swiper-button-next"></div>
                                     </div>
-                                    <div class="swiper-button-prev"></div>
-                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-sm mt-2"
+                                         style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
+                                        <div class="swiper-wrapper">
+                                            ${prod.preview_image
+                                                    .map((image, index) => {
+                                                        return html`
+                                                            <div class="swiper-slide swiper-slide-sm"
+                                                                 data-image-index="${index}">
+                                                                <img src="${image}" alt="${prod.title}-${index}-sm"/>
+                                                            </div>`;
+                                                    })
+                                                    .join('')}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="swiper-sm mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
-                                    <div class="swiper-wrapper">
-                                        ${prod.preview_image
-                                            .map((image, index) => {
-                                                return html` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
-                                                    <img src="${image}" alt="${prod.title}-${index}-sm" />
-                                                </div>`;
-                                            })
-                                            .join('')}
-                                    </div>
+                                <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">
+                                    ${PdClass.selectSpec({gvc, titleFontColor: ProductDetail.titleFontColor, prod, vm})}
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor:ProductDetail.titleFontColor, prod, vm })}</div>
-                        </div>
-                        <div style="d-flex flex-column align-items-center mt-4">
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return this.tab(
-                                                [{ title: '商品描述', key: 'default' }].concat(
-                                                    vm.content_manager
-                                                        .filter((cont) => {
-                                                            return prod.content_array.includes(cont.id);
-                                                        })
-                                                        .map((cont) => {
-                                                            return { title: cont.title, key: cont.id };
-                                                        })
-                                                ),
-                                                gvc,
-                                                vm.content_tag,
-                                                (text) => {
-                                                    vm.content_tag = text;
-                                                    gvc.notifyDataChange(id);
-                                                    gvc.notifyDataChange(ids.content);
-                                                }
-                                            );
-                                        },
-                                    };
-                                })()
-                            )}
-                            ${gvc.bindView({
-                                bind: ids.content,
-                                view: () => {
-                                    if (vm.content_tag === 'default') {
-                                        return prod.content;
-                                    } else {
-                                        const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
-                                        const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
-                                        if (!template) {
-                                            return '';
-                                        }
+                            <div style="d-flex flex-column align-items-center mt-4">
+                                ${gvc.bindView(
+                                        (() => {
+                                            const id = glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return this.tab(
+                                                            [{title: '商品描述', key: 'default'}].concat(
+                                                                    vm.content_manager
+                                                                            .filter((cont) => {
+                                                                                return prod.content_array.includes(cont.id);
+                                                                            })
+                                                                            .map((cont) => {
+                                                                                return {
+                                                                                    title: cont.title,
+                                                                                    key: cont.id
+                                                                                };
+                                                                            })
+                                                            ),
+                                                            gvc,
+                                                            vm.content_tag,
+                                                            (text) => {
+                                                                vm.content_tag = text;
+                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange(ids.content);
+                                                            }
+                                                    );
+                                                },
+                                            };
+                                        })()
+                                )}
+                                ${gvc.bindView({
+                                    bind: ids.content,
+                                    view: () => {
+                                        if (vm.content_tag === 'default') {
+                                            return prod.content;
+                                        } else {
+                                            const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
+                                            const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
+                                            if (!template) {
+                                                return '';
+                                            }
 
-                                        let htmlString = template.data.content;
-                                        if (jsonData) {
-                                            jsonData.list.map((data) => {
-                                                const cssStyle = template.data.tags.find((item) => item.key === data.key);
-                                                const regex = new RegExp(`@{{${data.key}}}`, 'g');
-                                                htmlString = htmlString.replace(
-                                                    regex,
-                                                    html`<span
-                                                        style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '${titleFontColor}'}; background: ${cssStyle?.font_bgr ?? '#fff'};"
-                                                        >${data.value}</span
-                                                    >`
-                                                );
-                                            });
+                                            let htmlString = template.data.content;
+                                            if (jsonData) {
+                                                jsonData.list.map((data) => {
+                                                    const cssStyle = template.data.tags.find((item) => item.key === data.key);
+                                                    const regex = new RegExp(`@{{${data.key}}}`, 'g');
+                                                    htmlString = htmlString.replace(
+                                                            regex,
+                                                            html`<span
+                                                                    style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '${titleFontColor}'}; background: ${cssStyle?.font_bgr ?? '#fff'};"
+                                                            >${data.value}</span
+                                                            >`
+                                                    );
+                                                });
+                                            }
+                                            return htmlString.replace(/@{{[^}]+}}/g, '');
                                         }
-                                        return htmlString.replace(/@{{[^}]+}}/g, '');
-                                    }
-                                },
-                                divCreate: {
-                                    style: document.body.clientWidth > 768 ? 'margin: 0 240px;' : '',
-                                },
-                            })}
-                        </div>
-                        <div style="margin-top: 240px;"></div>
-                        <div class="w-100 d-flex align-items-center justify-content-center">
-                            <div class="mx-auto" style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                <div style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;">
-                                    相關商品
-                                </div>
-                                <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                                    },
+                                    divCreate: {
+                                        style: document.body.clientWidth > 768 ? 'margin: 0 240px;' : '',
+                                    },
+                                })}
                             </div>
-                        </div>
-                        ${prod.relative_product}
-                    </div>`;
+                            <div style="margin-top: 150px;"></div>
+                            ${
+                                    gvc.bindView(() => {
+                                        const swipID = gvc.glitter.getUUID()
+                                        return {
+                                            bind: gvc.glitter.getUUID(),
+                                            view: async () => {
+                                                return new Promise(async (resolve, reject) => {
+                                                    const product = (await ApiShop.getProduct({
+                                                        limit: 50,
+                                                        page: 0,
+                                                        id_list: prod.relative_product.join(',')
+                                                    })).response.data;
+                                                    setTimeout(()=>{
+                                                        //@ts-ignore
+                                                        var swiper = new Swiper("#" + swipID, {
+                                                            slidesPerView: glitter.ut.frSize({
+                                                                sm:(product.length<4) ? product.length:4,
+                                                                lg:(product.length<6) ? product.length:6
+                                                            },(product.length<2) ? product.length:2),
+                                                            spaceBetween: glitter.ut.frSize({
+                                                                sm:10,
+                                                                lg:30
+                                                            },10)
+                                                        });
+                                                    },100)
+                                                    resolve(html`
+                                                        <div class="w-100 d-flex align-items-center justify-content-center ">
+                                                            <div class="mx-auto"
+                                                                 style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                <div style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;">
+                                                                    相關商品
+                                                                </div>
+                                                                <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="w-100 d-flex align-items-center justify-content-center py-3 py-sm-4">
+                                                            <div class="" style="${((product.length<glitter.ut.frSize({
+                                                                sm:4,
+                                                                lg:6
+                                                            },2))) ? `width:${200 * product.length}px;`:`width:100%;`}">
+                                                                <div class="swiper  w-100" style="" id="${swipID}">
+                                                                    <div class="swiper-wrapper">
+                                                                        ${product.map((dd: any, index: number) => {
+                                                                            return html`
+                                                                        <div class="swiper-slide"
+                                                                             style="width:100%;height: 350px;"
+                                                                        >
+                                                                            ${glitter.htmlGenerate.renderComponent({
+
+                                                                                appName: (window as any).appName,
+                                                                                tag: 'product_widget',
+                                                                                gvc: gvc,
+                                                                                subData: dd,
+                                                                            })}
+                                                                        </div>`
+                                                                        }).join('')}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                       
+                                                       
+                                                    `)
+                                                })
+                                            },
+                                            divCreate: {
+                                                class: `w-100`
+                                            },
+                                            onCreate: () => {
+                                             
+                                            }
+                                        }
+                                    })
+                            }
+                            <div style="margin-top: 100px;"></div>
+                        </div>`;
                 }
             },
             divCreate: {
@@ -295,6 +376,7 @@ export class ProductDetail {
                             }
                         }, 200);
                     }
+
                     updateSwiperHeight();
                     window.addEventListener('resize', updateSwiperHeight);
                 }

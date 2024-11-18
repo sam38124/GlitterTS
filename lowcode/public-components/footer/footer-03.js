@@ -79,7 +79,7 @@ export class Footer02 {
                 margin: 0 auto;
             }
         `);
-        return html `<footer class="f-bgr">
+        return html `<footer class="f-bgr border-top">
             <div class="border-gray-700 f-padding-top">
                 <div class="container my-5">
                     <div class="d-flex flex-column align-items-center justify-content-center gap-2 mb-3">
