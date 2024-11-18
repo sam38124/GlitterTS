@@ -1,9 +1,9 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { BgWidget } from '../../backend-manager/bg-widget.js';
-import { BgProduct } from '../../backend-manager/bg-product.js';
-import { Tool } from '../../modules/tool.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {EditorElem} from '../../glitterBundle/plugins/editor-elem.js';
+import {ApiShop} from '../../glitter-base/route/shopping.js';
+import {BgWidget} from '../../backend-manager/bg-widget.js';
+import {BgProduct} from '../../backend-manager/bg-product.js';
+import {Tool} from '../../modules/tool.js';
 
 export class ProductSelect {
     public static getData(bundle: { gvc: GVC; formData: any; key: string; callback: (data: any) => void }) {
@@ -74,7 +74,13 @@ export class ProductSelect {
         });
     }
 
-    public static getProducts(bundle: { gvc: GVC; formData: any; key: string; callback: (data: any) => void; title: string }) {
+    public static getProducts(bundle: {
+        gvc: GVC;
+        formData: any;
+        key: string;
+        callback: (data: any) => void;
+        title: string
+    }) {
         const html = String.raw;
         const gvc = bundle.gvc;
         if (Array.isArray(bundle.formData[bundle.key]) || typeof bundle.formData[bundle.key] !== 'object') {
@@ -110,103 +116,112 @@ export class ProductSelect {
                                 return [];
                             }
                         })();
-                        resolve(html`<div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
-                            <div class="d-flex align-items-center gray-bottom-line-18 pb-2" style="gap: 10px; justify-content: space-between;">
-                                <div class="flex-fill">
-                                    ${EditorElem.select({
-                                        title: bundle.title,
-                                        gvc: gvc,
-                                        def: bundle.formData[bundle.key].select,
-                                        array: [
-                                            { value: 'collection', title: '商品系列' },
-                                            { value: 'product', title: '單一商品' },
-                                            { value: 'all', title: '所有商品' },
-                                        ],
-                                        callback: (text) => {
-                                            bundle.formData[bundle.key].select = text;
-                                            bundle.formData[bundle.key].value = [];
-                                            bundle.callback(bundle.formData[bundle.key].value);
-                                            gvc.notifyDataChange(subVM.id);
-                                        },
-                                    })}
+                        resolve(html`
+                            <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
+                                <div class="d-flex align-items-center gray-bottom-line-18 pb-2"
+                                     style="gap: 10px; justify-content: space-between;">
+                                    <div class="flex-fill">
+                                        ${EditorElem.select({
+                                            title: bundle.title,
+                                            gvc: gvc,
+                                            def: bundle.formData[bundle.key].select,
+                                            array: [
+                                                {value: 'collection', title: '商品系列'},
+                                                {value: 'product', title: '單一商品'},
+                                                {value: 'all', title: '所有商品'},
+                                            ],
+                                            callback: (text) => {
+                                                bundle.formData[bundle.key].select = text;
+                                                bundle.formData[bundle.key].value = [];
+                                                bundle.callback(bundle.formData[bundle.key].value);
+                                                gvc.notifyDataChange(subVM.id);
+                                            },
+                                        })}
+                                    </div>
+                                    <div class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}"
+                                         style="margin-top: 30px;">
+                                        ${BgWidget.grayButton(
+                                                (() => {
+                                                    switch (bundle.formData[bundle.key].select) {
+                                                        case 'product':
+                                                            return `選取`;
+                                                        case 'collection':
+                                                            return `選取`;
+                                                    }
+                                                    return ``;
+                                                })(),
+                                                gvc.event(() => {
+                                                    if (bundle.formData[bundle.key].select === 'product') {
+                                                        bundle.formData[bundle.key].value = bundle.formData[bundle.key].value ?? [];
+                                                        BgProduct.productsDialog({
+                                                            gvc: gvc,
+                                                            default: bundle.formData[bundle.key].value,
+                                                            callback: async (value) => {
+                                                                bundle.formData[bundle.key].value = value;
+                                                                bundle.callback(bundle.formData[bundle.key].value);
+                                                                gvc.notifyDataChange(subVM.id);
+                                                            },
+                                                        });
+                                                    } else if (bundle.formData[bundle.key].select === 'collection') {
+                                                        bundle.formData[bundle.key].value = bundle.formData[bundle.key].value ?? [];
+                                                        BgProduct.collectionsDialog({
+                                                            gvc: gvc,
+                                                            default: bundle.formData[bundle.key].value,
+                                                            callback: async (value) => {
+                                                                bundle.formData[bundle.key].value = value;
+                                                                bundle.callback(bundle.formData[bundle.key].value);
+                                                                gvc.notifyDataChange(subVM.id);
+                                                            },
+                                                        });
+                                                    }
+                                                }),
+                                                {textStyle: 'font-weight: 400;'}
+                                        )}
+                                    </div>
                                 </div>
-                                <div class="${bundle.formData[bundle.key].select === 'all' ? `d-none` : ``}" style="margin-top: 30px;">
-                                    ${BgWidget.grayButton(
-                                        (() => {
-                                            switch (bundle.formData[bundle.key].select) {
-                                                case 'product':
-                                                    return `選取`;
-                                                case 'collection':
-                                                    return `選取`;
-                                            }
-                                            return ``;
-                                        })(),
-                                        gvc.event(() => {
-                                            if (bundle.formData[bundle.key].select === 'product') {
-                                                bundle.formData[bundle.key].value = bundle.formData[bundle.key].value ?? [];
-                                                BgProduct.productsDialog({
-                                                    gvc: gvc,
-                                                    default: bundle.formData[bundle.key].value,
-                                                    callback: async (value) => {
-                                                        bundle.formData[bundle.key].value = value;
-                                                        bundle.callback(bundle.formData[bundle.key].value);
-                                                        gvc.notifyDataChange(subVM.id);
-                                                    },
-                                                });
-                                            } else if (bundle.formData[bundle.key].select === 'collection') {
-                                                bundle.formData[bundle.key].value = bundle.formData[bundle.key].value ?? [];
-                                                BgProduct.collectionsDialog({
-                                                    gvc: gvc,
-                                                    default: bundle.formData[bundle.key].value,
-                                                    callback: async (value) => {
-                                                        bundle.formData[bundle.key].value = value;
-                                                        bundle.callback(bundle.formData[bundle.key].value);
-                                                        gvc.notifyDataChange(subVM.id);
-                                                    },
-                                                });
-                                            }
-                                        }),
-                                        { textStyle: 'font-weight: 400;' }
+                                <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
+                                    ${gvc.map(
+                                            subVM.dataList.map((opt: any, index: number) => {
+                                                switch (bundle.formData[bundle.key].select) {
+                                                    case 'collection':
+                                                        return html`
+                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                <span class="tx_normal">${index + 1}. ${opt}</span>
+                                                            </div>`;
+                                                    case 'product':
+                                                        return html`
+                                                            <div class="d-flex align-items-center form-check-label c_updown_label px-1"
+                                                                 style="justify-content: space-between"
+                                                                 data-index="${opt.key}">
+                                                                <div class="d-flex align-items-center gap-3 cursor_move">
+                                                                    <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
+                                                                    ${BgWidget.validImageBox({
+                                                                        gvc,
+                                                                        image: opt.image,
+                                                                        width: 40,
+                                                                    })}
+                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                        ${opt.value}
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                        class="fa-regular fa-trash cursor_pointer"
+                                                                        onclick="${gvc.event(() => {
+                                                                            bundle.formData[bundle.key].value = bundle.formData[bundle.key].value.filter((id: number) => {
+                                                                                return id !== opt.key;
+                                                                            });
+                                                                            bundle.callback(bundle.formData[bundle.key].value);
+                                                                            gvc.notifyDataChange(subVM.id);
+                                                                        })}"
+                                                                ></i>
+                                                            </div>`;
+                                                    case 'all':
+                                                        return ``;
+                                                }
+                                            })
                                     )}
                                 </div>
-                            </div>
-                            <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
-                                ${gvc.map(
-                                    subVM.dataList.map((opt: any, index: number) => {
-                                        switch (bundle.formData[bundle.key].select) {
-                                            case 'collection':
-                                                return html`<div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                    <span class="tx_normal">${index + 1}. ${opt}</span>
-                                                </div>`;
-                                            case 'product':
-                                                return html` <div class="d-flex align-items-center form-check-label c_updown_label px-1" style="justify-content: space-between" data-index="${opt.key}">
-                                                    <div class="d-flex align-items-center gap-3 cursor_move">
-                                                        <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
-                                                        ${BgWidget.validImageBox({
-                                                            gvc,
-                                                            image: opt.image,
-                                                            width: 40,
-                                                        })}
-                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                    </div>
-                                                    <i
-                                                        class="fa-regular fa-trash cursor_pointer"
-                                                        onclick="${gvc.event(() => {
-                                                            bundle.formData[bundle.key].value = bundle.formData[bundle.key].value.filter((id: number) => {
-                                                                return id !== opt.key;
-                                                            });
-                                                            bundle.callback(bundle.formData[bundle.key].value);
-                                                            gvc.notifyDataChange(subVM.id);
-                                                        })}"
-                                                    ></i>
-                                                </div>`;
-                                            case 'all':
-                                                return ``;
-                                        }
-                                    })
-                                )}
-                            </div>
-                        </div>`);
+                            </div>`);
                     });
                 },
                 onCreate: () => {
@@ -226,7 +241,8 @@ export class ProductSelect {
                                     }
                                 }, 300);
                             },
-                            () => {}
+                            () => {
+                            }
                         );
                     } else {
                         const el = document.querySelector(`#${subVM.containerId}`) as HTMLElement;

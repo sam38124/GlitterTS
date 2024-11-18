@@ -14,8 +14,6 @@ export class Ai {
 
         const jsonStringQA = JSON.stringify(this.defaultQA);
         const file1 = tool.randomString(10) + '.json';
-        // fs.writeFileSync(file1, JSON.stringify(Ai.defaultProduct));
-        // return
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
         });

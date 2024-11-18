@@ -553,7 +553,7 @@ export class Main_editor {
                 },
                 divCreate: {
                     class: `swiper-slide h-100 position-relative design-guide-1`,
-                    style: `${(glitter.share.top_inset) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`
+                    style: `${(glitter.share.top_inset && document.body.clientWidth<800) ? `padding-top:${glitter.share.top_inset}px !important;padding-bottom:${glitter.share.bottom_inset}px !important;` : ``}`
                 },
                 onCreate: () => {
                     $('.tooltip')!.remove();
@@ -1125,11 +1125,11 @@ export class Main_editor {
                 if (Storage.view_type === ViewType.mobile) {
                     return (document.body.clientWidth > 800) ? 414 : document.body.clientWidth;
                 } else {
-                    return (document.body.clientWidth < 800) ? document.body.clientWidth : document.body.clientWidth - 365;
+                    return (document.body.clientWidth < 992) ? document.body.clientWidth : document.body.clientWidth - 365;
                 }
             })() * (scale || 1)
             const tool_box = (() => {
-                if (document.body.clientWidth < 800) {
+                if (document.body.clientWidth < 992) {
                     return 40
                 } else {
                     return 0
@@ -1184,7 +1184,7 @@ export class Main_editor {
                             <div class="position-relative w-100 h-100"
                                  style="${(parseInt(gvc.glitter.share.top_inset, 10)) ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;` : ``}"
                                  id="editerCenter">
-                                ${(document.body.clientWidth < 800) ? gvc.bindView(() => {
+                                ${(document.body.clientWidth < 992) ? gvc.bindView(() => {
                                     let last_selected = '';
                                     return {
                                         bind: `item-editor-select`,
@@ -1291,7 +1291,7 @@ export class Main_editor {
                                                         <div class="rounded-1 border bg-white p-1 px-2 fw-500"
                                                              style="font-size: 14px;color:black;"
                                                              onclick="${gvc.event(() => {
-                                                                 gvc.glitter.openDrawer();
+                                                                 gvc.glitter.share.toggle_left_bar()
                                                              })}">編輯
                                                         </div>
                                                         <div class="rounded-1 border bg-white p-1 px-2 fw-500 ${(gvc.glitter.share.editorViewModel.selectItem.deletable === 'false') ? `d-none` : ``}"
@@ -1362,7 +1362,7 @@ export class Main_editor {
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column `,
                         style: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? ``
-                            : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     }
                 }
             }
@@ -1397,7 +1397,7 @@ export class Main_editor {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     }
                 }
             }
@@ -1703,7 +1703,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,
-                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56}px);overflow-y:auto;`,
+                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56+glitter.share.top_inset}px);overflow-y:auto;`,
                 },
             };
         });

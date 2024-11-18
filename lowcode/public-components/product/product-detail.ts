@@ -171,22 +171,25 @@ export class ProductDetail {
                                     } else {
                                         const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
                                         const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
-                                        if (!template || !jsonData) {
+                                        if (!template) {
                                             return '';
                                         }
-                                        let htmlString = template.data.content;
 
-                                        jsonData.list.map((data) => {
-                                            const cssStyle = template.data.tags.find((item) => item.key === data.key);
-                                            const regex = new RegExp(`@{{${data.key}}}`, 'g');
-                                            htmlString = htmlString.replace(
-                                                regex,
-                                                html`<span style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '#393939'}; background: ${cssStyle?.font_bgr ?? '#fff'};"
-                                                    >${data.value}</span
-                                                >`
-                                            );
-                                        });
-                                        return htmlString;
+                                        let htmlString = template.data.content;
+                                        if (jsonData) {
+                                            jsonData.list.map((data) => {
+                                                const cssStyle = template.data.tags.find((item) => item.key === data.key);
+                                                const regex = new RegExp(`@{{${data.key}}}`, 'g');
+                                                htmlString = htmlString.replace(
+                                                    regex,
+                                                    html`<span
+                                                        style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '#393939'}; background: ${cssStyle?.font_bgr ?? '#fff'};"
+                                                        >${data.value}</span
+                                                    >`
+                                                );
+                                            });
+                                        }
+                                        return htmlString.replace(/@{{[^}]+}}/g, '');
                                     }
                                 },
                                 divCreate: {

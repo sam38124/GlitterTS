@@ -39,6 +39,7 @@ export const widgetComponent = {
                 }
 
                 function showCaseData() {
+                    const oWidget=widget
                     return GlobalWidget.showCaseData({
                         gvc: gvc,
                         widget: widget,
@@ -129,18 +130,7 @@ export const widgetComponent = {
                                         })
                                     }
                                     if (widget.data.elem === 'img') {
-                                        //判斷是新版響應式連結
-                                        let rela_link = innerText
-                                        if (innerText.includes(`size1440_s*px$_`)) {
-                                            [150, 600, 1200, 1440].reverse().map((dd) => {
-                                                if (document.body.clientWidth < dd) {
-                                                    rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`)
-                                                }
-                                            })
-                                        }
-
-
-                                        option.push({key: 'src', value: rela_link})
+                                        option.push({key: 'src', value: gvc.glitter.ut.resize_img_url(innerText)})
                                     } else if (widget.data.elem === 'input') {
                                         option.push({key: 'value', value: innerText})
                                     }
@@ -367,9 +357,11 @@ export const widgetComponent = {
                                         bind: id,
                                         view: () => {
                                             let view: any = []
+
                                             switch (widget.data.elem) {
                                                 case 'select':
                                                     return new Promise(async (resolve, reject) => {
+                                                        const widget=oWidget
                                                         const vm: {
                                                             callback: () => void,
                                                             data: any
@@ -396,7 +388,8 @@ export const widgetComponent = {
                                                                 resolve(true)
                                                             }
                                                         })
-                                                        formData[widget.data.key] = innerText
+                                                        console.log(`widget.data.key=>`,widget.data.key)
+                                                        console.log(oWidget)
                                                         if (widget.data.selectType === 'api') {
                                                             resolve(vm.data.map((dd: any) => {
                                                                 formData[widget.data.key] = formData[widget.data.key] ?? dd.value
@@ -412,17 +405,20 @@ export const widgetComponent = {
                                                         } else if (widget.data.selectType === 'trigger') {
                                                             const data = await TriggerEvent.trigger({
                                                                 gvc: gvc,
-                                                                widget: widget,
-                                                                clickEvent: widget.data.selectTrigger,
+                                                                widget: oWidget,
+                                                                clickEvent: oWidget.data.selectTrigger,
                                                                 subData: subData
                                                             })
                                                             const selectItem = await TriggerEvent.trigger({
                                                                 gvc: gvc,
-                                                                widget: widget,
-                                                                clickEvent: widget.data.selectItem,
+                                                                widget: oWidget,
+                                                                clickEvent: oWidget.data.selectItem,
                                                                 subData: subData
                                                             })
 
+                                                            if(!data){
+                                                                console.log(`area_json_IS`,oWidget.share.area_json)
+                                                            }
                                                             resolve((data as any).map((dd: any) => {
                                                                 return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}

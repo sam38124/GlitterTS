@@ -134,12 +134,10 @@ export class UMVoucher {
                                 item.title,
                                 item.code,
                                 (() => {
-                                    if (!item.end_ISO_Date) {
-                                        return '無使用期限';
-                                    }
-                                    return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd')}`;
+                                    const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : '無使用期限';
+                                    return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
                                 })(),
-                                html `<div class="d-flex">
+                                html `<div class="d-flex w-100 justify-content-around">
                                                     <div
                                                         class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active me-1"
                                                         onclick="${gvc.event(() => {
@@ -147,66 +145,77 @@ export class UMVoucher {
                                         gvc,
                                         tag: 'user-qr-code',
                                         title: '優惠券詳細內容',
-                                        innerHTML: html `
-                                                                    <div class="d-flex gap-2 flex-column my-2">
-                                                                        ${gvc.map(getVoucherTextList(item).map((text) => {
-                                            return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">${text}</div>`;
-                                        }))}
-                                                                    </div>
-                                                                `,
+                                        innerHTML: (gvc) => {
+                                            return html `
+                                                                        <div class="d-flex gap-2 flex-column my-2">
+                                                                            ${gvc.map(getVoucherTextList(item).map((text) => {
+                                                return html ` <div class="${text.length > 0 ? '' : 'gray-line'}">${text}</div>`;
+                                            }))}
+                                                                        </div>
+                                                                    `;
+                                        },
                                     });
                                 })}"
                                                     >
                                                         詳細內容
                                                     </div>
                                                     <div
-                                                        class="option px-2 d-flex justify-content-center um-nav-btn um-nav-btn-active"
+                                                        class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
                                                         onclick="${gvc.event(() => {
                                     UmClass.dialog({
                                         gvc,
                                         tag: 'user-qr-code',
                                         title: '優惠券 QR code',
-                                        innerHTML: gvc.bindView((() => {
-                                            const id = glitter.getUUID();
-                                            let loading = true;
-                                            let img = '';
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    if (loading) {
-                                                        return UmClass.spinner('100%');
-                                                    }
-                                                    else {
-                                                        return html ` <div style="text-align: center; vertical-align: middle;">
-                                                                                        <img src="${img}" />
-                                                                                    </div>`;
-                                                    }
-                                                },
-                                                divCreate: {},
-                                                onCreate: () => {
-                                                    if (loading) {
-                                                        const si = setInterval(() => {
-                                                            const qr = window.QRCode;
-                                                            if (qr) {
-                                                                qr.toDataURL(`voucher-${item.code}`, {
-                                                                    width: 400,
-                                                                    margin: 2,
-                                                                }, (err, url) => {
-                                                                    if (err) {
-                                                                        console.error(err);
-                                                                        return;
+                                        innerHTML: (gvc) => {
+                                            console.log('innerHTML');
+                                            return gvc.bindView((() => {
+                                                const id = glitter.getUUID();
+                                                let loading = true;
+                                                let img = '';
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        if (loading) {
+                                                            return UmClass.spinner('100%');
+                                                        }
+                                                        else {
+                                                            return html ` <div style="text-align: center; vertical-align: middle;">
+                                                                                            <img src="${img}" />
+                                                                                        </div>`;
+                                                        }
+                                                    },
+                                                    divCreate: {},
+                                                    onCreate: () => {
+                                                        if (loading) {
+                                                            glitter.addMtScript([
+                                                                {
+                                                                    src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
+                                                                },
+                                                            ], () => {
+                                                                const si = setInterval(() => {
+                                                                    const qr = window.QRCode;
+                                                                    if (qr) {
+                                                                        qr.toDataURL(`voucher-${item.code}`, {
+                                                                            width: 400,
+                                                                            margin: 2,
+                                                                        }, (err, url) => {
+                                                                            if (err) {
+                                                                                console.error(err);
+                                                                                return;
+                                                                            }
+                                                                            img = url;
+                                                                            loading = false;
+                                                                            gvc.notifyDataChange(id);
+                                                                        });
+                                                                        clearInterval(si);
                                                                     }
-                                                                    img = url;
-                                                                    loading = false;
-                                                                    gvc.notifyDataChange(id);
-                                                                });
-                                                                clearInterval(si);
-                                                            }
-                                                        }, 300);
-                                                    }
-                                                },
-                                            };
-                                        })()),
+                                                                }, 300);
+                                                            }, () => { });
+                                                        }
+                                                    },
+                                                };
+                                            })());
+                                        },
                                     });
                                 })}"
                                                     >
@@ -216,7 +225,7 @@ export class UMVoucher {
                             ];
                         }
                         if (isWebsite) {
-                            const flexList = [1.2, 1, 1.5, 1.3];
+                            const flexList = [1.2, 1, 1.5, 1.5];
                             return html `
                                                 <div class="w-100 d-sm-flex py-4 um-th-bar">
                                                     ${header
@@ -262,7 +271,7 @@ export class UMVoucher {
                 }
             },
             divCreate: {
-                class: 'container',
+                class: '',
             },
             onCreate: () => {
                 if (loadings.view) {

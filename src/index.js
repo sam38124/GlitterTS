@@ -132,6 +132,47 @@ async function createAppRoute() {
         await createAPP(dd);
     }
 }
+function extractCols(data) {
+    const items = [];
+    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+    data.value.map((item) => {
+        items.push({
+            code: item.code,
+            updated_at,
+            seo_title: item.seo_title,
+            seo_image: item.seo_image,
+            seo_content: item.seo_content,
+        });
+        if (item.array && item.array.length > 0) {
+            item.array.map((child) => {
+                items.push({
+                    code: child.code,
+                    updated_at,
+                    seo_title: child.seo_title,
+                    seo_image: child.seo_image,
+                    seo_content: child.seo_content,
+                });
+            });
+        }
+    });
+    return items;
+}
+function extractProds(data) {
+    const items = [];
+    data.map((item) => {
+        const code = (() => {
+            try {
+                return item.content.seo.domain;
+            }
+            catch (error) {
+                return '';
+            }
+        })();
+        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
+        items.push({ code, updated_at });
+    });
+    return items;
+}
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
@@ -144,7 +185,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -154,7 +195,7 @@ async function createAPP(dd) {
                         appName = req.query.appName;
                     }
                     req.headers['g-app'] = appName;
-                    const start = (new Date()).getTime();
+                    const start = new Date().getTime();
                     monitor_js_1.Monitor.insertHistory({
                         req_type: 'file',
                         req: req,
@@ -165,6 +206,14 @@ async function createAPP(dd) {
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
+                    let home_page_data = await (async () => {
+                        if (data && data.config) {
+                            return await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
+                        }
+                        else {
+                            return await seo_js_1.Seo.getPageInfo(appName, 'index');
+                        }
+                    })();
                     console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
                     let customCode = await new user_js_1.User(appName).getConfigV2({
                         key: 'ga4_config',
@@ -217,7 +266,7 @@ async function createAPP(dd) {
                             }
                         }
                         else if (d.type !== 'custom') {
-                            data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
+                            data = home_page_data;
                         }
                         const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
@@ -249,55 +298,64 @@ async function createAPP(dd) {
                                 location.href='${page.redirect}${redURL.search}';
                             `;
                         }
+                        if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
+                            const cols = (_k = (await database_2.default.query(`SELECT * FROM \`${appName}\`.public_config WHERE \`key\` = 'collection';
+                                        `, []))[0]) !== null && _k !== void 0 ? _k : {};
+                            const colJson = extractCols(cols);
+                            const urlCode = decodeURI(req.query.page.split('/')[1]);
+                            const colData = colJson.find((item) => item.code === urlCode);
+                            if (colData) {
+                                data.page_config.seo.title = colData.seo_title;
+                                data.page_config.seo.content = colData.seo_content;
+                                data.page_config.seo.keywords = colData.seo_keywords;
+                            }
+                        }
                         console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html `${(() => {
                             var _a;
                             const d = data.page_config.seo;
+                            const home_seo = home_page_data.page_config.seo;
                             return html `
                                 <head>
                                     ${(() => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h;
+                                var _a, _b, _c, _d, _e;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                            <link rel="canonical" href="/index"/>
-                                            <meta name="keywords" content="SHOPNEX,電商平台"/>
-                                            <link
+                                                <link rel="canonical" href="/index" />
+                                                <meta name="keywords" content="SHOPNEX,電商平台" />
+                                                <link
                                                     id="appImage"
                                                     rel="shortcut icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
-                                            />
-                                            <link
+                                                />
+                                                <link
                                                     rel="icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/png"
                                                     sizes="128x128"
-                                            />
-                                            <meta property="og:image"
-                                                  content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
-                                            <meta property="og:title" content="SHOPNEX後台系統"/>
-                                            <meta
+                                                />
+                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+                                                <meta property="og:title" content="SHOPNEX後台系統" />
+                                                <meta
                                                     name="description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                            />
-                                            <meta
+                                                />
+                                                <meta
                                                     name="og:description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                            />`;
+                                                />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                            <link rel="canonical"
-                                                  href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
-                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}"
-                                                  type="image/x-icon"/>
-                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
-                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
-                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
-                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
-                                            <meta name="og:description"
-                                                  content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
+                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
+                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                                <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
+                                                <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
+                                                <meta property="og:image" content="${d.image || home_seo.image || ''}" />
+                                                <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}" />
+                                                <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}" />
+                                                <meta name="og:description" content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}" />`;
                                 }
                             })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -311,14 +369,13 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html `
-                                                                    <link
-                                                                            type="text/css"
-                                                                            rel="stylesheet"
-                                                                            href="${dd.data.attr.find((dd) => {
+                                                return html ` <link
+                                                                type="text/css"
+                                                                rel="stylesheet"
+                                                                href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                                    />`;
+                                                            />`;
                                             }
                                         }
                                         catch (e) {
@@ -332,7 +389,7 @@ async function createAPP(dd) {
                             `;
                         })()}
                         <script>
-                            ${(_k = d.custom_script) !== null && _k !== void 0 ? _k : ''}
+                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''}
                             window.appName = '${appName}';
                             window.glitterBase = '${brandAndMemberType.brand}';
                             window.memberType = '${brandAndMemberType.memberType}';
@@ -352,12 +409,10 @@ async function createAPP(dd) {
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html `
-                                        <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
-                                                type="${dd.type}"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
-                        ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
+                        ${((_m = preload.event) !== null && _m !== void 0 ? _m : [])
                             .filter((dd) => {
                             return dd;
                         })
@@ -366,9 +421,7 @@ async function createAPP(dd) {
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html `
-                                        <script src="/${link_prefix && `${link_prefix}/`}${dd}"
-                                                type="module"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                         })
                             .join('')}
                         </head>
@@ -381,8 +434,7 @@ async function createAPP(dd) {
                                     ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                <script async
-                                                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                 <script>
                                                     window.dataLayer = window.dataLayer || [];
 
@@ -403,10 +455,10 @@ async function createAPP(dd) {
                                                 <script>
                                                     (function (w, d, s, l, i) {
                                                         w[l] = w[l] || [];
-                                                        w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
+                                                        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
                                                         var f = d.getElementsByTagName(s)[0],
-                                                                j = d.createElement(s),
-                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                            j = d.createElement(s),
+                                                            dl = l != 'dataLayer' ? '&l=' + l : '';
                                                         j.async = true;
                                                         j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                         f.parentNode.insertBefore(j, f);
@@ -421,16 +473,17 @@ async function createAPP(dd) {
                         `;
                     }
                     else {
-                        console.log(`brandAndMemberType->redirect`);
+                        console.log(`brandAndMemberType==>redirect`);
                         return await seo_js_1.Seo.redirectToHomePage(appName, req);
                     }
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                     return `${e}`;
                 }
             },
             sitemap: async (req, resp) => {
+                var _a;
                 let appName = dd.appName;
                 if (req.query.appName) {
                     appName = req.query.appName;
@@ -444,6 +497,11 @@ async function createAPP(dd) {
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
+                const cols = (_a = (await database_2.default.query(`SELECT *
+                         FROM \`${appName}\`.public_config
+                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+                const products = await database_2.default.query(`SELECT * FROM \`${appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
+                `, []);
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(await database_2.default.query(`select page_config, tag, updated_time
@@ -469,13 +527,33 @@ async function createAPP(dd) {
                                 </url> `;
                 })
                     .join('')}
-                        ${(site_map || []).map((d2) => {
+                        ${(site_map || [])
+                    .map((d2) => {
                     return `<url>
-                                <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-                                <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-                                <changefreq>weekly</changefreq>
-                            </url> `;
-                })}
+                                    <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
+                                    <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+                                    <changefreq>weekly</changefreq>
+                                </url> `;
+                })
+                    .join('')}
+                        ${extractCols(cols)
+                    .map((item) => {
+                    return `<url>
+                                    <loc>https://${domain}/collections/${item.code}</loc>
+                                    <lastmod>${item.updated_at}</lastmod>
+                                    <changefreq>weekly</changefreq>
+                                </url>`;
+                })
+                    .join('')}
+                        ${extractProds(products)
+                    .map((item) => {
+                    return `<url>
+                                    <loc>https://${domain}/products/${item.code}</loc>
+                                    <lastmod>${item.updated_at}</lastmod>
+                                    <changefreq>weekly</changefreq>
+                                </url>`;
+                })
+                    .join('')}
                     </urlset> `;
                 return (0, xml_formatter_1.default)(sitemap, {
                     indentation: '  ',

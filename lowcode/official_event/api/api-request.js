@@ -81,7 +81,8 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             }
                         }
                         catch (e) {
-                            resolve(true);
+                            console.log(`request-error`, e);
+                            resolve(false);
                         }
                     }));
                 }

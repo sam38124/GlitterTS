@@ -150,10 +150,16 @@ export class BgGuide {
     }
 
     public leaveGuide(vm?: any, step?: number) {
-        const element = document.querySelector('.guide-BG');
-        this.clearEvent();
-        element!.remove();
+       try {
+           const element = document.querySelector('.guide-BG');
+           this.clearEvent();
+           element!.remove();
+       }catch (e) {
 
+       }
+        // setTimeout(()=>{
+
+        // },2000)
         this.step = step ?? -1;
         if (!step){
             ApiShop.getFEGuideLeave().then(r => {
@@ -163,12 +169,18 @@ export class BgGuide {
                         this.drawBG();
                     })
                 }else {
-                    document.querySelector(`.guide-BG`)!.remove();
+                    try {
+                        document.querySelector(`.guide-BG`)!.remove();
+                    }catch (e) {
+
+                    }
+                    this.guide = 0;
+                    this.drawBG();
                 }
 
             })
-        }
 
+        }
     }
 
     public holeBG(left: number, right: number, top: number, bottom: number) {
@@ -329,7 +341,8 @@ export class BgGuide {
         let target = document.querySelector(targetSelector) as HTMLElement;
         let rect = target ? target!.getBoundingClientRect() : '';
         if (rect) {
-            target.scrollIntoView();
+            //
+            // target.scrollIntoView();
             target = document.querySelector(targetSelector) as HTMLElement;
             rect = target!.getBoundingClientRect();
             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
@@ -964,7 +977,6 @@ export class BgGuide {
                 this.finGuide(key);
                 this.leaveGuide(vm, 0)
             }
-
 
         });
         return html`
@@ -5015,6 +5027,7 @@ export class BgGuide {
             const innerHTML = this.uiGuidePage[this.guide].innerHTML();
             document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``;
         } else {
+            document.querySelector('.scrollbar-hover')!!.scrollTop=0
             const innerHTML = this.guidePage[this.guide].innerHTML();
             document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``;
         }
@@ -5023,6 +5036,9 @@ export class BgGuide {
     }
 
     public drawGuide() {
+        if(document.body.clientWidth<922){
+            return
+        }
         const that = this;
         const timer = setInterval(function () {
             if (document.querySelector('iframe')) {

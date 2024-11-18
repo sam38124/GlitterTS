@@ -76,7 +76,7 @@ const query = async (sql, params) => {
     const TAG = '[Database][Query]';
     try {
         const connection = await pool.getConnection();
-        await pool.query(`SET time_zone = '+08:00';`, []);
+        await pool.query(`SET time_zone = '+00:00';`, []);
         const [results] = await pool.query(sql, params);
         connection.release();
         return results;

@@ -25,8 +25,6 @@ const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
-const EcInvoice_1 = require("./EcInvoice");
-const app_1 = __importDefault(require("../../app"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -316,8 +314,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -667,8 +665,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -722,21 +719,20 @@ class Shopping {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });
-                await this.checkVoucher(carData);
+                const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
                 add_on_items.map((dd) => {
                     var _a;
                     try {
-                        if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
+                        if ((_a = c_carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
                             return (d1.reBackType === 'add_on_items' &&
                                 d1.add_on_products.find((d2) => {
                                     return `${dd.id}` === `${d2}`;
                                 }));
                         })) {
-                            carData.lineItems.push(dd);
+                            c_carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
                 const gift_product = [];
@@ -891,9 +887,9 @@ class Shopping {
                 carData.orderSource = 'POS';
                 const trans = await database_js_1.default.Transaction.build();
                 if (carData.user_info.shipment === 'now') {
+                    carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                console.log("carData -- ", carData);
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1435,7 +1431,6 @@ class Shopping {
                             else {
                                 d2.discount_price += discount / d2.count;
                                 cart.discount += discount;
-                                dd.discount_total += discount;
                             }
                         }
                         if (remain - discount > 0) {
@@ -1500,6 +1495,7 @@ class Shopping {
         }
         cart.total -= cart.discount;
         cart.voucherList = voucherList;
+        return cart;
     }
     async putOrder(data) {
         try {
@@ -1966,6 +1962,8 @@ class Shopping {
                 await new Promise(async (resolve, reject) => {
                     for (const tag of tags) {
                         new Promise(async (resolve, reject) => {
+                            let start = new Date();
+                            console.log(`${tag}_start`);
                             try {
                                 switch (tag) {
                                     case 'recent_active_user':
@@ -2019,6 +2017,7 @@ class Shopping {
                             catch (e) {
                                 resolve(false);
                             }
+                            console.log(`${tag}_end`, ((new Date().getTime() - start.getTime()) / 1000));
                         }).then((res) => {
                             pass++;
                             if (pass === tags.length) {
@@ -2041,23 +2040,37 @@ class Shopping {
     async getActiveRecentYear() {
         try {
             const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                     WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      and req_type = 'file'
-                      and (
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                        );
+                      and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            const start_date = new Date();
+            start_date.setDate(new Date().getDate() - 365);
+            start_date.setHours(0, 0, 0);
+            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 12; index++) {
+                let mac_address = [];
+                const now_date = new Date();
+                now_date.setMonth(now_date.getMonth() - index);
+                countArray.push(data.filter((dd) => {
+                    if (mac_address.includes(dd.mac_address)) {
+                        return false;
+                    }
+                    const date = (new Date(dd.created_time));
+                    if (date.getMonth() == now_date.getMonth()) {
+                        mac_address.push(dd.mac_address);
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }).length);
             }
             return {
-                count_array: countArray,
+                count_array: countArray.reverse(),
             };
         }
         catch (e) {
@@ -2068,20 +2081,29 @@ class Shopping {
     async getActiveRecent2Weak() {
         try {
             const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthRegisterSQL = `
-                    SELECT distinct mac_address
+            const monthRegisterSQL = `
+                    SELECT  mac_address,created_time
                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      and req_type = 'file'
-                      and (DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                        AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY)));
+                    WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time > ?
                 `;
-                countArray.unshift((await database_js_1.default.query(monthRegisterSQL, [])).length);
+            const start_date = new Date();
+            start_date.setDate(new Date().getDate() - 14);
+            start_date.setHours(0, 0, 0);
+            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
+            for (let index = 0; index < 14; index++) {
+                let cp_date = new Date();
+                let mac_address = [];
+                cp_date.setDate(cp_date.getDate() - index);
+                countArray.unshift(data.filter((dd) => {
+                    if (!mac_address.includes(dd.mac_address)) {
+                        mac_address.push(dd.mac_address);
+                        return (new Date(dd.created_time).getDate()) == cp_date.getDate();
+                    }
+                    else {
+                        return false;
+                    }
+                }).length);
             }
             return {
                 count_array: countArray,
@@ -2743,8 +2765,8 @@ class Shopping {
         content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
         content.seo.domain = content.seo.domain || content.title;
         const find_conflict = await database_js_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_manager_post\`
-             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',
@@ -2866,9 +2888,9 @@ class Shopping {
     }
     async putProduct(content) {
         const find_conflict = await database_js_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_manager_post\`
-             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
-               and id != ${content.id}`, []);
+                                              from \`${this.app}\`.\`t_manager_post\`
+                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
+                                                and id != ${content.id}`, []);
         if (find_conflict[0]['count(1)'] > 0) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
                 message: '網域已被使用',
@@ -3033,9 +3055,11 @@ class Shopping {
                 else if (!query.id) {
                     queryOR.push(`(p.content->>'$.productType.product' = "true")`);
                 }
-                querySql.push(`(${queryOR.map((dd) => {
+                querySql.push(`(${queryOR
+                    .map((dd) => {
                     return ` ${dd} `;
-                }).join(' or ')})`);
+                })
+                    .join(' or ')})`);
             }
             if (query.stockCount) {
                 const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
@@ -3104,95 +3128,6 @@ class Shopping {
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putVariants Error:' + express_1.default, null);
         }
-    }
-    async postCustomerInvoice(obj) {
-        await this.putOrder({
-            id: obj.orderData.id,
-            orderData: obj.orderData.orderData,
-            status: obj.orderData.status
-        });
-        await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(obj.orderID, true);
-        await new invoice_js_1.Invoice(this.app).updateInvoice({
-            orderID: obj.orderData.cart_token,
-            invoice_data: obj.invoice_data
-        });
-    }
-    async voidInvoice(obj) {
-        var _a, _b;
-        const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
-        const passData = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoice_no,
-            "InvoiceDate": obj.createDate,
-            "Reason": obj.reason
-        };
-        let dbData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_invoice_memory
-             WHERE invoice_no = ?`, [obj.invoice_no]);
-        dbData = dbData[0];
-        dbData.invoice_data.remark = (_b = (_a = dbData.invoice_data) === null || _a === void 0 ? void 0 : _a.remark) !== null && _b !== void 0 ? _b : {};
-        dbData.invoice_data.remark.voidReason = obj.reason;
-        await EcInvoice_1.EcInvoice.voidInvoice({
-            hashKey: config.hashkey,
-            hash_IV: config.hashiv,
-            merchNO: config.merchNO,
-            app_name: this.app,
-            invoice_data: passData,
-            beta: config.point === 'beta',
-        });
-        await database_js_1.default.query(`UPDATE \`${this.app}\`.t_invoice_memory
-             SET ?
-             WHERE invoice_no = ?`, [{ status: 2, invoice_data: JSON.stringify(dbData.invoice_data) }, obj.invoice_no]);
-    }
-    async allowanceInvoice(obj) {
-        const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
-        let invoiceData = await database_js_1.default.query(`
-            SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
-        `, []);
-        invoiceData = invoiceData[0];
-        const passData = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoiceID,
-            "InvoiceDate": invoiceData.invoice_data.response.InvoiceDate.split("+")[0],
-            "AllowanceNotify": "E",
-            "CustomerName": invoiceData.invoice_data.original_data.CustomerName,
-            "NotifyPhone": invoiceData.invoice_data.original_data.CustomerPhone,
-            "NotifyMail": invoiceData.invoice_data.original_data.CustomerEmail,
-            "AllowanceAmount": obj.allowanceInvoiceTotalAmount,
-            "Items": obj.allowanceData.invoiceArray
-        };
-        let pass2 = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoiceID,
-            "AllowanceNo": "TZ90991707",
-            "Reason": "error"
-        };
-        await EcInvoice_1.EcInvoice.allowanceInvoice({
-            hashKey: config.hashkey,
-            hash_IV: config.hashiv,
-            merchNO: config.merchNO,
-            app_name: this.app,
-            allowance_data: passData,
-            beta: config.point === 'beta',
-            db_data: obj.allowanceData,
-            order_id: obj.orderID,
-        });
-    }
-    async voidAllowance(obj) {
-        const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
-        const passData = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoiceNo,
-            "AllowanceNo": obj.allowanceNo,
-            "Reason": obj.voidReason
-        };
-        await EcInvoice_1.EcInvoice.voidAllowance({
-            hashKey: config.hashkey,
-            hash_IV: config.hashiv,
-            merchNO: config.merchNO,
-            app_name: this.app,
-            allowance_data: passData,
-            beta: config.point === 'beta',
-        });
     }
 }
 exports.Shopping = Shopping;

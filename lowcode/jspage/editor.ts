@@ -111,7 +111,7 @@ export class Editor {
                 const url = new URL(href);
                 (window.parent as any).glitter.openNewTab(url.href);
             } else if (gvc.glitter.getUrlParameter('device') === 'mobile') {
-                if (document.body.clientWidth < 800) {
+                if (document.body.clientWidth < 920) {
                     glitter.openNewTab(`${glitter.root_path}index-mobile?appName=${(window as any).appName}&device=mobile`);
                 } else {
                     BgWidget.appPreview({
@@ -125,7 +125,7 @@ export class Editor {
                 const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set('page', glitter.getUrlParameter('page'));
-                if (document.body.clientWidth < 800 && Storage.view_type === 'desktop' && gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                if (document.body.clientWidth < 922 && Storage.view_type === 'desktop' && gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
                     url.searchParams.set('_preview_width', '1300');
                     url.searchParams.set('_preview_scale', `${(document.body.clientWidth / 1300).toFixed(2)}`);
                 }
@@ -276,9 +276,9 @@ color: transparent;"
                                 >
                             </div>
 
-                            ${(document.body.clientWidth > 800 || EditorConfig.backend_page() === 'backend-manger') ? `
+                            ${(document.body.clientWidth > 922 || EditorConfig.backend_page() === 'backend-manger') ? `
                              <div
-                                    class="border-end d-flex align-items-center justify-content-center ${(document.body.clientWidth>800?`ms-n2`:``)} fs-3 d-sm-none"
+                                    class="border-end d-flex align-items-center justify-content-center ${(document.body.clientWidth>800?`ms-n2`:``)} fs-3 d-lg-none"
                                     style="width:56px;height: 56px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                 if ((EditorConfig.backend_page() === 'backend-manger')) {
@@ -289,7 +289,6 @@ color: transparent;"
                             })}"
                             >
                                 ${((EditorConfig.backend_page() === 'backend-manger')) ? `<i class="fa-solid fa-bars"></i>` : ` <i class="fa-solid fa-arrow-left-from-arc"></i>`}
-                             
                             </div>
                             ` : `
                              <li class="nav-item dropdown">
@@ -326,7 +325,7 @@ color: transparent;"
                                     gvc.glitter.share.editorViewModel.waitCopy = undefined;
                                     gvc.glitter.share.editorViewModel.selectItem = undefined;
                                     Storage.page_setting_item = dd.index as any;
-                                    if (document.body.clientWidth < 800) {
+                                    if (document.body.clientWidth < 992) {
                                         glitter.share.toggle_left_bar()
                                     }
                                     Storage.lastSelect = '';
@@ -359,14 +358,14 @@ ${dd.title}</a></li>`
                                             AI
                                             </div>
                             `}
-                            <div class="border-end d-none d-sm-block"
+                            <div class="border-end d-none d-lg-block"
                                  style="width:37px;height: 56px; "></div>
 
                             ${(() => {
                                 if (Storage.select_function === 'backend-manger') {
                                     return html`
                                         <div
-                                                class=" t_39_normal border-end px-4  d-flex align-items-center justify-content-center indexGuideBTN d-none d-sm-flex"
+                                                class=" t_39_normal border-end px-4  d-flex align-items-center justify-content-center indexGuideBTN d-none d-lg-flex"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
                                                     let bgGuide = new BgGuide(gvc, 0);
@@ -417,7 +416,7 @@ ${dd.title}</a></li>`
                                             //                  class="me-2" style="width:${size}px;height: ${size}px;">
                                             //     <span class="fw-500" style="font-size: 10px;">AI</span>
                                             // </div>`,
-                                                (document.body.clientWidth<800) ? ``: html`
+                                                (document.body.clientWidth<992) ? ``: html`
                                                     <div
                                                             class="ms-auto me-2 bt_orange_lin_mb d-md-flex"
                                                             style=""
@@ -1107,10 +1106,10 @@ color:white;
                     <aside
                             id="componentsNav"
                             class="${Storage.view_type === ViewType.fullScreen ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
-                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: 284px;`}z-index:10 !important;"
+                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: ${document.body.clientWidth<1200 ? 200:284}px;`}z-index:10 !important;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0 ${Storage.select_function === 'user-editor' ? `border-end` : ``}"
-                             style="height: 56px;">
+                             style="height: ${(glitter.share.top_inset ? ((parseInt(glitter.share.top_inset,10)+56)+((Storage.select_function === 'backend-manger') ? 10:5)):56)}px;">
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
@@ -1153,7 +1152,7 @@ color:white;
                                         elem: 'main',
                                         class: `docs-container`,
                                         style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
-                           padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
+                           padding-left:${size < 992 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `${document.body.clientWidth<1200 ? 200:284}px;`}
                            padding-right:0px;
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}`
                                     }

@@ -69,6 +69,8 @@ export class OrderDetail {
     get total(): number {
         return this.subtotal + this.shipment - this.discount;
     }
+
+    public static singleInstance:OrderDetail=new OrderDetail(0,0)
 }
 
 export interface  VoucherData {
@@ -120,3 +122,4 @@ export  type ViewModel = {
     categories: any[];
     paySelect: string;
 };
+

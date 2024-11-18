@@ -323,7 +323,7 @@ export declare class Shopping {
         limit?: number;
         condition?: number;
     }>;
-    checkVoucher(cart: Cart): Promise<void>;
+    checkVoucher(cart: Cart): Promise<Cart>;
     putOrder(data: {
         id: string;
         orderData: any;

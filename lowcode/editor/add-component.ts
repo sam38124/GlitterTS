@@ -380,6 +380,7 @@ export class AddComponent {
             query_tag: [],
             search: '',
         };
+
         return (
             gvc.bindView(() => {
                 const searchContainer = gvc.glitter.getUUID();
@@ -738,6 +739,18 @@ ${BgWidget.save(gvc.event(() => {
                                     ].join('<div class="my-2"></div>')}
                                 </div>`
                         } else {
+                            if(type==='module'){
+                                return `<div class="w-100 row m-0 mt-3" style=" max-height:${(() => {
+                                        return Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 160px)`;
+                                })()};overflow-y: auto;">
+${BasicComponent.getComponentList(gvc,[
+                                    {
+                                        title: '其餘設計模塊',
+                                        value: 'layout',
+                                    }
+                                ],'基本元件,設計元件')}
+</div>`
+                            }
                             return gvc.bindView(() => {
                                 let data: any = undefined;
                                 const id = gvc.glitter.getUUID();

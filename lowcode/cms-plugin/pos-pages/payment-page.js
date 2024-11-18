@@ -19,6 +19,8 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { POSSetting } from '../POS-setting.js';
 import { PayConfig } from './pay-config.js';
 import { ApiDelivery } from '../../glitter-base/route/delivery.js';
+import { IminModule } from "./imin-module.js";
+import { ConnectionMode } from "./connection-mode.js";
 const html = String.raw;
 export class PaymentPage {
     static shipment_support(orderDetail) {
@@ -65,7 +67,7 @@ export class PaymentPage {
         const dialog = new ShareDialog(gvc.glitter);
         PaymentPage.storeHistory(obj.ogOrderData);
         return gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
+            const id = 'checkout-page';
             function refreshOrderView() {
                 gvc.notifyDataChange(id);
             }
@@ -297,11 +299,10 @@ background: #FFF;`
                                                                 single: true,
                                                                 api: (data) => {
                                                                     return new Promise((resolve) => {
-                                                                        ApiUser.getUserListOrders({
+                                                                        ApiUser.getUserList({
                                                                             page: 0,
                                                                             limit: 50,
-                                                                            search: data.query,
-                                                                            orderString: data.orderString,
+                                                                            search: data.query
                                                                         }).then((dd) => {
                                                                             if (dd.response.data) {
                                                                                 resolve(dd.response.data.map((item) => {
@@ -326,7 +327,7 @@ background: #FFF;`
                                                                                         <i class="fa-solid fa-magnifying-glass"
                                                                                            style="color: #8D8D8D;"></i>
                                                                                         <div style="flex: 1 1 0; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">
-                                                                                            搜尋會員信箱/電話/編號/名稱
+                                                                                            搜尋會員信箱 / 電話 / 編號
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -343,9 +344,17 @@ align-items: center;
 gap: 8px;
 flex-shrink: 0;"
                                                                                         onclick="${gvc.event(() => {
-                                                            PaymentPage.scanUserID(gvc, obj.ogOrderData, () => {
-                                                                gvc.notifyDataChange(id);
-                                                            });
+                                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => __awaiter(this, void 0, void 0, function* () {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                const user = yield ApiUser.getUsersData(res.text.replace('user-', ''));
+                                                                if (!user.response || !user.response.account) {
+                                                                    dialog.errorMessage({ text: '查無此會員' });
+                                                                }
+                                                                else {
+                                                                    orderDetail.user_info.email = user.response.account;
+                                                                    gvc.notifyDataChange(id);
+                                                                }
+                                                            }));
                                                         })}"
                                                                                 >
                                                                                     <i class="fa-solid fa-barcode-read fs-5"></i>
@@ -364,6 +373,7 @@ flex-shrink: 0;"
                                                                 vm.user_data = res.response;
                                                                 vm.loading = false;
                                                                 ApiUser.getUserRebate({ email: obj.ogOrderData.user_info.email }).then((res) => {
+                                                                    console.log(`res==>`, res);
                                                                     vm.rebate = res.response.data.point;
                                                                     gvc.notifyDataChange(vm.id);
                                                                 });
@@ -664,9 +674,14 @@ ${BgWidget.save(gvc.event(() => {
                                                                             userData: userData,
                                                                         }).then((r) => {
                                                                             dialog.dataLoading({ visible: false });
-                                                                            dialog.infoMessage({ text: '成功新增會員' });
-                                                                            obj.ogOrderData.user_info.email = userData.email;
-                                                                            refreshOrderView();
+                                                                            if (!r.result) {
+                                                                                dialog.errorMessage({ text: '此電話號碼已註冊' });
+                                                                            }
+                                                                            else {
+                                                                                dialog.infoMessage({ text: '成功新增會員' });
+                                                                                obj.ogOrderData.user_info.email = userData.email;
+                                                                                refreshOrderView();
+                                                                            }
                                                                         });
                                                                     }
                                                                 });
@@ -766,7 +781,7 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`,
                                     .map((btn) => {
                                     return html `
                                                         <div
-                                                                style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 20px;border-radius: 10px;background: #F6F6F6;${vm.paySelect ==
+                                                                style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 15px 15px;border-radius: 10px;background: #F6F6F6;${vm.paySelect ==
                                         btn.value
                                         ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);`
                                         : 'color:#8D8D8D;'}"
@@ -1189,20 +1204,46 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
         function next() {
             PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
         }
+        console.log(`orderDetail=>`, orderDetail);
         gvc.glitter.innerDialog((gvc) => {
-            gvc.glitter.runJsInterFace('credit_card', {
-                amount: `${orderDetail.total}`,
-                memo: `訂單ID:${orderDetail.id}`,
-            }, (res) => {
-                if (res.result) {
+            if (PayConfig.deviceType === 'pos') {
+                gvc.glitter.runJsInterFace('credit_card', {
+                    amount: `${orderDetail.total}`,
+                    memo: `訂單ID:${orderDetail.orderID}`,
+                }, (res) => {
+                    if (res.result) {
+                        gvc.closeDialog();
+                        next();
+                    }
+                    else {
+                        gvc.closeDialog();
+                        dialog.errorMessage({ text: '交易失敗' });
+                    }
+                });
+            }
+            else if (ConnectionMode.on_connected_device) {
+                gvc.glitter.share.credit_card_callback = (res) => {
+                    if (res.result) {
+                        gvc.closeDialog();
+                        next();
+                    }
+                    else {
+                        gvc.closeDialog();
+                        dialog.errorMessage({ text: '交易失敗' });
+                    }
+                };
+                ConnectionMode.sendCommand({
+                    cmd: 'credit_card',
+                    amount: `${orderDetail.total}`,
+                    memo: `訂單ID:${orderDetail.orderID}`,
+                });
+            }
+            else {
+                setTimeout(() => {
                     gvc.closeDialog();
-                    next();
-                }
-                else {
-                    gvc.closeDialog();
-                    dialog.errorMessage({ text: '交易失敗' });
-                }
-            });
+                    dialog.errorMessage({ text: '尚未連線Imin裝置' });
+                }, 100);
+            }
             return html `
                     <div class="dialog-box">
                         <div class="dialog-content position-relative "
@@ -1289,7 +1330,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                         style="border: none;"
                                         placeholder="請輸入或掃描優惠代碼"
                                         oninput="${gvc.event((e, event) => {
-                c_vm.value = e.value;
+                c_vm.value = e.value.replace(`voucher-`, '');
             })}"
                                         value="${c_vm.value}"
                                 />
@@ -1299,7 +1340,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                         class="d-flex align-items-center justify-content-center text-white h-100"
                                         onclick="${gvc.event(() => {
                 gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
-                    c_vm.value = res.text;
+                    c_vm.value = res.text.replace(`voucher-`, '');
                     gvc.recreateView();
                     next();
                 });
@@ -1536,10 +1577,6 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         };
                     }
                 }
-                else if (c_vm.invoice_select === 'print' && !orderDetail.user_info.email && PayConfig.deviceType === 'web') {
-                    dialog.infoMessage({ text: '請先選擇會員' });
-                    return;
-                }
                 passData.user_info.shipment = orderDetail.user_info.shipment;
                 if (orderDetail.user_info.shipment === 'normal') {
                     passData.user_info.address = orderDetail.user_info.address;
@@ -1572,195 +1609,24 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         PaymentPage.clearHistory();
                         const glitter = gvc.glitter;
                         const invoice = res.response.data.invoice;
-                        if (res.response.data.invoice && PayConfig.deviceType === 'pos' && c_vm.invoice_select !== 'carry') {
+                        if (res.response.data.invoice && (PayConfig.deviceType === 'pos' || ConnectionMode.on_connected_device) && c_vm.invoice_select !== 'carry' && c_vm.invoice_select !== 'nouse') {
                             POSSetting.config.pickup_number++;
                             function print(type) {
-                                let command_line = [];
-                                function addCommandLine(cmd, data, callback) {
-                                    command_line.push({ cmd, data, callback });
-                                }
                                 if (type === 'client') {
-                                    (() => __awaiter(this, void 0, void 0, function* () {
-                                        const IminPrintInstance = window.IminPrintInstance;
-                                        function generateBarcodeBase64(barcodeString) {
-                                            const canvas = document.createElement("canvas");
-                                            JsBarcode(canvas, barcodeString, {
-                                                format: "CODE128",
-                                                lineColor: "#000000",
-                                                width: 2,
-                                                height: 50,
-                                                displayValue: false
-                                            });
-                                            const base64String = canvas.toDataURL("image/png");
-                                            console.log("Base64 Barcode:", base64String);
-                                            return base64String;
-                                        }
-                                        yield IminPrintInstance.setAlignment(1);
-                                        yield IminPrintInstance.setTextSize(50);
-                                        yield IminPrintInstance.setTextStyle(1);
-                                        yield IminPrintInstance.printText(PayConfig.pos_config.shop_name);
-                                        yield IminPrintInstance.printAndFeedPaper(20);
-                                        yield IminPrintInstance.setAlignment(1);
-                                        yield IminPrintInstance.setTextSize(40);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText('電子發票證明聯');
-                                        yield IminPrintInstance.printAndFeedPaper(5);
-                                        yield IminPrintInstance.setAlignment(1);
-                                        yield IminPrintInstance.setTextSize(50);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText(invoice.date);
-                                        yield IminPrintInstance.setAlignment(1);
-                                        yield IminPrintInstance.setTextSize(50);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText(invoice.invoice_code);
-                                        yield IminPrintInstance.printAndFeedPaper(5);
-                                        yield IminPrintInstance.setAlignment(0);
-                                        yield IminPrintInstance.setTextSize(24);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText(invoice.create_date);
-                                        yield IminPrintInstance.printAndFeedPaper(5);
-                                        yield IminPrintInstance.setAlignment(0);
-                                        yield IminPrintInstance.setTextSize(24);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText(`${invoice.random_code}             ${invoice.total}`);
-                                        yield IminPrintInstance.printAndFeedPaper(5);
-                                        yield IminPrintInstance.setAlignment(0);
-                                        yield IminPrintInstance.setTextSize(24);
-                                        yield IminPrintInstance.setTextStyle(0);
-                                        yield IminPrintInstance.printText(`${invoice.sale_gui}        ${invoice.buy_gui}`);
-                                        yield IminPrintInstance.printAndFeedPaper(5);
-                                        IminPrintInstance.printSingleBitmap(generateBarcodeBase64(invoice.bar_code));
-                                        setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setQrCodeSize(2);
-                                            yield IminPrintInstance.setDoubleQRSize(4);
-                                            yield IminPrintInstance.setDoubleQR1MarginLeft(10);
-                                            yield IminPrintInstance.setDoubleQR2MarginLeft(520);
-                                            const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
-                                            for (let a = 0; a <= ba; a++) {
-                                                invoice.qrcode_1 += '*';
-                                            }
-                                            yield IminPrintInstance.printDoubleQR([invoice.qrcode_0, invoice.qrcode_1]);
-                                            yield IminPrintInstance.printAndFeedPaper(100);
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setAlignment(1);
-                                            yield IminPrintInstance.setTextSize(40);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('交易明細');
-                                            yield IminPrintInstance.printAndFeedPaper(10);
-                                            yield IminPrintInstance.setAlignment(0);
-                                            yield IminPrintInstance.setTextSize(24);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('時間:' + invoice.create_date);
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setAlignment(0);
-                                            yield IminPrintInstance.setTextSize(24);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('營業人統編:' + invoice.sale_gui.replace('賣方 ', ''));
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setAlignment(0);
-                                            yield IminPrintInstance.setTextSize(24);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('訂單編號:' + res.response.data.orderID);
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setAlignment(0);
-                                            yield IminPrintInstance.setTextSize(24);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('發票號碼:' + invoice.invoice_code);
-                                            yield IminPrintInstance.printAndFeedPaper(5);
-                                            yield IminPrintInstance.setAlignment(0);
-                                            yield IminPrintInstance.setTextSize(24);
-                                            yield IminPrintInstance.setTextStyle(0);
-                                            yield IminPrintInstance.printText('員工:' + glitter.share.staff_title);
-                                            yield IminPrintInstance.printAndFeedPaper(30);
-                                            yield IminPrintInstance.printText('品名               單價*數量               金額 ');
-                                            const pay_what = PaymentPage.stripHtmlTags(invoice.pay_detail);
-                                            for (let a = 0; a < pay_what.length; a++) {
-                                                yield IminPrintInstance.printAndFeedPaper(5);
-                                                yield IminPrintInstance.setAlignment(a % 3);
-                                                yield IminPrintInstance.setTextSize(24);
-                                                yield IminPrintInstance.setTextStyle(0);
-                                                yield IminPrintInstance.printText(pay_what[a]);
-                                            }
-                                            yield IminPrintInstance.setAlignment(0);
-                                            let tempDiv = document.createElement("div");
-                                            tempDiv.innerHTML = invoice.pay_detail_footer;
-                                            const text = `${tempDiv.querySelector('.invoice-detail-sum').children[0].textContent}
-${tempDiv.querySelector('.invoice-detail-sum').children[1].textContent}
-${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/ /g, '')}`;
-                                            yield IminPrintInstance.printText(text);
-                                            yield IminPrintInstance.printAndFeedPaper(100);
-                                        }), 1000);
-                                    }))();
-                                }
-                                else {
-                                    addCommandLine("print_text", { size: 2, align: 1, text: "收執聯" }, () => {
-                                    });
-                                }
-                                if (PayConfig.pos_config.pos_type === 'eat') {
-                                    if (orderDetail.table_set) {
-                                        addCommandLine("print_text", {
-                                            size: 2,
-                                            align: 1,
-                                            text: "桌位選擇:" + orderDetail.table_set
-                                        }, () => {
+                                    if (PayConfig.deviceType === 'pos') {
+                                        IminModule.printInvoice(invoice, res.response.data.orderID, glitter.share.staff_title);
+                                    }
+                                    else {
+                                        ConnectionMode.sendCommand({
+                                            cmd: 'print_invoice',
+                                            invoice: invoice,
+                                            orderID: res.response.data.orderID,
+                                            staff_title: glitter.share.staff_title
                                         });
                                     }
-                                    if (PayConfig.pos_config.call_order) {
-                                        addCommandLine("print_text", {
-                                            size: 2, align: 1, text: "取餐編號:" + (() => {
-                                                let numb = `${POSSetting.config.pickup_number}`;
-                                                while (numb.length < 4) {
-                                                    numb = `0${numb}`;
-                                                }
-                                                return numb;
-                                            })()
-                                        }, () => {
-                                        });
-                                    }
-                                    addCommandLine("print_text", { size: 2, align: 0, text: "\n\n\n\n" }, () => {
-                                    });
                                 }
                             }
-                            if (PayConfig.pos_config.execution_slip) {
-                                print('save');
-                                yield new Promise((resolve, reject) => {
-                                    gvc.glitter.innerDialog((gvc) => {
-                                        return html `
-                                            <div class="dialog-box">
-                                                <div class="dialog-content position-relative pb-5"
-                                                     style="width: 452px;max-width: calc(100% - 20px);">
-                                                    <div
-                                                            class="my-3 fs-6 fw-500 text-center"
-                                                            style="white-space: normal; overflow-wrap: anywhere;font-size: 36px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
-                                                    >
-                                                        請撕取收執聯後，在按下『 下一步 』。
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-center"
-                                                         style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
-                                                        <div
-                                                                style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:240px;text-align:center;"
-                                                                onclick="${gvc.event(() => {
-                                            gvc.closeDialog();
-                                            print('client');
-                                            resolve(true);
-                                        })}"
-                                                        >
-                                                            下一步
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }, 'save_invoice', {
-                                        dismiss: () => {
-                                        },
-                                    });
-                                });
-                            }
-                            else {
-                                print('client');
-                            }
+                            print('client');
                         }
                         dialog.dataLoading({ visible: false });
                         orderDetail.lineItems = [];
@@ -1768,50 +1634,50 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                         vm.type = 'menu';
                         gvc.glitter.innerDialog((gvc) => {
                             return html `
-                                <div
-                                        class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                        onclick="${gvc.event(() => {
+                                    <div
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                            onclick="${gvc.event(() => {
                                 gvc.closeDialog();
                             })}"
-                                >
-                                    <div
-                                            style="position: relative;max-width:calc(100% - 20px);width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
                                     >
-                                        <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 14 14"
-                                                fill="none"
-                                                style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
-                                                onclick="${gvc.event(() => {
+                                        <div
+                                                style="position: relative;max-width:calc(100% - 20px);width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
+                                        >
+                                            <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 14 14"
+                                                    fill="none"
+                                                    style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
                                 gvc.glitter.closeDiaLog();
                             })}"
-                                        >
-                                            <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round"/>
-                                            <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round"/>
-                                        </svg>
+                                            >
+                                                <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round"/>
+                                                <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round"/>
+                                            </svg>
 
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75"
-                                             viewBox="0 0 75 75" fill="none">
-                                            <g clip-path="url(#clip0_9850_171427)">
-                                                <path
-                                                        d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
-                                                        fill="#393939"
-                                                />
-                                            </g>
-                                            <defs>
-                                                <clipPath id="clip0_9850_171427">
-                                                    <rect width="75" height="75" fill="white"/>
-                                                </clipPath>
-                                            </defs>
-                                        </svg>
-                                        <div style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
-                                            訂單新增成功！
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75"
+                                                 viewBox="0 0 75 75" fill="none">
+                                                <g clip-path="url(#clip0_9850_171427)">
+                                                    <path
+                                                            d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
+                                                            fill="#393939"
+                                                    />
+                                                </g>
+                                                <defs>
+                                                    <clipPath id="clip0_9850_171427">
+                                                        <rect width="75" height="75" fill="white"/>
+                                                    </clipPath>
+                                                </defs>
+                                            </svg>
+                                            <div style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
+                                                訂單新增成功！
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
                         }, 'orderFinish', {
                             dismiss: () => {
                             },
@@ -1820,9 +1686,16 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                 }));
             }
             if ((yield ApiShop.getInvoiceType()).response.method === 'nouse') {
+                c_vm
+                    .invoice_select = 'nouse';
                 next();
             }
             else {
+                if ((PayConfig.deviceType !== 'pos' && !ConnectionMode.on_connected_device) && (orderDetail.user_info.email === 'no-email')) {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    dialog.errorMessage({ text: '請選擇會員' });
+                    return;
+                }
                 gvc.glitter.innerDialog((gvc) => {
                     return html `
                         <div class="dialog-box">
@@ -1838,7 +1711,7 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                                     ${(() => {
                         let btnArray = [
                             {
-                                title: PayConfig.deviceType === 'pos' ? `列印` : `寄送`,
+                                title: (PayConfig.deviceType === 'pos' || ConnectionMode.on_connected_device) ? `列印` : `寄送`,
                                 value: 'print',
                                 icon: `<i class="fa-regular fa-print"></i>`,
                             },

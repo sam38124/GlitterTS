@@ -70,7 +70,8 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                                 })) || false)
                             }
                         } catch (e) {
-                            resolve(true)
+                            console.log(`request-error`,e)
+                            resolve(false)
                         }
                     })
                 }

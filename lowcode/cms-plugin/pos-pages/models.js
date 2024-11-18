@@ -31,3 +31,4 @@ export class OrderDetail {
         return this.subtotal + this.shipment - this.discount;
     }
 }
+OrderDetail.singleInstance = new OrderDetail(0, 0);

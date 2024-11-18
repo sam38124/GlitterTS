@@ -12,7 +12,12 @@ export class BaseApi {
             if(requestOptions.method==='GET'){
                 requestOptions.body=undefined
             }
-            requestOptions.headers['mac_address']=(window as any).glitter.macAddress;
+            try {
+                requestOptions.headers['mac_address']=(window as any).glitter.macAddress;
+            }catch (e) {
+
+            }
+
             fetch(config.url, requestOptions)
                 .then(async (response) => {
                     try {

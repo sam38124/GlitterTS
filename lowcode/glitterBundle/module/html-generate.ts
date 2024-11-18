@@ -2122,7 +2122,7 @@ ${e.line}
                                                 option: option.concat(
                                                     (() => {
                                                         if (root && isEditMode()) {
-                                                            if ((window.parent as any).document.body.clientWidth < 800) {
+                                                            if ((window.parent as any).document.body.clientWidth < 992) {
                                                                 return [
                                                                     {
                                                                         key: 'onclick',
@@ -2442,7 +2442,7 @@ background: white;
                             `;
                         } else {
                             function getPlusAndPasteView(dir: number) {
-                                if ((window.parent as any).document.body.clientWidth < 800) {
+                                if ((window.parent as any).document.body.clientWidth < 992) {
                                     return ``;
                                 }
                                 const detID = cf.gvc.glitter.getUUID();
@@ -2566,7 +2566,7 @@ transform: translateY(5px);
                             }
 
                             return html`
-                                ${cf.gvc.glitter.document.body.clientWidth > 800
+                                ${cf.gvc.glitter.document.body.clientWidth > 992
                                     ? `<div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
                                         style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"

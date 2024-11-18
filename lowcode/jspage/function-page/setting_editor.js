@@ -69,7 +69,7 @@ export class Setting_editor {
                     Storage.select_bg_btn = 'custom';
                     return html `
                         <div
-                            class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none"
+                            class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
                             style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
                         >
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />

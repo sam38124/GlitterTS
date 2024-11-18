@@ -2,6 +2,7 @@
 import { Entry } from '../Entry.js';
 import { Glitter } from './Glitter.js';
 import { GVCType } from './module/PageManager.js';
+import { ApiUser } from "../glitter-base/route/user.js";
 const glitter = new Glitter(window);
 window.glitter = glitter;
 window.rootGlitter = glitter;
@@ -72,6 +73,27 @@ function traverseHTML(element, document) {
     if (children && children.length > 0) {
         for (let j = 0; j < children.length; j++) {
             traverseHTML(children[j], document);
+        }
+    }
+    if ((element.tagName || '').toLowerCase() === 'img') {
+        const src = element.getAttribute('src');
+        if (src) {
+            try {
+                const tag = glitter.generateCheckSum(src, 9);
+                setTimeout(() => {
+                    if (element) {
+                        ApiUser.getPublicConfig(`alt_` + tag, 'manager').then((res) => {
+                            if (res && res.response.value) {
+                                setTimeout(() => {
+                                    element.setAttribute('alt', res.response.value.alt);
+                                }, 10);
+                            }
+                        });
+                    }
+                }, 10);
+            }
+            catch (e) {
+            }
         }
     }
     if (element && element.getAttribute && element.getAttribute('glem') === 'bindView') {

@@ -891,7 +891,10 @@ export class SaasViewModel {
                                                         title: html`
                                                             <div class="my-2">
                                                                 <div class="mb-1">免費商店網址</div>
-                                                                ${BgWidget.greenNote(`https://${postMD.sub_domain || '請輸入網址'}.shopnex.cc`, '', 'margin-top: 0.5rem')}
+                                                                <div class="d-flex flex-column" style="">
+                                                                    ${BgWidget.grayNote('建議輸入與品牌相關的英文名稱')}
+                                                                    ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.cc`, '', 'margin-top: 0.5rem')}
+                                                                </div>
                                                             </div>
                                                         `,
                                                         pattern: `A-Za-z0-9-`,
@@ -905,7 +908,10 @@ export class SaasViewModel {
                                                 },
                                             };
                                         }),
-                                        EditorElem.h3('選擇初始模板'),
+                                        EditorElem.h3(`<div class="d-flex flex-column" style="gap:3px;">
+${['選擇初始模板',BgWidget.grayNote('請選擇初始模板，後續可在進行更換')].join('')}
+</div>`),
+                                            
                                         SaasViewModel.initialTemplate(gvc, (appName) => {
                                             postMD.refer_app = appName;
                                         }),
@@ -913,7 +919,7 @@ export class SaasViewModel {
                                 </div>`;
                         },
                         divCreate: {
-                            style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
+                            style: `max-height:calc(100vh - 250px);overflow-y:auto;`,
                             class: ``,
                         },
                     };

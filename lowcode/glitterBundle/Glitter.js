@@ -76,6 +76,15 @@ export class Glitter {
         this.ut = {
             glitter: this,
             queue: {},
+            resize_img_url: (link) => {
+                let rela_link = link;
+                [150, 600, 1200, 1440].reverse().map((dd) => {
+                    if (document.body.clientWidth < dd) {
+                        rela_link = link.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                    }
+                });
+                return rela_link;
+            },
             clock() {
                 return {
                     start: new Date(),
@@ -540,6 +549,11 @@ export class Glitter {
     set href(value) {
         const link = new URL(value, location.href);
         if ((location.origin) === (link.origin)) {
+            if (link.searchParams.get("page")) {
+                const page = link.searchParams.get("page");
+                link.searchParams.delete("page");
+                link.pathname += page;
+            }
             window.history.replaceState({}, document.title, link.href);
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
                 cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});
@@ -928,15 +942,15 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         glitter.runJsInterFace("closeAPP", {}, function (response) {
         });
     }
-    generateCheckSum(str) {
+    generateCheckSum(str, count) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = (hash << 5) - hash + str.charCodeAt(i);
             hash = hash & hash;
         }
         hash = Math.abs(hash);
-        let checksum = hash.toString().slice(0, 6);
-        while (checksum.length < 6) {
+        let checksum = hash.toString().slice(0, (count !== null && count !== void 0 ? count : 6));
+        while (checksum.length < (count !== null && count !== void 0 ? count : 6)) {
             checksum = '0' + checksum;
         }
         return checksum;
@@ -987,6 +1001,9 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         else {
             return fun();
         }
+    }
+    isTouchDevice() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
     }
     getUUID(format) {
         let d = Date.now();

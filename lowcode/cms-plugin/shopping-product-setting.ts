@@ -11,7 +11,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
-import {ProductAi} from "./ai-generator/product-ai.js";
+import { ProductAi } from './ai-generator/product-ai.js';
 
 interface variant {
     save_stock?: string;
@@ -457,7 +457,7 @@ export class ShoppingProductSetting {
             orderString: string;
             filter?: any;
             replaceData: any;
-            ai_initial:any;
+            ai_initial: any;
         } = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
@@ -469,7 +469,7 @@ export class ShoppingProductSetting {
             orderString: '',
             filter: {},
             replaceData: '',
-            ai_initial:{}
+            ai_initial: {},
         };
         const rowInitData: {
             name: string;
@@ -595,9 +595,20 @@ export class ShoppingProductSetting {
                     `);
                     switch (vm.type) {
                         case 'ai-initial':
-                            return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add', product_type: type,initial_data:vm.ai_initial });
+                            return ShoppingProductSetting.editProduct({
+                                vm: vm,
+                                gvc: gvc,
+                                type: 'add',
+                                product_type: type,
+                                initial_data: vm.ai_initial,
+                            });
                         case 'add':
-                            return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add', product_type: type });
+                            return ShoppingProductSetting.editProduct({
+                                vm: vm,
+                                gvc: gvc,
+                                type: 'add',
+                                product_type: type,
+                            });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             vm.tableId = gvc.glitter.getUUID();
@@ -1013,7 +1024,7 @@ export class ShoppingProductSetting {
                                                                                                 let exportData: any = [];
                                                                                                 response.response.data.map((productData: any) => {
                                                                                                     let rowData: {
-                                                                                                        id:string;
+                                                                                                        id: string;
                                                                                                         name: string;
                                                                                                         status: string;
                                                                                                         category: string;
@@ -1044,7 +1055,7 @@ export class ShoppingProductSetting {
                                                                                                         save_stock: string;
                                                                                                         barcode: string;
                                                                                                     } = {
-                                                                                                        id:'',
+                                                                                                        id: '',
                                                                                                         name: productData.content.title ?? '未命名商品',
                                                                                                         status: '',
                                                                                                         category: '',
@@ -1120,7 +1131,7 @@ export class ShoppingProductSetting {
                                                                                                         rowData.stock = variant.stock ?? '0';
                                                                                                         rowData.save_stock = variant.save_stock ?? '0';
                                                                                                         rowData.barcode = variant.barcode ?? '';
-                                                                                                        rowData.id=productData.content.id
+                                                                                                        rowData.id = productData.content.id;
                                                                                                         if (variant.shipment_type) {
                                                                                                             switch (variant.shipment_type) {
                                                                                                                 case 'volume': {
@@ -1189,7 +1200,7 @@ export class ShoppingProductSetting {
                                                             //             }
                                                             //             ProductAi.setProduct(gvc,vm.ai_initial,()=>{
                                                             //                 vm.type='ai-initial'
-                                                            //                
+                                                            //
                                                             //             })
                                                             //         }),
                                                             //         {  }
@@ -1389,6 +1400,7 @@ export class ShoppingProductSetting {
                                                                                         });
                                                                                     });
                                                                                 }
+
                                                                                 vm.dataList = data.response.data;
                                                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                                                                 vmi.originalData = vm.dataList;
@@ -1618,7 +1630,7 @@ export class ShoppingProductSetting {
                                                   return html`
                                                       <div style="font-weight: 700;">規格</div>
                                                       <div>${variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格'}</div>
-                                                      <div style="font-weight: 700;">圖片</div>
+                                                      <div style="font-weight: 700;">規格圖片</div>
                                                       <div
                                                           class="d-flex align-items-center justify-content-center rounded-3 shadow"
                                                           style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${variant.preview_image || BgWidget.noImageURL}');"
@@ -1642,14 +1654,20 @@ export class ShoppingProductSetting {
                                                       <div
                                                           style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
                                                           onclick="${obj.gvc.event(() => {
-                                                              EditorElem.uploadFileFunction({
-                                                                  gvc: obj.gvc,
-                                                                  callback: (text) => {
-                                                                      variant.preview_image = text;
-                                                                      gvc.notifyDataChange(id);
+                                                              imageLibrary.selectImageLibrary(
+                                                                  gvc,
+                                                                  (urlArray) => {
+                                                                      if (urlArray.length > 0) {
+                                                                          variant.preview_image = urlArray[0].data;
+                                                                          gvc.notifyDataChange(id);
+                                                                      } else {
+                                                                          const dialog = new ShareDialog(gvc.glitter);
+                                                                          dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                      }
                                                                   },
-                                                                  type: `image/*, video/*`,
-                                                              });
+                                                                  html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`,
+                                                                  { mul: false }
+                                                              );
                                                           })}"
                                                       >
                                                           變更
@@ -1702,9 +1720,9 @@ export class ShoppingProductSetting {
                                                 placeholder="請輸入成本"
                                                 min="0"
                                                 onchange="${gvc.event((e) => {
-                                                    variant.stock = e.value;
+                                                    variant.cost = e.value;
                                                 })}"
-                                                value="${variant.stock || 0}"
+                                                value="${variant.cost || 0}"
                                                 type="number"
                                             />
                                         </div>
@@ -1913,6 +1931,7 @@ export class ShoppingProductSetting {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 if (!variant.barcode) {
                                                     dialog.errorMessage({ text: '請先設定商品條碼' });
+                                                    return;
                                                 }
                                                 (window.parent as any).glitter.addMtScript(
                                                     [
@@ -1922,7 +1941,7 @@ export class ShoppingProductSetting {
                                                     ],
                                                     () => {
                                                         (window.parent as any).QRCode.toDataURL(
-                                                            variant.barcode,
+                                                            `variants-` + variant.barcode,
                                                             {
                                                                 width: 200,
                                                                 margin: 2,
@@ -1960,7 +1979,16 @@ export class ShoppingProductSetting {
                                             placeholder="請輸入商品條碼"
                                             value="${variant.barcode ?? ''}"
                                             onchange="${gvc.event((e) => {
-                                                variant.barcode = e.value;
+                                                // 正则表达式检查是否只包含英文字母和数字
+                                                const regex = /^[a-zA-Z0-9]+$/;
+                                                // 测试字符串是否匹配正则表达式
+                                                if (!regex.test(e.value)) {
+                                                    e.value = '';
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.errorMessage({ text: '條碼僅能輸入英數字' });
+                                                } else {
+                                                    variant.barcode = e.value;
+                                                }
                                             })}"
                                         />
                                     </div>
@@ -2067,6 +2095,7 @@ export class ShoppingProductSetting {
 
                             return true;
                         }
+
                         const dialog = new ShareDialog(gvc.glitter);
                         let checkPass = true;
                         postMD.variants.map((data: any, index: number) => {
@@ -2097,11 +2126,12 @@ export class ShoppingProductSetting {
         </div>`;
     }
 
-    public static async editProduct(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any;initial_data?:any, product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden' }) {
+    public static async editProduct(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any; initial_data?: any; product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden' }) {
         let postMD: {
             shipment_type?: string;
             id?: string;
             title: string;
+            ai_description: string;
             productType: {
                 product: boolean;
                 addProduct: boolean;
@@ -2130,6 +2160,7 @@ export class ShoppingProductSetting {
             }[];
         } = obj.initial_data || {
             title: '',
+            ai_description: '',
             productType: {
                 product: true,
                 addProduct: false,
@@ -2383,13 +2414,13 @@ export class ShoppingProductSetting {
                                     <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
                                     <div class="flex-fill"></div>
                                     ${BgWidget.grayButton(
-                                            "AI 生成",
-                                            gvc.event(() => {
-                                                ProductAi.setProduct(gvc,postMD,()=>{
-                                                    gvc.notifyDataChange(vm.id)
-                                                })
-                                            }),
-                                            {  }
+                                        'AI 生成',
+                                        gvc.event(() => {
+                                            ProductAi.setProduct(gvc, postMD, () => {
+                                                gvc.notifyDataChange(vm.id);
+                                            });
+                                        }),
+                                        {}
                                     )}
                                     <div class="mx-1"></div>
                                     ${BgWidget.grayButton(
@@ -2459,18 +2490,20 @@ export class ShoppingProductSetting {
                                                                     if (tags && tags.length > 0) {
                                                                         for (const item of tags) {
                                                                             const data = jsonData.find((j) => j.key === item.key);
-                                                                            const textImage = data
-                                                                                ? html`<span
-                                                                                      style="font-size: ${item.font_size ?? '14'}px; color: ${item.font_color ??
-                                                                                      '#393939'}; background: ${item.font_bgr ?? '#fff'}"
-                                                                                      >${data.value}</span
-                                                                                  >`
-                                                                                : html`<img
-                                                                                      alt="${item.key}"
-                                                                                      class="rounded-2"
-                                                                                      src="https://assets.imgix.net/~text?bg=4d86db&txtclr=f2f2f2&w=${Tool.twenLength(item.title) *
-                                                                                      20}&h=40&txtsize=12&txt=${item.title}&txtfont=Helvetica&txtalign=middle,center"
-                                                                                  />`;
+                                                                            const textImage =
+                                                                                data && data.value
+                                                                                    ? html`<span
+                                                                                          style="font-size: ${item.font_size ?? '14'}px; color: ${item.font_color ??
+                                                                                          '#393939'}; background: ${item.font_bgr ?? '#fff'}"
+                                                                                          >${data.value}</span
+                                                                                      >`
+                                                                                    : html`#${item.title}#`;
+                                                                            // : html`<img
+                                                                            //       alt="${item.key}"
+                                                                            //       class="rounded-2"
+                                                                            //       src="https://assets.imgix.net/~text?bg=4d86db&txtclr=f2f2f2&w=${Tool.twenLength(item.title) *
+                                                                            //       20}&h=40&txtsize=12&txt=${item.title}&txtfont=Helvetica&txtalign=middle,center"
+                                                                            //   />`;
 
                                                                             const regex = new RegExp(`@{{${item.key}}}`, 'g');
                                                                             gText = gText.replace(regex, textImage);
@@ -2480,10 +2513,13 @@ export class ShoppingProductSetting {
                                                                 }
 
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
-                                                                        ${BgWidget.aiChatButton({
-                                                                            gvc,
-                                                                            select: 'writer',
-                                                                        })}
+                                                                        <div class="d-flex align-items-center gap-2">
+                                                                            <div style="color: #393939; font-weight: 700;">商品描述</div>
+                                                                            ${BgWidget.aiChatButton({
+                                                                                gvc,
+                                                                                select: 'writer',
+                                                                            })}
+                                                                        </div>
                                                                         <div class="flex-fill"></div>
                                                                         <div
                                                                             class="cursor_pointer"
@@ -2505,7 +2541,7 @@ export class ShoppingProductSetting {
                                                                                                 view: () => {
                                                                                                     return vm.documents
                                                                                                         .map((dd: any) => {
-                                                                                                            return html`<li class="w-100 px-2">
+                                                                                                            return html` <li class="w-100 px-2">
                                                                                                                 <div class="w-100 d-flex justify-content-between">
                                                                                                                     <div class="d-flex justify-content-start align-items-center gap-3">
                                                                                                                         <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
@@ -2517,7 +2553,7 @@ export class ShoppingProductSetting {
                                                                                                                             return {
                                                                                                                                 bind: iconId,
                                                                                                                                 view: () => {
-                                                                                                                                    return html`<i
+                                                                                                                                    return html` <i
                                                                                                                                         class="${postMD.content_array.includes(dd.id)
                                                                                                                                             ? 'fa-solid fa-eye'
                                                                                                                                             : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
@@ -2568,11 +2604,13 @@ export class ShoppingProductSetting {
                                                                                                                             padding: 0;
                                                                                                                         }
                                                                                                                     `);
+
                                                                                                                     function swapArr(arr: any, t1: number, t2: number) {
                                                                                                                         const data = arr[t1];
                                                                                                                         arr.splice(t1, 1);
                                                                                                                         arr.splice(t2, 0, data);
                                                                                                                     }
+
                                                                                                                     let startIndex = 0;
                                                                                                                     //@ts-ignore
                                                                                                                     Sortable.create(gvc.getBindViewElem(id).get(0), {
@@ -2610,21 +2648,95 @@ export class ShoppingProductSetting {
                                                                             設定<i class="fa-regular fa-gear ms-1"></i>
                                                                         </div>
                                                                     </div>
-                                                                    ${BgWidget.openBoxContainer({
-                                                                        gvc,
-                                                                        tag: 'content_array',
-                                                                        title: '商品描述',
-                                                                        insideHTML: EditorElem.richText({
-                                                                            gvc: obj.gvc,
-                                                                            def: postMD.content,
-                                                                            callback: (text) => {
-                                                                                postMD.content = text;
-                                                                            },
-                                                                        }),
-                                                                        height: 800,
-                                                                        openOnInit: true,
-                                                                    })}
-                                                                    ${BgWidget.mbContainer(8)}
+                                                                    <div class="my-3">
+                                                                        ${gvc.bindView(
+                                                                            (() => {
+                                                                                const id = gvc.glitter.getUUID();
+                                                                                return {
+                                                                                    bind: id,
+                                                                                    view: () => {
+                                                                                        return html`<div
+                                                                                            class="d-flex justify-content-between align-items-center gap-3 px-2 mb-1"
+                                                                                            style="cursor: pointer;"
+                                                                                            onclick="${gvc.event(() => {
+                                                                                                const originContent = `${postMD.content}`;
+                                                                                                BgWidget.fullDialog({
+                                                                                                    gvc: gvc,
+                                                                                                    title: '商品描述',
+                                                                                                    innerHTML: (gvc2) => {
+                                                                                                        return html` <div>
+                                                                                                            ${EditorElem.richText({
+                                                                                                                gvc: gvc2,
+                                                                                                                def: postMD.content,
+                                                                                                                setHeight: '100vh',
+                                                                                                                hiddenBorder: true,
+                                                                                                                insertImageEvent: (editor) => {
+                                                                                                                    imageLibrary.selectImageLibrary(
+                                                                                                                        gvc,
+                                                                                                                        (urlArray) => {
+                                                                                                                            if (urlArray.length > 0) {
+                                                                                                                                for (const url of urlArray) {
+                                                                                                                                    editor.html.insert(html`<img src="${url.data}" />`);
+                                                                                                                                }
+                                                                                                                                editor.undo.saveStep();
+                                                                                                                            } else {
+                                                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                                dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                        html` <div
+                                                                                                                            class="d-flex flex-column"
+                                                                                                                            style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                        >
+                                                                                                                            圖片庫
+                                                                                                                        </div>`,
+                                                                                                                        { mul: true }
+                                                                                                                    );
+                                                                                                                },
+                                                                                                                callback: (text) => {
+                                                                                                                    postMD.content = text;
+                                                                                                                },
+                                                                                                            })}
+                                                                                                        </div>`;
+                                                                                                    },
+                                                                                                    footer_html: (gvc2: GVC) => {
+                                                                                                        return [
+                                                                                                            BgWidget.cancel(
+                                                                                                                gvc2.event(() => {
+                                                                                                                    postMD.content = originContent;
+                                                                                                                    gvc2.closeDialog();
+                                                                                                                })
+                                                                                                            ),
+                                                                                                            BgWidget.save(
+                                                                                                                gvc2.event(() => {
+                                                                                                                    gvc2.closeDialog();
+                                                                                                                    gvc.notifyDataChange(id);
+                                                                                                                })
+                                                                                                            ),
+                                                                                                        ].join('');
+                                                                                                    },
+                                                                                                    closeCallback: () => {
+                                                                                                        postMD.content = originContent;
+                                                                                                    },
+                                                                                                });
+                                                                                            })}"
+                                                                                        >
+                                                                                            <div style="word-break: break-all;">
+                                                                                                ${Tool.truncateString(
+                                                                                                    (() => {
+                                                                                                        const text = gvc.glitter.utText.removeTag(postMD.content);
+                                                                                                        return text.length > 0 ? text : '點擊填寫商品描述';
+                                                                                                    })(),
+                                                                                                    40
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <i class="fa-solid fa-angle-right" style="font-size: 1.25rem; font-weight: 700;"></i>
+                                                                                        </div>`;
+                                                                                    },
+                                                                                };
+                                                                            })()
+                                                                        )}
+                                                                    </div>
                                                                     ${(vm.documents || [])
                                                                         .filter((item: any) => {
                                                                             return postMD.content_array.includes(item.id);
@@ -2637,7 +2749,7 @@ export class ShoppingProductSetting {
                                                                                 insideHTML: (() => {
                                                                                     if (item.data.tags && item.data.tags.length > 0) {
                                                                                         const id = obj.gvc.glitter.getUUID();
-                                                                                        return html`<div
+                                                                                        return html` <div
                                                                                                 class="cursor_pointer text-end me-1 mb-2"
                                                                                                 onclick="${gvc.event(() => {
                                                                                                     const originJson = JSON.parse(JSON.stringify(postMD.content_json));
@@ -2645,10 +2757,10 @@ export class ShoppingProductSetting {
                                                                                                         gvc: gvc,
                                                                                                         title: '設定',
                                                                                                         innerHTML: (gvc) => {
-                                                                                                            return html`<div>
+                                                                                                            return html` <div>
                                                                                                                 ${item.data.tags
                                                                                                                     .map((tag: { key: string; title: string }) => {
-                                                                                                                        return html`<div>
+                                                                                                                        return html` <div>
                                                                                                                             ${BgWidget.editeInput({
                                                                                                                                 gvc,
                                                                                                                                 title: tag.title,
@@ -2677,13 +2789,21 @@ export class ShoppingProductSetting {
                                                                                                                                     if (docIndex === -1) {
                                                                                                                                         postMD.content_json.push({
                                                                                                                                             id: item.id,
-                                                                                                                                            list: [{ key: tag.key, value: text }],
+                                                                                                                                            list: [
+                                                                                                                                                {
+                                                                                                                                                    key: tag.key,
+                                                                                                                                                    value: text,
+                                                                                                                                                },
+                                                                                                                                            ],
                                                                                                                                         });
                                                                                                                                         return;
                                                                                                                                     }
                                                                                                                                     if (postMD.content_json[docIndex].list === undefined) {
                                                                                                                                         postMD.content_json[docIndex].list = [
-                                                                                                                                            { key: tag.key, value: text },
+                                                                                                                                            {
+                                                                                                                                                key: tag.key,
+                                                                                                                                                value: text,
+                                                                                                                                            },
                                                                                                                                         ];
                                                                                                                                         return;
                                                                                                                                     }
@@ -2738,7 +2858,7 @@ export class ShoppingProductSetting {
                                                                                                             const content = item.data.content || '';
                                                                                                             const tags = item.data.tags;
                                                                                                             const jsonData = postMD.content_json.find((c) => c.id === item.id);
-                                                                                                            return html`<div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
+                                                                                                            return html` <div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
                                                                                                                 ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
                                                                                                             </div>`;
                                                                                                         },
@@ -2746,7 +2866,7 @@ export class ShoppingProductSetting {
                                                                                                 })()
                                                                                             )}`;
                                                                                     }
-                                                                                    return html`<div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                    return html` <div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
                                                                                         ${item.data.content || ''}
                                                                                     </div>`;
                                                                                 })(),
@@ -2802,7 +2922,7 @@ export class ShoppingProductSetting {
                                                                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                         }
                                                                     },
-                                                                    html`<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`,
+                                                                    html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`,
                                                                     { mul: true }
                                                                 );
                                                             }),
@@ -4334,14 +4454,16 @@ ${postMD.seo.content ?? ''}</textarea
                                         ]
                                             .filter((str) => str.length > 0)
                                             .join(BgWidget.mbContainer(24)),
-                                        ratio: 75,
+                                        ratio: 77,
                                     },
                                     {
                                         html: html` <div class="summary-card p-0">
                                             ${[
                                                 BgWidget.mainCard(
-                                                    html`<div style="font-weight: 700;" class="mb-2">商品類型</div>
-                                                        <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div> `
+                                                    html`
+                                                        <div style="font-weight: 700;" class="mb-2">商品類型</div>
+                                                        <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
+                                                    `
                                                 ),
                                                 BgWidget.mainCard(
                                                     html` <div style="font-weight: 700;" class="mb-2">商品狀態</div>` +
@@ -4452,11 +4574,66 @@ ${postMD.seo.content ?? ''}</textarea
                                                         };
                                                     })
                                                 ),
+                                                BgWidget.mainCard(
+                                                    obj.gvc.bindView(() => {
+                                                        const id = obj.gvc.glitter.getUUID();
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return [
+                                                                    `<div style="font-weight: 700;" class="mb-2">AI 選品</div>`,
+                                                                    BgWidget.grayNote(postMD.ai_description || '尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。'),
+                                                                    `<div class="my-2"></div>`,
+                                                                    BgWidget.darkButton(
+                                                                        `設定描述語句`,
+                                                                        gvc.event(() => {
+                                                                            function refresh() {
+                                                                                gvc.notifyDataChange(id);
+                                                                            }
+
+                                                                            let description = postMD.ai_description;
+                                                                            BgWidget.settingDialog({
+                                                                                gvc: gvc,
+                                                                                title: '描述語句',
+                                                                                innerHTML: (gvc) => {
+                                                                                    return BgWidget.textArea({
+                                                                                        gvc: gvc,
+                                                                                        title: '',
+                                                                                        default: postMD.ai_description || '',
+                                                                                        placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
+                                                                                        callback: (text) => {
+                                                                                            description = text;
+                                                                                        },
+                                                                                        style: `min-height:100px;`,
+                                                                                    });
+                                                                                },
+                                                                                footer_html: (gvc) => {
+                                                                                    return [
+                                                                                        BgWidget.save(
+                                                                                            gvc.event(() => {
+                                                                                                postMD.ai_description = description;
+                                                                                                refresh();
+                                                                                                gvc.closeDialog();
+                                                                                            })
+                                                                                        ),
+                                                                                    ].join('');
+                                                                                },
+                                                                            });
+                                                                        }),
+                                                                        {
+                                                                            style: 'width:100%;',
+                                                                        }
+                                                                    ),
+                                                                ].join('');
+                                                            },
+                                                        };
+                                                    })
+                                                ),
                                             ]
                                                 .filter((str) => str.length > 0)
                                                 .join(BgWidget.mbContainer(24))}
                                         </div>`,
-                                        ratio: 25,
+                                        ratio: 23,
                                     }
                                 )}
                             `

@@ -3,6 +3,7 @@ import {Entry} from '../Entry.js';
 import {Glitter} from './Glitter.js';
 import {GVC} from './GVController.js';
 import {GVCType} from './module/PageManager.js';
+import {ApiUser} from "../glitter-base/route/user.js";
 
 const glitter = new Glitter(window); // glitter變數
 (window as any).glitter = glitter;
@@ -90,7 +91,28 @@ function traverseHTML(element: any, document: any) {
             traverseHTML(children[j], document);
         }
     }
+    if((element.tagName || '').toLowerCase() === 'img' ){
+        const src=element.getAttribute('src');
+        if(src){
+            try {
+                const tag=glitter.generateCheckSum(src,9)
+                setTimeout(()=>{
+                    if(element){
+                        ApiUser.getPublicConfig(`alt_`+tag,'manager').then((res)=>{
+                            if(res && res.response.value){
+                                setTimeout(()=>{
+                                    element.setAttribute('alt', res.response.value.alt);
+                                },10)
+                            }
+                        })
+                    }
+                },10)
+            }catch (e) {
 
+            }
+        }
+
+    }
     if (element && element.getAttribute && element.getAttribute('glem') === 'bindView') {
         const id = element.getAttribute('gvc-id') as string;
         glitter.elementCallback[id].element = element;

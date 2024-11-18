@@ -19,6 +19,9 @@ import { PosSetting } from "./pos-pages/pos-setting.js";
 import { PayConfig } from "./pos-pages/pay-config.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { PosHomePage } from "./pos-pages/pos-home-page.js";
+import { ApiShop } from "../glitter-base/route/shopping.js";
+import { Swal } from "../modules/sweetAlert.js";
+import { ConnectionMode } from "./pos-pages/connection-mode.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
@@ -220,6 +223,7 @@ height: 51px;
                     background-color: #646464;
                 }
             `);
+        ConnectionMode.initial(gvc);
         POSSetting.initialStyle(gvc);
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;
         window.glitterBase = 'shopnex';
@@ -228,6 +232,21 @@ height: 51px;
         gvc.glitter.addStyleLink('./css/editor.css');
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
+            let timer_vm = {
+                timer: 0,
+                last_string: ''
+            };
+            let scannerObserver = function (event) {
+                if (event.key.toLowerCase() !== 'enter' && event.key.toLowerCase() !== 'shift') {
+                    clearInterval(timer_vm.timer);
+                    timer_vm.last_string += event.key;
+                    timer_vm.timer = setTimeout(() => {
+                        POSSetting.scannerCallback(gvc, timer_vm.last_string);
+                        timer_vm.last_string = '';
+                    }, 150);
+                }
+                console.log(`event.key==>`, event.key);
+            };
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
@@ -251,7 +270,103 @@ height: 51px;
                     }
                 }),
                 divCreate: {},
+                onCreate: () => {
+                    document.removeEventListener('keydown', scannerObserver);
+                    document.addEventListener('keydown', scannerObserver);
+                },
+                onDestroy: () => {
+                    document.removeEventListener('keydown', scannerObserver);
+                }
             };
+        });
+    }
+    static scannerCallback(gvc, text) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dialog = new ShareDialog(gvc.glitter);
+            const swal = new Swal(gvc);
+            console.log(`text===>`, text);
+            if (text.indexOf(`variants-`) === 0) {
+                dialog.dataLoading({ visible: true, text: '搜尋商品...' });
+                text = text.replace(`variants-`, '');
+                ApiShop.getProduct({
+                    page: 0,
+                    limit: 50000,
+                    accurate_search_text: true,
+                    search: text,
+                    orderBy: 'created_time_desc'
+                }).then(res => {
+                    dialog.dataLoading({ visible: false });
+                    if (res.response.data[0]) {
+                        const data = res.response.data[0];
+                        console.log(`data===>`, data);
+                        const selectVariant = res.response.data[0].content.variants.find((d1) => {
+                            return d1.barcode === text;
+                        });
+                        if (!OrderDetail.singleInstance.lineItems.find((dd) => {
+                            return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'));
+                        })) {
+                            OrderDetail.singleInstance.lineItems.push({
+                                id: data.id,
+                                title: data.content.title,
+                                preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                spec: selectVariant.spec,
+                                count: 0,
+                                sale_price: selectVariant.sale_price,
+                                sku: selectVariant.sku
+                            });
+                        }
+                        OrderDetail.singleInstance.lineItems.find((dd) => {
+                            return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'));
+                        }).count++;
+                        gvc.notifyDataChange(['order', 'checkout-page']);
+                    }
+                    else {
+                        swal.toast({ icon: 'error', title: '無此商品' });
+                    }
+                });
+            }
+            if (text.indexOf(`user-`) === 0) {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.dataLoading({ visible: true });
+                const user = yield ApiUser.getUsersData(text.replace('user-', ''));
+                if (!user.response || !user.response.account) {
+                    dialog.errorMessage({ text: '查無此會員' });
+                }
+                else {
+                    OrderDetail.singleInstance.user_info.email = user.response.userData.email;
+                    gvc.notifyDataChange(['checkout-page']);
+                }
+            }
+            if (text.indexOf(`voucher-`) === 0) {
+                text = text.replace(`voucher-`, '');
+                const dialog = new ShareDialog(gvc.glitter);
+                OrderDetail.singleInstance.code_array = OrderDetail.singleInstance.code_array || [];
+                OrderDetail.singleInstance.code_array = OrderDetail.singleInstance.code_array.filter((dd) => {
+                    return dd !== text;
+                });
+                OrderDetail.singleInstance.code_array.push(text);
+                dialog.dataLoading({ visible: true });
+                const od = (yield ApiShop.getCheckout({
+                    line_items: OrderDetail.singleInstance.lineItems,
+                    checkOutType: 'POS',
+                    user_info: OrderDetail.singleInstance.user_info,
+                    code_array: OrderDetail.singleInstance.code_array,
+                })).response.data;
+                dialog.dataLoading({ visible: false });
+                if (!od ||
+                    !od.voucherList.find((dd) => {
+                        return dd.code === text;
+                    })) {
+                    OrderDetail.singleInstance.code_array = OrderDetail.singleInstance.code_array.filter((dd) => {
+                        return dd !== text;
+                    });
+                    dialog.errorMessage({ text: '請輸入正確的優惠代碼' });
+                }
+                else {
+                    dialog.successMessage({ text: '成功新增優惠券' });
+                    gvc.notifyDataChange(['checkout-page']);
+                }
+            }
         });
     }
     static posView(gvc) {
@@ -259,7 +374,14 @@ height: 51px;
         const vm = {
             id: glitter.getUUID(),
             filterID: glitter.getUUID(),
-            type: 'home',
+            get type() {
+                var _a;
+                return (_a = localStorage.getItem('show_pos_page')) !== null && _a !== void 0 ? _a : "home";
+            },
+            set type(value) {
+                localStorage.setItem('show_pos_page', `${value}`);
+                gvc.notifyDataChange(vm.id);
+            },
             order: {},
             query: '',
             productSearch: [],
@@ -282,15 +404,11 @@ height: 51px;
         };
         if (localStorage.getItem('pos_order_detail')) {
             orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
-            if (orderDetail.lineItems && orderDetail.lineItems.length > 0) {
-                vm.type = 'home';
-            }
         }
         else {
             orderDetail.user_info.shipment = 'now';
         }
         if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
-            vm.type = 'home';
             orderDetail.user_info.shipment = 'now';
         }
         gvc.addStyle(`
@@ -306,7 +424,6 @@ height: 51px;
         return (gvc.bindView(() => {
             return {
                 bind: vm.id,
-                dataList: [{ obj: vm, key: 'type' }],
                 view: () => __awaiter(this, void 0, void 0, function* () {
                     const ap_config = (yield ApiUser.getPublicConfig('store-information', 'manager')).response.value;
                     PayConfig.pos_config = ap_config;
@@ -421,7 +538,7 @@ cursor: pointer;
                                     </div>
                                     ${(vm.type !== 'menu' || (document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
                                     ${gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
+                        const id = 'right_top_info';
                         function refreshUserBar() {
                             gvc.notifyDataChange([id, 'nav-slide']);
                         }
@@ -438,35 +555,46 @@ cursor: pointer;
                                         return dd.config.member_id === POSSetting.config.who;
                                     })) !== null && _a !== void 0 ? _a : { config: { title: '管理員', name: 'manager' } };
                                     glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who;
-                                    resolve(`<div class="h-100 group dropdown border-start ps-1 d-flex align-items-center" style="" >
-<div class=" btn btn-outline-secondary  border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <div class="d-flex align-items-center px-2" style="gap:5px;">
-                                    <i class="fa-solid fa-repeat fs-5"></i>
-                                    <div class="ps-2 text-start">
-                                        <div class="fs-xs lh-1 opacity-60 fw-500">${select_member.config.title}</div>
-                                        <div class="fs-sm fw-500">${select_member.config.name}</div>
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                            <div class="dropdown-menu position-absolute" style="top:50px; right: 0;">
-                                ${(() => {
-                                        const view = member_auth.filter((dd) => {
-                                            return dd.config.member_id !== POSSetting.config.who;
-                                        }).map((dd) => {
-                                            const memberDD = dd;
-                                            return `
+                                    resolve(html `
+                                                        <div class="h-100 group dropdown border-start ps-1 d-flex align-items-center"
+                                                             style="">
+                                                            <div class=" btn btn-outline-secondary  border-0 p-1 position-relative"
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">
+                                                                <div class="d-flex align-items-center px-2"
+                                                                     style="gap:5px;">
+                                                                    <i class="fa-solid fa-repeat fs-5"></i>
+                                                                    <div class="ps-2 text-start">
+                                                                        <div class="fs-xs lh-1 opacity-60 fw-500">
+                                                                            ${select_member.config.title}
+                                                                        </div>
+                                                                        <div class="fs-sm fw-500">
+                                                                            ${select_member.config.name}
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="dropdown-menu position-absolute"
+                                                                 style="top:50px; right: 0;">
+                                                                ${[
+                                        ...(() => {
+                                            const view = member_auth.filter((dd) => {
+                                                return dd.config.member_id !== POSSetting.config.who;
+                                            }).map((dd) => {
+                                                const memberDD = dd;
+                                                return `
                                       <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
-                                                gvc.glitter.innerDialog((gvc) => {
-                                                    const c_vm = {
-                                                        text: '',
-                                                        id: gvc.glitter.getUUID()
-                                                    };
-                                                    return gvc.bindView(() => {
-                                                        return {
-                                                            bind: c_vm.id,
-                                                            view: () => {
-                                                                return `<div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 42px; display: inline-flex">
+                                                    gvc.glitter.innerDialog((gvc) => {
+                                                        const c_vm = {
+                                                            text: '',
+                                                            id: gvc.glitter.getUUID()
+                                                        };
+                                                        return gvc.bindView(() => {
+                                                            return {
+                                                                bind: c_vm.id,
+                                                                view: () => {
+                                                                    return `<div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 42px; display: inline-flex">
     <div style="align-self: stretch; height: 100px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
       <div style="align-self: stretch; justify-content: center; align-items: flex-start; gap: 16px; display: inline-flex">
         <div style="text-align: center"><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">SHOPNE</span><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; letter-spacing: 2.52px; word-wrap: break-word">X</span></div>
@@ -476,95 +604,136 @@ cursor: pointer;
     </div>
     <div style="align-self: stretch; justify-content: center; align-items: center; gap: 20px; display: inline-flex">
     ${(() => {
-                                                                    let view = [];
-                                                                    for (let a = 0; a < 6; a++) {
-                                                                        if (c_vm.text.length > a) {
-                                                                            view.push(`<div style="width: 18px; height: 18px; position: relative; background: #FFB400; border-radius: 30px"></div>`);
+                                                                        let view = [];
+                                                                        for (let a = 0; a < 6; a++) {
+                                                                            if (c_vm.text.length > a) {
+                                                                                view.push(`<div style="width: 18px; height: 18px; position: relative; background: #FFB400; border-radius: 30px"></div>`);
+                                                                            }
+                                                                            else {
+                                                                                view.push(` <div style="width: 18px; height: 18px; position: relative; background: #B0B0B0; border-radius: 30px"></div>`);
+                                                                            }
                                                                         }
-                                                                        else {
-                                                                            view.push(` <div style="width: 18px; height: 18px; position: relative; background: #B0B0B0; border-radius: 30px"></div>`);
-                                                                        }
-                                                                    }
-                                                                    return view.join('');
-                                                                })()}
+                                                                        return view.join('');
+                                                                    })()}
     </div>
     <div style="background: white; flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex">
       <div style="align-self: stretch; border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: center; display: flex;border: 1px solid #DDD;">
         ${[[1, 2, 3], [4, 5, 6], [7, 8, 9], ['取消', 0, '<i class="fa-regular fa-delete-left"></i>']].map((dd) => {
-                                                                    return ` <div style="justify-content: flex-start; align-items: center; display: inline-flex">
+                                                                        return ` <div style="justify-content: flex-start; align-items: center; display: inline-flex">
          ${dd.map((dd) => {
-                                                                        return `<div style="height:56px;width:95px;flex-direction: column; justify-content: center; align-items: center; gap: 10px; display: inline-flex">
+                                                                            return `<div style="height:56px;width:95px;flex-direction: column; justify-content: center; align-items: center; gap: 10px; display: inline-flex">
             <div style="align-self: stretch; text-align: center; color: #393939; font-size: 20px;  font-weight: 700; line-height: 28px; word-wrap: break-word" onclick="${gvc.event(() => {
-                                                                            if (dd === '取消') {
-                                                                                gvc.closeDialog();
-                                                                                return;
-                                                                            }
-                                                                            else if (`${dd}`.includes(`fa-regular`)) {
-                                                                                c_vm.text = c_vm.text.substring(0, c_vm.text.length - 1);
-                                                                                gvc.notifyDataChange(c_vm.id);
-                                                                                return;
-                                                                            }
-                                                                            c_vm.text += dd;
-                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                            if (c_vm.text.length === 6) {
-                                                                                if (memberDD.config.pin === c_vm.text) {
-                                                                                    POSSetting.config.who = memberDD.config.member_id;
+                                                                                if (dd === '取消') {
                                                                                     gvc.closeDialog();
-                                                                                    refreshUserBar();
+                                                                                    return;
                                                                                 }
-                                                                                else {
-                                                                                    dialog.errorMessage({ text: '輸入錯誤' });
-                                                                                    c_vm.text = '';
+                                                                                else if (`${dd}`.includes(`fa-regular`)) {
+                                                                                    c_vm.text = c_vm.text.substring(0, c_vm.text.length - 1);
+                                                                                    gvc.notifyDataChange(c_vm.id);
+                                                                                    return;
                                                                                 }
-                                                                            }
-                                                                            gvc.notifyDataChange(c_vm.id);
-                                                                        })}">${dd}</div>
+                                                                                c_vm.text += dd;
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                if (c_vm.text.length === 6) {
+                                                                                    if (memberDD.config.pin === c_vm.text) {
+                                                                                        POSSetting.config.who = memberDD.config.member_id;
+                                                                                        gvc.closeDialog();
+                                                                                        refreshUserBar();
+                                                                                    }
+                                                                                    else {
+                                                                                        dialog.errorMessage({ text: '輸入錯誤' });
+                                                                                        c_vm.text = '';
+                                                                                    }
+                                                                                }
+                                                                                gvc.notifyDataChange(c_vm.id);
+                                                                            })}">${dd}</div>
           </div>`;
-                                                                    }).join('<div class="" style="border-right: 1px #DDDDDD solid;height:56px;"></div>')}
+                                                                        }).join('<div class="" style="border-right: 1px #DDDDDD solid;height:56px;"></div>')}
         </div>`;
-                                                                }).join('<div class="" style="border-top: 1px #DDDDDD solid;height:1px; width: 100%;"></div>')}
+                                                                    }).join('<div class="" style="border-top: 1px #DDDDDD solid;height:1px; width: 100%;"></div>')}
       
       </div>
     </div>
   </div>`;
-                                                            },
-                                                            divCreate: {
-                                                                class: ``,
-                                                                style: `width: 338px;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
-                                                            }
-                                                        };
-                                                    });
-                                                }, '');
-                                            })}">
+                                                                },
+                                                                divCreate: {
+                                                                    class: ``,
+                                                                    style: `width: 338px;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
+                                                                }
+                                                            };
+                                                        });
+                                                    }, '');
+                                                })}">
                                       ${dd.config.title} / ${dd.config.name} / ${dd.config.member_id}
 </a>
                                     `;
-                                        });
-                                        if (POSSetting.config.who !== 'manager') {
-                                            view.push(`   <a class="dropdown-item cursor_pointer d-flex flex-column ${POSSetting.config.who === 'manager' ? `d-none` : ``}" onclick="${gvc.event(() => {
-                                                gvc.glitter.innerDialog((gvc) => {
-                                                    return POSSetting.loginManager(gvc, 'switch', () => {
-                                                        refreshUserBar();
-                                                        gvc.closeDialog();
+                                            });
+                                            if (POSSetting.config.who !== 'manager') {
+                                                view.push(html `<a
+                                                                                class="dropdown-item cursor_pointer d-flex flex-column ${POSSetting.config.who === 'manager' ? `d-none` : ``}"
+                                                                                onclick="${gvc.event(() => {
+                                                    gvc.glitter.innerDialog((gvc) => {
+                                                        return POSSetting.loginManager(gvc, 'switch', () => {
+                                                            refreshUserBar();
+                                                            gvc.closeDialog();
+                                                        });
+                                                    }, '');
+                                                })}">
+                                                                            切換至管理員
+                                                                        </a>`);
+                                            }
+                                            return view;
+                                        })(),
+                                        ...[
+                                            ...((PayConfig.deviceType === 'pos') ? [
+                                                html ` 
+                                                                        <a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                           style="gap:10px;"
+                                                                           onclick="${gvc.event(() => {
+                                                    ConnectionMode.main(gvc);
+                                                })}"><i class="fa-solid fa-plug d-flex align-items-center justify-content-center" style="width:20px;" ></i>連線模式</a>`,
+                                            ] : []),
+                                            ...((ConnectionMode.on_connected_device) ? [
+                                                `<a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                           style="gap:10px;"
+                                                                           onclick="${gvc.event(() => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否斷開與 IMIN 裝置的連線?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                dialog.infoMessage({ text: '已斷開連線' });
+                                                                ConnectionMode.last_connect_id = '';
+                                                                ConnectionMode.on_connected_device = '';
+                                                                ConnectionMode.socket.close();
+                                                            }
+                                                        }
                                                     });
-                                                }, '');
-                                            })}">
-                                   切換至管理員
-</a>`);
-                                        }
-                                        return view;
-                                    })().join('<div class="dropdown-divider"></div>')}
-                                ${(POSSetting.config.who === 'manager') ? `<div class="dropdown-divider"></div>
-    <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
+                                                })}"><i class="fa-solid fa-power-off d-flex align-items-center justify-content-center" style="width:20px;"></i>斷開裝置連線</a>`
+                                            ] : [])
+                                        ].concat(PayConfig.deviceType === 'pos' ? [] : ConnectionMode.device_list.map((dd) => {
+                                            return html `<a
+                                                                            class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                            style="gap:10px;"
+                                                                            onclick="${gvc.event(() => {
+                                                ConnectionMode.connect(dd);
+                                            })}"><i
+                                                                            class="fa-solid fa-plug d-flex align-items-center justify-content-center" style="width:20px;"></i>連線至『 ${dd} 』</a>`;
+                                        }))
+                                    ].join('<div class="dropdown-divider"></div>')}
+                                                                ${(POSSetting.config.who === 'manager') ? html `
+                                                                    <div class="dropdown-divider"></div>
+                                                                    <a class="dropdown-item cursor_pointer  d-flex align-items-center"
+                                                                       style="gap:10px;" onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
                                         glitter.share.reload('cms', 'shopnex');
-                                    })}">返回全通路後臺</a>
-` : ``}
-                            </div>
-                            </div>`);
+                                    })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center" style="width:20px;"></i>返回全通路後臺</a>
+                                                                ` : ``}
+                                                            </div>
+                                                        </div>`);
                                 }));
                             },
                             divCreate: {
@@ -579,6 +748,7 @@ cursor: pointer;
                         view: () => __awaiter(this, void 0, void 0, function* () {
                             let view = (() => {
                                 try {
+                                    OrderDetail.singleInstance = orderDetail;
                                     orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
                                     if (vm.type == 'payment') {
                                         return PaymentPage.main({
@@ -588,7 +758,7 @@ cursor: pointer;
                                         });
                                     }
                                     else if (vm.type === 'order') {
-                                        return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, { isPOS: true })}</div>`;
+                                        return `<div class="vw-100 px-lg-3" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, { isPOS: true })}</div>`;
                                     }
                                     else if (vm.type === 'setting') {
                                         return PosSetting.main({ gvc: gvc, vm: vm });
@@ -616,7 +786,6 @@ cursor: pointer;
                     })}
                             ${gvc.bindView({
                         bind: 'nav-slide',
-                        dataList: [{ obj: vm, key: 'type' }],
                         view: () => {
                             let page = [
                                 {

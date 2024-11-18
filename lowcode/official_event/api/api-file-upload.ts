@@ -51,54 +51,136 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                     ].join('<div class="my-2"></div>')
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
-                        const accept: any = await TriggerEvent.trigger({
-                            gvc: gvc,
-                            widget: widget,
-                            clickEvent: object.accept,
-                            subData: subData,
-                            element: element
-                        });
-                         imageLibrary.selectImageLibrary(gvc, (urlArray) => {
-                             if (urlArray.length > 0){
-                                TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    widget: widget,
-                                    clickEvent: object.uploadFinish,
-                                    subData: urlArray[0],
-                                    element: element
-                                });
-                                resolve(urlArray[0].data);
-                            }else{
-                                const dialog = new ShareDialog(gvc.glitter);
-                                dialog.errorMessage({text:'請選擇至少一張圖片'});
-                            }
+                    if((window.parent as any).glitter.getUrlParameter('type')!=='editor'){
+                        return new Promise(async (resolve, reject) => {
+                            const accept: any = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.accept,
+                                subData: subData,
+                                element: element
+                            });
+                            glitter.ut.chooseMediaCallback({
+                                single: (object.upload_count === 'single'),
+                                accept: accept || '*',
+                                async callback(data: any) {
+                                    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                                    (await TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: object.uploading,
+                                        subData: subData,
+                                        element: element
+                                    }));
+                                    let url_stack: string[] = [];
+                                    for (const dd of data) {
+                                        const file = dd.file;
+                                        const res = await new Promise((resolve, reject) => {
+                                            saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                const data1 = data.response;
+                                                BaseApi.create({
+                                                    url: data1.url,
+                                                    type: 'put',
+                                                    data: file,
+                                                    headers: {
+                                                        "Content-Type": data1.type
+                                                    }
+                                                }).then(async (res) => {
+                                                    if (res.result) {
+                                                        resolve(data1.fullUrl);
+                                                    } else {
+                                                        resolve(false);
+                                                    }
+                                                });
+                                            });
+                                        });
+                                        if (!res) {
+                                            await TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: object.error,
+                                                subData: subData,
+                                                element: element
+                                            });
+                                            resolve(false)
+                                            return
+                                        }
+                                        url_stack.push(res as string)
+                                    }
 
-                            // postMD.content_array = id
-                            // obj.gvc.notifyDataChange(bi)
-                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`
-                        ,{mul:object.upload_count !== 'single'})
+                                    if(object.upload_count === 'single'){
+                                        await TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.uploadFinish,
+                                            subData: url_stack[0],
+                                            element: element
+                                        });
+                                        resolve(url_stack[0])
+                                    }else{
+                                        await TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.uploadFinish,
+                                            subData: url_stack,
+                                            element: element
+                                        });
+                                        resolve(url_stack)
+                                    }
+                                },
+                            });
+                        })
+                    }else{
+                        return new Promise(async (resolve, reject) => {
+                            const accept: any = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.accept,
+                                subData: subData,
+                                element: element
+                            });
+                            imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                    if (urlArray.length > 0){
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.uploadFinish,
+                                            subData: urlArray[0],
+                                            element: element
+                                        });
+                                        resolve(urlArray[0].data);
+                                    }else{
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.errorMessage({text:'請選擇至少一張圖片'});
+                                    }
 
-                        // if(object.upload_count === 'single'){
-                        //     await TriggerEvent.trigger({
-                        //         gvc: gvc,
-                        //         widget: widget,
-                        //         clickEvent: object.uploadFinish,
-                        //         subData: url_stack[0],
-                        //         element: element
-                        //     });
-                        //     resolve(url_stack[0])
-                        // }else{
-                        //     await TriggerEvent.trigger({
-                        //         gvc: gvc,
-                        //         widget: widget,
-                        //         clickEvent: object.uploadFinish,
-                        //         subData: url_stack,
-                        //         element: element
-                        //     });
-                        //     resolve(url_stack)
-                        // }
-                    })
+                                    // postMD.content_array = id
+                                    // obj.gvc.notifyDataChange(bi)
+                                }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`
+                                ,{mul:object.upload_count !== 'single'})
+
+                            // if(object.upload_count === 'single'){
+                            //     await TriggerEvent.trigger({
+                            //         gvc: gvc,
+                            //         widget: widget,
+                            //         clickEvent: object.uploadFinish,
+                            //         subData: url_stack[0],
+                            //         element: element
+                            //     });
+                            //     resolve(url_stack[0])
+                            // }else{
+                            //     await TriggerEvent.trigger({
+                            //         gvc: gvc,
+                            //         widget: widget,
+                            //         clickEvent: object.uploadFinish,
+                            //         subData: url_stack,
+                            //         element: element
+                            //     });
+                            //     resolve(url_stack)
+                            // }
+                        })
+                    }
+
 
                 }
             }

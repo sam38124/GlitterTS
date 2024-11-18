@@ -372,7 +372,7 @@ export class ShoppingDiscountSetting {
                                                                 default: (_a = voucherData.code) !== null && _a !== void 0 ? _a : '',
                                                                 placeHolder: '請輸入優惠券代碼',
                                                                 callback: (text) => {
-                                                                    voucherData.code = text;
+                                                                    voucherData.code = text.toUpperCase();
                                                                 },
                                                                 endText: html ` <div class="d-flex justify-content-end">
                                                                                         ${BgWidget.mbContainer(8)}

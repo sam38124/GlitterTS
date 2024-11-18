@@ -1,23 +1,20 @@
 import db from '../modules/database';
 import exception from '../modules/exception';
-import {saasConfig} from '../config';
-import tool from './tool';
-import UserUtil from '../utils/UserUtil';
-import {createAPP} from '../index.js';
+import { saasConfig } from '../config';
+import { createAPP } from '../index.js';
 import AWS from 'aws-sdk';
-import {IToken} from '../models/Auth.js';
+import { IToken } from '../models/Auth.js';
 import config from '../config.js';
 import fs from 'fs';
-import {exec} from 'child_process';
-import {Ssh} from '../modules/ssh.js';
-import {NginxConfFile} from 'nginx-conf';
+import { Ssh } from '../modules/ssh.js';
+import { NginxConfFile } from 'nginx-conf';
 import * as process from 'process';
-import {ApiPublic} from '../api-public/services/public-table-check.js';
-import {BackendService} from './backend-service.js';
-import {Template} from './template.js';
+import { ApiPublic } from '../api-public/services/public-table-check.js';
+import { BackendService } from './backend-service.js';
+import { Template } from './template.js';
 import Tool from './tool';
 import path from 'path';
-import {AppInitial} from "./app-initial.js";
+import { AppInitial } from './app-initial.js';
 
 export class App {
     public token?: IToken;
@@ -35,7 +32,7 @@ export class App {
         });
     }
 
-    public async checkVersion(libraryName:string){
+    public async checkVersion(libraryName: string) {
         // 获取当前工作目录
         const currentDir = process.cwd();
 
@@ -61,18 +58,10 @@ export class App {
             throw new Error('package.json not found in the current directory');
         }
     }
-    public async createApp(cf: {
-        appName: string;
-        copyApp: string;
-        copyWith: string[];
-        brand: string;
-        name?: string;
-        theme?: string;
-        sub_domain: string
-    }) {
+    public async createApp(cf: { appName: string; copyApp: string; copyWith: string[]; brand: string; name?: string; theme?: string; sub_domain: string }) {
         try {
             cf.copyWith = cf.copyWith ?? [];
-            cf.sub_domain = cf.sub_domain.replace(/\./g, '')
+            cf.sub_domain = cf.sub_domain.replace(/\./g, '');
             const count = await db.execute(
                 `
                     select count(1)
@@ -130,7 +119,7 @@ export class App {
                  values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                          ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
                          ${db.escape(
-                                 JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name})
+                             JSON.stringify((copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name })
                          )},
                          ${cf.theme ? db.escape(cf.theme) : 'null'},
                          ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`,
@@ -213,7 +202,7 @@ export class App {
                     []
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if ((dd.userID !== 'manager') && (!['robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key))) {
+                    if (dd.userID !== 'manager' && !['robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
                         await trans.execute(
                             `
                                 insert into \`${cf.appName}\`.t_user_public_config
@@ -226,6 +215,22 @@ export class App {
             }
             if (privateConfig) {
                 for (const dd of privateConfig) {
+                    if (dd.key === 'logistics_setting') {
+                        dd.value = {
+                            form: [],
+                            info: '<p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\' id="isPasted">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>商家會約定再次配送的時間，您將支付額外的運費。</p>',
+                            support: ['OKMARTC2C', 'shop', 'FAMIC2C', 'UNIMARTC2C'],
+                            custom_delivery: [],
+                            whiteListExpand: {},
+                        };
+                    }
+                    if (dd.key === 'glitter_shipment') {
+                        dd.value = {
+                            volume: [],
+                            weight: [],
+                            selectCalc: 'volume',
+                        };
+                    }
                     await trans.execute(
                         `
                             insert into \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
@@ -268,23 +273,31 @@ export class App {
                 )
             )[0];
             if (store_information) {
-                await db.query(`delete
+                await db.query(
+                    `delete
                                 from \`${cf.appName}\`.t_user_public_config
                                 where \`key\` = ?
-                                  and id > 0`, ['store-information']);
+                                  and id > 0`,
+                    ['store-information']
+                );
             }
             for (const b of AppInitial.main(cf.appName)) {
                 await db.query(b.sql, [b.obj]);
             }
-            await db.query(`insert into \`${cf.appName}\`.t_user_public_config
-                            set ?`, [{
-                key: 'store-information',
-                user_id: 'manager',
-                updated_at: new Date(),
-                value: JSON.stringify({
-                    shop_name: cf.name
-                })
-            }]);
+            await db.query(
+                `insert into \`${cf.appName}\`.t_user_public_config
+                            set ?`,
+                [
+                    {
+                        key: 'store-information',
+                        user_id: 'manager',
+                        updated_at: new Date(),
+                        value: JSON.stringify({
+                            shop_name: cf.name,
+                        }),
+                    },
+                ]
+            );
             await createAPP(cf);
             return true;
         } catch (e: any) {
@@ -462,10 +475,10 @@ export class App {
                         query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                         query.template_from === 'all' && sql.push(`template_type = 2`);
                         return sql
-                                .map((dd) => {
-                                    return `(${dd})`;
-                                })
-                                .join(' and ');
+                            .map((dd) => {
+                                return `(${dd})`;
+                            })
+                            .join(' and ');
                     })()};
                 `,
                 []
@@ -544,14 +557,14 @@ export class App {
             brand: base.brand,
             userData: userData.userData,
             domain: base.domain,
-            user_id: userID
+            user_id: userID,
         };
     }
 
     public static async preloadPageData(appName: string, refer_page: string) {
-        const start = (new Date()).getTime()
+        const start = new Date().getTime();
         const page = await Template.getRealPage(refer_page, appName);
-        console.log(`preload-0==>`, (new Date().getTime() - start) / 1000)
+        console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
         const app = new App();
         const preloadData: {
             component: any;
@@ -590,14 +603,14 @@ export class App {
             return {};
         }
         preloadData.component.push(pageData);
-        let checkPass = 0
+        let checkPass = 0;
         await new Promise(async (resolve, reject) => {
             function loop(array: any) {
                 for (const dd of array) {
                     if (dd.type === 'container') {
                         loop(dd.data.setting);
                     } else if (dd.type === 'component') {
-                        checkPass++
+                        checkPass++;
                         new Promise(async (resolve, reject) => {
                             const pageData = (
                                 await new Template(undefined).getPage({
@@ -609,36 +622,38 @@ export class App {
                                 preloadData.component.push(pageData);
                                 loop(pageData.config ?? []);
                             }
-                            resolve(true)
-                        }).then(()=>{
-                            checkPass--
-                            if(checkPass===0){
-                                resolve(true)
+                            resolve(true);
+                        }).then(() => {
+                            checkPass--;
+                            if (checkPass === 0) {
+                                resolve(true);
                             }
-                        })
+                        });
                     }
                 }
             }
             loop(pageData && pageData.config);
-            if(checkPass===0){resolve(true)}
-        })
-        console.log(`preload-2==>`, (new Date().getTime() - start) / 1000)
+            if (checkPass === 0) {
+                resolve(true);
+            }
+        });
+        console.log(`preload-2==>`, (new Date().getTime() - start) / 1000);
         let mapPush: any = {};
         mapPush['getPlugin'] = {
             callback: [],
-            data: {response: {data: preloadData.appConfig, result: true}},
+            data: { response: { data: preloadData.appConfig, result: true } },
             isRunning: true,
         };
         preloadData.component.map((dd: any) => {
             mapPush[`getPageData-${dd.appName}-${dd.tag}`] = {
                 callback: [],
                 isRunning: true,
-                data: {response: {result: [dd]}},
+                data: { response: { result: [dd] } },
             };
         });
 
         let eval_code_hash: any = {};
-        console.log(`preload-3==>`, (new Date().getTime() - start) / 1000)
+        console.log(`preload-3==>`, (new Date().getTime() - start) / 1000);
         // 查找匹配的字串
         const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
         const code: any = JSON.stringify(preloadData.component).match(/\{"code":"[^"]+","/g);
@@ -650,7 +665,7 @@ export class App {
                 console.log(`error->`, dd);
             }
         });
-        console.log(`preload-4==>`, (new Date().getTime() - start) / 1000)
+        console.log(`preload-4==>`, (new Date().getTime() - start) / 1000);
         // 輸出結果
         if (match1) {
             match1.map((d1) => {
@@ -665,7 +680,7 @@ export class App {
         } else {
             console.log('未找到匹配的字串');
         }
-        console.log(`preload-5==>`, (new Date().getTime() - start) / 1000)
+        console.log(`preload-5==>`, (new Date().getTime() - start) / 1000);
         mapPush.eval_code_hash = eval_code_hash;
         mapPush.event = preloadData.event;
         return mapPush;
@@ -771,9 +786,14 @@ export class App {
         ) {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
-                original_domain: (await db.query(`SELECT domain
+                original_domain: (
+                    await db.query(
+                        `SELECT domain
                                                   FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                                  where appName=?;`, [cf.app_name]))[0]['domain'],
+                                                  where appName=?;`,
+                        [cf.app_name]
+                    )
+                )[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -814,7 +834,7 @@ export class App {
         });
     }
 
-    public async setSubDomain(config: { original_domain: string, appName: string; domain: string }) {
+    public async setSubDomain(config: { original_domain: string; appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -839,7 +859,6 @@ export class App {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
-
                         if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
@@ -898,7 +917,7 @@ server {
         }
     }
 
-    public async setDomain(config: { original_domain: string, appName: string; domain: string }) {
+    public async setDomain(config: { original_domain: string; appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -974,8 +993,7 @@ server {
         try {
             try {
                 await new BackendService(config.appName).stopServer();
-            } catch (e) {
-            }
+            } catch (e) {}
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.app_config

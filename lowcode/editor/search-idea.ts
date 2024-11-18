@@ -167,7 +167,7 @@ transform: scale(0.4) translateX(-75%) translateY(-75%);
                 gvc: gvc,
                 type:'idea'
             }),
-            width: document.body.clientWidth < 768 ? document.body.clientWidth : 800,
+            width: document.body.clientWidth < 992 ? document.body.clientWidth : 800,
         });
     }
 
@@ -181,7 +181,7 @@ transform: scale(0.4) translateX(-75%) translateY(-75%);
                 def:def,
                 selectCallback:callback
             }),
-            width: document.body.clientWidth < 768 ? document.body.clientWidth : 800,
+            width: document.body.clientWidth < 992 ? document.body.clientWidth : 800,
         });
     }
 }

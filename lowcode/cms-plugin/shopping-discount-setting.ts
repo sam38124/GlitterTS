@@ -434,7 +434,7 @@ export class ShoppingDiscountSetting {
                                                                                     default: voucherData.code ?? '',
                                                                                     placeHolder: '請輸入優惠券代碼',
                                                                                     callback: (text) => {
-                                                                                        voucherData.code = text;
+                                                                                        voucherData.code = text.toUpperCase();
                                                                                     },
                                                                                     endText: html` <div class="d-flex justify-content-end">
                                                                                         ${BgWidget.mbContainer(8)}

@@ -46,7 +46,10 @@ export class Entry {
         glitter.page = (window as any).glitter_page;
         glitter.share.GlobalUser = GlobalUser;
 
-        Entry.checkRedirectPage(glitter);
+        if(glitter.getUrlParameter('page')!=='backend_manager'){
+            Entry.checkRedirectPage(glitter);
+        }
+
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
         @media (prefers-reduced-motion: no-preference) {
@@ -68,7 +71,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.71';
+        glitter.share.editerVersion = 'V_13.8.815';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -189,6 +192,7 @@ export class Entry {
                     location.reload();
                 } else {
                     try {
+
                         const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
                         localStorage.setItem('select_item', '0');
                         if (appList.length === 0) {
@@ -221,6 +225,7 @@ export class Entry {
                             location.reload();
                         }
                     } catch (e) {
+                        console.log(e)
                         glitter.setUrlParameter('page', 'login');
                         location.reload();
                     }
@@ -722,7 +727,7 @@ export class Entry {
     // 判斷是否要重新定義頁面
     public static checkRedirectPage(glitter: Glitter) {
         const url = new URL(location.href);
-        if (url.searchParams.get('state') === 'google_login') {
+        if (url.searchParams.get('state') === 'google_login' && glitter.getUrlParameter('page')!=='backend_manager') {
             glitter.setUrlParameter('page', 'login');
         }
     }
@@ -739,3 +744,4 @@ let clockF = () => {
         },
     };
 };
+

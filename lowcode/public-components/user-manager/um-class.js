@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { Tool } from '../../modules/tool.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class UmClass {
     static nav(gvc) {
@@ -52,9 +54,136 @@ export class UmClass {
             .map((item) => {
             return html `
                     <div
-                        class="option px-4 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
-                        onclick="${gvc.event(() => {
+                        class="option px-2 d-flex justify-content-center um-nav-btn ${pageName === item.key ? 'um-nav-btn-active' : ''}"
+                        onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                 if (item.key === 'reset_password') {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    dialog.dataLoading({ visible: true });
+                    const userData = yield UmClass.getUserData(gvc);
+                    dialog.dataLoading({ visible: false });
+                    UmClass.dialog({
+                        gvc: gvc,
+                        title: '重設密碼事件',
+                        tag: '',
+                        innerHTML: (gvc) => {
+                            let update_vm = {
+                                verify_code: '',
+                                pwd: '',
+                            };
+                            let get_verify_timer = 0;
+                            let repeat_pwd = '';
+                            return [
+                                html `<div class="tx_normal fw-normal mb-1" style="">密碼</div>`,
+                                html `<input
+                                                class="bgw-input "
+                                                style=""
+                                                type="password"
+                                                placeholder="請輸入密碼"
+                                                oninput="${gvc.event((e, event) => {
+                                    update_vm.pwd = e.value;
+                                })}"
+                                                value="${update_vm.pwd}"
+                                            />`,
+                                html `<div class="tx_normal fw-normal mt-2 mb-1" style="">確認密碼</div>`,
+                                html `<input
+                                                class="bgw-input mb-2"
+                                                style=""
+                                                type="password"
+                                                placeholder="請再次輸入密碼"
+                                                oninput="${gvc.event((e, event) => {
+                                    repeat_pwd = e.value;
+                                })}"
+                                                value="${repeat_pwd}"
+                                            />`,
+                                gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return html `重設密碼驗證碼
+                                                        ${BgWidget.blueNote(get_verify_timer ? `驗證碼已發送至『${userData.userData.email}』` : '點我取得驗證碼', gvc.event(() => {
+                                                if (!get_verify_timer) {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiUser.emailVerify(userData.userData.email, window.appName).then((r) => __awaiter(this, void 0, void 0, function* () {
+                                                        dialog.dataLoading({ visible: false });
+                                                        get_verify_timer = 60;
+                                                        gvc.notifyDataChange(id);
+                                                    }));
+                                                }
+                                            }))}`;
+                                        },
+                                        divCreate: {
+                                            class: `d-flex flex-column`,
+                                            style: `gap:3px;`,
+                                        },
+                                        onCreate: () => {
+                                            if (get_verify_timer > 0) {
+                                                get_verify_timer--;
+                                                setTimeout(() => {
+                                                    gvc.notifyDataChange(id);
+                                                }, 1000);
+                                            }
+                                        },
+                                    };
+                                }),
+                                html `<input
+                                                class="bgw-input mt-2 mb-4"
+                                                style=""
+                                                type="text"
+                                                placeholder="請輸入驗證碼"
+                                                oninput="${gvc.event((e, event) => {
+                                    update_vm.verify_code = e.value;
+                                })}"
+                                                value="${update_vm.verify_code}"
+                                            />`,
+                                html `<div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                                <div
+                                                    class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
+                                                    style="cursor:pointer;"
+                                                    type="button"
+                                                    onclick="${gvc.event(() => {
+                                    if (update_vm.pwd.length < 8) {
+                                        dialog.errorMessage({ text: '密碼必須大於8位數' });
+                                        return;
+                                    }
+                                    if (repeat_pwd !== update_vm.pwd) {
+                                        dialog.errorMessage({ text: '請再次確認密碼' });
+                                        return;
+                                    }
+                                    dialog.dataLoading({ visible: true });
+                                    ApiUser.updateUserData({
+                                        userData: update_vm,
+                                    }).then((res) => {
+                                        dialog.dataLoading({ visible: false });
+                                        if (!res.result && res.response.data.msg === 'email-verify-false') {
+                                            dialog.errorMessage({ text: '信箱驗證碼輸入錯誤' });
+                                        }
+                                        else if (!res.result && res.response.data.msg === 'phone-verify-false') {
+                                            dialog.errorMessage({ text: '簡訊驗證碼輸入錯誤' });
+                                        }
+                                        else if (!res.result && res.response.data.msg === 'phone-exists') {
+                                            dialog.errorMessage({ text: '此電話號碼已存在' });
+                                        }
+                                        else if (!res.result && res.response.data.msg === 'email-exists') {
+                                            dialog.errorMessage({ text: '此信箱已存在' });
+                                        }
+                                        else if (!res.result) {
+                                            dialog.errorMessage({ text: '更新異常' });
+                                        }
+                                        else {
+                                            dialog.successMessage({ text: '更改成功' });
+                                            gvc.closeDialog();
+                                        }
+                                    });
+                                })}"
+                                                >
+                                                    <span class="tx_700_white">確認重設</span>
+                                                </div>
+                                            </div>`,
+                            ].join('');
+                        },
+                    });
                     console.log('重設密碼事件');
                 }
                 else if (item.key === 'logout') {
@@ -64,7 +193,7 @@ export class UmClass {
                 else {
                     changePage(item.key, 'page', {});
                 }
-            })}"
+            }))}"
                     >
                         ${item.title}
                     </div>
@@ -74,18 +203,18 @@ export class UmClass {
         return html ` <div class="account-section">
             <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title">我的帳號</div>
             ${document.body.clientWidth > 768
-            ? html `<div class="mx-auto mt-3 um-nav-container">
+            ? html ` <div class="mx-auto mt-3 um-nav-container">
                       <div class="account-options d-flex gap-3">${buttonHTML}</div>
                   </div>`
-            : html `<div class="account-navigation w-100">
+            : html ` <div class="account-navigation w-100">
                       <nav class="nav-links mb-3 mb-md-0">
-                          <div class="nav-options d-flex flex-wrap um-nav-mobile-tags-container">${buttonHTML}</div>
+                          <div class="nav-options d-flex flex-wrap justify-content-between um-nav-mobile-tags-container px-2">${buttonHTML}</div>
                       </nav>
                   </div>`}
         </div>`;
     }
     static spinner(height) {
-        return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
+        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
             <div class="spinner-border" role="status"></div>
             <span class="mt-3">載入中</span>
         </div>`;
@@ -111,7 +240,7 @@ export class UmClass {
                     </div>
                     <div class="c_dialog">
                         <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML}</div>
+                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
                         </div>
                     </div>
                 </div>
@@ -162,6 +291,7 @@ export class UmClass {
                 font-size: 36px;
                 color: #292218;
             }
+
             .um-nav-btn {
                 white-space: nowrap;
                 text-align: center;
@@ -170,23 +300,28 @@ export class UmClass {
                 border-radius: 22px;
                 height: 44px;
                 cursor: pointer;
-                width: 108px;
                 font-size: 16px;
+                min-width: 31%;
+                max-width: 180px;
             }
+
             .um-nav-btn.um-nav-btn-active {
                 background: #292218;
                 color: #ffffff;
                 font-weight: 600;
             }
+
             .um-nav-mobile-tags-container {
                 gap: 10px;
                 overflow-x: auto;
                 align-items: center;
             }
+
             .um-info-title {
                 color: #000000;
                 font-size: 28px;
             }
+
             .um-info-insignia {
                 border-radius: 20px;
                 height: 32px;
@@ -201,15 +336,18 @@ export class UmClass {
                 background: #7e7e7e;
                 color: #fff;
             }
+
             .um-info-note {
                 color: #393939;
                 font-size: 16px;
             }
+
             .um-info-event {
                 color: #3564c0;
                 font-size: 16px;
                 cursor: pointer;
             }
+
             .um-title {
                 text-align: start;
                 font-size: 16px;
@@ -218,6 +356,7 @@ export class UmClass {
                 word-wrap: break-word;
                 color: #292218;
             }
+
             .um-content {
                 text-align: start;
                 font-size: 14px;
@@ -226,6 +365,7 @@ export class UmClass {
                 word-wrap: break-word;
                 color: #292218;
             }
+
             .um-linebar-container {
                 flex-direction: column;
                 justify-content: flex-start;
@@ -233,9 +373,11 @@ export class UmClass {
                 gap: 8px;
                 display: flex;
             }
+
             .um-text-danger {
                 color: #aa4b4b;
             }
+
             .um-linebar {
                 border-radius: 40px;
                 flex-direction: column;
@@ -245,6 +387,7 @@ export class UmClass {
                 position: relative;
                 overflow: hidden;
             }
+
             .um-linebar-behind {
                 position: absolute;
                 width: 100%;
@@ -252,6 +395,7 @@ export class UmClass {
                 opacity: 0.4;
                 background: #292218;
             }
+
             .um-linebar-fill {
                 padding: 10px;
                 border-radius: 10px;
@@ -301,6 +445,7 @@ export class UmClass {
                 align-items: center;
                 height: 40px;
             }
+
             .um-th {
                 text-align: start;
                 font-size: 18px;
@@ -382,6 +527,7 @@ export class UmClass {
                 opacity: 0.9;
                 color: #322b25;
             }
+
             .card-cost-price {
                 color: #d45151;
                 font-style: normal;
@@ -407,14 +553,17 @@ export class UmClass {
                 .um-container {
                     max-width: 720px;
                 }
+
                 .um-nav-btn {
-                    width: 110px;
+                    min-width: 110px;
                     font-size: 14px;
                     height: 40px;
                 }
+
                 .um-nav-title {
                     font-size: 30px;
                 }
+
                 .um-rb-amount {
                     font-size: 36px;
                     line-height: 36px;
@@ -490,7 +639,7 @@ export class UmClass {
                 }
             }
         `);
-        const htmlString = html `<div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`);

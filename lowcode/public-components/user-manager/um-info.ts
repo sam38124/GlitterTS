@@ -4,7 +4,6 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
-import { UMVoucher } from './um-voucher.js';
 
 const html = String.raw;
 
@@ -94,10 +93,6 @@ export class UMInfo {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
 
-        if (glitter.getUrlParameter('page') === 'voucher-list') {
-            return UMVoucher.main(gvc, widget, subData);
-        }
-
         const vm = {
             data: {} as User,
             memberNext: {} as Member | undefined,
@@ -177,37 +172,39 @@ export class UMInfo {
                                                 gvc,
                                                 tag: 'level-of-detail',
                                                 title: '規則說明',
-                                                innerHTML: html` <div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
-                                                        <div class="um-title">會員等級規則</div>
-                                                        <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
-                                                    </div>
-                                                    ${(() => {
-                                                        const members = JSON.parse(JSON.stringify(vm.data.member)) as Member[];
-                                                        members.pop();
-                                                        return members
-                                                            .reverse()
-                                                            .map((leadData) => {
-                                                                const detail = (() => {
-                                                                    const condition_val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
-                                                                    if (leadData.og.condition.type === 'total') {
-                                                                        if (leadData.og.duration.type === 'noLimit') {
-                                                                            return `累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                innerHTML: (gvc: GVC) => {
+                                                    return html`<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
+                                                            <div class="um-title">會員等級規則</div>
+                                                            <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
+                                                        </div>
+                                                        ${(() => {
+                                                            const members = JSON.parse(JSON.stringify(vm.data.member)) as Member[];
+                                                            members.pop();
+                                                            return members
+                                                                .reverse()
+                                                                .map((leadData) => {
+                                                                    const detail = (() => {
+                                                                        const condition_val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
+                                                                        if (leadData.og.condition.type === 'total') {
+                                                                            if (leadData.og.duration.type === 'noLimit') {
+                                                                                return `累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                            } else {
+                                                                                return `${leadData.og.duration.value}天內累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                            }
                                                                         } else {
-                                                                            return `${leadData.og.duration.value}天內累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                            return `單筆消費達 NT${condition_val} 即可升級至${leadData.tag_name}`;
                                                                         }
-                                                                    } else {
-                                                                        return `單筆消費達 NT${condition_val} 即可升級至${leadData.tag_name}`;
-                                                                    }
-                                                                })();
-                                                                return html`
-                                                                    <div class="mt-3">
-                                                                        <div class="um-title">${leadData.tag_name}</div>
-                                                                        <div class="um-content">${detail}</div>
-                                                                    </div>
-                                                                `;
-                                                            })
-                                                            .join('');
-                                                    })()}`,
+                                                                    })();
+                                                                    return html`
+                                                                        <div class="mt-3">
+                                                                            <div class="um-title">${leadData.tag_name}</div>
+                                                                            <div class="um-content">${detail}</div>
+                                                                        </div>
+                                                                    `;
+                                                                })
+                                                                .join('');
+                                                        })()}`;
+                                                },
                                             });
                                         })}"
                                     >
@@ -220,52 +217,64 @@ export class UMInfo {
                                                 gvc,
                                                 tag: 'user-qr-code',
                                                 title: '會員條碼',
-                                                innerHTML: gvc.bindView(
-                                                    (() => {
-                                                        const id = glitter.getUUID();
-                                                        let loading = true;
-                                                        let img = '';
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                if (loading) {
-                                                                    return UmClass.spinner('100%');
-                                                                } else {
-                                                                    return html` <div style="text-align: center; vertical-align: middle;">
-                                                                        <img src="${img}" />
-                                                                    </div>`;
-                                                                }
-                                                            },
-                                                            divCreate: {},
-                                                            onCreate: () => {
-                                                                if (loading) {
-                                                                    const si = setInterval(() => {
-                                                                        const qr = (window as any).QRCode;
-                                                                        if (qr) {
-                                                                            qr.toDataURL(
-                                                                                `user-${vm.data.userID}`,
+                                                innerHTML: (gvc) => {
+                                                    return gvc.bindView(
+                                                        (() => {
+                                                            const id = glitter.getUUID();
+                                                            let loading = true;
+                                                            let img = '';
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    if (loading) {
+                                                                        return UmClass.spinner('100%');
+                                                                    } else {
+                                                                        return html` <div style="text-align: center; vertical-align: middle;">
+                                                                            <img src="${img}" />
+                                                                        </div>`;
+                                                                    }
+                                                                },
+                                                                divCreate: {},
+                                                                onCreate: () => {
+                                                                    if (loading) {
+                                                                        glitter.addMtScript(
+                                                                            [
                                                                                 {
-                                                                                    width: 400,
-                                                                                    margin: 2,
+                                                                                    src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
                                                                                 },
-                                                                                (err: any, url: string) => {
-                                                                                    if (err) {
-                                                                                        console.error(err);
-                                                                                        return;
+                                                                            ],
+                                                                            () => {
+                                                                                const si = setInterval(() => {
+                                                                                    const qr = (window as any).QRCode;
+                                                                                    if (qr) {
+                                                                                        qr.toDataURL(
+                                                                                            `user-${vm.data.userID}`,
+                                                                                            {
+                                                                                                width: 400,
+                                                                                                margin: 2,
+                                                                                            },
+                                                                                            (err: any, url: string) => {
+                                                                                                if (err) {
+                                                                                                    console.error(err);
+                                                                                                    return;
+                                                                                                }
+                                                                                                img = url;
+                                                                                                loading = false;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }
+                                                                                        );
+                                                                                        clearInterval(si);
                                                                                     }
-                                                                                    img = url;
-                                                                                    loading = false;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                }
-                                                                            );
-                                                                            clearInterval(si);
-                                                                        }
-                                                                    }, 300);
-                                                                }
-                                                            },
-                                                        };
-                                                    })()
-                                                ),
+                                                                                }, 300);
+                                                                            },
+                                                                            () => {}
+                                                                        );
+                                                                    }
+                                                                },
+                                                            };
+                                                        })()
+                                                    );
+                                                },
                                             });
                                         })}"
                                     >
@@ -563,11 +572,15 @@ export class UMInfo {
             onCreate: () => {
                 if (loadings.view) {
                     UmClass.getUserData(gvc).then((resp: any) => {
-                        vm.data = resp;
-                        const members = JSON.parse(JSON.stringify(vm.data.member)).reverse() as Member[];
-                        vm.memberNext = members.find((dd) => !dd.trigger);
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
+                        try {
+                            vm.data = resp;
+                            const members = JSON.parse(JSON.stringify(vm.data.member)).reverse() as Member[];
+                            vm.memberNext = members.find((dd) => !dd.trigger);
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        } catch (e) {
+                            gvc.glitter.href = './login';
+                        }
                     });
                 }
             },
