@@ -733,7 +733,7 @@ export class Setting_editor {
                                                 })
                                             })
                                             if(!result){
-                                                return 
+                                                return false
                                             }
                                         }
                                         glitter.share.checkData=()=>{return true}
@@ -884,7 +884,7 @@ export class Setting_editor {
                                                                                 class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
                                                                                 ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                onclick="${gvc.event(() => {
+                                                                                onclick="${gvc.event(async() => {
                                                                                     if (dd.type === 'container') {
                                                                                         list.map((d1: any) => {
                                                                                             d1.toggle = false;
@@ -899,7 +899,7 @@ export class Setting_editor {
                                                                                             return;
                                                                                         }
                                                                                         // app-design
-                                                                                        if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                                        if (await click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                             dd.toggle = true;
                                                                                             refreshContainer();
                                                                                         }

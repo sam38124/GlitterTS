@@ -109,7 +109,7 @@ export class Setting_editor {
                                             });
                                         });
                                         if (!result) {
-                                            return;
+                                            return false;
                                         }
                                     }
                                     glitter.share.checkData = () => { return true; };
@@ -241,7 +241,7 @@ export class Setting_editor {
                                                                                 class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
                                                                                 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                onclick="${gvc.event(() => {
+                                                                                onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                                     if (dd.type === 'container') {
                                                         list.map((d1) => {
                                                             d1.toggle = false;
@@ -256,13 +256,13 @@ export class Setting_editor {
                                                             glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                             return;
                                                         }
-                                                        if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                        if ((yield click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                             dd.toggle = true;
                                                             refreshContainer();
                                                         }
                                                         glitter.closeDrawer();
                                                     }
-                                                })}"
+                                                }))}"
                                                                         >
                                                                             ${dd.icon ? html `<img src="${dd.icon}"
                                                                                                   style="width:18px;height:18px;"/>` : ``}
