@@ -1,10 +1,14 @@
 import { FtClass } from './ft-class.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
         var _a, _b;
         const formData = widget.formData;
         const colors = FtClass.getColor(gvc, formData);
+        const footer = {
+            list: [],
+        };
         gvc.addStyle(`
             .f-title {
                 font-size: 16px;
@@ -129,30 +133,67 @@ export class Footer02 {
                     <div class="row f-row">
                         ${(() => {
             try {
-                return formData.list
-                    .map((item) => {
-                    return html `<div class="f-ul-div col-12 col-md-4 mt-2">
-                                            <h6 class="heading-xxs mb-3 f-title">${item.title}</h6>
-                                            <ul class="list-unstyled mb-7 f-ul">
-                                                ${item.child
-                        .map((chi) => {
-                        return html `<li
-                                                            class="f-li"
-                                                            style="${chi.page ? 'cursor: pointer;' : ''}"
-                                                            onclick="${gvc.event(() => {
-                            if (chi.page) {
-                                gvc.glitter.href = chi.page;
+                return gvc.bindView((() => {
+                    const id = gvc.glitter.getUUID();
+                    let loading = true;
+                    return {
+                        bind: id,
+                        view: () => {
+                            if (loading) {
+                                return '';
                             }
-                        })}"
-                                                        >
-                                                            <a class="f-aclass">${chi.title}</a>
-                                                        </li>`;
-                    })
-                        .join('')}
-                                            </ul>
-                                        </div>`;
-                })
-                    .join('');
+                            else {
+                                return footer.list
+                                    .map((data) => {
+                                    return html ` <div class="f-ul-div col-12 col-md-4 mt-2">
+                                                                <h6
+                                                                    class="heading-xxs mb-3 f-title"
+                                                                    onclick="${gvc.event(() => {
+                                        if (data.link) {
+                                            gvc.glitter.href = data.link;
+                                        }
+                                    })}"
+                                                                >
+                                                                    ${data.title}
+                                                                </h6>
+                                                                <ul class="list-unstyled mb-7 f-ul">
+                                                                    ${data.items
+                                        .map((chi) => {
+                                        return html `<li
+                                                                                class="f-li"
+                                                                                style="${chi.link ? 'cursor: pointer;' : ''}"
+                                                                                onclick="${gvc.event(() => {
+                                            if (chi.link) {
+                                                gvc.glitter.href = chi.link;
+                                            }
+                                        })}"
+                                                                            >
+                                                                                <a class="f-aclass">${chi.title}</a>
+                                                                            </li>`;
+                                    })
+                                        .join('')}
+                                                                </ul>
+                                                            </div>`;
+                                })
+                                    .join('');
+                            }
+                        },
+                        divCreate: {
+                            class: document.body.clientWidth > 768 ? 'd-flex gap-5' : '',
+                        },
+                        onCreate: () => {
+                            if (loading) {
+                                ApiUser.getPublicConfig('footer-setting', 'manager').then((data) => {
+                                    if (data.result && data.response.value) {
+                                        footer.list = data.response.value;
+                                    }
+                                    loading = false;
+                                    gvc.notifyDataChange(id);
+                                });
+                            }
+                        },
+                    };
+                })());
             }
             catch (error) {
                 return '';

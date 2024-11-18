@@ -167,7 +167,7 @@ class App {
                 for (const dd of await database_1.default.query(`SELECT *
                      FROM \`${cf.copyApp}\`.t_user_public_config`, [])) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if ((dd.userID !== 'manager') && (!['robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key))) {
+                    if (dd.userID !== 'manager' && !['robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
                         await trans.execute(`
                                 insert into \`${cf.appName}\`.t_user_public_config
                                 SET ?;
@@ -177,6 +177,22 @@ class App {
             }
             if (privateConfig) {
                 for (const dd of privateConfig) {
+                    if (dd.key === 'logistics_setting') {
+                        dd.value = {
+                            form: [],
+                            info: '<p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\' id="isPasted">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>商家會約定再次配送的時間，您將支付額外的運費。</p>',
+                            support: ['OKMARTC2C', 'shop', 'FAMIC2C', 'UNIMARTC2C'],
+                            custom_delivery: [],
+                            whiteListExpand: {},
+                        };
+                    }
+                    if (dd.key === 'glitter_shipment') {
+                        dd.value = {
+                            volume: [],
+                            weight: [],
+                            selectCalc: 'volume',
+                        };
+                    }
                     await trans.execute(`
                             insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
                             values (?, ?, ?, ?);
@@ -215,14 +231,16 @@ class App {
                 await database_1.default.query(b.sql, [b.obj]);
             }
             await database_1.default.query(`insert into \`${cf.appName}\`.t_user_public_config
-                            set ?`, [{
+                            set ?`, [
+                {
                     key: 'store-information',
                     user_id: 'manager',
                     updated_at: new Date(),
                     value: JSON.stringify({
-                        shop_name: cf.name
-                    })
-                }]);
+                        shop_name: cf.name,
+                    }),
+                },
+            ]);
             await (0, index_js_1.createAPP)(cf);
             return true;
         }
@@ -411,11 +429,11 @@ class App {
             brand: base.brand,
             userData: userData.userData,
             domain: base.domain,
-            user_id: userID
+            user_id: userID,
         };
     }
     static async preloadPageData(appName, refer_page) {
-        const start = (new Date()).getTime();
+        const start = new Date().getTime();
         const page = await template_js_1.Template.getRealPage(refer_page, appName);
         console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
         const app = new App();
@@ -773,8 +791,7 @@ server {
             try {
                 await new backend_service_js_1.BackendService(config.appName).stopServer();
             }
-            catch (e) {
-            }
+            catch (e) { }
             await database_1.default.execute(`delete
                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${database_1.default.escape(config.appName)}

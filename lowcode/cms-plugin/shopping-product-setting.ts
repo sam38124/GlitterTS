@@ -2679,7 +2679,7 @@ export class ShoppingProductSetting {
                                                                                                                                 for (const url of urlArray) {
                                                                                                                                     editor.html.insert(html`<img
                                                                                                                                         src="${url.data}"
-                                                                                                                                        style="max-width: 25%;"
+                                                                                                                                        style="width: 25%;"
                                                                                                                                     />`);
                                                                                                                                 }
                                                                                                                                 editor.undo.saveStep();

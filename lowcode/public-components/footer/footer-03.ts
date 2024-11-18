@@ -1,12 +1,27 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { FtClass } from './ft-class.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 
 const html = String.raw;
+
+type FooterObject = {
+    title: string;
+    link: string;
+};
+
+type FooterItem = {
+    title: string;
+    link: string;
+    items: FooterObject[];
+};
 
 export class Footer02 {
     static main(gvc: GVC, widget: any, subData: any) {
         const formData = widget.formData;
         const colors = FtClass.getColor(gvc, formData);
+        const footer = {
+            list: [],
+        };
 
         gvc.addStyle(`
             .f-title {
@@ -97,7 +112,7 @@ export class Footer02 {
                                             return html` <div class="f-icon-div">
                                                 <div
                                                     onclick="${gvc.event(() => {
-                                                        gvc.glitter.href=item.link
+                                                        gvc.glitter.href = item.link;
                                                     })}"
                                                 >
                                                     <img
@@ -132,30 +147,68 @@ export class Footer02 {
                     <div class="row f-row">
                         ${(() => {
                             try {
-                                return formData.list
-                                    .map((item: { title: string; child: { title: string; page?: string }[] }) => {
-                                        return html`<div class="f-ul-div col-12 col-md-4 mt-2">
-                                            <h6 class="heading-xxs mb-3 f-title">${item.title}</h6>
-                                            <ul class="list-unstyled mb-7 f-ul">
-                                                ${item.child
-                                                    .map((chi) => {
-                                                        return html`<li
-                                                            class="f-li"
-                                                            style="${chi.page ? 'cursor: pointer;' : ''}"
-                                                            onclick="${gvc.event(() => {
-                                                                if (chi.page) {
-                                                                    gvc.glitter.href=chi.page
-                                                                }
-                                                            })}"
-                                                        >
-                                                            <a class="f-aclass">${chi.title}</a>
-                                                        </li>`;
-                                                    })
-                                                    .join('')}
-                                            </ul>
-                                        </div>`;
-                                    })
-                                    .join('');
+                                return gvc.bindView(
+                                    (() => {
+                                        const id = gvc.glitter.getUUID();
+                                        let loading = true;
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                if (loading) {
+                                                    return '';
+                                                } else {
+                                                    return footer.list
+                                                        .map((data: FooterItem) => {
+                                                            return html` <div class="f-ul-div col-12 col-md-4 mt-2">
+                                                                <h6
+                                                                    class="heading-xxs mb-3 f-title"
+                                                                    onclick="${gvc.event(() => {
+                                                                        if (data.link) {
+                                                                            gvc.glitter.href = data.link;
+                                                                        }
+                                                                    })}"
+                                                                >
+                                                                    ${data.title}
+                                                                </h6>
+                                                                <ul class="list-unstyled mb-7 f-ul">
+                                                                    ${data.items
+                                                                        .map((chi) => {
+                                                                            return html`<li
+                                                                                class="f-li"
+                                                                                style="${chi.link ? 'cursor: pointer;' : ''}"
+                                                                                onclick="${gvc.event(() => {
+                                                                                    if (chi.link) {
+                                                                                        gvc.glitter.href = chi.link;
+                                                                                    }
+                                                                                })}"
+                                                                            >
+                                                                                <a class="f-aclass">${chi.title}</a>
+                                                                            </li>`;
+                                                                        })
+                                                                        .join('')}
+                                                                </ul>
+                                                            </div>`;
+                                                        })
+                                                        .join('');
+                                                }
+                                            },
+                                            divCreate: {
+                                                class: document.body.clientWidth > 768 ? 'd-flex gap-5' : '',
+                                            },
+                                            onCreate: () => {
+                                                if (loading) {
+                                                    ApiUser.getPublicConfig('footer-setting', 'manager').then((data) => {
+                                                        if (data.result && data.response.value) {
+                                                            footer.list = data.response.value;
+                                                        }
+                                                        loading = false;
+                                                        gvc.notifyDataChange(id);
+                                                    });
+                                                }
+                                            },
+                                        };
+                                    })()
+                                );
                             } catch (error) {
                                 return '';
                             }
