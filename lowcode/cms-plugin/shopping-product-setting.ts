@@ -443,6 +443,9 @@ class Excel {
 
 export class ShoppingProductSetting {
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
+        (window.parent as any).glitter.share.checkData=()=>{
+            return false
+        }
         const html = String.raw;
         const glitter = gvc.glitter;
 

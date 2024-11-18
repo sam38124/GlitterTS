@@ -366,6 +366,9 @@ class Excel {
 }
 export class ShoppingProductSetting {
     static main(gvc, type = 'product') {
+        window.parent.glitter.share.checkData = () => {
+            return false;
+        };
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {

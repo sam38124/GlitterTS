@@ -11,6 +11,9 @@ export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const html = String.raw;
         const glitter = gvc.glitter;
+        glitter.share.checkData = () => {
+            return true;
+        };
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             let initial = false;
@@ -84,6 +87,10 @@ export class Setting_editor {
                             const authConfig = permissionData.config.auth;
                             let list = [];
                             function click_item(index) {
+                                if (!glitter.share.checkData()) {
+                                    alert('是否確認跳轉');
+                                    return;
+                                }
                                 const itemPage = items[parseInt(index)].page;
                                 const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
                                 if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
