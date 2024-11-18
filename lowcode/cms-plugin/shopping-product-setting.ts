@@ -443,9 +443,9 @@ class Excel {
 
 export class ShoppingProductSetting {
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
-        (window.parent as any).glitter.share.checkData=()=>{
-            return false
-        }
+        (window.parent as any).glitter.share.checkData = () => {
+            return false;
+        };
         const html = String.raw;
         const glitter = gvc.glitter;
 
@@ -2210,10 +2210,10 @@ export class ShoppingProductSetting {
         } else {
             obj.vm.replaceData = postMD;
         }
-        const origin_data=JSON.stringify(postMD);
-        (window.parent as any).glitter.share.checkData=()=>{
-            return origin_data===JSON.stringify(postMD)
-        }
+        const origin_data = JSON.stringify(postMD);
+        (window.parent as any).glitter.share.checkData = () => {
+            return origin_data === JSON.stringify(postMD);
+        };
         const html = String.raw;
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
@@ -2675,13 +2675,21 @@ export class ShoppingProductSetting {
                                                                                                                 setHeight: '100vh',
                                                                                                                 hiddenBorder: true,
                                                                                                                 insertImageEvent: (editor) => {
+                                                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                                    editor.html.insert(mark);
+                                                                                                                    editor.undo.saveStep();
+
                                                                                                                     imageLibrary.selectImageLibrary(
                                                                                                                         gvc,
                                                                                                                         (urlArray) => {
                                                                                                                             if (urlArray.length > 0) {
-                                                                                                                                for (const url of urlArray) {
-                                                                                                                                    editor.html.insert(html`<img src="${url.data}" />`);
-                                                                                                                                }
+                                                                                                                                const imgHTML = urlArray
+                                                                                                                                    .map((url) => {
+                                                                                                                                        return html`<img src="${url.data}" />`;
+                                                                                                                                    })
+                                                                                                                                    .join('');
+                                                                                                                                editor.html.set(editor.html.get(0).replace(mark, imgHTML));
                                                                                                                                 editor.undo.saveStep();
                                                                                                                             } else {
                                                                                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -2694,7 +2702,13 @@ export class ShoppingProductSetting {
                                                                                                                         >
                                                                                                                             圖片庫
                                                                                                                         </div>`,
-                                                                                                                        { mul: true }
+                                                                                                                        {
+                                                                                                                            mul: true,
+                                                                                                                            cancelEvent: () => {
+                                                                                                                                editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                                editor.undo.saveStep();
+                                                                                                                            },
+                                                                                                                        }
                                                                                                                     );
                                                                                                                 },
                                                                                                                 callback: (text) => {

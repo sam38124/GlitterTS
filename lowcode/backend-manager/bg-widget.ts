@@ -1596,7 +1596,7 @@ ${obj.default ?? ''}</textarea
                                       )}
                             </div>`;
                     } catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
@@ -1611,7 +1611,6 @@ ${obj.default ?? ''}</textarea
                                 timer++;
                                 if (created.header) {
                                     const checkbox = obj.filter.length > 0;
-                                    console.log(`query==>`, ids.tr);
                                     const tr = gvc.glitter.document.querySelector(`.${ids.tr}`) as HTMLElement;
 
                                     tr?.querySelectorAll('td').forEach((td: any, index: number) => {

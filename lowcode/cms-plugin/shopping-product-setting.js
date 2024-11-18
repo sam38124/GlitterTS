@@ -2275,11 +2275,18 @@ export class ShoppingProductSetting {
                                                                                 setHeight: '100vh',
                                                                                 hiddenBorder: true,
                                                                                 insertImageEvent: (editor) => {
+                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                    editor.html.insert(mark);
+                                                                                    editor.undo.saveStep();
                                                                                     imageLibrary.selectImageLibrary(gvc, (urlArray) => {
                                                                                         if (urlArray.length > 0) {
-                                                                                            for (const url of urlArray) {
-                                                                                                editor.html.insert(html `<img src="${url.data}" />`);
-                                                                                            }
+                                                                                            const imgHTML = urlArray
+                                                                                                .map((url) => {
+                                                                                                return html `<img src="${url.data}" />`;
+                                                                                            })
+                                                                                                .join('');
+                                                                                            editor.html.set(editor.html.get(0).replace(mark, imgHTML));
                                                                                             editor.undo.saveStep();
                                                                                         }
                                                                                         else {
@@ -2291,7 +2298,13 @@ export class ShoppingProductSetting {
                                                                                                                             style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                         >
                                                                                                                             圖片庫
-                                                                                                                        </div>`, { mul: true });
+                                                                                                                        </div>`, {
+                                                                                        mul: true,
+                                                                                        cancelEvent: () => {
+                                                                                            editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                            editor.undo.saveStep();
+                                                                                        },
+                                                                                    });
                                                                                 },
                                                                                 callback: (text) => {
                                                                                     postMD.content = text;

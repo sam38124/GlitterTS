@@ -1332,7 +1332,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             </div>`;
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
@@ -1348,7 +1348,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 timer++;
                                 if (created.header) {
                                     const checkbox = obj.filter.length > 0;
-                                    console.log(`query==>`, ids.tr);
                                     const tr = gvc.glitter.document.querySelector(`.${ids.tr}`);
                                     tr === null || tr === void 0 ? void 0 : tr.querySelectorAll('td').forEach((td, index) => {
                                         if (checkbox && index === 0) {

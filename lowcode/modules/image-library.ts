@@ -27,6 +27,7 @@ export class imageLibrary {
         tag: string;
         plus: (gvc: GVC, callback: (file: FileItem[]) => void, fileType?: string) => void;
         edit: (file: FileItem, callback: (file?: FileItem) => void) => void;
+        cancelEvent?: () => void;
     }) {
         const gvc = cf.gvc;
         const vm: {
@@ -213,7 +214,6 @@ export class imageLibrary {
                                                                     } else {
                                                                         let replaceIndex = vm.link.findIndex((data) => data.id == replace.id);
                                                                         vm.link[replaceIndex] = replace;
-                                                                        // console.log("vm.link -- " , vm.link);
                                                                         save(() => {
                                                                             gvc.notifyDataChange(vm.id);
                                                                         });
@@ -339,7 +339,7 @@ export class imageLibrary {
                                                             </div>
                                                         `;
                                                     } catch (e) {
-                                                        console.log(e);
+                                                        console.error(e);
                                                         return ``;
                                                     }
                                                 },
@@ -355,7 +355,7 @@ export class imageLibrary {
                                         })
                                         .join('');
                                 } catch (e) {
-                                    console.log(`error=>`, e);
+                                    console.error(`error=>`, e);
                                     return ``;
                                 }
                             },
@@ -637,7 +637,6 @@ export class imageLibrary {
                                                     let group = vm.link.filter((item2) => {
                                                         return item2.tag && item2.tag.includes(vm.tag ?? '');
                                                     });
-                                                    console.log('array -- ', group);
                                                     return renderItems(group);
                                                 }
                                                 return ``;
@@ -966,7 +965,7 @@ export class imageLibrary {
                     });
                 }
 
-                function save(finish: () => void) {
+                function save(finish: () => void, text?: string) {
                     clearNoNeedData(vm.link);
                     dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
@@ -975,7 +974,7 @@ export class imageLibrary {
                         user_id: 'manager',
                     }).then((data) => {
                         dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: '儲存成功' });
+                        dialog.successMessage({ text: text ?? '儲存成功' });
                         finish();
                     });
                 }
@@ -985,6 +984,9 @@ export class imageLibrary {
                         return [
                             BgWidget.cancel(
                                 gvc.event(() => {
+                                    if (cf.cancelEvent) {
+                                        cf.cancelEvent();
+                                    }
                                     gvc.closeDialog();
                                 })
                             ),
@@ -1010,7 +1012,7 @@ export class imageLibrary {
                                                 cf.getSelect(vm.link);
                                                 save(() => {
                                                     gvc.closeDialog();
-                                                });
+                                                }, '刪除成功');
 
                                                 // save(() => {
                                                 //     gvc.notifyDataChange(vm.id);
@@ -1038,6 +1040,9 @@ export class imageLibrary {
                         return [
                             BgWidget.cancel(
                                 gvc.event(() => {
+                                    if (cf.cancelEvent) {
+                                        cf.cancelEvent();
+                                    }
                                     if (vm.type == 'folderView' || vm.type == 'folderADD') {
                                         vm.type = 'folder';
                                         gvc.notifyDataChange(vm.id);
@@ -1095,6 +1100,11 @@ export class imageLibrary {
                     }
                 }
             },
+            closeCallback: () => {
+                if (cf.cancelEvent) {
+                    cf.cancelEvent();
+                }
+            },
         });
     }
 
@@ -1106,6 +1116,7 @@ export class imageLibrary {
             key?: string;
             mul?: boolean;
             tag?: string;
+            cancelEvent?: () => void;
         }
     ) {
         let alt: any = '';
@@ -1279,6 +1290,11 @@ export class imageLibrary {
                     },
                     closeCallback: () => {},
                 });
+            },
+            cancelEvent: () => {
+                if (opt?.cancelEvent) {
+                    opt.cancelEvent();
+                }
             },
         });
     }

@@ -947,7 +947,7 @@ export class imageLibrary {
                     });
                 }
 
-                function save(finish: () => void) {
+                function save(finish: () => void, text?: string) {
                     clearNoNeedData(vm.link);
                     dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
@@ -956,7 +956,7 @@ export class imageLibrary {
                         user_id: 'manager',
                     }).then((data) => {
                         dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: '儲存成功' });
+                        dialog.successMessage({ text: text ?? '儲存成功' });
                         finish();
                     });
                 }
@@ -991,7 +991,7 @@ export class imageLibrary {
                                                 cf.getSelect(vm.link);
                                                 save(() => {
                                                     gvc.closeDialog();
-                                                });
+                                                }, '刪除成功');
                                             }
                                         },
                                     });
