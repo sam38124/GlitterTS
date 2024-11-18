@@ -131,7 +131,7 @@ router.post('/checkout', async (req, resp) => {
             custom_form_data: req.body.custom_form_data,
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
-            give_away: req.body.give_away
+            give_away: req.body.give_away,
         }));
     }
     catch (err) {
@@ -167,7 +167,7 @@ router.post('/checkout/preview', async (req, resp) => {
             checkOutType: req.body.checkOutType,
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
-            give_away: req.body.give_away
+            give_away: req.body.give_away,
         }, 'preview'));
     }
     catch (err) {
@@ -291,8 +291,7 @@ router.get('/order/payment-method', async (req, resp) => {
         });
         return response_1.default.succ(resp, keyData);
     }
-    catch (e) {
-    }
+    catch (e) { }
 });
 router.get('/payment/method', async (req, resp) => {
     try {
@@ -435,11 +434,42 @@ router.get('/voucher', async (req, resp) => {
         if (req.query.voucher_type) {
             query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
         }
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).querySql(query, {
+        const vouchers = await new shopping_1.Shopping(req.get('g-app'), req.body.token).querySql(query, {
             page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
             id: req.query.id,
-        }));
+        });
+        if (!(await ut_permission_1.UtPermission.isManager(req))) {
+            const userClass = new user_js_1.User(req.get('g-app'));
+            const userLevels = await userClass.getUserLevel([{ userId: req.body.token.userID }]);
+            const groupList = await userClass.getUserGroups();
+            vouchers.data = vouchers.data.filter((d) => {
+                const dd = d.content;
+                if (dd.target === 'customer') {
+                    return dd.targetList.includes(req.body.token.userID);
+                }
+                if (dd.target === 'levels') {
+                    if (userLevels[0]) {
+                        return dd.targetList.includes(userLevels[0].data.id);
+                    }
+                    return false;
+                }
+                if (dd.target === 'group') {
+                    if (!groupList.result) {
+                        return false;
+                    }
+                    let pass = false;
+                    for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
+                        if (!pass && group.users.some((item) => item.userID === req.body.token.userID)) {
+                            pass = true;
+                        }
+                    }
+                    return pass;
+                }
+                return true;
+            });
+        }
+        return response_1.default.succ(resp, vouchers);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -466,29 +496,28 @@ async function redirect_link(req, resp) {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8"/>
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'check_out_finish',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}',
-                            },
-                        })
-                );
-            } catch (e) {
-            }
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'check_out_finish',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -748,7 +777,7 @@ router.get('/product', async (req, resp) => {
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
-            filter_visible: req.query.filter_visible
+            filter_visible: req.query.filter_visible,
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -771,7 +800,7 @@ router.get('/product/variants', async (req, resp) => {
             id_list: req.query.id_list,
             order_by: req.query.order_by,
             stockCount: req.query.stockCount,
-            productType: req.query.productType
+            productType: req.query.productType,
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -909,12 +938,13 @@ router.post('/apple-webhook', async (req, resp) => {
             maxBodyLength: Infinity,
             url: 'https://buy.itunes.apple.com/verifyReceipt',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            data: req.body.base64
+            data: req.body.base64,
         };
         const receipt = await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -928,47 +958,51 @@ router.post('/apple-webhook', async (req, resp) => {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No Receipt.Cant find receipt.', null);
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return (`${dd.product_id}`).includes('ai_points_') && dd.in_app_ownership_type === "PURCHASED";
+            return `${dd.product_id}`.includes('ai_points_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
                                            from \`${req.get('g-app')}\`.t_ai_points
                                            where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points
-                                set ?`, [{
+                                set ?`, [
+                    {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
                         money: parseInt(b.product_id.replace('ai_points_', ''), 10) * 10,
                         status: 1,
                         note: JSON.stringify({
-                            "text": "apple內購加值",
-                            "receipt": receipt
-                        })
-                    }]);
+                            text: 'apple內購加值',
+                            receipt: receipt,
+                        }),
+                    },
+                ]);
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return (`${dd.product_id}`).includes('sms_') && dd.in_app_ownership_type === "PURCHASED";
+            return `${dd.product_id}`.includes('sms_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
                                            from \`${req.get('g-app')}\`.t_sms_points
                                            where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points
-                                set ?`, [{
+                                set ?`, [
+                    {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
                         money: parseInt(b.product_id.replace('sms_', ''), 10) * 10,
                         status: 1,
                         note: JSON.stringify({
-                            "text": "apple內購加值",
-                            "receipt": receipt
-                        })
-                    }]);
+                            text: 'apple內購加值',
+                            receipt: receipt,
+                        }),
+                    },
+                ]);
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd) => {
-            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === "PURCHASED";
+            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             if (!(await database_js_1.default.query(`select count(1) from shopnex.t_checkout where cart_token=?`, [b.transaction_id]))[0]['count(1)']) {
                 const app_info = (await database_js_1.default.query(`select dead_line, user
@@ -976,9 +1010,7 @@ router.post('/apple-webhook', async (req, resp) => {
                                               where appName = ?`, [req.body.app_name]))[0];
                 const user = (await database_js_1.default.query(`SELECT *
                                           FROM shopnex.t_user
-                                          where userID = ?`, [
-                    app_info.user
-                ]))[0];
+                                          where userID = ?`, [app_info.user]))[0];
                 const start = (() => {
                     if (new Date(app_info.dead_line).getTime() > new Date().getTime()) {
                         return new Date(app_info.dead_line);
@@ -991,10 +1023,7 @@ router.post('/apple-webhook', async (req, resp) => {
                 await database_js_1.default.query(`update glitter.app_config
                             set dead_line=?,
                                 plan=?
-                            where appName = ?`, [start,
-                    `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'),
-                    req.body.app_name
-                ]);
+                            where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
                 const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
                     return `${b.product_id}` === d1;
                 });
@@ -1006,50 +1035,52 @@ router.post('/apple-webhook', async (req, resp) => {
                         status: 1,
                         email: user.userData.email,
                         orderData: JSON.stringify({
-                            "email": user.userData.email,
-                            "total": money,
-                            "method": "ALL",
-                            "rebate": 0,
-                            "orderID": b.transaction_id,
-                            "discount": 0,
-                            "lineItems": [{
-                                    "id": 289,
-                                    "sku": b.product_id,
-                                    "spec": [['輕便電商方案', '標準電商方案', '通路電商方案', '行動電商方案', '旗艦電商方案'][index]],
-                                    "count": 1,
-                                    "title": "SHOPNEX會員方案",
-                                    "rebate": 0,
-                                    "collection": [],
-                                    "sale_price": money,
-                                    "shipment_obj": { "type": "weight", "value": 0 },
-                                    "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png",
-                                    "discount_price": 0
-                                }],
-                            "user_info": {
-                                "email": user.userData.email,
-                                "appName": req.body.app_name,
-                                "company": "",
-                                "gui_number": "",
-                                "invoice_type": "me"
+                            email: user.userData.email,
+                            total: money,
+                            method: 'ALL',
+                            rebate: 0,
+                            orderID: b.transaction_id,
+                            discount: 0,
+                            lineItems: [
+                                {
+                                    id: 289,
+                                    sku: b.product_id,
+                                    spec: [['輕便電商方案', '標準電商方案', '通路電商方案', '行動電商方案', '旗艦電商方案'][index]],
+                                    count: 1,
+                                    title: 'SHOPNEX會員方案',
+                                    rebate: 0,
+                                    collection: [],
+                                    sale_price: money,
+                                    shipment_obj: { type: 'weight', value: 0 },
+                                    preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png',
+                                    discount_price: 0,
+                                },
+                            ],
+                            user_info: {
+                                email: user.userData.email,
+                                appName: req.body.app_name,
+                                company: '',
+                                gui_number: '',
+                                invoice_type: 'me',
                             },
-                            "code_array": [],
-                            "use_rebate": 0,
-                            "use_wallet": "0",
-                            "user_email": user.userData.email,
-                            "orderSource": "",
-                            "voucherList": [],
-                            "shipment_fee": 0,
-                            "customer_info": { "payment_select": "ecPay" },
-                            "useRebateInfo": { "point": 0 },
-                            "payment_setting": { "TYPE": "ecPay" },
-                            "user_rebate_sum": 0,
-                            "off_line_support": { "atm": false, "line": false, "cash_on_delivery": false },
-                            "payment_info_atm": { "bank_code": "", "bank_name": "", "bank_user": "", "bank_account": "" },
-                            "shipment_support": [],
-                            "shipment_selector": [],
-                            "payment_info_line_pay": { "text": "" }
-                        })
-                    }
+                            code_array: [],
+                            use_rebate: 0,
+                            use_wallet: '0',
+                            user_email: user.userData.email,
+                            orderSource: '',
+                            voucherList: [],
+                            shipment_fee: 0,
+                            customer_info: { payment_select: 'ecPay' },
+                            useRebateInfo: { point: 0 },
+                            payment_setting: { TYPE: 'ecPay' },
+                            user_rebate_sum: 0,
+                            off_line_support: { atm: false, line: false, cash_on_delivery: false },
+                            payment_info_atm: { bank_code: '', bank_name: '', bank_user: '', bank_account: '' },
+                            shipment_support: [],
+                            shipment_selector: [],
+                            payment_info_line_pay: { text: '' },
+                        }),
+                    },
                 ]);
             }
         }
@@ -1079,6 +1110,36 @@ router.post('/void_invoice', async (req, resp) => {
             reason: req.body.voidReason,
             createDate: req.body.createDate
         }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/void_allowance', async (req, resp) => {
+    try {
+        let passData = {
+            invoiceNo: req.body.invoiceNo,
+            allowanceNo: req.body.allowanceNo,
+            voidReason: req.body.voidReason
+        };
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).voidAllowance(passData));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/allowance_invoice', async (req, resp) => {
+    try {
+        let passData = {
+            invoiceID: req.body.invoiceID,
+            allowanceData: req.body.allowanceData,
+            orderID: req.body.orderID,
+            orderData: req.body.orderData,
+            allowanceInvoiceTotalAmount: req.body.allowanceInvoiceTotalAmount,
+            itemList: req.body.itemList,
+            invoiceDate: req.body.invoiceDate,
+        };
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).allowanceInvoice(passData));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

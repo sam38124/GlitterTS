@@ -573,6 +573,12 @@ export class HtmlGenerate {
 
     public static setHome = (obj: { page_config?: any; app_config?: any; config: any; editMode?: any; data: any; tag: string; option?: any }) => {
         const glitter = Glitter.glitter;
+        //複寫back_manager的頁面，避免堆棧問題
+        if(obj.tag==='backend_manager'){
+            glitter.setUrlParameter('page','backend_manager')
+            location.reload()
+            return
+        }
 
         glitter.setHome(
             'glitterBundle/plugins/html-render.js',
@@ -589,6 +595,13 @@ export class HtmlGenerate {
     };
     public static changePage = (obj: { page_config?: any; config: any; editMode?: any; data: any; tag: string; goBack: boolean; option?: any; app_config?: any }) => {
         const glitter = Glitter.glitter;
+        //複寫back_manager的頁面，避免堆棧問題
+        if(obj.tag==='backend_manager'){
+            glitter.setUrlParameter('page','backend_manager')
+            location.reload()
+            return
+        }
+
         console.log(`changePage-time:`, (window as any).renderClock.stop());
         glitter.changePage(
             'glitterBundle/plugins/html-render.js',

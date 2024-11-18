@@ -1,28 +1,28 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import { User } from './user.js';
+import {User} from './user.js';
 import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
+import {Invoice} from './invoice.js';
 import e from 'express';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
-import { Workers } from './workers.js';
+import {ManagerNotify} from './notify.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {Recommend} from './recommend.js';
+import {Workers} from './workers.js';
 import axios from 'axios';
-import { Delivery, DeliveryData } from './delivery.js';
-import { saasConfig } from '../../config.js';
-import { SMS } from './sms.js';
-import { LineMessage } from './line-message';
-import {FbMessage} from "./fb-message";
+import {Delivery, DeliveryData} from './delivery.js';
+import {saasConfig} from '../../config.js';
+import {SMS} from './sms.js';
+import {LineMessage} from './line-message';
 import {EcInvoice} from "./EcInvoice";
 import app from "../../app";
+import {FbMessage} from "./fb-message";
 
 type BindItem = {
     id: string;
@@ -36,7 +36,7 @@ type BindItem = {
     times: number;
 };
 
-interface VoucherData {
+export interface VoucherData {
     id: number;
     title: string;
     code?: string;
@@ -322,14 +322,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -378,7 +378,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
                         if (index === -1) {
-                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                            itemRecord.push({id: parseInt(`${item1.id}`, 10), count: item1.count});
                         } else {
                             itemRecord[index].count += item1.count;
                         }
@@ -393,10 +393,10 @@ export class Shopping {
                      FROM \`${this.app}\`.t_stock_recover,
                           \`${this.app}\`.t_checkout
                      WHERE product_id in (${productList
-                         .map((dd) => {
-                             return dd.id;
-                         })
-                         .join(',')})
+                             .map((dd) => {
+                                 return dd.id;
+                             })
+                             .join(',')})
                        and order_id = cart_token
                        and dead_line < ?;`,
                     [new Date()]
@@ -418,7 +418,7 @@ export class Shopping {
                                  SET ?
                                  WHERE 1 = 1
                                    and id = ${stock.product_id}`,
-                                [{ content: JSON.stringify(product.content) }]
+                                [{content: JSON.stringify(product.content)}]
                             );
                         }
                         // 移除紀錄
@@ -488,7 +488,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: (
@@ -525,8 +525,8 @@ export class Shopping {
     ) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -543,7 +543,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -734,7 +734,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -872,7 +872,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
@@ -963,7 +963,7 @@ export class Shopping {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`,
-                                    [{ content: JSON.stringify(pd) }]
+                                    [{content: JSON.stringify(pd)}]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
@@ -990,7 +990,8 @@ export class Shopping {
                             add_on_items.push(b);
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -1013,11 +1014,16 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
+                const data = await rebateClass.getOneRebate({user_id: userData.userID});
                 carData.user_rebate_sum = data?.point || 0;
             }
 
-            function checkDuring(jsonData: { startDate: string; startTime: string; endDate: string | undefined; endTime: string | undefined }) {
+            function checkDuring(jsonData: {
+                startDate: string;
+                startTime: string;
+                endDate: string | undefined;
+                endTime: string | undefined
+            }) {
                 // 獲取當前時間
                 const now = new Date();
                 const currentDateTime = now.getTime();
@@ -1073,7 +1079,8 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
@@ -1093,7 +1100,7 @@ export class Shopping {
                                     id: `${b}`,
                                     status: 'active',
                                 })
-                            ).data ?? { content: {} }
+                            ).data ?? {content: {}}
                         ).content;
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
@@ -1177,7 +1184,7 @@ export class Shopping {
                 });
             });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return { data: carData };
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
@@ -1257,7 +1264,7 @@ export class Shopping {
                 if (carData.user_info.shipment === 'now') {
                     (carData as any).progress = 'finish';
                 }
-                console.log("carData -- " , carData)
+                console.log("carData -- ", carData)
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
@@ -1271,7 +1278,7 @@ export class Shopping {
                 }
                 await trans.commit();
                 await trans.release();
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
+                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1325,15 +1332,15 @@ export class Shopping {
                         keyData.Action === 'main'
                             ? carData.user_info.CVSStoreID // 正式門市
                             : (() => {
-                                  // 測試門市（萊爾富不開放測試）
-                                  if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                      return '1328'; // OK超商
-                                  }
-                                  if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                      return '006598'; // 全家
-                                  }
-                                  return '131386'; // 7-11
-                              })(),
+                                // 測試門市（萊爾富不開放測試）
+                                if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                    return '1328'; // OK超商
+                                }
+                                if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                    return '006598'; // 全家
+                                }
+                                return '131386'; // 7-11
+                            })(),
                 });
                 if (delivery.result) {
                     carData.deliveryData = delivery.data;
@@ -1583,7 +1590,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
+                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
                 );
                 return {
                     result: 'success',
@@ -1608,7 +1615,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1688,10 +1695,10 @@ export class Shopping {
         }
 
         // 確認用戶資訊
-        const userData = (await userClass.getUserData(cart.email, 'account')) ?? { userID: -1 };
+        const userData = (await userClass.getUserData(cart.email, 'account')) ?? {userID: -1};
 
         // 取得顧客會員等級
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const userLevels = await userClass.getUserLevel([{email: cart.email}]);
 
         // 所有優惠券
         const allVoucher: VoucherData[] = (
@@ -1995,7 +2002,6 @@ export class Shopping {
 
     public async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
-
             const update: any = {};
             if (data.status !== undefined) {
                 update.status = data.status;
@@ -2094,7 +2100,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
             if (orderData.customer_info.phone) {
@@ -2417,7 +2423,7 @@ export class Shopping {
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -2653,7 +2659,7 @@ export class Shopping {
                 });
                 return result;
             }
-            return { result: false };
+            return {result: false};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -2733,7 +2739,7 @@ export class Shopping {
                 countArray.unshift((await db.query(monthCheckoutSQL, []))[0]['count(1)']);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2835,7 +2841,7 @@ export class Shopping {
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
+            return {recent: recent_users.length, months: month_users.length};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2875,7 +2881,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2888,8 +2894,8 @@ export class Shopping {
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
                   AND ${
-                      duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`
-                  };
+                        duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`
+                };
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];
@@ -2901,7 +2907,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
-                            product_list.push({ title: item1.title, count: item1.count });
+                            product_list.push({title: item1.title, count: item1.count});
                         } else {
                             product_list[index].count += item1.count;
                         }
@@ -2918,7 +2924,7 @@ export class Shopping {
                 }
             }
 
-            return { series, categories };
+            return {series, categories};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2952,7 +2958,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2980,7 +2986,7 @@ export class Shopping {
                 countArray.unshift(orders[0].c);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3005,7 +3011,7 @@ export class Shopping {
                 countArray.unshift(orders[0].c);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3034,7 +3040,7 @@ export class Shopping {
                 countArray.unshift(total);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3064,7 +3070,7 @@ export class Shopping {
                 });
                 countArray.unshift(total);
             }
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3096,7 +3102,7 @@ export class Shopping {
                 }
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3131,7 +3137,7 @@ export class Shopping {
                 }
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3262,7 +3268,7 @@ export class Shopping {
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        return {array: [], title: col, code: sub ? sub.code : ''};
                     }),
                 };
             } else {
@@ -3375,7 +3381,7 @@ export class Shopping {
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -3406,9 +3412,11 @@ export class Shopping {
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: {
+                                title: string
+                            }) => conf.title === item.title);
                         }
-                        return { title: '', array: [], code: '' };
+                        return {title: '', array: [], code: ''};
                     });
 
                     config.value[index].array = sortList;
@@ -3445,8 +3453,8 @@ export class Shopping {
         content.seo.domain = content.seo.domain || content.title;
         const find_conflict = await db.query(
             `select count(1)
-                                              from \`${this.app}\`.\`t_manager_post\`
-                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`,
+             from \`${this.app}\`.\`t_manager_post\`
+             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`,
             []
         );
         if (find_conflict[0]['count(1)'] > 0) {
@@ -3529,7 +3537,7 @@ export class Shopping {
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = { title, array: [] };
+                node = {title, array: []};
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -3601,9 +3609,9 @@ export class Shopping {
     async putProduct(content: any) {
         const find_conflict = await db.query(
             `select count(1)
-                                              from \`${this.app}\`.\`t_manager_post\`
-                                              where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
-                                                and id != ${content.id}`,
+             from \`${this.app}\`.\`t_manager_post\`
+             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
+               and id != ${content.id}`,
             []
         );
         if (find_conflict[0]['count(1)'] > 0) {
@@ -3652,17 +3660,19 @@ export class Shopping {
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
+                        title: string
+                    }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
+                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({ parent: parentIndex, child: [-1] });
+                    deleteList.push({parent: parentIndex, child: [-1]});
                 }
             });
 
@@ -3696,7 +3706,7 @@ export class Shopping {
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -3722,7 +3732,7 @@ export class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -3759,7 +3769,7 @@ export class Shopping {
         min_price?: string;
         max_price?: string;
         stockCount?: string;
-        productType?:string
+        productType?: string
     }) {
         try {
             let querySql = ['1=1'];
@@ -3777,33 +3787,33 @@ export class Shopping {
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
 
             //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
-            if(query.productType !== 'all'){
-                const queryOR=[]
+            if (query.productType !== 'all') {
+                const queryOR = []
                 if (query.productType) {
                     query.productType.split(',').map((dd) => {
-                        if(dd==='hidden'){
+                        if (dd === 'hidden') {
                             queryOR.push(`(p.content->>'$.visible' = "false")`);
-                        }else{
+                        } else {
                             queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
                         }
                     });
                 } else if (!query.id) {
                     queryOR.push(`(p.content->>'$.productType.product' = "true")`);
                 }
-                querySql.push(`(${queryOR.map((dd)=>{
+                querySql.push(`(${queryOR.map((dd) => {
                     return ` ${dd} `
                 }).join(' or ')})`)
             }
@@ -3866,13 +3876,13 @@ export class Shopping {
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.variant_content) }, data.id]
+                    [{content: JSON.stringify(data.variant_content)}, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
+                    [{content: JSON.stringify(data.product_content)}, data.product_id]
                 );
             }
             return {
@@ -3884,15 +3894,15 @@ export class Shopping {
         }
     }
 
-    async postCustomerInvoice(obj:{
-        orderID : any,
-        invoice_data : any,
-        orderData:any
-    }){
+    async postCustomerInvoice(obj: {
+        orderID: any,
+        invoice_data: any,
+        orderData: any
+    }) {
         await this.putOrder({
-            id:obj.orderData.id,
-            orderData:obj.orderData.orderData,
-            status:obj.orderData.status
+            id: obj.orderData.id,
+            orderData: obj.orderData.orderData,
+            status: obj.orderData.status
         })
         await new Invoice(this.app).postCheckoutInvoice(obj.orderID, true);
         await new Invoice(this.app).updateInvoice({
@@ -3900,11 +3910,12 @@ export class Shopping {
             invoice_data: obj.invoice_data
         })
     }
-    async voidInvoice(obj:{
-        invoice_no:string,
-        reason:string,
-        createDate:string
-    }){
+
+    async voidInvoice(obj: {
+        invoice_no: string,
+        reason: string,
+        createDate: string
+    }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         const passData = {
             "MerchantID": config.merchNO,
@@ -3912,19 +3923,107 @@ export class Shopping {
             "InvoiceDate": obj.createDate,
             "Reason": obj.reason
         }
+        let dbData = await db.query(
+            `SELECT * FROM \`${this.app}\`.t_invoice_memory
+             WHERE invoice_no = ?`,
+            [obj.invoice_no]
+        );
+        dbData = dbData[0]
+        dbData.invoice_data.remark = dbData.invoice_data?.remark??{};
+        dbData.invoice_data.remark.voidReason = obj.reason;
         await EcInvoice.voidInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,
-            app_name:this.app,
+            app_name: this.app,
             invoice_data: passData,
             beta: config.point === 'beta',
         })
         await db.query(
             `UPDATE \`${this.app}\`.t_invoice_memory
-                     SET ?
-                     WHERE invoice_no = ?`,
-            [{ status : 2}, obj.invoice_no]
+             SET ?
+             WHERE invoice_no = ?`,
+            [{status: 2 , invoice_data:JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
         );
+    }
+
+    async allowanceInvoice(obj: {
+        invoiceID: string,
+        allowanceData: any,
+        orderID: string,
+        orderData: any,
+        allowanceInvoiceTotalAmount: string,
+        itemList: any,
+        invoiceDate: string,
+    }) {
+        const config = await app.getAdConfig(this.app, 'invoice_setting');
+        let invoiceData = await db.query(`
+            SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
+        `,[])
+        invoiceData = invoiceData[0]
+        // console.log("obj.allowanceData -- " , invoiceData.invoice_data.original_data.Items);
+        const passData = {
+            "MerchantID": config.merchNO,
+            "InvoiceNo": obj.invoiceID,
+            "InvoiceDate": invoiceData.invoice_data.response.InvoiceDate.split("+")[0],
+            "AllowanceNotify": "E",
+            "CustomerName": invoiceData.invoice_data.original_data.CustomerName,
+            "NotifyPhone": invoiceData.invoice_data.original_data.CustomerPhone,
+            "NotifyMail":invoiceData.invoice_data.original_data.CustomerEmail,
+            "AllowanceAmount": obj.allowanceInvoiceTotalAmount,
+            "Items": obj.allowanceData.invoiceArray
+        }
+        let pass2 = {
+            "MerchantID": config.merchNO,
+            "InvoiceNo": obj.invoiceID,
+            "AllowanceNo":"TZ90991707",
+            "Reason":"error"
+        }
+        await EcInvoice.allowanceInvoice({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name:this.app,
+            allowance_data: passData,
+            beta: config.point === 'beta',
+            db_data: obj.allowanceData,
+            order_id: obj.orderID,
+        })
+        // await EcInvoice.voidAllowance({
+        //     hashKey: config.hashkey,
+        //     hash_IV: config.hashiv,
+        //     merchNO: config.merchNO,
+        //     app_name:this.app,
+        //     invoice_data: pass2,
+        //     beta: config.point === 'beta',
+        // })
+        // await db.query(
+        //     `UPDATE \`${this.app}\`.t_invoice_memory
+        //              SET ?
+        //              WHERE invoice_no = ?`,
+        //     [{ status : 2}, obj.invoice_no]
+        // );
+    }
+    async voidAllowance(obj: {
+        invoiceNo: string,
+        allowanceNo: string,
+        voidReason: string
+    }) {
+        const config = await app.getAdConfig(this.app, 'invoice_setting');
+        const passData = {
+            "MerchantID": config.merchNO,
+            "InvoiceNo": obj.invoiceNo,
+            "AllowanceNo": obj.allowanceNo,
+            "Reason": obj.voidReason
+        }
+        await EcInvoice.voidAllowance({
+            hashKey: config.hashkey,
+            hash_IV: config.hashiv,
+            merchNO: config.merchNO,
+            app_name: this.app,
+            allowance_data: passData,
+            beta: config.point === 'beta',
+        })
+
     }
 }

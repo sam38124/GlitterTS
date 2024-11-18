@@ -28,6 +28,7 @@ const whiteList:{}[] = [
     { url: config.getRoute(config.route.user)+"/login", method: 'POST' },
     { url: config.getRoute(config.route.user)+"/register", method: 'POST' },
     { url: config.getRoute(config.route.app)+"/plugin", method: 'GET' },
+    { url: config.getRoute(config.route.app)+"/version", method: 'GET' },
     { url: config.getRoute(config.route.app)+"/template", method: 'GET' },
     { url: config.getRoute(config.route.template), method: 'GET' },
     { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' },

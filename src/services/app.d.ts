@@ -2,6 +2,7 @@ import { IToken } from '../models/Auth.js';
 export declare class App {
     token?: IToken;
     static getAdConfig(app: string, key: string): Promise<any>;
+    checkVersion(libraryName: string): Promise<any>;
     createApp(cf: {
         appName: string;
         copyApp: string;

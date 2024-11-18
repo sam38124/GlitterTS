@@ -23,7 +23,7 @@ import { saasConfig } from '../../config';
 import { SMS } from './sms.js';
 import { FormCheck } from './form-check.js';
 import { LoginTicket } from 'google-auth-library/build/src/auth/loginticket.js';
-import {AiRobot} from "./ai-robot.js";
+import { AiRobot } from './ai-robot.js';
 
 interface UserQuery {
     page?: number;
@@ -251,7 +251,7 @@ export class User {
     public async createUserHook(userID: string) {
         // 發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
-
+        usData.userData.repeatPwd = undefined;
         await db.query(
             `update \`${this.app}\`.t_user
              set userData=?
@@ -399,9 +399,9 @@ export class User {
         data.userData['fb-id'] = fbResponse.id;
         await db.execute(
             `update \`${this.app}\`.t_user
-                          set userData=?
-                          where userID = ?
-                            and id > 0`,
+             set userData=?
+             where userID = ?
+               and id > 0`,
             [JSON.stringify(data.userData), data.userID]
         );
         const usData: any = await this.getUserData(data.userID, 'userID');
@@ -520,9 +520,9 @@ export class User {
             data.userData.lineID = (userData as any).sub;
             await db.execute(
                 `update \`${this.app}\`.t_user
-                              set userData=?
-                              where userID = ?
-                                and id > 0`,
+                 set userData=?
+                 where userID = ?
+                   and id > 0`,
                 [JSON.stringify(data.userData), data.userID]
             );
             usData.pwd = undefined;
@@ -703,9 +703,9 @@ export class User {
             data.userData['apple-id'] = uid;
             await db.execute(
                 `update \`${this.app}\`.t_user
-                              set userData=?
-                              where userID = ?
-                                and id > 0`,
+                 set userData=?
+                 where userID = ?
+                   and id > 0`,
                 [JSON.stringify(data.userData), data.userID]
             );
             const usData: any = await this.getUserData(data.userID, 'userID');
@@ -908,6 +908,7 @@ export class User {
                                 trigger: false,
                                 og: dd,
                                 leak: leak,
+                                sum: sum,
                             };
                         }
                     }
@@ -1661,15 +1662,15 @@ export class User {
             if (query.id) {
                 await db.query(
                     `delete
-                 FROM \`${this.app}\`.t_user
-                 where id in (?)`,
+                     FROM \`${this.app}\`.t_user
+                     where id in (?)`,
                     [query.id.split(',')]
                 );
             } else if (query.email) {
                 await db.query(
                     `delete
-                 FROM \`${this.app}\`.t_user
-                 where userData->>'$.email'=?`,
+                     FROM \`${this.app}\`.t_user
+                     where userData ->>'$.email'=?`,
                     [query.email]
                 );
             }
@@ -1701,13 +1702,23 @@ export class User {
             });
             register_form.list = register_form.list ?? [];
             FormCheck.initialRegisterForm(register_form.list);
+            //更改密碼
+            if (par.userData.pwd) {
+                if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
+                    await db.query(`update \`${this.app}\`.\`t_user\` set pwd=? where userID = ${db.escape(userID)}`, [await tool.hashPwd(par.userData.pwd)]);
+                } else {
+                    throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
+                        msg: 'email-verify-false',
+                    });
+                }
+            }
             if (par.userData.email && par.userData.email !== userData.userData.email) {
                 const count = (
                     await db.query(
                         `select count(1)
-                                               from \`${this.app}\`.\`t_user\`
-                                               where (userData ->>'$.email' = ${db.escape(par.userData.email)})
-                                                 and (userID != ${db.escape(userID)}) `,
+                         from \`${this.app}\`.\`t_user\`
+                         where (userData ->>'$.email' = ${db.escape(par.userData.email)})
+                           and (userID != ${db.escape(userID)}) `,
                         []
                     )
                 )[0]['count(1)'];
@@ -1732,9 +1743,9 @@ export class User {
                 const count = (
                     await db.query(
                         `select count(1)
-                                               from \`${this.app}\`.\`t_user\`
-                                               where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
-                                                 and (userID != ${db.escape(userID)}) `,
+                         from \`${this.app}\`.\`t_user\`
+                         where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
+                           and (userID != ${db.escape(userID)}) `,
                         []
                     )
                 )[0]['count(1)'];

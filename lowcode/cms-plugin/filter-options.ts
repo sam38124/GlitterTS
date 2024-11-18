@@ -105,6 +105,11 @@ export class FilterOptions {
         created_time: ['', ''],
     };
 
+    static allowanceFilterFrame = {
+        status:[],
+        created_time: ['', ''],
+    };
+
     static orderFunnel = [
         {
             key: 'orderStatus',
@@ -241,6 +246,30 @@ export class FilterOptions {
             },
         },
     ];
+    static allowanceFunnel = [
+        {
+            key: 'status',
+            type: 'multi_checkbox',
+            name: '發票狀態',
+            data: [
+                { key: '1', name: '已開立' },
+                { key: '0', name: '待審核' },
+                { key: '2', name: '已作廢' },
+            ],
+        },
+        {
+            key: 'created_time',
+            type: 'during',
+            name: '開立日期',
+            data: {
+                centerText: '至',
+                list: [
+                    { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                    { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                ],
+            },
+        },
+    ];
 
     static orderOrderBy = [
         { key: 'created_time_desc', value: '訂單時間新 > 舊' },
@@ -259,6 +288,12 @@ export class FilterOptions {
         { key: 'created_time_asc', value: '發票時間舊 > 新' },
         { key: 'order_total_desc', value: '發票金額高 > 低' },
         { key: 'order_total_asc', value: '發票金額低 > 高' },
+    ];
+    static allowanceOrderBy = [
+        { key: 'created_time_desc', value: '發票時間新 > 舊' },
+        { key: 'created_time_asc', value: '發票時間舊 > 新' },
+        { key: 'invoiceAmount_desc', value: '折讓金額高 > 低' },
+        { key: 'invoiceAmount_asc', value: '折讓金額低 > 高' },
     ];
 
     static orderSelect = [
@@ -285,6 +320,11 @@ export class FilterOptions {
         { key: 'phone', value: '買受人手機' },
         { key: 'product_name', value: '商品名稱' },
         { key: 'product_number', value: '商品編號' },
+    ];
+    static allowanceSelect = [
+        { key: 'allowance_no', value: '折讓單編號' },
+        { key: 'invoice_no', value: '原發票編號' },
+        { key: 'order_id', value: '原訂單編號' },
     ];
 
     static productFilterFrame = {

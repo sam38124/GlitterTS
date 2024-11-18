@@ -7,7 +7,7 @@ import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
-export class ProductCardC02 {
+export class ProductCard02 {
     static noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
 
     static main(gvc: GVC, widget: any, subData: any) {
@@ -15,6 +15,8 @@ export class ProductCardC02 {
         const wishId = glitter.getUUID();
         const prod = subData.content;
         const titleFontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
+        const borderButtonBgr = glitter.share.globalValue['theme_color.0.border-button-bg'] ?? '#fff';
+        const borderButtonText = glitter.share.globalValue['theme_color.0.border-button-text'] ?? '#333333';
         const vm = {
             quantity: '1',
             data: prod,
@@ -76,8 +78,10 @@ export class ProductCardC02 {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #322b25;
-                color: #ffffff;
+                background: #fff;
+                color: ${borderButtonText};
+                border: 1px solid ${borderButtonBgr};
+                border-radius: 10px;
             }
             .wish-button {
                 cursor: pointer;
@@ -135,7 +139,21 @@ export class ProductCardC02 {
             }
         `);
 
-        return html`<div class="card mb-7 card-border">
+        return html`<div
+            class="card mb-7 card-border"
+            style="cursor: pointer"
+            onclick="${gvc.event(() => {
+                let path = '';
+                if (!(prod.seo && prod.seo.domain)) {
+                    glitter.setUrlParameter('product_id', subData.id);
+                    path = 'products';
+                } else {
+                    glitter.setUrlParameter('product_id', undefined);
+                    path = `products/${prod.seo.domain}`;
+                }
+                changePage(path, 'page', {});
+            })}"
+        >
             <div
                 class="card-img-top parent card-image"
                 style="background-image: url('${(() => {
@@ -150,21 +168,11 @@ export class ProductCardC02 {
                     }
                     return rela_link;
                 })()}')"
-                onclick="${gvc.event(() => {
-                    let path = '';
-                    if (!(prod.seo && prod.seo.domain)) {
-                        glitter.setUrlParameter('product_id', subData.id);
-                        path = 'products';
-                    } else {
-                        glitter.setUrlParameter('product_id', undefined);
-                        path = `products/${prod.seo.domain}`;
-                    }
-                    changePage(path, 'page', {});
-                })}"
             ></div>
             <div
                 class="wishBt wish-button"
-                onclick="${gvc.event(() => {
+                onclick="${gvc.event((e, event) => {
+                    event.stopPropagation();
                     if (CheckInput.isEmpty(GlobalUser.token)) {
                         changePage('login', 'page', {});
                         return;
@@ -224,22 +232,23 @@ export class ProductCardC02 {
                                     return `NT.$ ${minPrice.toLocaleString()}`;
                                 })()}
                             </div>
-                            <div class="text-decoration-line-through d-none card-cost-price">
-                                ${(() => {
-                                    const minPrice = Math.min(
-                                        ...prod.variants.map((dd: { sale_price: number }) => {
-                                            return dd.sale_price;
-                                        })
-                                    );
-                                    const comparePrice =
-                                        (
-                                            prod.variants.find((dd: { sale_price: number }) => {
-                                                return dd.sale_price === minPrice;
-                                            }) ?? {}
-                                        ).compare_price ?? 0;
-                                    return `NT.$ ${(minPrice < comparePrice ? comparePrice : minPrice).toLocaleString()}`;
-                                })()}
-                            </div>
+                            ${(() => {
+                                const minPrice = Math.min(
+                                    ...prod.variants.map((dd: { sale_price: number }) => {
+                                        return dd.sale_price;
+                                    })
+                                );
+                                const comparePrice =
+                                    (
+                                        prod.variants.find((dd: { sale_price: number }) => {
+                                            return dd.sale_price === minPrice;
+                                        }) ?? {}
+                                    ).compare_price ?? 0;
+                                if (comparePrice > 0 && minPrice < comparePrice) {
+                                    return html`<div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+                                }
+                                return '';
+                            })()}
                         </div>
                     </div>
                     <div class="add-cart-child">
@@ -291,4 +300,4 @@ export class ProductCardC02 {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ProductCardC02);
+(window as any).glitter.setModule(import.meta.url, ProductCard02);

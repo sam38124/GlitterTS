@@ -268,5 +268,6 @@ export class FormCheck {
                 }
             });
         }
+        return form_formats;
     }
 }

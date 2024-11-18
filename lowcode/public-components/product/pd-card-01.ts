@@ -7,7 +7,7 @@ import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
-export class ProductCardC01 {
+export class ProductCard01 {
     static noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
 
     static main(gvc: GVC, widget: any, subData: any) {
@@ -138,7 +138,20 @@ export class ProductCardC01 {
             }
         `);
 
-        return html`<div class="card mb-7 card-border">
+        return html`<div
+            class="card mb-7 card-border"
+            onclick="${gvc.event(() => {
+                let path = '';
+                if (!(prod.seo && prod.seo.domain)) {
+                    glitter.setUrlParameter('product_id', subData.id);
+                    path = 'products';
+                } else {
+                    glitter.setUrlParameter('product_id', undefined);
+                    path = `products/${prod.seo.domain}`;
+                }
+                changePage(path, 'page', {});
+            })}"
+        >
             <div
                 class="card-img-top parent card-image"
                 style="background-image: url('${(() => {
@@ -153,17 +166,6 @@ export class ProductCardC01 {
                     }
                     return rela_link;
                 })()}')"
-                onclick="${gvc.event(() => {
-                    let path = '';
-                    if (!(prod.seo && prod.seo.domain)) {
-                        glitter.setUrlParameter('product_id', subData.id);
-                        path = 'products';
-                    } else {
-                        glitter.setUrlParameter('product_id', undefined);
-                        path = `products/${prod.seo.domain}`;
-                    }
-                    changePage(path, 'page', {});
-                })}"
             >
                 <div class="child add-cart-child">
                     <div
@@ -209,7 +211,8 @@ export class ProductCardC01 {
             </div>
             <div
                 class="wishBt wish-button"
-                onclick="${gvc.event(() => {
+                onclick="${gvc.event((e, event) => {
+                    event.stopPropagation();
                     if (CheckInput.isEmpty(GlobalUser.token)) {
                         changePage('login', 'page', {});
                         return;
@@ -269,22 +272,23 @@ export class ProductCardC01 {
                                     return `NT.$ ${minPrice.toLocaleString()}`;
                                 })()}
                             </div>
-                            <div class="text-decoration-line-through d-none card-cost-price">
-                                ${(() => {
-                                    const minPrice = Math.min(
-                                        ...prod.variants.map((dd: { sale_price: number }) => {
-                                            return dd.sale_price;
-                                        })
-                                    );
-                                    const comparePrice =
-                                        (
-                                            prod.variants.find((dd: { sale_price: number }) => {
-                                                return dd.sale_price === minPrice;
-                                            }) ?? {}
-                                        ).compare_price ?? 0;
-                                    return `NT.$ ${(minPrice < comparePrice ? comparePrice : minPrice).toLocaleString()}`;
-                                })()}
-                            </div>
+                            ${(() => {
+                                const minPrice = Math.min(
+                                    ...prod.variants.map((dd: { sale_price: number }) => {
+                                        return dd.sale_price;
+                                    })
+                                );
+                                const comparePrice =
+                                    (
+                                        prod.variants.find((dd: { sale_price: number }) => {
+                                            return dd.sale_price === minPrice;
+                                        }) ?? {}
+                                    ).compare_price ?? 0;
+                                if (comparePrice > 0 && minPrice < comparePrice) {
+                                    return html`<div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+                                }
+                                return '';
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -294,4 +298,4 @@ export class ProductCardC01 {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ProductCardC01);
+(window as any).glitter.setModule(import.meta.url, ProductCard01);

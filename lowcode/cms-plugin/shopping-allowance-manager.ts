@@ -285,8 +285,8 @@ export class ShoppingAllowanceManager {
                                                                 vm.queryType = value;
                                                                 gvc.notifyDataChange(vm.id);
                                                             },
-                                                            default: vm.queryType || 'order_number',
-                                                            options: FilterOptions.invoiceSelect,
+                                                            default: vm.queryType || 'order_id',
+                                                            options: FilterOptions.allowanceSelect,
                                                         }),
                                                         BgWidget.searchFilter(
                                                                 gvc.event((e) => {
@@ -294,12 +294,12 @@ export class ShoppingAllowanceManager {
                                                                     gvc.notifyDataChange(vm.id);
                                                                 }),
                                                                 vm.query || '',
-                                                                '搜尋發票'
+                                                                '搜尋折讓單'
                                                         ),
                                                         BgWidget.funnelFilter({
                                                             gvc,
                                                             callback: () => {
-                                                                ListComp.showRightMenu(FilterOptions.invoiceFunnel);
+                                                                ListComp.showRightMenu(FilterOptions.allowanceFunnel);
 
                                                             },
                                                         }),
@@ -310,7 +310,7 @@ export class ShoppingAllowanceManager {
                                                                 gvc.notifyDataChange(vm.id);
                                                             },
                                                             default: vm.orderString || 'created_time_desc',
-                                                            options: FilterOptions.invoiceOrderBy,
+                                                            options: FilterOptions.allowanceOrderBy,
                                                         }),
                                                     ];
 
@@ -345,11 +345,12 @@ export class ShoppingAllowanceManager {
                                             gvc: gvc,
                                             getData: (vmi) => {
                                                 const limit = 20;
-                                                ApiShop.getInvoice({
+                                                console.log("vm.queryType -- " , vm.queryType)
+                                                ApiShop.getAllowance({
                                                     page: vmi.page - 1,
                                                     limit: limit,
-                                                    search: vm.query || "",
-                                                    searchType: vm.queryType || 'invoice_no',
+                                                    search: vm?.query||"",
+                                                    searchType: vm?.queryType||'order_id',
                                                     orderString: vm.orderString,
                                                     filter: vm.filter,
                                                 }).then((data) => {
@@ -357,69 +358,30 @@ export class ShoppingAllowanceManager {
                                                         return data.response.data.map((dd: any) => {
                                                             return [
                                                                 {
-                                                                    key: '發票號碼',
+                                                                    key: '折讓單編號',
+                                                                    value: dd.allowance_no,
+                                                                },
+                                                                {
+                                                                    key: '原發票編號',
                                                                     value: dd.invoice_no,
                                                                 },
                                                                 {
-                                                                    key: '訂單編號',
+                                                                    key: '原訂單編號',
                                                                     value: dd.order_id,
                                                                 },
                                                                 {
-                                                                    key: '含稅總計',
+                                                                    key: '<div class="text-center">折讓金額</div>',
                                                                     value: html`
-                                                                        <div style="padding-left: 5px;">
-                                                                            ${dd.invoice_data.original_data.SalesAmount}
-                                                                        </div>`,
-                                                                },
-                                                                {
-                                                                    key: '買受人',
-                                                                    value: html`
-                                                                        <div style="padding-left: 5px;">
-                                                                            ${dd.invoice_data.original_data.CustomerName}
+                                                                        <div class="text-center" style="">
+                                                                            ${dd.allowance_data.invoiceAmount??0}
                                                                         </div>`,
                                                                 },
                                                                 {
                                                                     key: '發票日期',
-                                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd hh:mm:ss'),
+                                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd'),
                                                                 },
                                                                 {
-                                                                    key: '發票種類',
-                                                                    value: (() => {
-                                                                        return html`
-                                                                            <div class="d-flex" style="padding-left: 10px;">
-                                                                                ${(()=>{
-                                                                                    switch (dd.progress ?? 'B2B') {
-                                                                                        case 'B2B':
-                                                                                            return BgWidget.notifyInsignia('B2B');
-                                                                                        case 'B2C':
-                                                                                            return BgWidget.warningInsignia('B2C');
-                                                                                    }
-                                                                                })()}
-                                                                            </div>
-                                                                        `
-                                                                        
-                                                                    })(),
-                                                                },
-                                                                {
-                                                                    key: '開立方式',
-                                                                    value: (() => {
-
-                                                                        switch (dd.status ?? '0') {
-                                                                            case 1:
-                                                                                return html`
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        自動
-                                                                                    </div>`;
-                                                                            case 0:
-                                                                                return html`
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        手動
-                                                                                    </div>`;
-                                                                        }
-                                                                    })(),
-                                                                },
-                                                                {
-                                                                    key: '發票狀態',
+                                                                    key: '折讓狀態',
                                                                     value: (() => {
                                                                         switch (dd.status ?? '0') {
                                                                             case -1:
@@ -429,7 +391,7 @@ export class ShoppingAllowanceManager {
                                                                             case 1:
                                                                                 return BgWidget.infoInsignia('已開立');
                                                                             case 2:
-                                                                                return BgWidget.infoInsignia('已折讓');
+                                                                                return BgWidget.notifyInsignia('已作廢');
                                                                         }
                                                                     })(),
                                                                 },
@@ -442,6 +404,7 @@ export class ShoppingAllowanceManager {
                                                         });
                                                     }
 
+                                                    console.log(data.response)
                                                     vm.dataList = data.response.data;
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vmi.originalData = vm.dataList;
@@ -476,14 +439,14 @@ export class ShoppingAllowanceManager {
     public static replaceOrder(gvc: GVC, vm: any) {
         const glitter = gvc.glitter;
         const origData = JSON.parse(JSON.stringify(vm.data));
-        const invoiceData: {
-            id: number;
+        const allowanceData: {
+            allowance_no: string;
             invoice_no: string;
+            order_id:string;
             status: number;
-            order_id: string;
-            invoice_data: any;
+            allowance_data: any;
             create_date: string;
-        } = vm.data;
+        } = (vm.type == 'replace')?vm.data:vm.allowanceData;
         let orderData: {
             id: number;
             cart_token: string;
@@ -511,6 +474,7 @@ export class ShoppingAllowanceManager {
                     id: number;
                     spec: string[];
                     count: string;
+                    preview_image: string;
                     sale_price: number;
                 }[];
                 user_info: {
@@ -569,26 +533,10 @@ export class ShoppingAllowanceManager {
             };
             created_time: string;
         };
-        let userData: any = {};
         const mainViewID = gvc.glitter.getUUID();
         let dataLoading = true;
 
-        function formatDateString(isoDate?: string): string {
-            // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
-            const date = isoDate ? new Date(isoDate) : new Date();
-
-            // 提取年、月、日、時、分
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-
-            // 格式化為所需的字符串
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
-        }
-
-        console.log("invoiceData -- " , invoiceData.create_date)
+        // console.log("invoiceData -- ", invoiceData)
         ApiShop.getOrder({
             page: 0,
             limit: 100,
@@ -603,28 +551,20 @@ export class ShoppingAllowanceManager {
         });
         const vt = {
             paymentBadge: () => {
-                if (invoiceData.status === 0) {
+                if (allowanceData.status === 0) {
                     return BgWidget.notifyInsignia('待審核');
-                } else if (invoiceData.status === 1) {
-                    return BgWidget.infoInsignia('已開立');
-                } else if (invoiceData.status === 0) {
+                } else if (allowanceData.status === 1) {
+                    return BgWidget.infoInsignia('已折讓');
+                } else if (allowanceData.status === 0) {
                     return BgWidget.notifyInsignia('待審核');
                 } else {
                     return BgWidget.notifyInsignia('已作廢');
                 }
             },
         };
-        const child_vm: {
-            type: 'order' | 'user';
-            userID: string;
-        } = {
-            type: 'order',
-            userID: '',
-        };
 
         return gvc.bindView({
             bind: mainViewID,
-            dataList: [{obj: child_vm, key: 'type'}],
             view: () => {
                 try {
                     function getBadgeList() {
@@ -640,16 +580,21 @@ export class ShoppingAllowanceManager {
                             <div class="title-container">
                                 ${BgWidget.goBack(
                                         gvc.event(() => {
-                                            vm.type = 'list';
+                                            if ((vm.type == 'replace')){
+                                                vm.type = 'list';
+                                            }else {
+                                                vm.type = 'replace';
+                                            }
+                                            
                                         })
                                 )}
                                 <div class="d-flex flex-column">
                                     <div class="align-items-center"
                                          style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">
-                                            #${invoiceData.order_id}
+                                            #${allowanceData.order_id}
                                     </div>
                                     <div style="height: 22px;">
-                                        ${BgWidget.grayNote(`發票時間 : ${glitter.ut.dateFormat(new Date(invoiceData.create_date), 'yyyy-MM-dd hh:mm')}`, `font-size: 16px;`)}
+                                        ${BgWidget.grayNote(`折讓時間 : ${glitter.ut.dateFormat(new Date(allowanceData.create_date), 'yyyy-MM-dd hh:mm')}`, `font-size: 16px;`)}
                                     </div>
                                 </div>
                                 <div class="h-100 d-flex align-items-end" style="margin-left: 10px;">
@@ -661,113 +606,99 @@ export class ShoppingAllowanceManager {
                                 bind: 'invoiceContent',
                                 view: () => {
                                     if (orderData) {
-                                        let tax = Math.round(orderData.orderData.total * 0.05);
-                                        let sale = orderData.orderData.total - tax;
-                                        let gui_number = orderData.orderData.user_info.gui_number;
                                         // CustomerIdentifier
                                         return [BgWidget.mainCard(html`
                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
-                                                <div style="font-weight: 700;">發票內容</div>
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;">
-                                                    <div>發票種類</div>
-                                                    <div style="display: flex;align-items: flex-start;gap: 12px;">
-                                                        ${(() => {
-                                                            let invoice_type = (gui_number) ? `B2B` : `B2C`
-                                                            return ["B2C", "B2B"].map((data) => {
-                                                                return html`
-                                                                    <div class="d-flex align-items-center"
-                                                                         style="gap: 6px; cursor: pointer;"
-                                                                         onclick="${gvc.event(() => {
-                                                                         })}">
-                                                                        ${(invoice_type == data)
-                                                                                ? html`
-                                                                                    <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 4px #393939"></div>`
-                                                                                : html`
-                                                                                    <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 1px #DDD;background: #F7F7F7;"></div>`}
-                                                                        <label class="m-0" style=""
-                                                                               for="${data}">${data}</label>
-                                                                    </div>
-                                                                `
-                                                            }).join('')
-                                                        })()}
-                                                    </div>
+                                                <div style="font-weight: 700;">折讓單內容</div>
+                                                <div class="w-100"
+                                                     style="display: flex;align-items: flex-start;gap: 18px;">
+                                                    ${BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '折讓單編號',
+                                                        default: allowanceData.allowance_no?? "",
+                                                        readonly: true,
+                                                        placeHolder: '發票編號',
+                                                        callback: (data) => {
+                                                        },
+                                                        divStyle: 'width:50%;'
+                                                    })}
+                                                    ${BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '原發票編號',
+                                                        default: allowanceData.invoice_no ?? "",
+                                                        readonly: true,
+                                                        placeHolder: '原發票編號',
+                                                        callback: (data) => {
+                                                        },
+                                                        divStyle: 'width:50%;'
+                                                    })}
                                                 </div>
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
+                                                        title: '原訂單編號',
+                                                        default: allowanceData.order_id ?? "",
+                                                        readonly: true,
+                                                        placeHolder: '原訂單編號',
+                                                        callback: (data) => {
+                                                        },
+                                                        divStyle: 'width:50%;'
+                                                    })}
+                                                    ${BgWidget.editeInput({
+                                                        gvc: gvc,
                                                         title: '買受人姓名',
-                                                        default: orderData.orderData?.user_info?.name ?? "",
+                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本發票無姓名":orderData.orderData?.user_info?.name ?? "",
                                                         readonly: true,
                                                         placeHolder: '請輸入買受人姓名',
                                                         callback: (data) => {
                                                         },
                                                         divStyle: 'width:50%;'
                                                     })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '買受人電話',
-                                                        default: orderData.orderData?.user_info?.phone ?? "",
-                                                        readonly: true,
-                                                        placeHolder: '請輸入買受人電話',
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
                                                 </div>
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
-                                                        title: '買受人姓名',
-                                                        default: orderData.orderData?.user_info?.name ?? "",
-                                                        placeHolder: '請輸入買受人姓名',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
                                                         title: '買受人電話',
-                                                        default: orderData.orderData?.user_info?.phone ?? "",
+                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本發票無電話":orderData.orderData?.user_info?.phone ?? "",
                                                         placeHolder: '請輸入買受人電話',
                                                         readonly: true,
                                                         callback: (data) => {
                                                         },
                                                         divStyle: 'width:50%;'
                                                     })}
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: '買受人地址',
-                                                        default: orderData.orderData?.user_info?.address ?? "",
+                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本發票無地址":orderData.orderData?.user_info?.phone ?? "",
                                                         placeHolder: '請輸入買受人地址',
                                                         readonly: true,
                                                         callback: (data) => {
                                                         },
                                                         divStyle: 'width:50%;'
                                                     })}
+                                                </div>
+                                                <div class="w-100"
+                                                     style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: '買受人電子信箱',
-                                                        default: orderData.orderData?.user_info?.email ?? "",
+                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本發票無電子信箱":orderData.orderData?.user_info?.email ?? "",
                                                         placeHolder: '請輸入買受人電子信箱',
                                                         readonly: true,
                                                         callback: (data) => {
                                                         },
-                                                        divStyle: 'width:50%;'
+                                                        divStyle: 'width:100%;'
                                                     })}
                                                 </div>
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     <div class="d-flex flex-column w-50" style="gap:8px;">
-                                                        <div>發票日期</div>
+                                                        <div>折讓日期</div>
                                                         <input type="date"
                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #dddddd"
-                                                               value="${new Date(invoiceData.create_date).toISOString().split('T')[0]}"
+                                                               value="${new Date(allowanceData.create_date).toISOString().split('T')[0]}"
                                                                readonly disabled
                                                                onchange="${gvc.event((e) => {
 
@@ -775,13 +706,13 @@ export class ShoppingAllowanceManager {
                                                     </div>
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
-                                                        title: '發票時間',
-                                                        default: new Date(invoiceData.create_date).toISOString().split('T')[1].slice(0, 5),
+                                                        title: '折讓時間',
+                                                        default: new Date(allowanceData.create_date).toISOString().split('T')[1].slice(0, 5),
                                                         readonly: true,
                                                         placeHolder: '請輸入發票時間',
                                                         type: 'time',
                                                         callback: (data) => {
-                                               
+
                                                         },
                                                         divStyle: 'width:50%;'
                                                     })}
@@ -789,63 +720,11 @@ export class ShoppingAllowanceManager {
 
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    <div class="w-50">
-                                                        <div>索取紙本發票</div>
-                                                        ${BgWidget.select({
-                                                            gvc: gvc,
-                                                            callback: (text) => {
-                                                            },
-                                                            default: "Y",
-                                                            readonly: true,
-                                                            options: [{key: "Y", value: "Y"}, {key: "N", value: "N"}],
-                                                            style: `margin: 8px 0;`
-                                                        })}
-                                                    </div>
-                                                    <div class="w-50">
-                                                        <div>課稅別</div>
-                                                        ${BgWidget.select({
-                                                            gvc: gvc,
-                                                            callback: (text) => {
-                                                                // viewModel.invoiceData.getPaper = text;
-                                                            },
-                                                            default: "應稅",
-                                                            readonly: true,
-                                                            options: [{key: "應稅", value: "應稅"}],
-                                                            style: `margin: 8px 0;`
-                                                        })}
-                                                    </div>
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
-                                                        title: '稅率(預設5)',
-                                                        default: "5",
-                                                        placeHolder: '請輸入稅率',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;color:#393939'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '稅額',
-                                                        default: `${tax}` ?? "0",
-                                                        placeHolder: '請輸入稅額',
-                                                        readonly: true,
-                                                        callback: (data) => {
-
-                                                        },
-                                                        divStyle: 'width:50%;color:#393939'
-                                                    })}
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '銷售額',
-                                                        default: `${sale}` ?? "0",
-                                                        placeHolder: '請輸入銷售額',
+                                                        title: '課稅別',
+                                                        default: "應稅",
+                                                        placeHolder: '請輸入課稅別',
                                                         readonly: true,
                                                         callback: (data) => {
                                                         },
@@ -853,9 +732,9 @@ export class ShoppingAllowanceManager {
                                                     })}
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
-                                                        title: '總金額',
-                                                        default: `${orderData.orderData.total}` ?? "",
-                                                        placeHolder: '請輸入總金額',
+                                                        title: '折讓金額',
+                                                        default: `${allowanceData.allowance_data.invoiceAmount}` ?? "",
+                                                        placeHolder: '請輸入折讓金額',
                                                         readonly: true,
                                                         callback: (data) => {
                                                         },
@@ -868,7 +747,7 @@ export class ShoppingAllowanceManager {
                                                 <div style="margin-top: 24px;"></div>`
                                             , BgWidget.mainCard(html`
                                                 <div style="font-size: 16px;font-weight: 700;margin-bottom:18px;">
-                                                    商品列表
+                                                    折讓列表
                                                 </div>
                                                 <div class="d-flex w-100 align-items-center">
                                                     <div class="col-7 ">商品名稱</div>
@@ -879,47 +758,31 @@ export class ShoppingAllowanceManager {
                                                 </div>
                                                 <div style="width: 100%;height: 1px;margin-top: 12px;margin-bottom: 18px;background-color: #DDD"></div>
                                                 ${(() => {
-                                                    let itemArray = orderData.orderData.lineItems;
+                                                    let itemArray = allowanceData.allowance_data.invoiceArray;
                                                     return itemArray.map((item: any) => {
-                                                        let sale_price = Math.ceil(item.sale_price * 0.95)
+                                                        let target = orderData.orderData.lineItems.find((lineItem: any) => {return lineItem.title == item.ItemName.split('/')[0]})
                                                         return html`
                                                             <div class="d-flex w-100 align-items-center" style="">
                                                                 <div class="col-7 d-flex align-items-center">
-                                                                    <img src="${item.preview_image}"
+                                                                    <img src="${target!.preview_image}"
                                                                          style="width: 40px;height: 40px;border-radius: 5px;margin-right:12px;">
-                                                                    ${item.title}
+                                                                    ${item.ItemName}
                                                                 </div>
                                                                 <div class="col-2 text-center">
-                                                                    ${item.spec.join(',') ?? "單一規格"}
+                                                                    ${target!.spec.join(',') ?? "單一規格"}
                                                                 </div>
-                                                                <div class="col-1 text-center">${sale_price}</div>
-                                                                <div class="col-1 text-center">${item.count}</div>
-                                                                <div class="col-1 text-end">${item.count * sale_price}
+                                                                <div class="col-1 text-center">${item.ItemPrice}</div>
+                                                                <div class="col-1 text-center">${Number(item.ItemCount)}</div>
+                                                                <div class="col-1 text-end">${Number(item.ItemCount) * item.ItemPrice}
                                                                 </div>
                                                             </div>
                                                         `
                                                     })
                                                 })()}
                                                 <div style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"></div>
-                                                ${(() => {
-                                                    let itemArray = [{key: "銷售額", value: sale}, {
-                                                        key: "稅額",
-                                                        value: tax
-                                                    }];
-                                                    return itemArray.map((item) => {
-                                                        return html`
-                                                            <div class="d-flex flex-row-reverse"
-                                                                 style="width: 100%;margin-bottom:18px;">
-                                                                <div class="col-1 text-end">${item.value}</div>
-                                                                <div class="col-1"></div>
-                                                                <div class="col-1 text-end" style="">${item.key}</div>
-                                                            </div>
-                                                        `
-                                                    }).join('')
-                                                })()}
                                                 <div class="d-flex flex-row-reverse" style="width: 100%;">
                                                     <div class="col-1 text-end" style="font-weight: 700;">
-                                                        ${orderData.orderData.total}
+                                                        ${allowanceData.allowance_data.invoiceAmount}
                                                     </div>
                                                     <div class="col-1"></div>
                                                     <div class="col-1 text-end" style="font-weight: 700;">總金額</div>
@@ -927,14 +790,22 @@ export class ShoppingAllowanceManager {
                                             html`
                                                 <div class="w-100 " style="margin-top: 24px;"></div>`,
                                             BgWidget.mainCard(html`
-                                                <div style="margin-bottom: 12px;">發票備註</div>
+                                                <div style="margin-bottom: 12px;">折讓原因</div>
                                                 <textarea
                                                         style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
-                                                        rows="3" disabled >${invoiceData.invoice_data.remark.invoice_mark}</textarea>
-                                                <div style="margin-top: 18px;margin-bottom: 12px;">財務備註</div>
+                                                        rows="3"
+                                                        disabled>${allowanceData.allowance_data.allowanceReason??""}</textarea>
+                                                <div style="margin-top: 18px;margin-bottom: 12px;">折讓備註</div>
                                                 <textarea
                                                         style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
-                                                        rows="3" disabled >${invoiceData.invoice_data.remark.financial_mark}</textarea>
+                                                        rows="3"
+                                                        disabled>${allowanceData.allowance_data.remark??""}</textarea>
+                                                <div class="${(allowanceData.status==2)?'':'d-none'}" style="margin-top: 18px;margin-bottom: 12px;">作廢原因</div>
+                                                <textarea
+                                                        class="${(allowanceData.status==2)?'':'d-none'}"
+                                                        style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
+                                                        rows="3"
+                                                        disabled>${allowanceData.allowance_data.voidReason??""}</textarea>
                                             `)
                                             , html`
                                                 <div style="margin-top: 240px;"></div>
@@ -951,84 +822,156 @@ export class ShoppingAllowanceManager {
                                                     ${BgWidget.grayButton('寄送紙本', gvc.event(() => {
                                                     }))}
                                                     -->
-                                                    ${BgWidget.save(gvc.event(() => {
-                                                    }), '發票折讓')}
                                                     ${BgWidget.danger(gvc.event(() => {
                                                         glitter.innerDialog((gvc: GVC) => {
-                                                            return html`
-                                                                <div class="d-flex align-items-center justify-content-center"
-                                                                     style="width: 100vw;height: 100vw;"
-                                                                     onclick="${gvc.event(() => {
-                                                                         glitter.closeDiaLog();
-                                                                     })}">
-                                                                    <div class="d-flex flex-column"
-                                                                         style="width: 532px;height: 311px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
-                                                                         onclick="${gvc.event(() => {
-                                                                             event!.stopPropagation();
-                                                                         })}">
-                                                                        <div style="position: absolute;right: 20px;top: 17px;">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                 width="14" height="14"
-                                                                                 viewBox="0 0 14 14" fill="none">
-                                                                                <path d="M1 1L13 13" stroke="#393939"
-                                                                                      stroke-linecap="round"/>
-                                                                                <path d="M13 1L1 13" stroke="#393939"
-                                                                                      stroke-linecap="round"/>
-                                                                            </svg>
+                                                            let step = 1;
+                                                            let reason = ""
+                                                            
+                                                            return gvc.bindView({
+                                                                bind:"voidDialog",
+                                                                view:()=>{
+                                                                    return html`
+                                                                        <div class="d-flex align-items-center justify-content-center"
+                                                                             style="width: 100vw;height: 100vw;"
+                                                                             onclick="${gvc.event(() => {
+                                                                                 glitter.closeDiaLog();
+                                                                             })}">
+                                                                            ${(()=>{
+                                                                                switch (step){
+                                                                                    case 2:
+                                                                                        return html`
+                                                                                            <div class="d-flex flex-column"
+                                                                                                 style="width: 532px;height: 409px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                 onclick="${gvc.event(() => {
+                                                                                                     event!.stopPropagation();
+                                                                                                 })}">
+                                                                                                <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                         width="14" height="14"
+                                                                                                         viewBox="0 0 14 14" fill="none">
+                                                                                                        <path d="M1 1L13 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                        <path d="M13 1L1 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100 d-flex align-items-center justify-content-center"
+                                                                                                     style="">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
+                                                                                                        <g clip-path="url(#clip0_14571_27453)">
+                                                                                                            <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z" fill="#393939"/>
+                                                                                                        </g>
+                                                                                                        <defs>
+                                                                                                            <clipPath id="clip0_14571_27453">
+                                                                                                                <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
+                                                                                                            </clipPath>
+                                                                                                        </defs>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100"
+                                                                                                     style="text-align: center;font-size: 16px;">
+                                                                                                    <div>確定要將此折讓單作廢嗎？<br>
+                                                                                                        作廢後，相關交易和記錄將無法恢復。
+                                                                                                    </div>
+                                                                                                    <div style="display: flex;padding: 11px 18px;align-items: center;border-radius: 10px;background: #F7F7F7;margin: 8px 0;">
+                                                                                                        <div class="d-flex flex-column" style="font-size: 14px;">
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 41px;">折讓單號碼</div>
+                                                                                                                <div>${allowanceData.allowance_no}</div>
+                                                                                                            </div>
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 18px;">總金額(不含稅)</div>
+                                                                                                                <div>${allowanceData.allowance_data.invoiceAmount??0}</div>
+                                                                                                            </div>
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 55px;">作廢原因</div>
+                                                                                                                <div>${reason}</div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div style="color: #8D8D8D;text-align: center;font-size: 13px;line-height: 160%; ">
+                                                                                                        ※提醒您，請務必將已印出的折讓單銷毀，以免引起混淆或誤用。
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                     style="gap: 14px;">
+                                                                                                    <div class="btn btn-white"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                                                             step = 1;
+                                                                                                             gvc.notifyDataChange(`voidDialog`);
+                                                                                                         })}">
+                                                                                                        上一步
+                                                                                                    </div>
+                                                                                                    <div class="btn btn-red"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                                                             ApiShop.voidAllowance(allowanceData.invoice_no , allowanceData.allowance_no , reason).then(r => {
+                                                                                                                 // console.log(invoiceData)
+                                                                                                                 vm.type = "list";
+                                                                                                                 glitter.closeDiaLog();
+                                                                                                             });
+                                                                                                         })}">
+                                                                                                        作廢
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        `
+                                                                                    default:
+                                                                                        return html`
+                                                                                            <div class="d-flex flex-column"
+                                                                                                 style="width: 532px;height: 270px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                 onclick="${gvc.event(() => {
+                                                                                                     event!.stopPropagation();
+                                                                                                 })}">
+                                                                                                <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                         width="14" height="14"
+                                                                                                         viewBox="0 0 14 14" fill="none">
+                                                                                                        <path d="M1 1L13 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                        <path d="M13 1L1 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100 d-flex flex-column"
+                                                                                                     style="text-align: center;font-size: 16px;gap:12px;">
+                                                                                                    <div>請填寫作廢原因</div>
+                                                                                                    <textarea style="display: flex;height: 100px;padding: 5px 18px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e)=>{
+                                                                                                        reason = e.value;
+                                                                                                    })}">${reason}</textarea>
+                                                                                                </div>
+                                                                                                <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                     style="gap: 14px;">
+                                                                                                    <div class="btn btn-white"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                                                             glitter.closeDiaLog()
+                                                                                                         })}">
+                                                                                                        取消
+                                                                                                    </div>
+                                                                                                    <div class="btn btn-red"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                                                             step = 2;
+                                                                                                             gvc.notifyDataChange('voidDialog')
+                                                                                                         })}">
+                                                                                                        下一步
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        `
+                                                                                }
+                                                                            })()}
+                                                                            
                                                                         </div>
-                                                                        <div class="w-100 d-flex align-items-center justify-content-center"
-                                                                             style="">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                 width="76" height="75"
-                                                                                 viewBox="0 0 76 75" fill="none">
-                                                                                <g clip-path="url(#clip0_10870_92126)">
-                                                                                    <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
-                                                                                          fill="#393939"/>
-                                                                                </g>
-                                                                                <defs>
-                                                                                    <clipPath id="clip0_10870_92126">
-                                                                                        <rect width="75" height="75"
-                                                                                              fill="white"
-                                                                                              transform="translate(0.5)"/>
-                                                                                    </clipPath>
-                                                                                </defs>
-                                                                            </svg>
-                                                                        </div>
-                                                                        <div class="w-100"
-                                                                             style="text-align: center;font-size: 16px;">
-                                                                            <div>確定要將此發票作廢嗎？<br>
-                                                                                作廢後，相關交易和記錄將無法恢復。
-                                                                            </div>
-                                                                            <div style="color: #8D8D8D;text-align: center;font-size: 14px;line-height: 160%; ">
-                                                                                ※提醒您，請務必將已印出的折讓單銷毀，以免引起混淆或誤用。
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="d-flex align-items-center justify-content-center w-100"
-                                                                             style="gap: 14px;">
-                                                                            <div class="btn btn-white"
-                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
-                                                                                 onclick="${gvc.event(() => {
-                                                                                     glitter.closeDiaLog()
-                                                                                 })}">
-                                                                                取消
-                                                                            </div>
-                                                                            <div class="btn btn-red"
-                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
-                                                                                 onclick="${gvc.event(() => {
-                                                                                     ApiShop.voidInvoice(invoiceData.invoice_no, "Reason", invoiceData.create_date).then(r => {
-                                                                                         // console.log(invoiceData)
-                                                                                         glitter.closeDiaLog()
-                                                                                     });
-                                                                                 })}">
-                                                                                作廢
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            `
+                                                                    `
+                                                                },divCreate:{
+                                                                    
+                                                                }
+                                                            })
                                                         }, 'voidWarning')
-
-                                                    }), "發票作廢")}
+                                                    }), "折讓單作廢")}
 
                                                 </div>`
                                         ].join('')
@@ -1057,9 +1000,12 @@ export class ShoppingAllowanceManager {
 
     public static createOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: 'TZ90990610',
+            searchOrder: 'TZ90991707',
             searchData: '',
+            orderData: {},
             errorReport: '',
+            allowanceData: {},
+            allowanceInvoiceTotalAmount:0,
             invoiceData: {
                 getPaper: "Y",
                 date: '',
@@ -1068,7 +1014,21 @@ export class ShoppingAllowanceManager {
             },
             customerInfo: {}
         };
+        const dialog = new ShareDialog(gvc.glitter);
+        let loading = false;
 
+        gvc.addStyle(html`
+            input[type="number"]::-webkit-outer-spin-button,
+            input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            }
+
+            /* 適用於 Firefox */
+            input[type="number"] {
+            -moz-appearance: textfield;
+            }
+        `)
 
         return BgWidget.container(
             html`
@@ -1096,40 +1056,51 @@ export class ShoppingAllowanceManager {
                         <div
                                 style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;background: #EAEAEA;font-weight: 700;cursor: pointer;"
                                 onclick="${gvc.event(() => {
+                                    loading = true;
+                                    gvc.notifyDataChange(['notFind', 'allowanceContent']);
                                     if (viewModel.searchOrder == '') {
                                         return;
                                     }
+                                    dialog.dataLoading({visible:true});
                                     ApiShop.getInvoice({
                                         page: 0,
                                         limit: 100,
                                         search: viewModel.searchOrder,
                                         searchType: 'invoice_number',
                                     }).then((response: any) => {
-                                        console.log("viewModel.searchData -- ", response.response)
+                                        dialog.dataLoading({visible:false});
                                         if (response.response.length == 0) {
-                                            viewModel.errorReport = '查無此訂單';
+                                            viewModel.errorReport = '查無發票';
+                                            loading = false;
+                                            gvc.notifyDataChange(['notFind', 'allowanceContent']);
                                         }
                                         if (response.response && response.response.data.length > 0) {
+                                            dialog.dataLoading({visible:true});
                                             // customerInfo
                                             viewModel.searchData = response.response.data[0];
-                                            console.log("viewModel.searchData -- ", viewModel.searchData)
-                                            // ApiUser.getUsersDataWithEmailOrPhone(response.response.email).then((res) => {
-                                            //     viewModel.customerInfo = res.response;
-                                            //     // userDataLoading = false;
-                                            //     gvc.notifyDataChange(['notFind', 'invoiceContent']);
-                                            // });
-                                        } else {
-                                            viewModel.errorReport = '此訂單已無商品可退貨';
+                                            viewModel.searchData.invoice_data.original_data.Items.forEach((item:any) => {
+                                                item.ItemCount = 0;
+                                            })
+                                            ApiShop.getOrder({
+                                                page: 0,
+                                                limit: 100,
+                                                search: viewModel.searchData.invoice_data.original_data.RelateNumber,
+                                                searchType: 'cart_token',
+                                                archived: `false`,
+                                                returnSearch: 'true',
+                                            }).then((response: any) => {
+                                                viewModel.orderData = response.response.orderData;
+                                                loading = false;
+                                                dialog.dataLoading({visible:false});
+                                                gvc.notifyDataChange(['notFind', 'allowanceContent']);
+                                            });
                                         }
-
-                                        // viewModel.searchData = response.response.data.find((data: any) => data.cart_token == viewModel.searchOrder)
                                         gvc.notifyDataChange(['notFind', 'invoiceContent']);
                                     });
                                 })}"
                         >
                             查詢發票
                         </div>
-
                         ${gvc.bindView({
                             bind: 'notFind',
                             view: () => {
@@ -1149,9 +1120,12 @@ export class ShoppingAllowanceManager {
                 `)}
                 <div style="margin-top: 24px;"></div>
                 ${gvc.bindView({
-                    bind: 'invoiceContent',
+                    bind: 'allowanceContent',
                     view: () => {
+                        const dialog = new ShareDialog(gvc.glitter);
                         if (viewModel.searchData) {
+                            dialog.dataLoading({visible: false})
+
                             function getNextPeriod15th(date: Date): Date {
                                 const nextPeriodDate = new Date(date);
                                 const currentMonth = date.getMonth() + 1; // 取得目前的月份 (1 - 12)
@@ -1169,252 +1143,219 @@ export class ShoppingAllowanceManager {
                                 return nextPeriodDate;
                             }
 
-                            let tax = Math.round(viewModel.searchData.orderData.total * 0.05);
-                            let sale = viewModel.searchData.orderData.total - tax;
-                            let gui_number = viewModel.searchData.orderData.user_info.gui_number;
-                            const dbDate = new Date(`${viewModel.searchData.created_time}`);
+                            const dbDate = new Date(`${viewModel.searchData?.invoice_data?.response.InvoiceDate.split('+')[0]}`);
                             const minDateStr = dbDate.toISOString().split('T')[0];   // 最小值
-                            const maxDateStr = getNextPeriod15th(dbDate).toISOString().split('T')[0];  // 最大值
+                            const maxDateStr = getNextPeriod15th(dbDate).toISOString().split('T')[0];
 
+                            viewModel.allowanceData.date = new Date().toISOString().split('T')[0]
+                            let orderData = viewModel.searchData.invoice_data.original_data;
+                            let gui_number = viewModel.orderData.user_info.gui_number;
+                            let itemArray = viewModel.orderData.lineItems;
+                            let invoiceArray = viewModel.searchData.invoice_data.original_data.Items;
 
                             // CustomerIdentifier
-                            return [BgWidget.mainCard(html`
-                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
-                                    <div style="font-weight: 700;">發票內容</div>
-                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;">
-                                        <div>發票種類</div>
-                                        <div style="display: flex;align-items: flex-start;gap: 12px;">
-                                            ${(() => {
-                                                viewModel.invoiceData.invoice_type = (gui_number) ? `B2B` : `B2C`
-                                                return ["B2C", "B2B"].map((data) => {
-                                                    return html`
-                                                        <div class="d-flex align-items-center"
-                                                             style="gap: 6px; cursor: pointer;"
-                                                             onclick="${gvc.event(() => {
-                                                             })}">
-                                                            ${(viewModel.invoiceData.invoice_type == data)
-                                                                    ? html`
-                                                                        <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 4px #393939"></div>`
-                                                                    : html`
-                                                                        <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 1px #DDD"></div>`}
-                                                            <label class="m-0" style="" for="${data}">${data}</label>
-                                                        </div>
-                                                    `
-                                                }).join('')
-                                            })()}
-                                        </div>
-                                    </div>
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '買受人姓名',
-                                            default: viewModel.searchData.orderData?.user_info?.name ?? "",
-                                            placeHolder: '請輸入買受人姓名',
-                                            callback: (data) => {
-                                                console.log(viewModel.searchData.orderData)
-                                                viewModel.searchData.orderData.user_info.name = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '買受人電話',
-                                            default: viewModel.searchData.orderData?.user_info?.phone ?? "",
-                                            placeHolder: '請輸入買受人電話',
-                                            callback: (data) => {
-                                                viewModel.searchData.orderData.user_info.phone = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                    </div>
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '買受人地址',
-                                            default: viewModel.searchData.orderData?.user_info?.address ?? "",
-                                            placeHolder: '請輸入買受人地址',
-                                            callback: (data) => {
-                                                viewModel.searchData.orderData.user_info.address = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '買受人電子信箱',
-                                            default: viewModel.searchData.orderData?.user_info?.email ?? "",
-                                            placeHolder: '請輸入買受人電子信箱',
-                                            callback: (data) => {
-                                                viewModel.searchData.orderData.user_info.email = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                    </div>
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        <div class="d-flex flex-column w-50" style="gap:8px;">
-                                            <div>發票日期</div>
-                                            <input type="date"
-                                                   style="padding: 9px 18px;border-radius: 10px;border: 1px solid #dddddd"
-                                                   value="${dbDate}" min="${minDateStr}" max="${maxDateStr}"
-                                                   onchange="${gvc.event((e) => {
-                                                       viewModel.invoiceData.date = e.value;
-                                                   })}">
-                                        </div>
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '發票時間',
-                                            default: "",
-                                            placeHolder: '請輸入發票時間',
-                                            type: 'time',
-                                            callback: (data) => {
-                                                viewModel.invoiceData.time = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                    </div>
+                            return [
+                                BgWidget.mainCard(html`
+                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
+                                        <div style="font-weight: 700;">發票內容</div>
+                                        <div class="w-100"
+                                             style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;">
+                                            <div class="w-100"
+                                                 style="display: flex;align-items: flex-start;gap: 18px;">
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '發票編號',
+                                                    default: viewModel.searchData.invoice_no,
+                                                    readonly: true,
+                                                    placeHolder: '',
+                                                    callback: (data) => {
 
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        <div class="w-50">
-                                            <div>索取紙本發票</div>
-                                            ${BgWidget.select({
-                                                gvc: gvc,
-                                                callback: (text) => {
-                                                    viewModel.invoiceData.getPaper = text;
-                                                },
-                                                default: "Y",
-                                                options: [{key: "Y", value: "Y"}, {key: "N", value: "N"}],
-                                                style: `margin: 8px 0;`
-                                            })}
-                                        </div>
-                                        <div class="w-50">
-                                            <div>課稅別</div>
-                                            ${BgWidget.select({
-                                                gvc: gvc,
-                                                callback: (text) => {
-                                                    // viewModel.invoiceData.getPaper = text;
-                                                },
-                                                default: "應稅",
-                                                options: [{key: "應稅", value: "應稅"}],
-                                                style: `margin: 8px 0;`
-                                            })}
-                                        </div>
-                                    </div>
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '稅率(預設5)',
-                                            default: "5",
-                                            placeHolder: '請輸入稅率',
-                                            readonly: true,
-                                            callback: (data) => {
-                                                viewModel.customerInfo.userData.name = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '稅額',
-                                            default: `${tax}` ?? "0",
-                                            placeHolder: '請輸入稅額',
-                                            readonly: true,
-                                            callback: (data) => {
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                                <div class="d-flex flex-column w-50" style="gap:8px;">
+                                                    <div>發票日期</div>
+                                                    <input type="date"
+                                                           style="padding: 9px 18px;border-radius: 10px;border: 1px solid #dddddd"
+                                                           value="${viewModel.searchData?.invoice_data?.response.InvoiceDate.split('+')[0] ?? ``}"
+                                                           readonly disabled
+                                                           onchange="${gvc.event((e) => {
 
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
+                                                           })}">
+                                                </div>
+                                            </div>
+                                            <div class="w-100"
+                                                 style="display: flex;align-items: flex-start;gap: 18px;">
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '訂單編號',
+                                                    default: viewModel.searchData.order_id,
+                                                    readonly: true,
+                                                    placeHolder: '',
+                                                    callback: (data) => {
+
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                                <div class="d-flex flex-column w-50" style="gap:8px;">
+                                                    <div>發票日期</div>
+                                                    <input type="date"
+                                                           style="padding: 9px 18px;border-radius: 10px;border: 1px solid #dddddd"
+                                                           value="${viewModel.searchData?.invoice_data?.response.InvoiceDate.split('+')[0] ?? ``}"
+                                                           min="${minDateStr}" max="${maxDateStr}"
+                                                           onchange="${gvc.event((e) => {
+                                                                viewModel.allowanceData.date = e.value;
+                                                           })}">
+                                                </div>
+                                            </div>
+                                            <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '買受人姓名',
+                                                    default: viewModel.orderData?.user_info?.name ?? "",
+                                                    placeHolder: '請輸入買受人姓名',
+                                                    readonly: true,
+                                                    callback: (data) => {
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '買受人電話',
+                                                    default: viewModel.orderData?.user_info?.phone ?? "",
+                                                    placeHolder: '',
+                                                    readonly: true,
+                                                    callback: (data) => {
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                            </div>
+                                            <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '買受人地址',
+                                                    default: viewModel.orderData?.user_info?.address ?? "",
+                                                    readonly: true,
+                                                    placeHolder: '請輸入買受人地址',
+                                                    callback: (data) => {
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '買受人電子信箱',
+                                                    default: viewModel.orderData?.user_info?.email ?? "",
+                                                    readonly: true,
+                                                    placeHolder: '請輸入買受人電子信箱',
+                                                    callback: (data) => {
+                                                    },
+                                                    divStyle: 'width:50%;'
+                                                })}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="w-100" style="display: flex;align-items: flex-start;gap: 18px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '銷售額',
-                                            default: `${sale}` ?? "0",
-                                            placeHolder: '請輸入銷售額',
-                                            readonly: true,
-                                            callback: (data) => {
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '總金額',
-                                            default: viewModel.searchData.orderData.total ?? "",
-                                            placeHolder: '請輸入總金額',
-                                            readonly: true,
-                                            callback: (data) => {
-                                                viewModel.customerInfo.userData.phone = data;
-                                            },
-                                            divStyle: 'width:50%;'
-                                        })}
-                                    </div>
-                                </div>
-                            `),
+                                `),
                                 html`
-                                    <div style="margin-top: 24px;"></div>`
-                                , BgWidget.mainCard(html`
-                                    <div style="font-size: 16px;font-weight: 700;margin-bottom:18px;">商品列表</div>
+                                    <div style="margin-top: 24px;"></div>`,
+                                BgWidget.mainCard(html`
+                                    <div style="font-size: 16px;font-weight: 700;margin-bottom:18px;">需折讓商品列表</div>
                                     <div class="d-flex w-100 align-items-center">
-                                        <div class="col-7 ">商品名稱</div>
+                                        <div class="col-6 ">商品名稱</div>
                                         <div class="col-2 text-center">規格</div>
-                                        <div class="col-1 text-center">單價</div>
-                                        <div class="col-1 text-center">數量</div>
-                                        <div class="col-1 text-end">小計</div>
+                                        <div class="col-1 text-center">單位</div>
+                                        <div class="col-1 text-center">折讓單價</div>
+                                        <div class="col-1 text-center">折讓數量</div>
+                                        <div class="col-1 text-center">小計</div>
                                     </div>
                                     <div style="width: 100%;height: 1px;margin-top: 12px;margin-bottom: 18px;background-color: #DDD"></div>
-                                    ${(() => {
-                                        let itemArray = viewModel.searchData.orderData.lineItems;
-                                        return itemArray.map((item: any) => {
-                                            let sale_price = Math.ceil(item.sale_price * 0.95)
+                                    ${gvc.bindView({
+                                        bind: 'itemList',
+                                        view: () => {
+                                            
+                                            viewModel.allowanceInvoiceTotalAmount = 0;
                                             return html`
-                                                <div class="d-flex w-100 align-items-center" style="">
-                                                    <div class="col-7 d-flex align-items-center">
-                                                        <img src="${item.preview_image}"
-                                                             style="width: 40px;height: 40px;border-radius: 5px;margin-right:12px;">
-                                                        ${item.title}
+                                                ${itemArray.map((item: any) => {
+                                                    let invoiceItem = invoiceArray.find((item2: any) => item2.ItemName.split('/')[0] === item.title);
+                                                    // console.log("invoiceItem -- " , invoiceItem)
+                                                    invoiceItem.ItemAmount = invoiceItem.ItemCount * invoiceItem.ItemPrice;
+                                                    viewModel.allowanceInvoiceTotalAmount += invoiceItem.ItemAmount;
+                                                    return html`
+                                                        <div class="d-flex w-100 align-items-center" style="">
+                                                            <div class="col-6 d-flex align-items-center">
+                                                                <img src="${item.preview_image}"
+                                                                     style="width: 40px;height: 40px;border-radius: 5px;margin-right:12px;">
+                                                                ${item.title}
+                                                            </div>
+                                                            <div class="col-2 text-center">
+                                                                ${item.spec.join(',') ?? "單一規格"}
+                                                            </div>
+                                                            <div class="col-1 text-center">${invoiceItem.ItemWord}</div>
+                                                            <div class="col-1 text-center px-1">
+                                                                <input type="number" class="w-100 text-center" min="0"
+                                                                       max="${item.sale_price}" value="${invoiceItem.ItemPrice}"
+                                                                       style="border-radius: 10px;border: 1px solid #DDD;"
+                                                                       onchange="${gvc.event((e) => {
+                                                                           if (e.value > item.sale_price){
+                                                                               e.value = item.sale_price;
+                                                                           }
+                                                                           if (e.value < 0){
+                                                                               e.value = 0;
+                                                                           }
+
+                                                                           invoiceItem.ItemPrice = e.value;
+                                                                           gvc.notifyDataChange(['itemList']);
+                                                                       })}">
+                                                            </div>
+                                                            <div class="col-1 text-center px-2">
+                                                                <input type="number" class="w-100 text-center" min="0"
+                                                                       max="${item.count}" value="${invoiceItem.ItemCount}"
+                                                                       style="border-radius: 10px;border: 1px solid #DDD;"
+                                                                       onchange="${gvc.event((e) => {
+                                                                           if (e.value > item.count){
+                                                                               e.value = item.count;
+                                                                           }
+                                                                           if (e.value < 0){
+                                                                               e.value = 0;
+                                                                           }
+                                                                           
+                                                                           invoiceItem.ItemCount = e.value;
+                                                                           gvc.notifyDataChange(['itemList']);
+                                                                       })}">
+                                                            </div>
+                                                            <div class="col-1 text-center">
+                                                                ${viewModel.allowanceInvoiceTotalAmount}
+                                                            </div>
+                                                        </div>
+                                                    `
+                                                }).join(' ')}
+                                                
+                                                <div style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"></div>
+
+                                                <div class="d-flex flex-row-reverse" style="width: 100%;">
+                                                    <div class="col-1 text-end" style="font-weight: 700;">
+                                                        ${viewModel.allowanceInvoiceTotalAmount}
                                                     </div>
-                                                    <div class="col-2 text-center">
-                                                        ${item.spec.join(',') ?? "單一規格"}
-                                                    </div>
-                                                    <div class="col-1 text-center">${sale_price}</div>
-                                                    <div class="col-1 text-center">${item.count}</div>
-                                                    <div class="col-1 text-end">${item.count * sale_price}</div>
-                                                </div>
-                                            `
-                                        })
-                                    })()}
-                                    <div style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"></div>
-                                    ${(() => {
-                                        let itemArray = [{key: "銷售額", value: sale}, {key: "稅額", value: tax}];
-                                        return itemArray.map((item) => {
-                                            return html`
-                                                <div class="d-flex flex-row-reverse"
-                                                     style="width: 100%;margin-bottom:18px;">
-                                                    <div class="col-1 text-end">${item.value}</div>
                                                     <div class="col-1"></div>
-                                                    <div class="col-1 text-end" style="">${item.key}</div>
+                                                    <div class="col-1 text-center " style="font-weight: 700; ">總金額
+                                                    </div>
                                                 </div>
                                             `
-                                        }).join('')
-                                    })()}
-                                    <div class="d-flex flex-row-reverse" style="width: 100%;">
-                                        <div class="col-1 text-end" style="font-weight: 700;">
-                                            ${viewModel.searchData.orderData.total}
-                                        </div>
-                                        <div class="col-1"></div>
-                                        <div class="col-1 text-end" style="font-weight: 700;">總金額</div>
-                                    </div>`),
+                                        }, divCreate: {}
+                                    })}`),
                                 html`
-                                    <div class="w-100 " style="margin-top: 24px;"></div>`,
+                                    <div style="margin-top: 24px;"></div>`,
                                 BgWidget.mainCard(html`
-                                    <div style="margin-bottom: 12px;">發票備註</div>
+                                    <div style="margin-bottom: 12px;">折讓原因</div>
                                     <textarea
                                             style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
                                             rows="3" onchange="${gvc.event((e) => {
-                                        viewModel.invoiceData.invoice_mark = e.value;
+                                        viewModel.allowanceData.allowanceReason = e.value;
                                     })}"></textarea>
-                                    <div style="margin-top: 18px;margin-bottom: 12px;">財務備註</div>
+                                    <div style="margin-top: 18px;margin-bottom: 12px;">折讓備註</div>
                                     <textarea
                                             style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
                                             rows="3" onchange="${gvc.event((e) => {
-                                        viewModel.invoiceData.financial_mark = e.value;
+                                        viewModel.allowanceData.remark = e.value;
                                     })}"></textarea>
                                 `)
                                 , html`
@@ -1423,44 +1364,54 @@ export class ShoppingAllowanceManager {
                                 , html`
                                     <div class="update-bar-container">
                                         ${BgWidget.cancel(
-                                                gvc.event(() => {
-                                                    vm.type = 'list';
-                                                })
-                                        )}
+                                        gvc.event(() => {
+                                            vm.type = 'list';
+                                        })
+                                )}
                                         ${BgWidget.save(
-                                                gvc.event(() => {
-                                                    let passData = {
-                                                        invoiceData: viewModel.invoiceData,
-                                                        orderID: viewModel.searchOrder,
-                                                        orderData: viewModel.searchData,
-                                                    }
-                                                    let pass = true;
-                                                    const dialog = new ShareDialog(gvc.glitter)
-                                                    Object.values(viewModel.invoiceData).forEach(value => {
-                                                        if ((value as string).length == 0){
-                                                            pass = false;
-                                                        }
-                                                    });
-                                                 
-                                                    if (pass){
-                                                        ApiShop.postInvoice(passData).then(r => {
-                                                            console.log(r)
-                                                            // dialog.infoMessage({
-                                                            //     text:'發票建立完成'
-                                                            // })
-                                                            // vm.type='list'
-                                                        });
-                                                    }else {
-                                                        dialog.infoMessage({
-                                                            text:'必要欄位未填'
-                                                        })
-                                                    }
-                                                    
+                                        gvc.event(() => {
+                                            viewModel.allowanceData.invoiceArray = invoiceArray;
+                                            viewModel.allowanceData.invoiceAmount = viewModel.allowanceInvoiceTotalAmount;
+                                            let passData = {
+                                                invoiceID: viewModel.searchData.invoice_no,
+                                                allowanceData: viewModel.allowanceData,
+                                                orderID: viewModel.searchData.order_id,
+                                                orderData: viewModel.searchData,
+                                                allowanceInvoiceTotalAmount:viewModel.allowanceInvoiceTotalAmount,
+                                                itemList: viewModel.orderData.lineItems,
+                                                invoiceDate: viewModel.searchData.invoice_data.response.InvoiceDate,
+                                            }
+                                            const dialog = new ShareDialog(gvc.glitter)
+                                            console.log("passData -- " , passData);
+                                            if (viewModel.allowanceInvoiceTotalAmount == 0 ) {
+                                                dialog.infoMessage({
+                                                    text: "折讓金額不得為0"
                                                 })
-                                                , '開立')}
+                                            }else {
+                                                dialog.dataLoading({
+                                                    visible:true
+                                                })
+                                                ApiShop.postAllowance(passData).then(r => {
+                                                    dialog.dataLoading({
+                                                        visible:false
+                                                    })
+                                                    dialog.infoMessage({
+                                                        text:'折讓單建立完成'
+                                                    })
+                                                    vm.type='list'
+                                                });
+                                            }
+                                            
+
+                                        })
+                                        , '開立')}
                                     </div>`
                             ].join('')
 
+                        }
+                        if (loading) {
+                            // dialog.dataLoading({visible: true})
+                            return ``
                         }
                         return ``
 

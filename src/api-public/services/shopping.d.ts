@@ -11,7 +11,7 @@ type BindItem = {
     shipment_fee: number;
     times: number;
 };
-interface VoucherData {
+export interface VoucherData {
     id: number;
     title: string;
     code?: string;
@@ -129,7 +129,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -492,6 +492,20 @@ export declare class Shopping {
         invoice_no: string;
         reason: string;
         createDate: string;
+    }): Promise<void>;
+    allowanceInvoice(obj: {
+        invoiceID: string;
+        allowanceData: any;
+        orderID: string;
+        orderData: any;
+        allowanceInvoiceTotalAmount: string;
+        itemList: any;
+        invoiceDate: string;
+    }): Promise<void>;
+    voidAllowance(obj: {
+        invoiceNo: string;
+        allowanceNo: string;
+        voidReason: string;
     }): Promise<void>;
 }
 export {};

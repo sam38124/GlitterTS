@@ -180,15 +180,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             else {
                 dialog.dataLoading({ visible: true });
             }
-            glitter.share.top_inset = yield new Promise((resolve, reject) => {
-                glitter.runJsInterFace('getTopInset', {}, (response) => {
-                    resolve(response.data);
-                }, {
-                    webFunction: () => {
-                        return { data: 0 };
-                    },
-                });
-            });
             if (parseInt(glitter.share.top_inset, 10)) {
                 gvc.addStyle(css `
                 .scroll-in {
@@ -200,15 +191,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }
             `);
             }
-            glitter.share.bottom_inset = yield new Promise((resolve, reject) => {
-                glitter.runJsInterFace('getBottomInset', {}, (response) => {
-                    resolve(response.data);
-                }, {
-                    webFunction: () => {
-                        return { data: 0 };
-                    },
-                });
-            });
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {

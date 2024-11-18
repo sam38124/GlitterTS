@@ -21,6 +21,21 @@ export declare class Invoice {
         invoice_type?: string;
         issue_method?: string;
         status?: string;
+        filter?: any;
+    }): Promise<{
+        data: any;
+        total: any;
+    }>;
+    getAllowance(query: {
+        page: number;
+        limit: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        created_time?: string;
+        invoice_type?: string;
+        issue_method?: string;
+        status?: string;
         filter?: string;
     }): Promise<{
         data: any;

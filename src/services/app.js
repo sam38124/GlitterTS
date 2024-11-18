@@ -53,6 +53,27 @@ class App {
             resolve(data[0] ? data[0]['value'] : {});
         });
     }
+    async checkVersion(libraryName) {
+        const currentDir = process.cwd();
+        const packageJsonPath = path_1.default.join(currentDir, 'package.json');
+        if (fs_1.default.existsSync(packageJsonPath)) {
+            const packageJson = JSON.parse(fs_1.default.readFileSync(packageJsonPath, 'utf-8'));
+            const dependencies = packageJson.dependencies || {};
+            const devDependencies = packageJson.devDependencies || {};
+            if (dependencies[libraryName]) {
+                return dependencies[libraryName];
+            }
+            else if (devDependencies[libraryName]) {
+                return devDependencies[libraryName];
+            }
+            else {
+                throw new Error(`Library ${libraryName} is not listed in dependencies or devDependencies`);
+            }
+        }
+        else {
+            throw new Error('package.json not found in the current directory');
+        }
+    }
     async createApp(cf) {
         var _a, _b, _c, _d;
         try {

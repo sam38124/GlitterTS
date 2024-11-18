@@ -5,6 +5,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { Tool } from '../modules/tool.js';
+import { ShoppingAllowanceManager } from "./shopping-allowance-manager.js";
 const html = String.raw;
 export class ShoppingInvoiceManager {
     static supportShipmentMethod() {
@@ -127,7 +128,6 @@ export class ShoppingInvoiceManager {
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     ${BgWidget.grayButton('匯出', gvc.event(() => {
-                        let dialog = new ShareDialog(glitter);
                         dialog.warningMessage({
                             text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
                             callback: (bool) => {
@@ -137,7 +137,7 @@ export class ShoppingInvoiceManager {
                                         page: 0,
                                         limit: 1000,
                                         search: vm.query || undefined,
-                                        searchType: vm.queryType || 'cart_token',
+                                        searchType: vm.queryType || 'order_number',
                                         orderString: vm.orderString,
                                         filter: vm.filter,
                                     }).then((res) => {
@@ -323,17 +323,19 @@ export class ShoppingInvoiceManager {
                         BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vmi) => {
+                                var _a;
                                 const limit = 20;
                                 ApiShop.getInvoice({
                                     page: vmi.page - 1,
                                     limit: limit,
                                     search: vm.query || "",
-                                    searchType: vm.queryType || 'invoice_no',
+                                    searchType: (_a = vm.queryType) !== null && _a !== void 0 ? _a : 'order_number',
                                     orderString: vm.orderString,
                                     filter: vm.filter,
                                 }).then((data) => {
                                     function getDatalist() {
                                         return data.response.data.map((dd) => {
+                                            var _a;
                                             return [
                                                 {
                                                     key: '發票號碼',
@@ -347,14 +349,15 @@ export class ShoppingInvoiceManager {
                                                     key: '含稅總計',
                                                     value: html `
                                                                         <div style="padding-left: 5px;">
-                                                                            $ ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
+                                                                            $
+                                                                            ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
                                                                         </div>`,
                                                 },
                                                 {
                                                     key: '買受人',
                                                     value: html `
                                                                         <div style="padding-left: 5px;">
-                                                                            ${Tool.truncateString(dd.invoice_data.original_data.CustomerName, 7)}
+                                                                            ${Tool.truncateString((_a = dd.invoice_data.original_data.CustomerName) !== null && _a !== void 0 ? _a : "", 7)}
                                                                         </div>`,
                                                 },
                                                 {
@@ -365,15 +368,11 @@ export class ShoppingInvoiceManager {
                                                     key: '發票種類',
                                                     value: (() => {
                                                         return html `
-                                                                            <div class="d-flex" style="padding-left: 10px;">
+                                                                            <div class="d-flex"
+                                                                                 style="padding-left: 10px;">
                                                                                 ${(() => {
-                                                            var _a;
-                                                            switch ((_a = dd.progress) !== null && _a !== void 0 ? _a : 'B2B') {
-                                                                case 'B2B':
-                                                                    return BgWidget.notifyInsignia('B2B');
-                                                                case 'B2C':
-                                                                    return BgWidget.warningInsignia('B2C');
-                                                            }
+                                                            let no = dd.invoice_data.original_data.CustomerIdentifier;
+                                                            return (no && no.length > 0) ? BgWidget.warningInsignia('B2C') : BgWidget.notifyInsignia('B2B');
                                                         })()}
                                                                             </div>
                                                                         `;
@@ -382,9 +381,10 @@ export class ShoppingInvoiceManager {
                                                 {
                                                     key: '開立方式',
                                                     value: (() => {
-                                                        var _a;
-                                                        switch ((_a = dd.status) !== null && _a !== void 0 ? _a : '0') {
-                                                            case 1:
+                                                        var _a, _b;
+                                                        console.log("dd.invoice_data.remark --", dd.invoice_data.remark);
+                                                        switch ((_b = (_a = dd.invoice_data.remark) === null || _a === void 0 ? void 0 : _a.issueType) !== null && _b !== void 0 ? _b : 'auto') {
+                                                            case "auto":
                                                                 return html `
                                                                                     <div style="padding-left: 5px;">
                                                                                         自動
@@ -402,14 +402,10 @@ export class ShoppingInvoiceManager {
                                                     value: (() => {
                                                         var _a;
                                                         switch ((_a = dd.status) !== null && _a !== void 0 ? _a : '0') {
-                                                            case -1:
-                                                                return BgWidget.notifyInsignia('已作廢');
-                                                            case 0:
-                                                                return BgWidget.warningInsignia('處理中');
                                                             case 1:
                                                                 return BgWidget.infoInsignia('已開立');
                                                             case 2:
-                                                                return BgWidget.infoInsignia('已折讓');
+                                                                return BgWidget.notifyInsignia('已作廢');
                                                         }
                                                     })(),
                                                 },
@@ -444,6 +440,9 @@ export class ShoppingInvoiceManager {
                 else if (vm.type == 'add') {
                     return this.createOrder(gvc, vm);
                 }
+                else if (vm.type == 'viewAllowance') {
+                    return ShoppingAllowanceManager.replaceOrder(gvc, vm);
+                }
                 return '';
             },
         });
@@ -465,6 +464,7 @@ export class ShoppingInvoiceManager {
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
+        vm.data.invoice_data.original_data.Print;
         ApiShop.getOrder({
             page: 0,
             limit: 100,
@@ -517,7 +517,7 @@ export class ShoppingInvoiceManager {
                                 <div class="d-flex flex-column">
                                     <div class="align-items-center"
                                          style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">
-                                            #${invoiceData.order_id}
+                                            #${invoiceData.invoice_no}
                                     </div>
                                     <div style="height: 22px;">
                                         ${BgWidget.grayNote(`發票時間 : ${glitter.ut.dateFormat(new Date(invoiceData.create_date), 'yyyy-MM-dd hh:mm')}`, `font-size: 16px;`)}
@@ -531,11 +531,13 @@ export class ShoppingInvoiceManager {
                             ${gvc.bindView({
                         bind: 'invoiceContent',
                         view: () => {
-                            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+                            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9;
                             if (orderData) {
                                 let tax = Math.round(orderData.orderData.total * 0.05);
                                 let sale = orderData.orderData.total - tax;
                                 let gui_number = orderData.orderData.user_info.gui_number;
+                                let allowanceLoading = true;
+                                let allowanceData = [];
                                 return [BgWidget.mainCard(html `
                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
                                                 <div style="font-weight: 700;">發票內容</div>
@@ -567,20 +569,20 @@ export class ShoppingInvoiceManager {
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
-                                        title: '買受人姓名',
-                                        default: (_c = (_b = (_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.user_info) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : "",
+                                        title: '發票編號',
+                                        default: (_a = invoiceData.invoice_no) !== null && _a !== void 0 ? _a : "",
                                         readonly: true,
-                                        placeHolder: '請輸入買受人姓名',
+                                        placeHolder: '請輸入發票編號',
                                         callback: (data) => {
                                         },
                                         divStyle: 'width:50%;'
                                     })}
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
-                                        title: '買受人電話',
-                                        default: (_f = (_e = (_d = orderData.orderData) === null || _d === void 0 ? void 0 : _d.user_info) === null || _e === void 0 ? void 0 : _e.phone) !== null && _f !== void 0 ? _f : "",
+                                        title: '訂單編號',
+                                        default: (_b = orderData.cart_token) !== null && _b !== void 0 ? _b : "",
                                         readonly: true,
-                                        placeHolder: '請輸入買受人電話',
+                                        placeHolder: '請輸入訂單編號',
                                         callback: (data) => {
                                         },
                                         divStyle: 'width:50%;'
@@ -591,9 +593,9 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '買受人姓名',
-                                        default: (_j = (_h = (_g = orderData.orderData) === null || _g === void 0 ? void 0 : _g.user_info) === null || _h === void 0 ? void 0 : _h.name) !== null && _j !== void 0 ? _j : "",
-                                        placeHolder: '請輸入買受人姓名',
+                                        default: (((_d = (_c = orderData.orderData) === null || _c === void 0 ? void 0 : _c.user_info) === null || _d === void 0 ? void 0 : _d.email) == "no-email") ? "紙本無姓名" : (_g = (_f = (_e = orderData.orderData) === null || _e === void 0 ? void 0 : _e.user_info) === null || _f === void 0 ? void 0 : _f.name) !== null && _g !== void 0 ? _g : "",
                                         readonly: true,
+                                        placeHolder: '請輸入買受人姓名',
                                         callback: (data) => {
                                         },
                                         divStyle: 'width:50%;'
@@ -601,20 +603,21 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '買受人電話',
-                                        default: (_m = (_l = (_k = orderData.orderData) === null || _k === void 0 ? void 0 : _k.user_info) === null || _l === void 0 ? void 0 : _l.phone) !== null && _m !== void 0 ? _m : "",
-                                        placeHolder: '請輸入買受人電話',
+                                        default: (((_j = (_h = orderData.orderData) === null || _h === void 0 ? void 0 : _h.user_info) === null || _j === void 0 ? void 0 : _j.email) == "no-email") ? "紙本無電話" : (_m = (_l = (_k = orderData.orderData) === null || _k === void 0 ? void 0 : _k.user_info) === null || _l === void 0 ? void 0 : _l.phone) !== null && _m !== void 0 ? _m : "",
                                         readonly: true,
+                                        placeHolder: '請輸入買受人電話',
                                         callback: (data) => {
                                         },
                                         divStyle: 'width:50%;'
                                     })}
                                                 </div>
+
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '買受人地址',
-                                        default: (_q = (_p = (_o = orderData.orderData) === null || _o === void 0 ? void 0 : _o.user_info) === null || _p === void 0 ? void 0 : _p.address) !== null && _q !== void 0 ? _q : "",
+                                        default: (((_p = (_o = orderData.orderData) === null || _o === void 0 ? void 0 : _o.user_info) === null || _p === void 0 ? void 0 : _p.email) == "no-email") ? "紙本無地址" : (_s = (_r = (_q = orderData.orderData) === null || _q === void 0 ? void 0 : _q.user_info) === null || _r === void 0 ? void 0 : _r.address) !== null && _s !== void 0 ? _s : "",
                                         placeHolder: '請輸入買受人地址',
                                         readonly: true,
                                         callback: (data) => {
@@ -624,7 +627,7 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '買受人電子信箱',
-                                        default: (_t = (_s = (_r = orderData.orderData) === null || _r === void 0 ? void 0 : _r.user_info) === null || _s === void 0 ? void 0 : _s.email) !== null && _t !== void 0 ? _t : "",
+                                        default: (((_u = (_t = orderData.orderData) === null || _t === void 0 ? void 0 : _t.user_info) === null || _u === void 0 ? void 0 : _u.email) == "no-email") ? "紙本無信箱" : (_x = (_w = (_v = orderData.orderData) === null || _v === void 0 ? void 0 : _v.user_info) === null || _w === void 0 ? void 0 : _w.email) !== null && _x !== void 0 ? _x : "",
                                         placeHolder: '請輸入買受人電子信箱',
                                         readonly: true,
                                         callback: (data) => {
@@ -655,7 +658,6 @@ export class ShoppingInvoiceManager {
                                         divStyle: 'width:50%;'
                                     })}
                                                 </div>
-
                                                 <div class="w-100"
                                                      style="display: flex;align-items: flex-start;gap: 18px;">
                                                     <div class="w-50">
@@ -664,7 +666,7 @@ export class ShoppingInvoiceManager {
                                         gvc: gvc,
                                         callback: (text) => {
                                         },
-                                        default: "Y",
+                                        default: (vm.data.invoice_data.original_data.Print == "1") ? "Y" : "N",
                                         readonly: true,
                                         options: [{ key: "Y", value: "Y" }, { key: "N", value: "N" }],
                                         style: `margin: 8px 0;`
@@ -698,7 +700,7 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '稅額',
-                                        default: (_u = `${tax}`) !== null && _u !== void 0 ? _u : "0",
+                                        default: (_y = `${tax}`) !== null && _y !== void 0 ? _y : "0",
                                         placeHolder: '請輸入稅額',
                                         readonly: true,
                                         callback: (data) => {
@@ -711,7 +713,7 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '銷售額',
-                                        default: (_v = `${sale}`) !== null && _v !== void 0 ? _v : "0",
+                                        default: (_z = `${sale}`) !== null && _z !== void 0 ? _z : "0",
                                         placeHolder: '請輸入銷售額',
                                         readonly: true,
                                         callback: (data) => {
@@ -721,7 +723,7 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '總金額',
-                                        default: (_w = `${orderData.orderData.total}`) !== null && _w !== void 0 ? _w : "",
+                                        default: (_0 = `${orderData.orderData.total}`) !== null && _0 !== void 0 ? _0 : "",
                                         placeHolder: '請輸入總金額',
                                         readonly: true,
                                         callback: (data) => {
@@ -730,7 +732,286 @@ export class ShoppingInvoiceManager {
                                     })}
                                                 </div>
                                             </div>
-                                        `),
+                                        `), html `
+                                            <div style="margin-top: 24px;"></div>`,
+                                    gvc.bindView({
+                                        bind: "allowanceTable",
+                                        view: () => {
+                                            if (allowanceLoading) {
+                                                allowanceLoading = false;
+                                                ApiShop.getAllowance({
+                                                    page: 0,
+                                                    limit: 10,
+                                                    search: invoiceData.invoice_no,
+                                                    searchType: 'invoice_no',
+                                                    orderString: "",
+                                                    filter: "",
+                                                }).then(r => {
+                                                    allowanceData = r.response.data;
+                                                    vm.allowanceDataArray = allowanceData;
+                                                    allowanceLoading = false;
+                                                    gvc.notifyDataChange('allowanceTable');
+                                                });
+                                            }
+                                            if (allowanceData.length) {
+                                                return BgWidget.mainCard(html `
+                                                            <div class="" style="display: flex;flex-direction: column;">
+                                                                <div style="font-weight: 700;font-size: 16px;margin-bottom: 18px;">
+                                                                    折讓單
+                                                                </div>
+                                                                <div class="d-flex" style="margin-bottom: 12px;">
+                                                                    <div class="col-2">折讓日期</div>
+                                                                    <div class="col-2 text-center">折讓單號</div>
+                                                                    <div class="col-2 text-center">折讓金額</div>
+                                                                    <div class="col-2 text-center">狀態</div>
+                                                                </div>
+                                                                ${(() => {
+                                                    return allowanceData.map((data) => {
+                                                        var _a;
+                                                        return html `
+                                                                            <div class="w-100">
+                                                                                <div class="w-100"
+                                                                                     style="background-color: #DDD;height: 1px;"></div>
+                                                                                <div class="d-flex"
+                                                                                     style="padding: 24px 0;">
+                                                                                    <div class="col-2 d-flex align-items-center ">
+                                                                                        ${data.create_date.split('T')[0]}
+                                                                                    </div>
+                                                                                    <div class="col-2 text-center d-flex align-items-center justify-content-center"
+                                                                                         style="color: #4D86DB;">
+                                                                                        ${data.allowance_no}
+                                                                                    </div>
+                                                                                    <div class="col-2 text-center d-flex align-items-center justify-content-center">
+                                                                                        ${(_a = data.allowance_data.invoiceAmount) !== null && _a !== void 0 ? _a : 0}
+                                                                                    </div>
+                                                                                    <div class="col-2 text-center d-flex align-items-center justify-content-center">
+                                                                                        ${(data.status == 1) ? html `
+                                                                                            <div class=""
+                                                                                                 style="color:#10931D">
+                                                                                                已完成
+                                                                                            </div>` : html `
+                                                                                            <div class=""
+                                                                                                 style="color:#DA1313">
+                                                                                                已作廢
+                                                                                            </div>`}
+                                                                                    </div>
+                                                                                    <div class="flex-fill d-flex justify-content-end align-items-center">
+                                                                                        <div style="margin-right: 14px;">
+                                                                                            ${BgWidget.grayButton("查閱", gvc.event(() => {
+                                                            vm.type = "viewAllowance";
+                                                        }), { textStyle: `` })}
+                                                                                        </div>
+
+                                                                                        ${BgWidget.darkButton("折讓單作廢", gvc.event(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            if (data.status == 1) {
+                                                                glitter.innerDialog((gvc) => {
+                                                                    let step = 1;
+                                                                    let reason = "";
+                                                                    return gvc.bindView({
+                                                                        bind: "voidDialog",
+                                                                        view: () => {
+                                                                            return html `
+                                                                                                                <div class="d-flex align-items-center justify-content-center"
+                                                                                                                     style="width: 100vw;height: 100vw;"
+                                                                                                                     onclick="${gvc.event(() => {
+                                                                                glitter.closeDiaLog();
+                                                                            })}">
+                                                                                                                    ${(() => {
+                                                                                switch (step) {
+                                                                                    case 2:
+                                                                                        return html `
+                                                                                                                                    <div class="d-flex flex-column"
+                                                                                                                                         style="width: 532px;height: 409px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                                                         onclick="${gvc.event(() => {
+                                                                                            event.stopPropagation();
+                                                                                        })}">
+                                                                                                                                        <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                                                 width="14"
+                                                                                                                                                 height="14"
+                                                                                                                                                 viewBox="0 0 14 14"
+                                                                                                                                                 fill="none">
+                                                                                                                                                <path d="M1 1L13 13"
+                                                                                                                                                      stroke="#393939"
+                                                                                                                                                      stroke-linecap="round"/>
+                                                                                                                                                <path d="M13 1L1 13"
+                                                                                                                                                      stroke="#393939"
+                                                                                                                                                      stroke-linecap="round"/>
+                                                                                                                                            </svg>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="w-100 d-flex align-items-center justify-content-center"
+                                                                                                                                             style="">
+                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                                                 width="76"
+                                                                                                                                                 height="75"
+                                                                                                                                                 viewBox="0 0 76 75"
+                                                                                                                                                 fill="none">
+                                                                                                                                                <g clip-path="url(#clip0_14571_27453)">
+                                                                                                                                                    <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
+                                                                                                                                                          fill="#393939"/>
+                                                                                                                                                </g>
+                                                                                                                                                <defs>
+                                                                                                                                                    <clipPath
+                                                                                                                                                            id="clip0_14571_27453">
+                                                                                                                                                        <rect width="75"
+                                                                                                                                                              height="75"
+                                                                                                                                                              fill="white"
+                                                                                                                                                              transform="translate(0.5)"/>
+                                                                                                                                                    </clipPath>
+                                                                                                                                                </defs>
+                                                                                                                                            </svg>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="w-100"
+                                                                                                                                             style="text-align: center;font-size: 16px;">
+                                                                                                                                            <div>
+                                                                                                                                                確定要將此折讓單作廢嗎？<br>
+                                                                                                                                                作廢後，相關交易和記錄將無法恢復。
+                                                                                                                                            </div>
+                                                                                                                                            <div style="display: flex;padding: 11px 18px;align-items: center;border-radius: 10px;background: #F7F7F7;margin: 8px 0;">
+                                                                                                                                                <div class="d-flex flex-column"
+                                                                                                                                                     style="font-size: 14px;">
+                                                                                                                                                    <div class="d-flex">
+                                                                                                                                                        <div style="margin-right: 41px;">
+                                                                                                                                                            折讓單號碼
+                                                                                                                                                        </div>
+                                                                                                                                                        <div>
+                                                                                                                                                            ${data.allowance_no}
+                                                                                                                                                        </div>
+                                                                                                                                                    </div>
+                                                                                                                                                    <div class="d-flex">
+                                                                                                                                                        <div style="margin-right: 18px;">
+                                                                                                                                                            總金額(不含稅)
+                                                                                                                                                        </div>
+                                                                                                                                                        <div>
+                                                                                                                                                            ${data.allowance_data.invoiceAmount}
+                                                                                                                                                        </div>
+                                                                                                                                                    </div>
+                                                                                                                                                    <div class="d-flex">
+                                                                                                                                                        <div style="margin-right: 55px;">
+                                                                                                                                                            作廢原因
+                                                                                                                                                        </div>
+                                                                                                                                                        <div>
+                                                                                                                                                            ${reason}
+                                                                                                                                                        </div>
+                                                                                                                                                    </div>
+                                                                                                                                                </div>
+                                                                                                                                            </div>
+                                                                                                                                            <div style="color: #8D8D8D;text-align: center;font-size: 13px;line-height: 160%; ">
+                                                                                                                                                ※提醒您，請務必將已印出的折讓單銷毀，以免引起混淆或誤用。
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                                                             style="gap: 14px;">
+                                                                                                                                            <div class="btn btn-white"
+                                                                                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                            step = 1;
+                                                                                            gvc.notifyDataChange(`voidDialog`);
+                                                                                        })}">
+                                                                                                                                                上一步
+                                                                                                                                            </div>
+                                                                                                                                            <div class="btn btn-red"
+                                                                                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                            dialog.dataLoading({
+                                                                                                visible: true
+                                                                                            });
+                                                                                            ApiShop.voidAllowance(data.invoice_no, data.allowance_no, reason).then(r => {
+                                                                                                dialog.dataLoading({
+                                                                                                    visible: false
+                                                                                                });
+                                                                                                glitter.closeDiaLog();
+                                                                                            });
+                                                                                        })}">
+                                                                                                                                                作廢
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
+                                                                                    default:
+                                                                                        return html `
+                                                                                                                                    <div class="d-flex flex-column"
+                                                                                                                                         style="width: 532px;height: 270px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                                                         onclick="${gvc.event(() => {
+                                                                                            event.stopPropagation();
+                                                                                        })}">
+                                                                                                                                        <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                                                 width="14"
+                                                                                                                                                 height="14"
+                                                                                                                                                 viewBox="0 0 14 14"
+                                                                                                                                                 fill="none">
+                                                                                                                                                <path d="M1 1L13 13"
+                                                                                                                                                      stroke="#393939"
+                                                                                                                                                      stroke-linecap="round"/>
+                                                                                                                                                <path d="M13 1L1 13"
+                                                                                                                                                      stroke="#393939"
+                                                                                                                                                      stroke-linecap="round"/>
+                                                                                                                                            </svg>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="w-100 d-flex flex-column"
+                                                                                                                                             style="text-align: center;font-size: 16px;gap:12px;">
+                                                                                                                                            <div>
+                                                                                                                                                請填寫作廢原因
+                                                                                                                                            </div>
+                                                                                                                                            <textarea
+                                                                                                                                                    style="display: flex;height: 100px;padding: 5px 18px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                                                                                    onchange="${gvc.event((e) => {
+                                                                                            reason = e.value;
+                                                                                        })}">${reason}</textarea>
+                                                                                                                                        </div>
+                                                                                                                                        <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                                                             style="gap: 14px;">
+                                                                                                                                            <div class="btn btn-white"
+                                                                                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                            glitter.closeDiaLog();
+                                                                                        })}">
+                                                                                                                                                取消
+                                                                                                                                            </div>
+                                                                                                                                            <div class="btn btn-red"
+                                                                                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                            step = 2;
+                                                                                            gvc.notifyDataChange('voidDialog');
+                                                                                        })}">
+                                                                                                                                                下一步
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
+                                                                                }
+                                                                            })()}
+
+                                                                                                                </div>
+                                                                                                            `;
+                                                                        }, divCreate: {}
+                                                                    });
+                                                                }, 'voidWarning');
+                                                            }
+                                                            else {
+                                                                dialog.infoMessage({
+                                                                    text: '此折讓單已作廢'
+                                                                });
+                                                            }
+                                                        }))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
+                                                    }).join('');
+                                                })()}
+
+                                                            </div>
+                                                        `);
+                                            }
+                                            else {
+                                                return ``;
+                                            }
+                                            return ``;
+                                        }, divCreate: {}
+                                    }),
                                     html `
                                                 <div style="margin-top: 24px;"></div>`,
                                     BgWidget.mainCard(html `
@@ -798,11 +1079,19 @@ export class ShoppingInvoiceManager {
                                                 <div style="margin-bottom: 12px;">發票備註</div>
                                                 <textarea
                                                         style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
-                                                        rows="3" disabled >${invoiceData.invoice_data.remark.invoice_mark}</textarea>
+                                                        rows="3"
+                                                        disabled>${(_3 = (_2 = (_1 = invoiceData.invoice_data) === null || _1 === void 0 ? void 0 : _1.remark) === null || _2 === void 0 ? void 0 : _2.invoice_mark) !== null && _3 !== void 0 ? _3 : ""}</textarea>
                                                 <div style="margin-top: 18px;margin-bottom: 12px;">財務備註</div>
                                                 <textarea
                                                         style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
-                                                        rows="3" disabled >${invoiceData.invoice_data.remark.financial_mark}</textarea>
+                                                        rows="3"
+                                                        disabled>${(_6 = (_5 = (_4 = invoiceData.invoice_data) === null || _4 === void 0 ? void 0 : _4.remark) === null || _5 === void 0 ? void 0 : _5.financial_mark) !== null && _6 !== void 0 ? _6 : ""}</textarea>
+                                                <div class="${(invoiceData.status == 2) ? '' : 'd-none'}" style="margin-top: 18px;margin-bottom: 12px;">作廢原因</div>
+                                                <textarea
+                                                        class="${(invoiceData.status == 2) ? '' : 'd-none'}"
+                                                        style="width: 100%; border-radius: 10px;border: 1px solid #DDD;padding: 5px;"
+                                                        rows="3"
+                                                        disabled>${(_9 = (_8 = (_7 = invoiceData.invoice_data) === null || _7 === void 0 ? void 0 : _7.remark) === null || _8 === void 0 ? void 0 : _8.voidReason) !== null && _9 !== void 0 ? _9 : ""}</textarea>
                                             `),
                                     html `
                                                 <div style="margin-top: 240px;"></div>
@@ -823,76 +1112,149 @@ export class ShoppingInvoiceManager {
                                     }), '發票折讓')}
                                                     ${BgWidget.danger(gvc.event(() => {
                                         glitter.innerDialog((gvc) => {
-                                            return html `
-                                                                <div class="d-flex align-items-center justify-content-center"
-                                                                     style="width: 100vw;height: 100vw;"
-                                                                     onclick="${gvc.event(() => {
-                                                glitter.closeDiaLog();
-                                            })}">
-                                                                    <div class="d-flex flex-column"
-                                                                         style="width: 532px;height: 311px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
-                                                                         onclick="${gvc.event(() => {
-                                                event.stopPropagation();
-                                            })}">
-                                                                        <div style="position: absolute;right: 20px;top: 17px;">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                 width="14" height="14"
-                                                                                 viewBox="0 0 14 14" fill="none">
-                                                                                <path d="M1 1L13 13" stroke="#393939"
-                                                                                      stroke-linecap="round"/>
-                                                                                <path d="M13 1L1 13" stroke="#393939"
-                                                                                      stroke-linecap="round"/>
-                                                                            </svg>
+                                            let step = 1;
+                                            let reason = "";
+                                            return gvc.bindView({
+                                                bind: "voidDialog",
+                                                view: () => {
+                                                    return html `
+                                                                        <div class="d-flex align-items-center justify-content-center"
+                                                                             style="width: 100vw;height: 100vw;"
+                                                                             onclick="${gvc.event(() => {
+                                                        glitter.closeDiaLog();
+                                                    })}">
+                                                                            ${(() => {
+                                                        var _a;
+                                                        switch (step) {
+                                                            case 2:
+                                                                return html `
+                                                                                            <div class="d-flex flex-column"
+                                                                                                 style="width: 532px;height: 409px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                 onclick="${gvc.event(() => {
+                                                                    event.stopPropagation();
+                                                                })}">
+                                                                                                <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                         width="14" height="14"
+                                                                                                         viewBox="0 0 14 14" fill="none">
+                                                                                                        <path d="M1 1L13 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                        <path d="M13 1L1 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100 d-flex align-items-center justify-content-center"
+                                                                                                     style="">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
+                                                                                                        <g clip-path="url(#clip0_14571_27453)">
+                                                                                                            <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z" fill="#393939"/>
+                                                                                                        </g>
+                                                                                                        <defs>
+                                                                                                            <clipPath id="clip0_14571_27453">
+                                                                                                                <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
+                                                                                                            </clipPath>
+                                                                                                        </defs>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100"
+                                                                                                     style="text-align: center;font-size: 16px;">
+                                                                                                    <div>確定要將此發票作廢嗎？<br>
+                                                                                                        作廢後，相關交易和記錄將無法恢復。
+                                                                                                    </div>
+                                                                                                    <div style="display: flex;padding: 11px 18px;align-items: center;border-radius: 10px;background: #F7F7F7;margin: 8px 0;">
+                                                                                                        <div class="d-flex flex-column" style="font-size: 14px;">
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 55px;">發票編碼</div>
+                                                                                                                <div>${invoiceData.invoice_no}</div>
+                                                                                                            </div>
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 18px;">總金額(不含稅)</div>
+                                                                                                                <div>${(_a = orderData.orderData.total) !== null && _a !== void 0 ? _a : 0}</div>
+                                                                                                            </div>
+                                                                                                            <div class="d-flex">
+                                                                                                                <div style="margin-right: 55px;">作廢原因</div>
+                                                                                                                <div>${reason}</div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div style="color: #8D8D8D;text-align: center;font-size: 13px;line-height: 160%; ">
+                                                                                                        ※提醒您，請務必將已印出的折讓單銷毀，以免引起混淆或誤用。
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                     style="gap: 14px;">
+                                                                                                    <div class="btn btn-white"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                    step = 1;
+                                                                    gvc.notifyDataChange(`voidDialog`);
+                                                                })}">
+                                                                                                        上一步
+                                                                                                    </div>
+                                                                                                    <div class="btn btn-red"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                    ApiShop.voidInvoice(invoiceData.invoice_no, reason, invoiceData.create_date).then(r => {
+                                                                        vm.type = "list";
+                                                                        glitter.closeDiaLog();
+                                                                    });
+                                                                })}">
+                                                                                                        作廢
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        `;
+                                                            default:
+                                                                return html `
+                                                                                            <div class="d-flex flex-column"
+                                                                                                 style="width: 532px;height: 270px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
+                                                                                                 onclick="${gvc.event(() => {
+                                                                    event.stopPropagation();
+                                                                })}">
+                                                                                                <div style="position: absolute;right: 20px;top: 17px;">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                         width="14" height="14"
+                                                                                                         viewBox="0 0 14 14" fill="none">
+                                                                                                        <path d="M1 1L13 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                        <path d="M13 1L1 13" stroke="#393939"
+                                                                                                              stroke-linecap="round"/>
+                                                                                                    </svg>
+                                                                                                </div>
+                                                                                                <div class="w-100 d-flex flex-column"
+                                                                                                     style="text-align: center;font-size: 16px;gap:12px;">
+                                                                                                    <div>請填寫作廢原因</div>
+                                                                                                    <textarea style="display: flex;height: 100px;padding: 5px 18px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e) => {
+                                                                    reason = e.value;
+                                                                })}">${reason}</textarea>
+                                                                                                </div>
+                                                                                                <div class="d-flex align-items-center justify-content-center w-100"
+                                                                                                     style="gap: 14px;">
+                                                                                                    <div class="btn btn-white"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                    glitter.closeDiaLog();
+                                                                })}">
+                                                                                                        取消
+                                                                                                    </div>
+                                                                                                    <div class="btn btn-red"
+                                                                                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
+                                                                                                         onclick="${gvc.event(() => {
+                                                                    step = 2;
+                                                                    gvc.notifyDataChange('voidDialog');
+                                                                })}">
+                                                                                                        下一步
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        `;
+                                                        }
+                                                    })()}
+                                                                            
                                                                         </div>
-                                                                        <div class="w-100 d-flex align-items-center justify-content-center"
-                                                                             style="">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                 width="76" height="75"
-                                                                                 viewBox="0 0 76 75" fill="none">
-                                                                                <g clip-path="url(#clip0_10870_92126)">
-                                                                                    <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
-                                                                                          fill="#393939"/>
-                                                                                </g>
-                                                                                <defs>
-                                                                                    <clipPath id="clip0_10870_92126">
-                                                                                        <rect width="75" height="75"
-                                                                                              fill="white"
-                                                                                              transform="translate(0.5)"/>
-                                                                                    </clipPath>
-                                                                                </defs>
-                                                                            </svg>
-                                                                        </div>
-                                                                        <div class="w-100"
-                                                                             style="text-align: center;font-size: 16px;">
-                                                                            <div>確定要將此發票作廢嗎？<br>
-                                                                                作廢後，相關交易和記錄將無法恢復。
-                                                                            </div>
-                                                                            <div style="color: #8D8D8D;text-align: center;font-size: 14px;line-height: 160%; ">
-                                                                                ※提醒您，請務必將已印出的折讓單銷毀，以免引起混淆或誤用。
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="d-flex align-items-center justify-content-center w-100"
-                                                                             style="gap: 14px;">
-                                                                            <div class="btn btn-white"
-                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
-                                                                                 onclick="${gvc.event(() => {
-                                                glitter.closeDiaLog();
-                                            })}">
-                                                                                取消
-                                                                            </div>
-                                                                            <div class="btn btn-red"
-                                                                                 style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
-                                                                                 onclick="${gvc.event(() => {
-                                                ApiShop.voidInvoice(invoiceData.invoice_no, "Reason", invoiceData.create_date).then(r => {
-                                                    glitter.closeDiaLog();
-                                                });
-                                            })}">
-                                                                                作廢
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            `;
+                                                                    `;
+                                                }, divCreate: {}
+                                            });
                                         }, 'voidWarning');
                                     }), "發票作廢")}
 
@@ -931,6 +1293,7 @@ export class ShoppingInvoiceManager {
             },
             customerInfo: {}
         };
+        const dialog = new ShareDialog(gvc.glitter);
         return BgWidget.container(html `
                 <!-- 標頭 --- 新增訂單標題和返回 -->
                 <div class="title-container">
@@ -970,7 +1333,6 @@ export class ShoppingInvoiceManager {
                 }
                 if (response.response && response.response.orderData.lineItems.length > 0) {
                     viewModel.searchData = response.response;
-                    console.log("viewModel.searchData -- ", viewModel.searchData);
                     ApiUser.getUsersDataWithEmailOrPhone(response.response.email).then((res) => {
                         viewModel.customerInfo = res.response;
                         gvc.notifyDataChange(['notFind', 'invoiceContent']);
@@ -1061,7 +1423,6 @@ export class ShoppingInvoiceManager {
                             default: (_c = (_b = (_a = viewModel.searchData.orderData) === null || _a === void 0 ? void 0 : _a.user_info) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : "",
                             placeHolder: '請輸入買受人姓名',
                             callback: (data) => {
-                                console.log(viewModel.searchData.orderData);
                                 viewModel.searchData.orderData.user_info.name = data;
                             },
                             divStyle: 'width:50%;'
@@ -1275,20 +1636,27 @@ export class ShoppingInvoiceManager {
                             vm.type = 'list';
                         }))}
                                         ${BgWidget.save(gvc.event(() => {
+                            viewModel.invoiceData.issueType = "manual";
                             let passData = {
                                 invoiceData: viewModel.invoiceData,
                                 orderID: viewModel.searchOrder,
-                                orderData: viewModel.searchData,
+                                orderData: viewModel.searchData
                             };
                             let pass = true;
-                            const dialog = new ShareDialog(gvc.glitter);
                             Object.values(viewModel.invoiceData).forEach(value => {
                                 if (value.length == 0) {
                                     pass = false;
                                 }
                             });
                             if (pass) {
+                                dialog.dataLoading({
+                                    text: "發票開立中",
+                                    visible: true
+                                });
                                 ApiShop.postInvoice(passData).then(r => {
+                                    dialog.dataLoading({
+                                        visible: false
+                                    });
                                     dialog.infoMessage({
                                         text: '發票建立完成'
                                     });

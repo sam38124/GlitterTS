@@ -157,4 +157,23 @@ router.get('/',async (req: express.Request, resp: express.Response) =>{
     return response.succ(resp, {method:config.fincial});
 })
 
-
+router.get('/allowance',async (req: express.Request, resp: express.Response) =>{
+    const config = await app.getAdConfig(req.get('g-app') as string, "invoice_setting");
+    if (await UtPermission.isManager(req)) {
+        return response.succ(resp,
+            await new Invoice(req.get('g-app') as string).getAllowance({
+                page: (req.query.page ?? 0) as number,
+                limit: (req.query.limit ?? 50) as number,
+                search: req.query.search as string,
+                searchType: req.query.searchType as string,
+                orderString: req.query.orderString as string,
+                created_time:req.query.created_time as string,
+                invoice_type: req.query.invoice_type as string,
+                issue_method: req.query.issue_method as string,
+                status: req.query.status as string,
+                filter: req.query.filter as string,
+            }))
+    }else {
+    }
+    return response.succ(resp, {method:config.fincial});
+})

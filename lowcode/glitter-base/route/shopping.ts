@@ -401,11 +401,24 @@ export class ApiShop {
             if (obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
-            if (obj.invoice_type.length > 0) {
-                list.push(`invoice_type=${obj.shipment.join(',')}`);
+            if (obj.invoice_type.length == 1) {
+                list.push(`invoice_type=${obj.invoice_type.join(',')}`);
             }
-            if (obj.issue_method.length > 0) {
+            if (obj.issue_method.length == 1) {
                 list.push(`issue_method=${obj.issue_method.join(',')}`);
+            }
+            if (obj.status.length > 0) {
+                list.push(`status=${obj.status.join(',')}`);
+            }
+        }
+        return list;
+    }
+    static allowanceListFilterString(obj: any): string[] {
+        if (!obj) return [];
+        let list = [] as string[];
+        if (obj) {
+            if (obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
+                list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
             if (obj.status.length > 0) {
                 list.push(`status=${obj.status.join(',')}`);
@@ -635,7 +648,7 @@ export class ApiShop {
         orderString?: string;
         filter?: any;
     }) {
-
+        console.log("json.filter -- " , json)
         let filterString = this.invoiceListFilterString(json.filter)
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));
@@ -643,6 +656,38 @@ export class ApiShop {
             url:
                 getBaseUrl() +
                 `/api-public/v1/invoice?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`orderString=${json.orderString}`);
+                    json.filter && par.push(`filter=${JSON.stringify(json.filter)}`);
+                    filterString.length > 0 && par.push(filterString.join('&'));
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+    static getAllowance(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+    }) {
+
+        let filterString = this.allowanceListFilterString(json.filter)
+        // const filterString = this.orderListFilterString(json.filter);
+        // filterString.length > 0 && par.push(filterString.join('&'));
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/invoice/allowance?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
@@ -1083,6 +1128,36 @@ export class ApiShop {
         }
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_invoice`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization:  getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+    static postAllowance(passData: any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/allowance_invoice`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization:  getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+    static voidAllowance(invoiceNo:string , allowanceNo:string , voidReason:string
+    ) {
+        const passData = {
+            invoiceNo:invoiceNo,
+            allowanceNo:allowanceNo,
+            voidReason:voidReason,
+        }
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/void_allowance`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

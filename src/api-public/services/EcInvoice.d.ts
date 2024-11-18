@@ -56,6 +56,24 @@ export declare class EcInvoice {
         invoice_data: any;
         beta: boolean;
     }): Promise<boolean>;
+    static allowanceInvoice(obj: {
+        hashKey: string;
+        hash_IV: string;
+        merchNO: string;
+        app_name: string;
+        allowance_data: any;
+        beta: boolean;
+        db_data: any;
+        order_id: string;
+    }): Promise<boolean>;
+    static voidAllowance(obj: {
+        hashKey: string;
+        hash_IV: string;
+        merchNO: string;
+        app_name: string;
+        allowance_data: any;
+        beta: boolean;
+    }): Promise<boolean>;
     static printInvoice(obj: {
         hashKey: string;
         hash_IV: string;

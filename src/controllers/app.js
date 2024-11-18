@@ -19,6 +19,15 @@ router.post('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/version', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        return response_1.default.succ(resp, { result: await app.checkVersion(req.query.library) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.put('/theme', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
@@ -40,10 +49,12 @@ router.put('/theme_config', async (req, resp) => {
 router.get('/', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
-        return response_1.default.succ(resp, { result: await app.getAPP({
+        return response_1.default.succ(resp, {
+            result: await app.getAPP({
                 app_name: req.query.appName,
                 theme: req.query.theme
-            }) });
+            })
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -83,10 +94,12 @@ router.put('/plugin', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
         const appName = req.body.appName;
-        return response_1.default.succ(resp, { result: (await app.setAppConfig({
+        return response_1.default.succ(resp, {
+            result: (await app.setAppConfig({
                 appName: req.body.appName,
                 data: req.body.config
-            })) });
+            }))
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -108,7 +121,9 @@ router.put('/domain', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
         (await app.setDomain({
-            original_domain: (await database_js_1.default.query(`SELECT domain FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?;`, [req.body.app_name]))[0]['domain'],
+            original_domain: (await database_js_1.default.query(`SELECT domain
+                                              FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                              where appName=?;`, [req.body.app_name]))[0]['domain'],
             appName: req.body.app_name,
             domain: req.body.domain
         }));
@@ -137,10 +152,12 @@ router.post('/create_template', async (req, resp) => {
             throw exception_js_1.default.BadRequestError("Forbidden", "No Permission.", null);
         }
         const app = new app_1.App(req.body.token);
-        return response_1.default.succ(resp, { result: (await app.postTemplate({
+        return response_1.default.succ(resp, {
+            result: (await app.postTemplate({
                 appName: req.body.appName,
                 data: req.body.config
-            })) });
+            }))
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -206,14 +206,14 @@ class Invoice {
             let querySql = [`1=1`];
             if (query.search) {
                 switch (query.searchType) {
-                    case 'order_number':
-                        querySql.push(`order_id LIKE '%${query.search}%'`);
+                    case 'invoice_number':
+                        querySql.push(`invoice_no LIKE '%${query.search}%'`);
                         break;
                     case 'name':
-                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerEmail') LIKE '%${query.search}%'`);
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerName') LIKE '%${query.search}%'`);
                         break;
                     case 'business_number':
-                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.business_number') LIKE '%${query.search}%'`);
+                        querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') LIKE '%${query.search}%'`);
                         break;
                     case 'phone':
                         querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerPhone') LIKE '%${query.search}%'`);
@@ -224,9 +224,9 @@ class Invoice {
                     case 'product_number':
                         querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.Items[*].ItemNumber') LIKE '%${query.search}%'`);
                         break;
-                    case 'invoice_number':
+                    case 'order_number':
                     default:
-                        querySql.push(`invoice_no LIKE '%${query.search}%'`);
+                        querySql.push(`order_id LIKE '%${query.search}%'`);
                         break;
                 }
             }
@@ -237,7 +237,79 @@ class Invoice {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
                     querySql.push(`
-                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            if (query.invoice_type) {
+                const data = query.invoice_type;
+                if (data == "B2B") {
+                    querySql.push(`
+                            JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
+                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0`);
+                }
+                else {
+                    querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
+                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0`);
+                }
+            }
+            if (query.issue_method) {
+                if (query.issue_method == "manual") {
+                    console.log("query.issue_method -- ", query.issue_method);
+                    querySql.push(`JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
+                              AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0`);
+                }
+                else {
+                    querySql.push(`
+                            JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
+                            OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0`);
+                }
+            }
+            query.status && querySql.push(`status IN (${query.status})`);
+            query.orderString = (() => {
+                switch (query.orderString) {
+                    case 'created_time_desc':
+                        return `order by create_date desc`;
+                    case 'created_time_asc':
+                        return `order by create_date ASC`;
+                    case 'order_total_desc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') DESC`;
+                    case 'order_total_asc':
+                        return `ORDER BY JSON_EXTRACT(invoice_data, '$.original_data.SalesAmount') ASC`;
+                    case 'default':
+                    default:
+                        return `order by id desc`;
+                }
+            })();
+            let sql = `SELECT *
+                   FROM \`${this.appName}\`.t_invoice_memory
+                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+        `;
+            return {
+                data: await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                total: (await database_js_1.default.query(`SELECT count(1)
+                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
+    async getAllowance(query) {
+        try {
+            let querySql = [`1=1`];
+            console.log("searchType -- ", query.searchType);
+            if (query.search) {
+                querySql.push(`${query.searchType} LIKE '%${query.search}%'`);
+            }
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (create_date BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
                         AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
                     `);
                 }
@@ -259,7 +331,7 @@ class Invoice {
                 }
             })();
             let sql = `SELECT *
-                   FROM \`${this.appName}\`.t_invoice_memory
+                   FROM \`${this.appName}\`.t_allowance_memory
                    WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
         `;
             return {

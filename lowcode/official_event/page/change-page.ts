@@ -6,7 +6,6 @@ import {GVC} from "../../glitterBundle/GVController.js";
 const html = String.raw
 class ChangePage {
     public static changePage(link: string, type: 'home' | 'page', subData: any) {
-
         $('.new_page_loading').removeClass('d-none')
         const glitter=(window as any).glitter;
         return new Promise(async (resolve, reject) => {

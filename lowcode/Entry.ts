@@ -9,7 +9,11 @@ import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-
+        glitter.share.reload = (page: string, app_name: string) => {
+            (window as any).appName = app_name || (window as any).appName;
+            (window as any).glitter_page = page;
+            location.reload();
+        };
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -61,11 +65,10 @@ export class Entry {
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
-            config.appName = glitter.getUrlParameter('appName');
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.61';
+        glitter.share.editerVersion = 'V_13.8.71';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -180,6 +183,48 @@ export class Entry {
                 Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter);
                 });
+            } else if (glitter.getUrlParameter('page') === 'backend_manager') {
+                if (!GlobalUser.token) {
+                    glitter.setUrlParameter('page', 'login');
+                    location.reload();
+                } else {
+                    try {
+                        const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
+                        localStorage.setItem('select_item', '0');
+                        if (appList.length === 0) {
+                            glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, (SaasViewModel) => {
+                                glitter.innerDialog((gvc) => {
+                                    return gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return SaasViewModel.createShop(gvc, true);
+                                            },
+                                        };
+                                    });
+                                }, 'change_app');
+                            });
+                        } else {
+                            let appName = appList[0].appName;
+                            if (
+                                appList.find((dd: any) => {
+                                    return dd.appName === localStorage.getItem('select_app_name');
+                                })
+                            ) {
+                                appName = localStorage.getItem('select_app_name');
+                            }
+                            glitter.setUrlParameter('page', 'index');
+                            glitter.setUrlParameter('type', 'editor');
+                            glitter.setUrlParameter('appName', appName);
+                            glitter.setUrlParameter('function', 'backend-manger');
+                            location.reload();
+                        }
+                    } catch (e) {
+                        glitter.setUrlParameter('page', 'login');
+                        location.reload();
+                    }
+                }
             } else {
                 // 一般頁面
                 Entry.toNormalRender(glitter, vm, () => {
@@ -216,6 +261,10 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
+        if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
+            localStorage.removeItem('on-pos');
+            location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
+        }
         glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
@@ -240,15 +289,7 @@ export class Entry {
                 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
                 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css',
             ]);
-            // <script src="https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js"
-            // integrity="sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg=="
-            // crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-            //     <script type="text/javascript" src="https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js"></script>
-            //     <script src="//oss-sg.imin.sg/web/iMinPartner2/js/jquery.min.js"></script>
-            //     <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.9.1/vconsole.min.js"></script>
             await new Promise((resolve, reject) => {
-
-
                 glitter.addMtScript(
                     [
                         'jslib/pickr.min.js',
@@ -257,7 +298,7 @@ export class Entry {
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
                         'https://kit.fontawesome.com/cccedec0f8.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                     ],
                     () => {
                         resolve(true);
@@ -490,6 +531,32 @@ export class Entry {
 
     // 資源初始化
     public static resourceInitial(glitter: Glitter, vm: any, callback: (data: any) => void) {
+        //取得APP的上間隔距離
+        glitter.runJsInterFace(
+            'getTopInset',
+            {},
+            (response: any) => {
+                glitter.share.top_inset = response.data;
+            },
+            {
+                webFunction: () => {
+                    return { data: 0 };
+                },
+            }
+        );
+        //取得APP的底部間隔距離
+        glitter.runJsInterFace(
+            'getBottomInset',
+            {},
+            (response: any) => {
+                glitter.share.bottom_inset = response.data;
+            },
+            {
+                webFunction: () => {
+                    return { data: 0 };
+                },
+            }
+        );
         (window as any).glitterInitialHelper.getPlugin((dd: any) => {
             console.log(`getPlugin-time:`, (window as any).renderClock.stop());
             (window as any).saasConfig.appConfig = dd.response.data;
@@ -569,20 +636,38 @@ export class Entry {
     // 載入全域資源
     public static globalStyle(glitter: Glitter, dd: any) {
         return new Promise(async (resolve, reject) => {
-            // Initial Global style
-            // if (glitter.getUrlParameter("type") !== 'editor') {
-            //     for (const data of (dd.response.data.initialStyleSheet ?? [])) {
-            //         try {
-            //             if (data.type === 'script') {
-            //                 glitter.addStyleLink(data.src.link)
-            //             } else {
-            //                 glitter.addStyle(data.src.official)
-            //             }
-            //         } catch (e) {
-            //             console.error(e)
-            //         }
-            //     }
-            // }
+            //定期確認版本號碼
+            function loopVersion() {
+                ApiPageConfig.getGlitterVersion().then((res) => {
+                    console.log('glitterVersion:', res.response.result);
+                    if (!glitter.share.editerVersion.includes(res.response.result)) {
+                        const dialog = new ShareDialog(glitter);
+                        dialog.checkYesOrNot({
+                            text: '新版本已發佈，是否進行更新?',
+                            callback: (response) => {
+                                if (response) {
+                                    location.reload();
+                                } else {
+                                    setTimeout(() => {
+                                        loopVersion();
+                                    }, 1000 * 300);
+                                }
+                            },
+                        });
+                    } else {
+                        setTimeout(() => {
+                            loopVersion();
+                        }, 1000 * 300);
+                    }
+                });
+            }
+
+            if (glitter.getUrlParameter('type') === 'editor' || glitter.getUrlParameter('page') === 'pos') {
+                setTimeout(() => {
+                    loopVersion();
+                }, 1000 * 300);
+            }
+
             let countI = dd.response.data.initialList.length;
             const vm = {
                 // @ts-ignore

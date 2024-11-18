@@ -4,15 +4,15 @@ import multer from 'multer';
 import exception from '../../modules/exception';
 import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
-import {UtDatabase} from '../utils/ut-database.js';
-import {UtPermission} from '../utils/ut-permission';
-import {EcPay, EzPay} from '../services/financial-service.js';
-import {Private_config} from '../../services/private_config.js';
-import {User} from '../services/user.js';
-import {Post} from '../services/post.js';
-import {Shopping} from '../services/shopping';
-import {Rebate, IRebateSearch} from '../services/rebate';
-import axios from "axios";
+import { UtDatabase } from '../utils/ut-database.js';
+import { UtPermission } from '../utils/ut-permission';
+import { EcPay, EzPay } from '../services/financial-service.js';
+import { Private_config } from '../../services/private_config.js';
+import { User } from '../services/user.js';
+import { Post } from '../services/post.js';
+import { Shopping, VoucherData } from '../services/shopping';
+import { Rebate, IRebateSearch } from '../services/rebate';
+import axios from 'axios';
 
 const router: express.Router = express.Router();
 export = router;
@@ -44,25 +44,25 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
 
         const user = await new User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
-            const historyList = await rebateClass.getCustomerRebateHistory({user_id: req.body.token.userID});
+            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
             const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item: any) => {
-                    return {
-                        id: item.id,
-                        orderID: item.content.order_id ?? '',
-                        userID: item.user_id,
-                        money: item.origin,
-                        remain: item.remain,
-                        status: 1,
-                        note: item.note,
-                        created_time: item.created_at,
-                        deadline: item.deadline,
-                        userData: user.userData,
-                    };
-                })
+                      return {
+                          id: item.id,
+                          orderID: item.content.order_id ?? '',
+                          userID: item.user_id,
+                          money: item.origin,
+                          remain: item.remain,
+                          status: 1,
+                          note: item.note,
+                          created_time: item.created_at,
+                          deadline: item.deadline,
+                          userData: user.userData,
+                      };
+                  })
                 : [];
-            return response.succ(resp, {data: historyMaps, oldest: oldest?.data});
+            return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
         }
         return response.fail(resp, '使用者不存在');
     } catch (err) {
@@ -73,9 +73,9 @@ router.get('/rebate/sum', async (req: express.Request, resp: express.Response) =
     try {
         const app = req.get('g-app') as string;
         const rebateClass = new Rebate(app);
-        const data = await rebateClass.getOneRebate({user_id: req.query.userID || req.body.token.userID});
+        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
         const main = await rebateClass.mainStatus();
-        return response.succ(resp, {main: main, sum: data ? data.point : 0});
+        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -134,7 +134,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
                 code_array: req.body.code_array,
-                give_away: req.body.give_away
+                give_away: req.body.give_away,
             })
         );
     } catch (err) {
@@ -178,7 +178,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
-                    give_away: req.body.give_away
+                    give_away: req.body.give_away,
                 },
                 'preview'
             )
@@ -322,8 +322,7 @@ router.get('/order/payment-method', async (req: express.Request, resp: express.R
             delete keyData[dd];
         });
         return response.succ(resp, keyData);
-    } catch (e) {
-    }
+    } catch (e) {}
 });
 router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
     try {
@@ -489,14 +488,48 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         if (req.query.voucher_type) {
             query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
         }
-        return response.succ(
-            resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).querySql(query, {
-                page: (req.query.page ?? 0) as number,
-                limit: (req.query.limit ?? 50) as number,
-                id: req.query.id as string,
-            })
-        );
+
+        // 取得優惠券
+        const vouchers = await new Shopping(req.get('g-app') as string, req.body.token).querySql(query, {
+            page: (req.query.page ?? 0) as number,
+            limit: (req.query.limit ?? 50) as number,
+            id: req.query.id as string,
+        });
+
+        if (!(await UtPermission.isManager(req))) {
+            // 顧客查詢
+            const userClass = new User(req.get('g-app') as string);
+            const userLevels = await userClass.getUserLevel([{ userId: req.body.token.userID }]);
+            const groupList = await userClass.getUserGroups();
+
+            vouchers.data = vouchers.data.filter((d: { content: VoucherData }) => {
+                // 判斷用戶是否為指定客群
+                const dd = d.content;
+                if (dd.target === 'customer') {
+                    return dd.targetList.includes(req.body.token.userID);
+                }
+                if (dd.target === 'levels') {
+                    if (userLevels[0]) {
+                        return dd.targetList.includes(userLevels[0].data.id);
+                    }
+                    return false;
+                }
+                if (dd.target === 'group') {
+                    if (!groupList.result) {
+                        return false;
+                    }
+                    let pass = false;
+                    for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
+                        if (!pass && group.users.some((item) => item.userID === req.body.token.userID)) {
+                            pass = true;
+                        }
+                    }
+                    return pass;
+                }
+                return true; // 所有顧客皆可使用
+            });
+        }
+        return response.succ(resp, vouchers);
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -507,7 +540,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteVoucher({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -522,29 +555,28 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8"/>
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'check_out_finish',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}',
-                            },
-                        })
-                );
-            } catch (e) {
-            }
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'check_out_finish',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -555,7 +587,7 @@ router.post('/redirect', redirect_link);
 
 // 執行訂單結帳與付款事項
 const storage = multer.memoryStorage();
-const upload = multer({storage});
+const upload = multer({ storage });
 router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
     try {
         const test = true;
@@ -688,7 +720,7 @@ router.post('/wishlist', async (req: express.Request, resp: express.Response) =>
                 't_post'
             );
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -704,7 +736,7 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
             `,
             [req.body.token.userID]
         );
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -726,10 +758,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
         };
 
         if (await UtPermission.isManager(req)) {
-            return response.succ(
-                resp,
-                await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','))
-            );
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(',')));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
@@ -831,7 +860,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
-            filter_visible: req.query.filter_visible as any
+            filter_visible: req.query.filter_visible as any,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -852,7 +881,7 @@ router.get('/product/variants', async (req: express.Request, resp: express.Respo
             id_list: req.query.id_list as string,
             order_by: req.query.order_by as string,
             stockCount: req.query.stockCount as string,
-            productType:req.query.productType as string
+            productType: req.query.productType as string,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -918,7 +947,7 @@ router.delete('/product', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -977,7 +1006,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
 // POS機相關
 router.post('/pos/linePay', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body)});
+        return response.succ(resp, { result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body) });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -989,158 +1018,193 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
             method: 'post',
             maxBodyLength: Infinity,
             // url: 'https://sandbox.itunes.apple.com/verifyReceipt',
-            url:'https://buy.itunes.apple.com/verifyReceipt',
+            url: 'https://buy.itunes.apple.com/verifyReceipt',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            data: req.body.base64
+            data: req.body.base64,
         };
         //取得收據
         const receipt: any = await new Promise((resolve, reject) => {
-            axios.request(config)
+            axios
+                .request(config)
                 .then((response) => {
                     console.log(JSON.stringify(response.data));
-                    resolve(response.data)
+                    resolve(response.data);
                 })
                 .catch((error) => {
                     console.log(error);
-                    resolve(false)
+                    resolve(false);
                 });
-        })
+        });
         if (!receipt) {
             throw exception.BadRequestError('BAD_REQUEST', 'No Receipt.Cant find receipt.', null);
         }
         for (const b of receipt.receipt.in_app.filter((dd: any) => {
-            return (`${dd.product_id}`).includes('ai_points_') && dd.in_app_ownership_type === "PURCHASED"
+            return `${dd.product_id}`.includes('ai_points_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            const count = (await db.query(`select count(1)
+            const count = (
+                await db.query(
+                    `select count(1)
                                            from \`${req.get('g-app')}\`.t_ai_points
-                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)']
+                                           where orderID = ?`,
+                    [b.transaction_id]
+                )
+            )[0]['count(1)'];
             if (!count) {
-                await db.query(`insert into \`${req.get('g-app')}\`.t_ai_points
-                                set ?`, [{
-                    orderID: b.transaction_id,
-                    userID: req.body.token.userID,
-                    money: parseInt(b.product_id.replace('ai_points_', ''), 10) * 10,
-                    status: 1,
-                    note: JSON.stringify({
-                        "text": "apple內購加值",
-                        "receipt": receipt
-                    })
-                }])
+                await db.query(
+                    `insert into \`${req.get('g-app')}\`.t_ai_points
+                                set ?`,
+                    [
+                        {
+                            orderID: b.transaction_id,
+                            userID: req.body.token.userID,
+                            money: parseInt(b.product_id.replace('ai_points_', ''), 10) * 10,
+                            status: 1,
+                            note: JSON.stringify({
+                                text: 'apple內購加值',
+                                receipt: receipt,
+                            }),
+                        },
+                    ]
+                );
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd: any) => {
-            return (`${dd.product_id}`).includes('sms_') && dd.in_app_ownership_type === "PURCHASED"
+            return `${dd.product_id}`.includes('sms_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            const count = (await db.query(`select count(1)
+            const count = (
+                await db.query(
+                    `select count(1)
                                            from \`${req.get('g-app')}\`.t_sms_points
-                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)']
+                                           where orderID = ?`,
+                    [b.transaction_id]
+                )
+            )[0]['count(1)'];
             if (!count) {
-                await db.query(`insert into \`${req.get('g-app')}\`.t_sms_points
-                                set ?`, [{
-                    orderID: b.transaction_id,
-                    userID: req.body.token.userID,
-                    money: parseInt(b.product_id.replace('sms_', ''), 10) * 10,
-                    status: 1,
-                    note: JSON.stringify({
-                        "text": "apple內購加值",
-                        "receipt": receipt
-                    })
-                }])
+                await db.query(
+                    `insert into \`${req.get('g-app')}\`.t_sms_points
+                                set ?`,
+                    [
+                        {
+                            orderID: b.transaction_id,
+                            userID: req.body.token.userID,
+                            money: parseInt(b.product_id.replace('sms_', ''), 10) * 10,
+                            status: 1,
+                            note: JSON.stringify({
+                                text: 'apple內購加值',
+                                receipt: receipt,
+                            }),
+                        },
+                    ]
+                );
             }
         }
         for (const b of receipt.receipt.in_app.filter((dd: any) => {
-            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === "PURCHASED"
+            return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            if(!(await db.query(`select count(1) from shopnex.t_checkout where cart_token=?`,[b.transaction_id]))[0]['count(1)']){
-                const app_info = (await db.query(`select dead_line, user
+            if (!(await db.query(`select count(1) from shopnex.t_checkout where cart_token=?`, [b.transaction_id]))[0]['count(1)']) {
+                const app_info = (
+                    await db.query(
+                        `select dead_line, user
                                               from glitter.app_config
-                                              where appName = ?`, [req.body.app_name]))[0];
-                const user = (await db.query(`SELECT *
+                                              where appName = ?`,
+                        [req.body.app_name]
+                    )
+                )[0];
+                const user = (
+                    await db.query(
+                        `SELECT *
                                           FROM shopnex.t_user
-                                          where userID = ?`, [
-                    app_info.user
-                ]))[0]
+                                          where userID = ?`,
+                        [app_info.user]
+                    )
+                )[0];
                 const start = (() => {
                     if (new Date(app_info.dead_line).getTime() > new Date().getTime()) {
-                        return new Date(app_info.dead_line)
+                        return new Date(app_info.dead_line);
                     } else {
-                        return new Date()
+                        return new Date();
                     }
-                })()
+                })();
                 start.setDate(start.getDate() + 365);
-                await db.query(`update glitter.app_config
+                await db.query(
+                    `update glitter.app_config
                             set dead_line=?,
                                 plan=?
-                            where appName = ?`, [start,
-                    `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'),
-                    req.body.app_name
-                ]);
-                const index=['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1)=>{
-                    return `${b.product_id}`===d1
-                })
-                const money=([13200, 26400, 52800, 52800, 66000] as any)[index]
-                await db.query(`insert into shopnex.t_checkout
-                            set ? `, [
-                    {
-                        cart_token: b.transaction_id,
-                        status: 1,
-                        email: user.userData.email,
-                        orderData: JSON.stringify({
-                            "email": user.userData.email,
-                            "total": money,
-                            "method": "ALL",
-                            "rebate": 0,
-                            "orderID": b.transaction_id,
-                            "discount": 0,
-                            "lineItems": [{
-                                "id": 289,
-                                "sku": b.product_id,
-                                "spec": [['輕便電商方案','標準電商方案','通路電商方案','行動電商方案','旗艦電商方案'][index]],
-                                "count": 1,
-                                "title": "SHOPNEX會員方案",
-                                "rebate": 0,
-                                "collection": [],
-                                "sale_price": money,
-                                "shipment_obj": {"type": "weight", "value": 0},
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png",
-                                "discount_price": 0
-                            }],
-                            "user_info": {
-                                "email": user.userData.email,
-                                "appName": req.body.app_name,
-                                "company": "",
-                                "gui_number": "",
-                                "invoice_type": "me"
-                            },
-                            "code_array": [],
-                            "use_rebate": 0,
-                            "use_wallet": "0",
-                            "user_email": user.userData.email,
-                            "orderSource": "",
-                            "voucherList": [],
-                            "shipment_fee": 0,
-                            "customer_info": {"payment_select": "ecPay"},
-                            "useRebateInfo": {"point": 0},
-                            "payment_setting": {"TYPE": "ecPay"},
-                            "user_rebate_sum": 0,
-                            "off_line_support": {"atm": false, "line": false, "cash_on_delivery": false},
-                            "payment_info_atm": {"bank_code": "", "bank_name": "", "bank_user": "", "bank_account": ""},
-                            "shipment_support": [],
-                            "shipment_selector": [],
-                            "payment_info_line_pay": {"text": ""}
-                        })
-                    }
-                ])
+                            where appName = ?`,
+                    [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]
+                );
+                const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
+                    return `${b.product_id}` === d1;
+                });
+                const money = ([13200, 26400, 52800, 52800, 66000] as any)[index];
+                await db.query(
+                    `insert into shopnex.t_checkout
+                            set ? `,
+                    [
+                        {
+                            cart_token: b.transaction_id,
+                            status: 1,
+                            email: user.userData.email,
+                            orderData: JSON.stringify({
+                                email: user.userData.email,
+                                total: money,
+                                method: 'ALL',
+                                rebate: 0,
+                                orderID: b.transaction_id,
+                                discount: 0,
+                                lineItems: [
+                                    {
+                                        id: 289,
+                                        sku: b.product_id,
+                                        spec: [['輕便電商方案', '標準電商方案', '通路電商方案', '行動電商方案', '旗艦電商方案'][index]],
+                                        count: 1,
+                                        title: 'SHOPNEX會員方案',
+                                        rebate: 0,
+                                        collection: [],
+                                        sale_price: money,
+                                        shipment_obj: { type: 'weight', value: 0 },
+                                        preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png',
+                                        discount_price: 0,
+                                    },
+                                ],
+                                user_info: {
+                                    email: user.userData.email,
+                                    appName: req.body.app_name,
+                                    company: '',
+                                    gui_number: '',
+                                    invoice_type: 'me',
+                                },
+                                code_array: [],
+                                use_rebate: 0,
+                                use_wallet: '0',
+                                user_email: user.userData.email,
+                                orderSource: '',
+                                voucherList: [],
+                                shipment_fee: 0,
+                                customer_info: { payment_select: 'ecPay' },
+                                useRebateInfo: { point: 0 },
+                                payment_setting: { TYPE: 'ecPay' },
+                                user_rebate_sum: 0,
+                                off_line_support: { atm: false, line: false, cash_on_delivery: false },
+                                payment_info_atm: { bank_code: '', bank_name: '', bank_user: '', bank_account: '' },
+                                shipment_support: [],
+                                shipment_selector: [],
+                                payment_info_line_pay: { text: '' },
+                            }),
+                        },
+                    ]
+                );
             }
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
-        console.log(err)
+        console.log(err);
         return response.fail(resp, err);
     }
 });
+
 //手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
     try {
@@ -1156,7 +1220,6 @@ router.post('/customer_invoice', async (req: express.Request, resp: express.Resp
         return response.fail(resp, err);
     }
 });
-
 //發票作廢
 router.post('/void_invoice', async (req: express.Request, resp: express.Response) => {
     try {
@@ -1167,6 +1230,41 @@ router.post('/void_invoice', async (req: express.Request, resp: express.Response
                 reason:req.body.voidReason,
                 createDate:req.body.createDate
             })
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/void_allowance', async (req: express.Request, resp: express.Response) => {
+    try {
+        let passData = {
+            invoiceNo: req.body.invoiceNo,
+            allowanceNo: req.body.allowanceNo,
+            voidReason:req.body.voidReason
+        }
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).voidAllowance(passData)
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//折讓發票
+router.post('/allowance_invoice', async (req: express.Request, resp: express.Response) => {
+    try {
+        let passData = {
+            invoiceID: req.body.invoiceID,
+            allowanceData: req.body.allowanceData,
+            orderID: req.body.orderID,
+            orderData: req.body.orderData,
+            allowanceInvoiceTotalAmount:req.body.allowanceInvoiceTotalAmount,
+            itemList: req.body.itemList,
+            invoiceDate: req.body.invoiceDate,
+        }
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).allowanceInvoice(passData)
         );
     } catch (err) {
         return response.fail(resp, err);

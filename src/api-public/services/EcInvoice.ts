@@ -48,8 +48,8 @@ export interface EcPrintInterFace {
 export class EcInvoice {
     //取得公司名稱
     public static getCompanyName(obj: {
-        company_id:string,
-        app_name:string
+        company_id: string,
+        app_name: string
     }) {
         return new Promise<any>(async (resolve, reject) => {
             const cf_ = await app.getAdConfig(obj.app_name, 'invoice_setting');
@@ -85,7 +85,7 @@ export class EcInvoice {
                         e instanceof Error && console.log(e.message);
                     }
                     const resp = JSON.parse(decodeURIComponent(decrypted))
-                    console.log(`resp--->`,resp)
+                    console.log(`resp--->`, resp)
                     resolve(resp.CompanyName)
                 })
                 .catch((error) => {
@@ -94,6 +94,7 @@ export class EcInvoice {
                 });
         })
     }
+
     public static postInvoice(obj: {
         hashKey: string,
         hash_IV: string,
@@ -134,8 +135,9 @@ export class EcInvoice {
                         e instanceof Error && console.log(e.message);
                     }
                     const resp = JSON.parse(decodeURIComponent(decrypted))
-                    console.log(`resp--->`,resp)
-                    await db.query(`insert into \`${obj.app_name}\`.t_invoice_memory set ?`, [
+                    console.log(`resp--->`, resp)
+                    await db.query(`insert into \`${obj.app_name}\`.t_invoice_memory
+                                    set ?`, [
                         {
                             order_id: obj.invoice_data.RelateNumber,
                             invoice_no: resp.InvoiceNo,
@@ -165,6 +167,7 @@ export class EcInvoice {
                 });
         })
     }
+
     //發票作廢
     public static voidInvoice(obj: {
         hashKey: string,
@@ -205,10 +208,138 @@ export class EcInvoice {
                         e instanceof Error && console.log(e.message);
                     }
                     const resp = JSON.parse(decodeURIComponent(decrypted))
+                    console.log(`resp--->`, resp)
+                    await db.query(`UPDATE \`${obj.app_name}\`.t_invoice_memory
+                                    set status = 2
+                                    WHERE invoice_no = '${obj.invoice_data.InvoiceNo}'`, [])
+                    resolve(response.data)
+                })
+                .catch((error) => {
+                    console.log(error)
+                    resolve(false)
+                });
+        })
+    }
 
-                    await db.query(`UPDATE \`${obj.app_name}\`.t_invoice_memory set status = 2 WHERE invoice_no = '${obj.invoice_data.InvoiceNo}'`, [
+    //發票折讓
+    public static allowanceInvoice(obj: {
+        hashKey: string,
+        hash_IV: string,
+        merchNO: string,
+        app_name: string,
+        allowance_data: any,
+        beta: boolean,
+        db_data: any,
+        order_id: string,
+    }) {
+        const timeStamp = `${new Date().valueOf()}`
+        const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+        let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(obj.allowance_data)), 'utf-8', 'base64');
+        encryptedData += cipher.final('base64');
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/Allowance' : 'https://einvoice.ecpay.com.tw/B2CInvoice/Allowance',
+            headers: {},
+            'Content-Type': 'application/json',
+            data: {
+                MerchantID: obj.merchNO,
+                RqHeader: {
+                    Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                },
+                Data: encryptedData
+            }
+        };
+        //發送通知
+        //PlatformID
+        return new Promise<boolean>((resolve, reject) => {
+            axios.request(config)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    console.log(`resp--->`, resp)
 
+                    await db.query(`insert into \`${obj.app_name}\`.t_allowance_memory
+                                    set ?`, [
+                        {
+                            status: "1",
+                            order_id: obj.order_id,
+                            invoice_no: resp.IA_Invoice_No,
+                            allowance_no: resp.IA_Allow_No,
+                            allowance_data: JSON.stringify(obj.db_data),
+                            create_date: resp.IA_Date,
+                        }
                     ])
+                    resolve(response.data)
+                })
+                .catch((error) => {
+                    console.log(error)
+                    resolve(false)
+                });
+        })
+    }
+
+    //廢棄發票折讓
+    public static voidAllowance(obj: {
+        hashKey: string,
+        hash_IV: string,
+        merchNO: string,
+        app_name: string,
+        allowance_data: any,
+        beta: boolean,
+    }) {
+        const timeStamp = `${new Date().valueOf()}`
+        const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+        let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(obj.allowance_data)), 'utf-8', 'base64');
+        encryptedData += cipher.final('base64');
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/AllowanceInvalid' : 'https://einvoice.ecpay.com.tw/B2CInvoice/AllowanceInvalid',
+            headers: {},
+            'Content-Type': 'application/json',
+            data: {
+                MerchantID: obj.merchNO,
+                RqHeader: {
+                    Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                },
+                Data: encryptedData
+            }
+        };
+        //發送通知
+        //PlatformID
+        return new Promise<boolean>((resolve, reject) => {
+            axios.request(config)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    console.log(`resp--->`, resp);
+                    let allowanceData = await db.query(
+                        `SELECT * FROM \`${obj.app_name}\`.t_allowance_memory
+                         WHERE allowance_no = ?`,
+                        [obj.allowance_data.AllowanceNo]
+                    );
+                    allowanceData[0].allowance_data.voidReason = obj.allowance_data.Reason;
+
+                    await db.query(
+                        `UPDATE \`${obj.app_name}\`.t_allowance_memory
+                         SET ?
+                         WHERE allowance_no = ?`,
+                        [{status: 2 , allowance_data:JSON.stringify(allowanceData[0].allowance_data)}, obj.allowance_data.AllowanceNo]
+                    );
                     resolve(response.data)
                 })
                 .catch((error) => {
@@ -247,7 +378,7 @@ export class EcInvoice {
                 maxBodyLength: Infinity,
                 url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/InvoicePrint' : 'https://einvoice.ecpay.com.tw/B2CInvoice/InvoicePrint',
                 headers: {
-                    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
                 },
                 'Content-Type': 'application/json',
                 data: {
@@ -273,7 +404,7 @@ export class EcInvoice {
                         maxBodyLength: Infinity,
                         url: resp.InvoiceHtml
                     })
-                    console.log(`resp.InvoiceHtml=>`,resp.InvoiceHtml)
+                    console.log(`resp.InvoiceHtml=>`, resp.InvoiceHtml)
                     const dom = new JSDOM.JSDOM(htmlData.data);
                     const document = dom.window.document;
                     //Qrcode取得
@@ -283,43 +414,43 @@ export class EcInvoice {
                         qrcode.push(input.value)
                     });
                     //發票標題取得
-                    const bigTitles=document.querySelectorAll(".data_big")
+                    const bigTitles = document.querySelectorAll(".data_big")
                     let bigTitle: string[] = []
                     bigTitles.forEach(input => {
                         bigTitle.push(input.innerHTML)
                     });
-                    const resolve_data={
+                    const resolve_data = {
                         //開立日期
-                        create_date:document.querySelector('font')!!.innerHTML,
+                        create_date: document.querySelector('font')!!.innerHTML,
                         //發票區間
-                        date:bigTitle[0].replace(/\n/g,'').trim(),
+                        date: bigTitle[0].replace(/\n/g, '').trim(),
                         //發票號碼
-                        invoice_code:bigTitle[1].replace(/\n/g,'').trim(),
+                        invoice_code: bigTitle[1].replace(/\n/g, '').trim(),
                         //Qrcode_0
                         qrcode_0: qrcode[0],
                         //Qrcode_1
                         qrcode_1: qrcode[1],
                         //開立連結
-                        link:resp.InvoiceHtml,
+                        link: resp.InvoiceHtml,
                         //隨機碼
-                        random_code:document.querySelectorAll('.fl font')[1].innerHTML,
+                        random_code: document.querySelectorAll('.fl font')[1].innerHTML,
                         //總計
-                        total:document.querySelectorAll('.fr font')[1].innerHTML,
+                        total: document.querySelectorAll('.fr font')[1].innerHTML,
                         //賣方
-                        sale_gui:document.querySelectorAll('.fl font')[2].innerHTML,
+                        sale_gui: document.querySelectorAll('.fl font')[2].innerHTML,
                         //買方
-                        buy_gui:(document.querySelectorAll('.fr font')[2] || {innerHTML:''}).innerHTML,
+                        buy_gui: (document.querySelectorAll('.fr font')[2] || {innerHTML: ''}).innerHTML,
                         //交易明細
-                        pay_detail:document.querySelectorAll('table')[2].outerHTML,
+                        pay_detail: document.querySelectorAll('table')[2].outerHTML,
                         //底部付款資訊
-                        pay_detail_footer:(document.querySelector('.invoice-detail-sum') as any).outerHTML,
-                        bar_code:qrcode[0].substring(10,15)+invoice_data.invoice_data.response.InvoiceNo+invoice_data.invoice_data.response.RandomNumber
+                        pay_detail_footer: (document.querySelector('.invoice-detail-sum') as any).outerHTML,
+                        bar_code: qrcode[0].substring(10, 15) + invoice_data.invoice_data.response.InvoiceNo + invoice_data.invoice_data.response.RandomNumber
                     }
-                    console.log(`invoice_data==>`,resolve_data)
+                    console.log(`invoice_data==>`, resolve_data)
                     resolve(resolve_data)
                 })
                 .catch((error) => {
-                    console.error(`取得失敗::`,error)
+                    console.error(`取得失敗::`, error)
                     resolve(false)
                 });
         })
