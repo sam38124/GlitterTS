@@ -12,14 +12,14 @@ export class ProductDetail {
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
                                 onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
                             >
                                 ${dd.title}
                             </div>
-                            <div style="align-self: stretch; height: 0px; border: 1px #393939 solid"></div>
+                            <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
                         </div>`;
             }
             else {
@@ -42,6 +42,8 @@ export class ProductDetail {
         </div>`;
     }
     static main(gvc, widget, subData) {
+        var _a;
+        ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
             gvc.glitter.setUrlParameter(b, undefined);
@@ -75,13 +77,11 @@ export class ProductDetail {
         return gvc.bindView({
             bind: ids.page,
             view: () => {
-                var _a;
                 if (loadings.page) {
                     return spinner();
                 }
                 else {
                     const prod = vm.data.content;
-                    const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
                     PdClass.addSpecStyle(gvc);
                     vm.specs =
                         vm.specs.length > 0
@@ -117,7 +117,7 @@ export class ProductDetail {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor, prod, vm })}</div>
+                            <div class="col-12 col-md-6 px-0 px-md-3 d-flex flex-column gap-2 mt-4 mt-md-0">${PdClass.selectSpec({ gvc, titleFontColor: ProductDetail.titleFontColor, prod, vm })}</div>
                         </div>
                         <div style="d-flex flex-column align-items-center mt-4">
                             ${gvc.bindView((() => {
@@ -158,7 +158,7 @@ export class ProductDetail {
                                         const cssStyle = template.data.tags.find((item) => item.key === data.key);
                                         const regex = new RegExp(`@{{${data.key}}}`, 'g');
                                         htmlString = htmlString.replace(regex, html `<span
-                                                        style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
+                                                        style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
                                                         >${data.value}</span
                                                     >`);
                                     });
@@ -172,6 +172,15 @@ export class ProductDetail {
                     })}
                         </div>
                         <div style="margin-top: 240px;"></div>
+                        <div class="w-100 d-flex align-items-center justify-content-center">
+                            <div class="mx-auto" style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                <div style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;">
+                                    相關商品
+                                </div>
+                                <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                            </div>
+                        </div>
+                        ${prod.relative_product}
                     </div>`;
                 }
             },
@@ -264,4 +273,5 @@ export class ProductDetail {
         });
     }
 }
+ProductDetail.titleFontColor = "";
 window.glitter.setModule(import.meta.url, ProductDetail);
