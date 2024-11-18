@@ -63,6 +63,14 @@ export class ProductCard03 {
                 position: relative;
                 overflow: hidden;
             }
+            .card-image-fit-center {
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center;
+            }
             .add-cart-child {
                 width: 100%;
                 height: 45px;
@@ -154,9 +162,10 @@ export class ProductCard03 {
             changePage(path, 'page', {});
         })}"
         >
-            <div
-                class="card-img-top parent card-image"
-                style="background-image: url('${(() => {
+            <div class="card-img-top parent card-image">
+                <img
+                    class="card-image-fit-center"
+                    src="${(() => {
             const innerText = prod.preview_image[0] || this.noImageURL;
             let rela_link = innerText;
             if (innerText.includes('size1440_s*px$_')) {
@@ -167,8 +176,9 @@ export class ProductCard03 {
                 });
             }
             return rela_link;
-        })()}')"
-            ></div>
+        })()}"
+                />
+            </div>
             <div
                 class="wishBt wish-button"
                 onclick="${gvc.event((e, event) => {

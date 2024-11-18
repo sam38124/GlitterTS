@@ -2660,7 +2660,7 @@ export class ShoppingProductSetting {
                                                                                     bind: id,
                                                                                     view: () => {
                                                                                         return html`<div
-                                                                                            class="d-flex justify-content-between align-items-center gap-3 px-2 mb-1"
+                                                                                            class="d-flex justify-content-between align-items-center gap-3 mb-1"
                                                                                             style="cursor: pointer;"
                                                                                             onclick="${gvc.event(() => {
                                                                                                 const originContent = `${postMD.content}`;
@@ -2725,16 +2725,10 @@ export class ShoppingProductSetting {
                                                                                                 });
                                                                                             })}"
                                                                                         >
-                                                                                            <div style="word-break: break-all;">
-                                                                                                ${Tool.truncateString(
-                                                                                                    (() => {
-                                                                                                        const text = gvc.glitter.utText.removeTag(postMD.content);
-                                                                                                        return text.length > 0 ? text : '點擊填寫商品描述';
-                                                                                                    })(),
-                                                                                                    40
-                                                                                                )}
-                                                                                            </div>
-                                                                                            <i class="fa-solid fa-angle-right" style="font-size: 1.25rem; font-weight: 700;"></i>
+                                                                                            ${(() => {
+                                                                                                const text = gvc.glitter.utText.removeTag(postMD.content);
+                                                                                                return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                                            })()}
                                                                                         </div>`;
                                                                                     },
                                                                                 };
