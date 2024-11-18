@@ -2601,7 +2601,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html ` <div class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}" style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768 ? `height: calc(100% - 70px);` : `height:${window.parent.innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;">
+            return html ` <div
+                class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}"
+                style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768
+                ? `height: calc(100% - 70px);`
+                : `height:${window.parent.innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;"
+            >
                 ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -2718,36 +2723,60 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
-            class: Tool.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
-        obj.gvc.addStyle(`
-            .${imageVM.class} {
-                display: flex;
-                min-width: ${obj.width}px;
-                min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
-                max-width: ${obj.width}px;
-                max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-            }
-        `);
+        const wh = `
+            display: flex;
+            min-width: ${obj.width}px;
+            min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+            max-width: ${obj.width}px;
+            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+        `;
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                var _a, _b, _c, _d;
                 if (imageVM.loading) {
-                    return html ` <div class="${imageVM.class} ${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}">
-                        ${this.spinner({
-                        container: { class: 'mt-0' },
-                        text: { visible: false },
-                    })}
-                    </div>`;
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return this.spinner({
+                                    container: { class: 'mt-0' },
+                                    text: { visible: false },
+                                });
+                            },
+                            divCreate: {
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                            },
+                        };
+                    });
                 }
                 else {
-                    return html `<img class="${imageVM.class} ${(_c = obj.class) !== null && _c !== void 0 ? _c : ''}" style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}" src="${imageVM.url}" />`;
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return '';
+                            },
+                            divCreate: {
+                                elem: 'img',
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                                option: [
+                                    {
+                                        key: 'src',
+                                        value: imageVM.url,
+                                    },
+                                ],
+                            },
+                        };
+                    });
                 }
             },
-            divCreate: {},
             onCreate: () => {
                 if (imageVM.loading) {
                     this.isImageUrlValid(obj.image).then((isValid) => {
