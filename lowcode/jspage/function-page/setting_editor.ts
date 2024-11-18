@@ -721,10 +721,6 @@ export class Setting_editor {
                                     let list: any = [];
 
                                     function click_item(index: any) {
-                                        if(!glitter.share.checkData()){
-                                            alert('是否確認跳轉')
-                                            return 
-                                        }
                                         const itemPage = items[parseInt(index)].page;
                                         const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
                                         if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
