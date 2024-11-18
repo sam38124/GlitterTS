@@ -120,7 +120,6 @@ export class imageLibrary {
             title: cf.title,
             innerHTML: (gvc: GVC) => {
                 const that = this;
-
                 function renderItems(
                     array: FileItem[],
                     opt?: {
@@ -172,58 +171,22 @@ export class imageLibrary {
                                             if (editArray.length < index + 1) {
                                                 editArray.push(false);
                                             }
-
                                             if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())) {
                                                 return;
                                             }
 
                                             let viewID = gvc.glitter.getUUID();
+
                                             return gvc.bindView({
                                                 bind: viewID,
                                                 view: () => {
                                                     try {
                                                         const imageUrl = originImageURL ?? noImageURL;
-                                                        function itemClick() {
-                                                            if (vm.type == 'folder') {
-                                                                //編輯資料夾內容
-                                                                vm.tag = dd.title;
-                                                                that.selectImageLibrary(
-                                                                    gvc,
-                                                                    (selectData) => {
-                                                                        vm.link = selectData;
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    },
-                                                                    `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
-                                                                    {
-                                                                        key: 'folderEdit',
-                                                                        mul: true,
-                                                                        tag: dd.title,
-                                                                    }
-                                                                );
-                                                            } else {
-                                                                cf.edit(dd, (replace) => {
-                                                                    if (!replace) {
-                                                                        let selectData = vm.link.findIndex((data) => {
-                                                                            return data.id == dd.id;
-                                                                        });
-                                                                        vm.link.splice(selectData, 1);
-                                                                        save(() => {
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        });
-                                                                    } else {
-                                                                        let replaceIndex = vm.link.findIndex((data) => data.id == replace.id);
-                                                                        vm.link[replaceIndex] = replace;
-                                                                        // console.log("vm.link -- " , vm.link);
-                                                                        save(() => {
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        });
-                                                                    }
-                                                                });
-                                                            }
-                                                        }
+
                                                         return html`
                                                             <div
-                                                                class=""
+                                                                class="${imageBoxClass}"
+                                                                data-view-container="true"
                                                                 style="padding: 10px 12px;position: relative;${(dd as any).selected
                                                                     ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);`
                                                                     : editArray[index]
@@ -252,45 +215,81 @@ export class imageLibrary {
                                                                 })}"
                                                                 ${!gvc.glitter.isTouchDevice()
                                                                     ? `
-                                                             onmouseenter="${gvc.event(() => {
-                                                                 if (opt?.onlyRead || cf.key == 'album') {
-                                                                     return;
-                                                                 }
-                                                                 if (!editArray[index]) {
-                                                                     editArray[index] = true;
-                                                                     gvc.notifyDataChange(viewID);
-                                                                 }
-                                                             })}"
-                                                             onmouseleave="${gvc.event((e, event) => {
-                                                                 if (opt?.onlyRead) return;
-                                                                 if (isSafari) {
-                                                                     const target = event.relatedTarget as HTMLElement;
-                                                                     const imageBoxClassList = [imageBoxClass];
-                                                                     const targetClassList = Array.from(target.classList);
-                                                                     const isOutBorder =
-                                                                         imageBoxClassList.every((cls) => targetClassList.includes(cls)) &&
-                                                                         targetClassList.every((cls) => imageBoxClassList.includes(cls));
-                                                                     const isTitle = targetClassList.includes(`${imageBoxClass}-title`);
-                                                                     const isInside = targetClassList.length === 0;
-                                                                     const isOutOfViewContainer = target.dataset.viewContainer === 'true';
-                                                                     const isUL = target.tagName === 'UL';
+                                                                          onmouseenter="${gvc.event(() => {
+                                                                              if (opt?.onlyRead || cf.key == 'album') {
+                                                                                  return;
+                                                                              }
+                                                                              if (!editArray[index]) {
+                                                                                  editArray[index] = true;
+                                                                                  gvc.notifyDataChange(viewID);
+                                                                              }
+                                                                          })}"
+                                                                          onmouseleave="${gvc.event((e, event) => {
+                                                                              if (opt?.onlyRead) return;
+                                                                              if (isSafari) {
+                                                                                  const target = event.relatedTarget as HTMLElement;
+                                                                                  const imageBoxClassList = [imageBoxClass];
+                                                                                  const targetClassList = Array.from(target.classList);
+                                                                                  const isOutBorder =
+                                                                                      imageBoxClassList.every((cls) => targetClassList.includes(cls)) &&
+                                                                                      targetClassList.every((cls) => imageBoxClassList.includes(cls));
+                                                                                  const isTitle = targetClassList.includes(`${imageBoxClass}-title`);
+                                                                                  const isInside = targetClassList.length === 0;
+                                                                                  const isOutOfViewContainer = target.dataset.viewContainer === 'true';
+                                                                                  const isUL = target.tagName === 'UL';
 
-                                                                     if ((isOutBorder || isTitle || isInside) && !(isOutOfViewContainer || isUL)) {
-                                                                         return;
-                                                                     }
-                                                                 }
-                                                                 editArray[index] = false;
-                                                                 gvc.notifyDataChange(viewID);
-                                                             })}"
-                                                             `
+                                                                                  if ((isOutBorder || isTitle || isInside) && !(isOutOfViewContainer || isUL)) {
+                                                                                      return;
+                                                                                  }
+                                                                              }
+                                                                              editArray[index] = false;
+                                                                              gvc.notifyDataChange(viewID);
+                                                                          })}"
+                                                                      `
                                                                     : ``}
                                                             >
                                                                 <div
-                                                                    class="${editArray[index] && !(dd as any).selected ? `d-flex` : `d-none`}  align-items-center justify-content-center"
+                                                                    class="${editArray[index] && !(dd as any).selected
+                                                                        ? `d-flex`
+                                                                        : `d-none`}  align-items-center justify-content-center ${imageBoxClass}-pencil"
                                                                     style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                                     onclick="${gvc.event((e, event) => {
                                                                         event.stopPropagation();
-                                                                        itemClick();
+                                                                        if (vm.type == 'folder') {
+                                                                            //編輯資料夾內容
+                                                                            vm.tag = dd.title;
+                                                                            that.selectImageLibrary(
+                                                                                gvc,
+                                                                                (selectData) => {
+                                                                                    vm.link = selectData;
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                },
+                                                                                html`<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
+                                                                                {
+                                                                                    key: 'folderEdit',
+                                                                                    mul: true,
+                                                                                    tag: dd.title,
+                                                                                }
+                                                                            );
+                                                                        } else {
+                                                                            cf.edit(dd, (replace) => {
+                                                                                if (!replace) {
+                                                                                    let selectData = vm.link.findIndex((data) => {
+                                                                                        return data.id == dd.id;
+                                                                                    });
+                                                                                    vm.link.splice(selectData, 1);
+                                                                                    save(() => {
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    });
+                                                                                } else {
+                                                                                    let replaceIndex = vm.link.findIndex((data) => data.id == replace.id);
+                                                                                    vm.link[replaceIndex] = replace;
+                                                                                    save(() => {
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    });
+                                                                                }
+                                                                            });
+                                                                        }
                                                                     })}"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -308,17 +307,6 @@ export class imageLibrary {
                                                                     </svg>
                                                                 </div>
                                                                 <div
-                                                                    class="position-absolute ${(dd as any).selected ? `d-blok` : `d-none`} "
-                                                                    style="transform: translate(-50%,-50%);left: 50%;top:50%;"
-                                                                >
-                                                                    ${BgWidget.darkButton(
-                                                                        '編輯圖片',
-                                                                        gvc.event(() => {
-                                                                            itemClick();
-                                                                        })
-                                                                    )}
-                                                                </div>
-                                                                <div
                                                                     class="${(dd as any).selected ? `d-flex` : `d-none`}  "
                                                                     style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
                                                                 >
@@ -326,10 +314,10 @@ export class imageLibrary {
                                                                 </div>
 
                                                                 <div
-                                                                    style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"
+                                                                    style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;"
                                                                 ></div>
                                                                 <div
-                                                                    class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
+                                                                    class="w-100 text-center ${imageBoxClass}-title"
                                                                     style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
                                                                     contenteditable="true"
                                                                     onchange="${gvc.event((e: any) => {})}"
@@ -339,8 +327,8 @@ export class imageLibrary {
                                                             </div>
                                                         `;
                                                     } catch (e) {
-                                                        console.log(e);
-                                                        return ``;
+                                                        console.error(e);
+                                                        return '';
                                                     }
                                                 },
                                                 divCreate: {
@@ -348,14 +336,20 @@ export class imageLibrary {
                                                         {
                                                             sm: `width:15%;`,
                                                         },
-                                                        `width:49%;`
+                                                        `width:33%;`
                                                     )}cursor:pointer;`,
+                                                    option: [
+                                                        {
+                                                            key: 'data-view-container',
+                                                            value: 'true',
+                                                        },
+                                                    ],
                                                 },
                                             });
                                         })
                                         .join('');
                                 } catch (e) {
-                                    console.log(`error=>`, e);
+                                    console.error(`error=>`, e);
                                     return ``;
                                 }
                             },
@@ -367,7 +361,7 @@ export class imageLibrary {
                                         sm: `17`,
                                     },
                                     `0`
-                                )}px;${document.body.clientWidth < 800 ? `justify-content: space-between;` : ``}`,
+                                )}px;`,
                             },
                             onCreate: () => {
                                 gvc.glitter.addMtScript(
@@ -384,11 +378,11 @@ export class imageLibrary {
                                     if (window.Sortable) {
                                         try {
                                             gvc.addStyle(`
-                                                                                ul {
-                                                                                    list-style: none;
-                                                                                    padding: 0;
-                                                                                }
-                                                                            `);
+                                                ul {
+                                                    list-style: none;
+                                                    padding: 0;
+                                                }
+                                            `);
 
                                             function swapArr(arr: any, index1: number, index2: number) {
                                                 const data = arr[index1];
@@ -423,6 +417,7 @@ export class imageLibrary {
                 getPublicConfig(() => {
                     gvc.notifyDataChange(vm.id);
                 });
+
                 return gvc.bindView(() => {
                     return {
                         bind: vm.id,
@@ -520,11 +515,6 @@ export class imageLibrary {
                                                         save(() => {
                                                             gvc.notifyDataChange(vm.id);
                                                         });
-                                                        // postMD.content_array = id
-                                                        // obj.gvc.notifyDataChange(bi)
-                                                        // getPublicConfig(()=>{
-                                                        //     gvc.notifyDataChange(vm.id);
-                                                        // });
                                                     },
                                                     `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
                                                     {
@@ -578,17 +568,10 @@ export class imageLibrary {
                                             view: () => {
                                                 if (vm.tag) {
                                                     let group = vm.link.filter((item2) => {
-                                                        // return item2.tag.includes(vm.tag as string);
                                                         return item2.tag && item2.tag.includes(vm.tag ?? '');
                                                     });
                                                     return renderItems(group, { onlyRead: true });
                                                 }
-                                                // return renderItems(vm.link);
-                                                // alert("test");
-                                                // if (group.length > 1) {
-                                                //     return renderItems(group);
-                                                // }
-                                                //
                                                 return ``;
                                             },
                                             divCreate: {},
@@ -637,7 +620,6 @@ export class imageLibrary {
                                                     let group = vm.link.filter((item2) => {
                                                         return item2.tag && item2.tag.includes(vm.tag ?? '');
                                                     });
-                                                    console.log('array -- ', group);
                                                     return renderItems(group);
                                                 }
                                                 return ``;
@@ -697,10 +679,6 @@ export class imageLibrary {
                                                         return tag !== vm.tag;
                                                     });
                                                 });
-
-                                                let folder = vm.link.find((dd) => {
-                                                    return dd.title == vm.tag && dd.type == 'folder';
-                                                });
                                                 gvc.notifyDataChange(vm.id);
                                             })
                                         )}
@@ -750,7 +728,7 @@ export class imageLibrary {
                                                                                 gvc.glitter.closeDiaLog('add');
                                                                                 thatGVC.notifyDataChange(vm.id);
                                                                             },
-                                                                            `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
+                                                                            html`<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
                                                                             {
                                                                                 key: 'album',
                                                                                 mul: true,
@@ -847,7 +825,10 @@ export class imageLibrary {
                                                         })}項
                                                     </div>
                                                 </div>
-                                                <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
+                                                <div
+                                                    style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex"
+                                                    data-view-container="true"
+                                                >
                                                     ${(() => {
                                                         let viewData = vm.link.filter((data) => {
                                                             return data.type == vm.type;
@@ -1011,11 +992,6 @@ export class imageLibrary {
                                                 save(() => {
                                                     gvc.closeDialog();
                                                 });
-
-                                                // save(() => {
-                                                //     gvc.notifyDataChange(vm.id);
-                                                //     gvc.closeDialog();
-                                                // })
                                             }
                                         },
                                     });
@@ -1078,12 +1054,6 @@ export class imageLibrary {
                                             const dialog = new ShareDialog(gvc.glitter);
                                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                         }
-                                        // save(() => {
-                                        //     if (select.length > 0){
-                                        //         cf.getSelect(select);
-                                        //         gvc.closeDialog();
-                                        //     }
-                                        // })
                                     } else {
                                         cf.getSelect(select);
                                         gvc.closeDialog();
@@ -1098,7 +1068,7 @@ export class imageLibrary {
         });
     }
 
-    public static async selectImageLibrary(
+    public static selectImageLibrary(
         gvc: GVC,
         callback: (id: FileItem[]) => void,
         title: string,
@@ -1108,13 +1078,7 @@ export class imageLibrary {
             tag?: string;
         }
     ) {
-        let alt: any = '';
-        let saveAlt = function () {};
         function editorView(gvc: GVC, item: FileItem) {
-            // ApiUser.setPublicConfig({
-            //     key:'alt_'+
-            // })
-            // alert(JSON.stringify(item))
             if (item.type === 'folder') {
                 return BgWidget.editeInput({
                     gvc: gvc,
@@ -1127,7 +1091,7 @@ export class imageLibrary {
                 });
             } else {
                 item.data = item.data ?? {};
-                return `<div>${[
+                return [
                     BgWidget.editeInput({
                         gvc: gvc,
                         title: `圖片標題`,
@@ -1139,39 +1103,13 @@ export class imageLibrary {
                     }),
                     EditorElem.uploadImageContainer({
                         gvc: gvc,
-                        title: `圖片資源`,
+                        title: `圖片內容`,
                         def: item.data ?? '',
                         callback: (text) => {
                             item.data = text;
                         },
                     }),
-                    gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
-                        return {
-                            bind: id,
-                            view: async () => {
-                                const tag = gvc.glitter.generateCheckSum(item.data, 9);
-                                alt = (await ApiUser.getPublicConfig(`alt_` + tag, 'manager')).response.value || { alt: '' };
-                                saveAlt = async () => {
-                                    ApiUser.setPublicConfig({
-                                        key: `alt_` + tag,
-                                        value: alt,
-                                        user_id: 'manager',
-                                    });
-                                };
-                                return BgWidget.textArea({
-                                    gvc: gvc,
-                                    title: `ALT描述`,
-                                    default: alt.alt,
-                                    placeHolder: `請輸入ALT描述`,
-                                    callback: (text) => {
-                                        alt.alt = text;
-                                    },
-                                });
-                            },
-                        };
-                    }),
-                ].join('<div class="my-2"></div>')}</div>`;
+                ].join('');
             }
         }
 
@@ -1183,41 +1121,6 @@ export class imageLibrary {
             tag: opt?.tag ?? '',
             mul: opt ? opt.mul ?? false : false,
             plus: (gvc: GVC, callback: (file: FileItem[]) => void) => {
-                const item: FileItem = {
-                    title: '',
-                    data: {},
-                    items: [],
-                    type: 'file',
-                    tag: [],
-                    id: gvc.glitter.getUUID(),
-                };
-                let count = 1;
-                // function upload(file: any) {
-                //     const dialog = new ShareDialog(gvc.glitter);
-                //     dialog.dataLoading({ visible: true });
-                //     const saasConfig=(window.parent as any).saasConfig;
-                //     saasConfig.api.uploadFileAll(file).then((res: { result: boolean; links: string[] }) => {
-                //         dialog.dataLoading({ visible: false });
-                //         if (res.result) {
-                //             res.links.map((dd) => {
-                //                 obj.callback(dd);
-                //             });
-                //         } else {
-                //             dialog.errorMessage({ text: '上傳失敗' });
-                //         }
-                //     });
-                // }
-                // gvc.glitter.ut.chooseMediaCallback({
-                //     single: true,
-                //     accept: obj.type ?? '*',
-                //     callback(data: any) {
-                //         upload(
-                //             data.map((dd: any) => {
-                //                 return dd.file;
-                //             })
-                //         );
-                //     },
-                // });
                 EditorElem.uploadFileFunction({
                     gvc: gvc,
                     callback: (text: any) => {
@@ -1270,7 +1173,6 @@ export class imageLibrary {
                             BgWidget.save(
                                 gvc.event(() => {
                                     callback(item);
-                                    saveAlt();
                                     gvc.closeDialog();
                                 }),
                                 '確定'
