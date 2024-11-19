@@ -2092,6 +2092,7 @@ export class ShoppingProductSetting {
                                     dialog.checkYesOrNot({
                                         text: '尚未儲存內容，是否確認跳轉?', callback: (response) => {
                                             if (response) {
+                                                window.parent.glitter.share.checkData = () => { return true; };
                                                 obj.vm.type = 'list';
                                             }
                                         }
