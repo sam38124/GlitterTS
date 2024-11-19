@@ -736,7 +736,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         switch (Storage.select_function) {
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
-                                let bgMobileGuide = new BgMobileGuide(gvc,1);
+
                                 console.log("appear -- ")
                                 if (document.body.clientWidth > 1000) {
                                     ApiShop.getGuideable().then(r => {
@@ -746,6 +746,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         }
                                     })
                                 }else {
+                                    // let bgMobileGuide = new BgMobileGuide(gvc,1);
                                     // bgMobileGuide.drawGuide();
                                 }
                                 break
