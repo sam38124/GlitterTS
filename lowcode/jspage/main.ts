@@ -30,6 +30,7 @@ import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {Article} from "../glitter-base/route/article.js";
 import {AiChat} from "../glitter-base/route/ai-chat.js";
+import {BgMobileGuide} from "../backend-manager/bg-MobileGuide.js";
 
 const html = String.raw;
 //
@@ -735,6 +736,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         switch (Storage.select_function) {
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
+                                let bgMobileGuide = new BgMobileGuide(gvc,1);
+                                console.log("appear -- ")
                                 if (document.body.clientWidth > 1000) {
                                     ApiShop.getGuideable().then(r => {
                                         if (!r.response.value || !r.response.value.view) {
@@ -742,6 +745,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             bgGuide.drawGuide();
                                         }
                                     })
+                                }else {
+                                    // bgMobileGuide.drawGuide();
                                 }
                                 break
                             }

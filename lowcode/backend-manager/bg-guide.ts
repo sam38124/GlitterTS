@@ -1,6 +1,5 @@
 import {GVC} from '../glitterBundle/GVController.js';
 import {ApiShop} from '../glitter-base/route/shopping.js';
-import {all} from 'underscore/index.js';
 import {ShareDialog} from "../dialog/ShareDialog.js";
 
 const html = String.raw;
