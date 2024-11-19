@@ -3141,7 +3141,7 @@ ${obj.default ?? ''}</textarea
                 class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}"
                 style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768
                     ? `height: calc(100% - 70px);`
-                    : `height:${(window.parent as any).innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;"
+                    : `height:${(window.parent as any).innerHeight}px;padding-top:${gvc.glitter.share.top_inset || 0}px;`}"
             >
                 ${gvc.bindView({
                     bind: vm.id,
