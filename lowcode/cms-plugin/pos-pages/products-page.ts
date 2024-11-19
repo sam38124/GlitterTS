@@ -8,13 +8,13 @@ import {Swal} from "../../modules/sweetAlert.js";
 const html = String.raw
 
 export class ProductsPage {
-    public static main(obj: { gvc: GVC,vm: ViewModel,orderDetail:OrderDetail }) {
+    public static main(obj: { gvc: GVC, vm: ViewModel, orderDetail: OrderDetail }) {
         const swal = new Swal(obj.gvc);
         const gvc = obj.gvc
         const vm = obj.vm
-        const orderDetail=obj.orderDetail
+        const orderDetail = obj.orderDetail
         const dialog = new ShareDialog(gvc.glitter);
-        (orderDetail as any).total=orderDetail.total || 0;
+        (orderDetail as any).total = orderDetail.total || 0;
         return html`
             <div class="left-panel"
                  style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding-top: 42px` : `width:calc(100% - 352px);padding-top: 32px ;padding-bottom:32px;`}overflow: hidden;">
@@ -60,7 +60,7 @@ export class ProductsPage {
                     },
                     divCreate: {
                         class: `d-flex px-3 `,
-                        style: `width:100%;overflow: scroll;padding-bottom:32px;${(document.body.clientWidth>992) ? `padding-left:32px !important;padding-right:32px !important;`:`padding-top:20px;`}`
+                        style: `width:100%;overflow: scroll;padding-bottom:32px;${(document.body.clientWidth > 992) ? `padding-left:32px !important;padding-right:32px !important;` : `padding-top:20px;`}`
                     }
                 })}
                 ${gvc.bindView({
@@ -100,7 +100,7 @@ export class ProductsPage {
 
 
                         if (vm.searchable) {
-                            dialog.dataLoading({visible:true})
+                            dialog.dataLoading({visible: true})
                             ApiShop.getProduct({
                                 page: 0,
                                 collection: (category.key == 'all' ? '' : category.key),
@@ -110,19 +110,20 @@ export class ProductsPage {
                             }).then(res => {
                                 vm.searchable = false;
                                 vm.productSearch = res.response.data;
-                                dialog.dataLoading({visible:false})
+                                dialog.dataLoading({visible: false})
                                 gvc.notifyDataChange(`productShow`)
                             })
                         }
                         if (vm.productSearch.length > 0) {
-                            
+
                             return vm.productSearch.map((data) => {
                                 let selectVariant = data.content.variants[0];
+                                selectVariant.show_understocking=(selectVariant.show_understocking)==='true'
                                 let count = 1;
                                 data.content.specs.forEach((spec: any) => {
                                     spec.option[0].select = true;
                                 })
-                              
+
                                 return html`
                                     <div class="d-flex flex-column mb-4 mb-sm-0"
                                          style="max-width:${maxwidth}px;flex-basis: 188px;flex-grow: 1;border-radius: 10px;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
@@ -192,7 +193,7 @@ export class ProductsPage {
                                                                                      }
                                                                                  },
                                                                                  divCreate: {
-                                                                                     style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px`:`0px`};margin-top:16px;`,
+                                                                                     style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px` : `0px`};margin-top:16px;`,
                                                                                      class: `d-flex flex-column`
                                                                                  }
                                                                              })}
@@ -203,7 +204,7 @@ export class ProductsPage {
                                                                                      view: () => {
                                                                                          if (count > 1 && selectVariant.stock < count && !selectVariant.show_understocking) {
                                                                                              count = selectVariant.stock;
-                                                                                             
+
                                                                                              dialog.infoMessage({text: `此商品僅剩${selectVariant.stock}個庫存`})
                                                                                          }
                                                                                          return html`
@@ -247,7 +248,7 @@ export class ProductsPage {
                                                                                                      </svg>
                                                                                                  </div>
                                                                                              </div>
-                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking ? `d-none`:``}">
+                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking==='true' ? `d-none` : ``}">
                                                                                                  <span>庫存數量:${selectVariant.stock}</span>
                                                                                              </div>
                                                                                          `
@@ -261,7 +262,8 @@ export class ProductsPage {
                                                                              })}
                                                                          </div>
                                                                      </div>
-                                                                     <div class="d-flex mt-4 justify-content-between" style="gap:10px;">
+                                                                     <div class="d-flex mt-4 justify-content-between"
+                                                                          style="gap:10px;">
                                                                          ${
                                                                                  gvc.bindView(() => {
 
@@ -289,11 +291,10 @@ export class ProductsPage {
                                                                          }
                                                                          ${
                                                                                  gvc.bindView(() => {
-
                                                                                      return {
                                                                                          bind: 'product_btn',
                                                                                          view: () => {
-                                                                                             if (!selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                                                             if (selectVariant.show_understocking && selectVariant.stock === 0) {
                                                                                                  return `尚無庫存`
                                                                                              }
                                                                                              return `加入購物車`
@@ -301,11 +302,16 @@ export class ProductsPage {
                                                                                          divCreate: () => {
                                                                                              return {
                                                                                                  class: `d-flex align-items-center justify-content-center`,
-                                                                                                 style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(!selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
+                                                                                                 style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
                                                                                                  option: [
                                                                                                      {
                                                                                                          key: 'onclick',
                                                                                                          value: gvc.event(() => {
+                                                                                                             if(selectVariant.show_understocking && selectVariant.stock === 0){
+                                                                                                                 const dialog=new ShareDialog(gvc.glitter)
+                                                                                                                 dialog.errorMessage({text:'庫存數量不足'})
+                                                                                                                 return
+                                                                                                             }
                                                                                                              let addItem = orderDetail.lineItems.find((item: any) => {
                                                                                                                  console.log(data)
                                                                                                                  console.log(item)
@@ -325,7 +331,7 @@ export class ProductsPage {
                                                                                                                      sku: selectVariant.sku
                                                                                                                  })
                                                                                                              }
-                                                                                                             if(document.querySelector('.js-cart-count')){
+                                                                                                             if (document.querySelector('.js-cart-count')) {
                                                                                                                  (document.querySelector('.js-cart-count') as any).recreateView()
                                                                                                              }
                                                                                                              gvc.glitter.closeDiaLog()
@@ -363,7 +369,7 @@ export class ProductsPage {
                                     </div>
                                 `
                             }).join('')
-                        }else{
+                        } else {
                             return POSSetting.emptyView('查無相關商品')
                         }
                         return html``
@@ -383,9 +389,9 @@ export class ProductsPage {
                     }
                 })}
             </div>
-            ${(()=>{
-                const view=`<div class=""
-                 style="height: 100%;width: 352px;max-width:100%;overflow: auto;${(document.body.clientWidth>800) ? `padding: 36px 24px;`:`padding: 10px 12px;`};background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
+            ${(() => {
+                const view = `<div class=""
+                 style="height: 100%;width: 352px;max-width:100%;overflow: auto;${(document.body.clientWidth > 800) ? `padding: 36px 24px;` : `padding: 10px 12px;`};background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
                 <div style="color:#393939;font-size: 32px;font-weight: 700;letter-spacing: 3px;margin-bottom: 32px;">
                     購物車
                 </div>
@@ -397,32 +403,33 @@ export class ProductsPage {
                         orderDetail.lineItems.forEach((item) => {
                             orderDetail.subtotal += item.sale_price * item.count;
                         })
-                        
+
                         return html`
                             <div style="display: flex;flex-direction: column;gap: 18px;">
                                 ${orderDetail.lineItems.map((item, index) => {
-                            return html`
+                                    return html`
                                         ${(index > 0) ? `<div style="background-color: #DDD;height:1px;width: 100%;"></div>` : ""}
                                         <div class="d-flex align-items-center"
                                              style="height: 87px;">
-                                            <div class="rounded-3" style="background: 50%/cover url('${item.preview_image}');height: 67px;width: 66px;margin-right: 12px;"></div>
+                                            <div class="rounded-3"
+                                                 style="background: 50%/cover url('${item.preview_image}');height: 67px;width: 66px;margin-right: 12px;"></div>
                                             <div class="d-flex flex-column flex-fill">
                                                 <div>${item.title}</div>
                                                 <div class="d-flex" style="gap:4px;">
                                                     ${(item.spec.length > 0) ? item.spec.map((spec) => {
-                                return html`
+                                                        return html`
                                                             <div style="color: #949494;font-size: 16px;font-style: normal;font-weight: 500;">
                                                                 ${spec}
                                                             </div>`
-                            }).join('') : "單一規格"}
+                                                    }).join('') : "單一規格"}
                                                 </div>
                                                 <div class="d-flex align-items-center"
                                                      style="margin-top:6px;">
                                                     <div style="display: flex;width: 30px;height: 30px;padding: 8px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;"
                                                          onclick="${gvc.event(() => {
-                                item.count = (item.count < 2) ? item.count : item.count - 1;
-                                gvc.notifyDataChange('order')
-                            })}">
+                                                             item.count = (item.count < 2) ? item.count : item.count - 1;
+                                                             gvc.notifyDataChange('order')
+                                                         })}">
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                              width="10" height="10"
                                                              viewBox="0 0 10 10"
@@ -436,14 +443,14 @@ export class ProductsPage {
                                                            value="${item.count}">
                                                     <div style="display: flex;width: 30px;height: 30px;padding: 8px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;"
                                                          onclick="${gvc.event(() => {
-                                item.count++
-                                gvc.notifyDataChange('order')
-                            })}">
+                                                             item.count++
+                                                             gvc.notifyDataChange('order')
+                                                         })}">
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                              width="10" height="10"
                                                              viewBox="0 0 10 10" fill="none"
                                                              onclick="${gvc.event(() => {
-                            })}">
+                                                             })}">
                                                             <path d="M5.76923 0.769231C5.76923 0.34375 5.42548 0 5 0C4.57452 0 4.23077 0.34375 4.23077 0.769231V4.23077H0.769231C0.34375 4.23077 0 4.57452 0 5C0 5.42548 0.34375 5.76923 0.769231 5.76923H4.23077V9.23077C4.23077 9.65625 4.57452 10 5 10C5.42548 10 5.76923 9.65625 5.76923 9.23077V5.76923H9.23077C9.65625 5.76923 10 5.42548 10 5C10 4.57452 9.65625 4.23077 9.23077 4.23077H5.76923V0.769231Z"
                                                                   fill="white"/>
                                                         </svg>
@@ -451,10 +458,10 @@ export class ProductsPage {
                                                 </div>
 
                                             </div>
-                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between" >
-                                                <div class="" onclick="${gvc.event(()=>{
-                                                    orderDetail.lineItems.splice(index,1)
-                                                    if(document.querySelector('.js-cart-count')){
+                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between">
+                                                <div class="" onclick="${gvc.event(() => {
+                                                    orderDetail.lineItems.splice(index, 1)
+                                                    if (document.querySelector('.js-cart-count')) {
                                                         (document.querySelector('.js-cart-count') as any).recreateView()
                                                     }
                                                     gvc.notifyDataChange('order')
@@ -471,31 +478,31 @@ export class ProductsPage {
                                                               stroke-linecap="round"/>
                                                     </svg>
                                                 </div>
-                                              
+
                                                 <div style="color:#393939;font-size: 18px;font-style: normal;font-weight: 500;letter-spacing: 0.72px;">
                                                         $${(item.sale_price * item.count).toLocaleString()}
                                                 </div>
                                             </div>
                                         </div>
                                     `
-                        }).join('')}
+                                }).join('')}
                             </div>
                             <div class="w-100"
                                  style="margin-top: 24px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;display: flex;padding: 24px;flex-direction: column;justify-content: center;">
                                 <div class=" w-100 d-flex flex-column" style="gap:6px;">
                                     ${(() => {
-                            let tempData = [
-                                {
-                                    left: `小計總額`,
-                                    right: parseInt((orderDetail.subtotal ?? 0) as any, 10).toLocaleString()
-                                },
-                                // {
-                                //     left: `活動折扣`,
-                                //     right: parseInt((orderDetail.discount ?? 0) as any, 10).toLocaleString()
-                                // }
-                            ]
-                            return tempData.map((data) => {
-                                return html`
+                                        let tempData = [
+                                            {
+                                                left: `小計總額`,
+                                                right: parseInt((orderDetail.subtotal ?? 0) as any, 10).toLocaleString()
+                                            },
+                                            // {
+                                            //     left: `活動折扣`,
+                                            //     right: parseInt((orderDetail.discount ?? 0) as any, 10).toLocaleString()
+                                            // }
+                                        ]
+                                        return tempData.map((data) => {
+                                            return html`
                                                 <div class="w-100 d-flex">
                                                     <div style="font-size: 16px;font-style: normal;font-weight: 500;">
                                                         ${data.left}
@@ -506,8 +513,8 @@ export class ProductsPage {
                                                     </div>
                                                 </div>
                                             `
-                            }).join(``)
-                        })()}
+                                        }).join(``)
+                                    })()}
                                 </div>
                                 <div class="d-flex align-items-center justify-content-center"
                                      style="margin:18px 0;">
@@ -527,26 +534,26 @@ export class ProductsPage {
                             </div>
                         `
                     }, divCreate: {class: `display: flex;flex-direction: column;gap: 24px;`},
-                    onCreate:()=>{
-                        const dialog=new ShareDialog(gvc.glitter)
+                    onCreate: () => {
+                        const dialog = new ShareDialog(gvc.glitter)
                         obj.gvc.glitter.share.scan_back = (text: string) => {
-                            dialog.dataLoading({visible:true})
+                            dialog.dataLoading({visible: true})
                             ApiShop.getProduct({
                                 page: 0,
                                 limit: 50000,
-                                accurate_search_text:true,
-                                search:text,
+                                accurate_search_text: true,
+                                search: text,
                                 orderBy: 'created_time_desc'
                             }).then(res => {
-                                dialog.dataLoading({visible:false})
-                                if(res.response.data[0]){
-                                    const data=res.response.data[0]
-                                    const selectVariant=res.response.data[0].content.variants.find((d1:any)=>{
-                                        return d1.barcode===text
+                                dialog.dataLoading({visible: false})
+                                if (res.response.data[0]) {
+                                    const data = res.response.data[0]
+                                    const selectVariant = res.response.data[0].content.variants.find((d1: any) => {
+                                        return d1.barcode === text
                                     })
-                                    if(!orderDetail.lineItems.find((dd)=>{
-                                        return (dd.id+dd.spec.join('-'))===(data.id + selectVariant.spec.join('-'))
-                                    })){
+                                    if (!orderDetail.lineItems.find((dd) => {
+                                        return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'))
+                                    })) {
                                         orderDetail.lineItems.push({
                                             id: data.id,
                                             title: data.content.title,
@@ -555,16 +562,16 @@ export class ProductsPage {
                                             count: 0,
                                             sale_price: selectVariant.sale_price,
                                             sku: selectVariant.sku
-                                        }) 
+                                        })
                                     }
-                                    orderDetail.lineItems.find((dd)=>{
-                                        return (dd.id+dd.spec.join('-'))===(data.id + selectVariant.spec.join('-'))
+                                    orderDetail.lineItems.find((dd) => {
+                                        return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'))
                                     })!.count++
                                     gvc.notifyDataChange('order')
-                                }else{
-                                    swal.toast({icon:'error',title:'無此商品'})
+                                } else {
+                                    swal.toast({icon: 'error', title: '無此商品'})
                                 }
-                                
+
                                 gvc.notifyDataChange(`order`)
                             })
                         }
@@ -579,14 +586,15 @@ export class ProductsPage {
                     送出訂單
                 </div>
             </div>`
-                if(document.body.offsetWidth<800){
-                    gvc.glitter.setDrawer(view,()=>{})
-                    return  ``
-                }else {
+                if (document.body.offsetWidth < 800) {
+                    gvc.glitter.setDrawer(view, () => {
+                    })
+                    return ``
+                } else {
                     return view
                 }
             })()}
-            
+
         `
     }
 }

@@ -70,7 +70,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.828';
+        glitter.share.editerVersion = 'V_13.8.843';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -169,7 +169,8 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -183,6 +184,9 @@ export class Entry {
                 }
                 else {
                     try {
+                        glitter.addMtScript(['https://kit.fontawesome.com/cccedec0f8.js'], () => {
+                        }, () => {
+                        });
                         const appList = (yield ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
                         localStorage.setItem('select_item', '0');
                         if (appList.length === 0) {
@@ -348,7 +352,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -382,7 +388,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -446,7 +454,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {

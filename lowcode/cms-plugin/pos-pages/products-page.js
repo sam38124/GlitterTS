@@ -108,6 +108,7 @@ export class ProductsPage {
                     return vm.productSearch.map((data) => {
                         var _a, _b, _c, _d;
                         let selectVariant = data.content.variants[0];
+                        selectVariant.show_understocking = (selectVariant.show_understocking) === 'true';
                         let count = 1;
                         data.content.specs.forEach((spec) => {
                             spec.option[0].select = true;
@@ -236,7 +237,7 @@ export class ProductsPage {
                                                                                                      </svg>
                                                                                                  </div>
                                                                                              </div>
-                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking ? `d-none` : ``}">
+                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking === 'true' ? `d-none` : ``}">
                                                                                                  <span>庫存數量:${selectVariant.stock}</span>
                                                                                              </div>
                                                                                          `;
@@ -249,7 +250,8 @@ export class ProductsPage {
                                         })}
                                                                          </div>
                                                                      </div>
-                                                                     <div class="d-flex mt-4 justify-content-between" style="gap:10px;">
+                                                                     <div class="d-flex mt-4 justify-content-between"
+                                                                          style="gap:10px;">
                                                                          ${gvc.bindView(() => {
                                             return {
                                                 bind: 'close',
@@ -276,7 +278,7 @@ export class ProductsPage {
                                             return {
                                                 bind: 'product_btn',
                                                 view: () => {
-                                                    if (!selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                    if (selectVariant.show_understocking && selectVariant.stock === 0) {
                                                         return `尚無庫存`;
                                                     }
                                                     return `加入購物車`;
@@ -284,11 +286,16 @@ export class ProductsPage {
                                                 divCreate: () => {
                                                     return {
                                                         class: `d-flex align-items-center justify-content-center`,
-                                                        style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(!selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
+                                                        style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
                                                         option: [
                                                             {
                                                                 key: 'onclick',
                                                                 value: gvc.event(() => {
+                                                                    if (selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.errorMessage({ text: '庫存數量不足' });
+                                                                        return;
+                                                                    }
                                                                     let addItem = orderDetail.lineItems.find((item) => {
                                                                         console.log(data);
                                                                         console.log(item);
@@ -389,7 +396,8 @@ export class ProductsPage {
                                         ${(index > 0) ? `<div style="background-color: #DDD;height:1px;width: 100%;"></div>` : ""}
                                         <div class="d-flex align-items-center"
                                              style="height: 87px;">
-                                            <div class="rounded-3" style="background: 50%/cover url('${item.preview_image}');height: 67px;width: 66px;margin-right: 12px;"></div>
+                                            <div class="rounded-3"
+                                                 style="background: 50%/cover url('${item.preview_image}');height: 67px;width: 66px;margin-right: 12px;"></div>
                                             <div class="d-flex flex-column flex-fill">
                                                 <div>${item.title}</div>
                                                 <div class="d-flex" style="gap:4px;">
@@ -435,7 +443,7 @@ export class ProductsPage {
                                                 </div>
 
                                             </div>
-                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between" >
+                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between">
                                                 <div class="" onclick="${gvc.event(() => {
                             orderDetail.lineItems.splice(index, 1);
                             if (document.querySelector('.js-cart-count')) {
@@ -455,7 +463,7 @@ export class ProductsPage {
                                                               stroke-linecap="round"/>
                                                     </svg>
                                                 </div>
-                                              
+
                                                 <div style="color:#393939;font-size: 18px;font-style: normal;font-weight: 500;letter-spacing: 0.72px;">
                                                         $${(item.sale_price * item.count).toLocaleString()}
                                                 </div>
@@ -561,14 +569,15 @@ export class ProductsPage {
                 </div>
             </div>`;
             if (document.body.offsetWidth < 800) {
-                gvc.glitter.setDrawer(view, () => { });
+                gvc.glitter.setDrawer(view, () => {
+                });
                 return ``;
             }
             else {
                 return view;
             }
         })()}
-            
+
         `;
     }
 }

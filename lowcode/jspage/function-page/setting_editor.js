@@ -873,7 +873,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'invoice_list',
-            group: '發票管理',
+            group: '訂單管理',
             title: '發票列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
@@ -881,7 +881,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'allowance_list',
-            group: '發票管理',
+            group: '訂單管理',
             title: '折讓單列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
