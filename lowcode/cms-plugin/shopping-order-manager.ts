@@ -780,6 +780,7 @@ export class ShoppingOrderManager {
                         end_ISO_Date: string;
                     }
                 ];
+                orderSource?:string
                 deliveryData: Record<string, string>;
             };
             created_time: string;
@@ -1380,6 +1381,14 @@ export class ShoppingOrderManager {
                                         html: html`
                                             <div class="summary-card">
                                                 ${[
+                                                    BgWidget.mainCard(html`
+                                                        <div class="" style="font-size: 16px;font-weight: 700;">
+                                                            訂單來源
+                                                        </div>
+                                                        <div>
+                                                            ${(orderData.orderData.orderSource=="pos")?"POS":"線上"}
+                                                        </div>
+                                                    `),
                                                     BgWidget.mainCard(
                                                             html`
                                                                 <div style="color: #393939;font-size: 16px;">
@@ -1423,7 +1432,7 @@ export class ShoppingOrderManager {
                                                                                     <div style="color: #393939;font-weight: 400;">
                                                                                         ${userData?.userData?.phone ?? orderData.orderData.user_info.phone ?? '此會員未填手機'}
                                                                                     </div>
-                                                                                    <div style="color: #393939;font-weight: 400;">
+                                                                                    <div style="color: #393939;font-weight: 400;word-break:break-all;">
                                                                                         ${userData?.userData?.email ?? orderData.orderData.user_info.email}
                                                                                     </div>
                                                                                 </div>`,

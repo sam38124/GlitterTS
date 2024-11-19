@@ -1182,6 +1182,14 @@ export class ShoppingOrderManager {
                                             <div class="summary-card">
                                                 ${[
                             BgWidget.mainCard(html `
+                                                        <div class="" style="font-size: 16px;font-weight: 700;">
+                                                            訂單來源
+                                                        </div>
+                                                        <div>
+                                                            ${(orderData.orderData.orderSource == "pos") ? "POS" : "線上"}
+                                                        </div>
+                                                    `),
+                            BgWidget.mainCard(html `
                                                                 <div style="color: #393939;font-size: 16px;">
                                                                     <div class="d-flex align-items-center mb-3">
                                                                         <div class="tx_700">訂購人資料</div>
@@ -1223,7 +1231,7 @@ export class ShoppingOrderManager {
                                                                                     <div style="color: #393939;font-weight: 400;">
                                                                                         ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
                                                                                     </div>
-                                                                                    <div style="color: #393939;font-weight: 400;">
+                                                                                    <div style="color: #393939;font-weight: 400;word-break:break-all;">
                                                                                         ${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email}
                                                                                     </div>
                                                                                 </div>`,
