@@ -295,7 +295,7 @@ export class imageLibrary {
                                                         `;
                                                 }
                                                 catch (e) {
-                                                    console.log(e);
+                                                    console.error(e);
                                                     return ``;
                                                 }
                                             },
@@ -309,7 +309,7 @@ export class imageLibrary {
                                         .join('');
                                 }
                                 catch (e) {
-                                    console.log(`error=>`, e);
+                                    console.error(`error=>`, e);
                                     return ``;
                                 }
                             },
@@ -552,7 +552,6 @@ export class imageLibrary {
                                                 var _a;
                                                 return item2.tag && item2.tag.includes((_a = vm.tag) !== null && _a !== void 0 ? _a : '');
                                             });
-                                            console.log('array -- ', group);
                                             return renderItems(group);
                                         }
                                         return ``;
@@ -842,7 +841,7 @@ export class imageLibrary {
                         clearNoNeedData(dd.items || []);
                     });
                 }
-                function save(finish) {
+                function save(finish, text) {
                     clearNoNeedData(vm.link);
                     dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
@@ -851,7 +850,7 @@ export class imageLibrary {
                         user_id: 'manager',
                     }).then((data) => {
                         dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: '儲存成功' });
+                        dialog.successMessage({ text: text !== null && text !== void 0 ? text : '儲存成功' });
                         finish();
                     });
                 }
@@ -859,6 +858,9 @@ export class imageLibrary {
                     case 'folderEdit': {
                         return [
                             BgWidget.cancel(gvc.event(() => {
+                                if (cf.cancelEvent) {
+                                    cf.cancelEvent();
+                                }
                                 gvc.closeDialog();
                             })),
                             BgWidget.danger(gvc.event(() => {
@@ -881,7 +883,7 @@ export class imageLibrary {
                                             cf.getSelect(vm.link);
                                             save(() => {
                                                 gvc.closeDialog();
-                                            });
+                                            }, '刪除成功');
                                         }
                                     },
                                 });
@@ -898,6 +900,9 @@ export class imageLibrary {
                         let finishBTN = cf.key == 'album' ? '建立' : '完成';
                         return [
                             BgWidget.cancel(gvc.event(() => {
+                                if (cf.cancelEvent) {
+                                    cf.cancelEvent();
+                                }
                                 if (vm.type == 'folderView' || vm.type == 'folderADD') {
                                     vm.type = 'folder';
                                     gvc.notifyDataChange(vm.id);
@@ -945,6 +950,11 @@ export class imageLibrary {
                             }), finishBTN),
                         ].join('');
                     }
+                }
+            },
+            closeCallback: () => {
+                if (cf.cancelEvent) {
+                    cf.cancelEvent();
                 }
             },
         });
@@ -1085,6 +1095,11 @@ export class imageLibrary {
                         },
                         closeCallback: () => { },
                     });
+                },
+                cancelEvent: () => {
+                    if (opt === null || opt === void 0 ? void 0 : opt.cancelEvent) {
+                        opt.cancelEvent();
+                    }
                 },
             });
         });

@@ -1569,7 +1569,6 @@ export class ShoppingProductSetting {
     }) {
         const html = String.raw;
         let postMD: any = obj.defData;
-
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
@@ -1581,7 +1580,6 @@ export class ShoppingProductSetting {
                 orignData = data;
             }
         });
-
         function checkStore(next: () => void) {
             const dialog = new ShareDialog(gvc.glitter);
             if (JSON.stringify(orignData) !== JSON.stringify(variant)) {
@@ -1598,7 +1596,6 @@ export class ShoppingProductSetting {
                 next();
             }
         }
-
         document.querySelector('.pd-w-c')!.scrollTop = 0;
         return html` <div class="d-flex" style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
             ${BgWidget.container(
@@ -2210,6 +2207,10 @@ export class ShoppingProductSetting {
         } else {
             obj.vm.replaceData = postMD;
         }
+        const origin_data = JSON.stringify(postMD);
+        (window.parent as any).glitter.share.checkData = () => {
+            return origin_data === JSON.stringify(postMD);
+        };
         const html = String.raw;
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
@@ -2656,7 +2657,7 @@ export class ShoppingProductSetting {
                                                                                     bind: id,
                                                                                     view: () => {
                                                                                         return html`<div
-                                                                                            class="d-flex justify-content-between align-items-center gap-3 px-2 mb-1"
+                                                                                            class="d-flex justify-content-between align-items-center gap-3 mb-1"
                                                                                             style="cursor: pointer;"
                                                                                             onclick="${gvc.event(() => {
                                                                                                 const originContent = `${postMD.content}`;
@@ -2671,13 +2672,21 @@ export class ShoppingProductSetting {
                                                                                                                 setHeight: '100vh',
                                                                                                                 hiddenBorder: true,
                                                                                                                 insertImageEvent: (editor) => {
+                                                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                                    editor.html.insert(mark);
+                                                                                                                    editor.undo.saveStep();
+
                                                                                                                     imageLibrary.selectImageLibrary(
                                                                                                                         gvc,
                                                                                                                         (urlArray) => {
                                                                                                                             if (urlArray.length > 0) {
-                                                                                                                                for (const url of urlArray) {
-                                                                                                                                    editor.html.insert(html`<img src="${url.data}" />`);
-                                                                                                                                }
+                                                                                                                                const imgHTML = urlArray
+                                                                                                                                    .map((url) => {
+                                                                                                                                        return html`<img src="${url.data}" />`;
+                                                                                                                                    })
+                                                                                                                                    .join('');
+                                                                                                                                editor.html.set(editor.html.get(0).replace(mark, imgHTML));
                                                                                                                                 editor.undo.saveStep();
                                                                                                                             } else {
                                                                                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -2690,12 +2699,19 @@ export class ShoppingProductSetting {
                                                                                                                         >
                                                                                                                             圖片庫
                                                                                                                         </div>`,
-                                                                                                                        { mul: true }
+                                                                                                                        {
+                                                                                                                            mul: true,
+                                                                                                                            cancelEvent: () => {
+                                                                                                                                editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                                editor.undo.saveStep();
+                                                                                                                            },
+                                                                                                                        }
                                                                                                                     );
                                                                                                                 },
                                                                                                                 callback: (text) => {
                                                                                                                     postMD.content = text;
                                                                                                                 },
+                                                                                                                rich_height: `calc(${(window.parent as any).innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${(document.body.clientWidth<800) ? `70`:`0`}px)`
                                                                                                             })}
                                                                                                         </div>`;
                                                                                                     },
@@ -2721,16 +2737,10 @@ export class ShoppingProductSetting {
                                                                                                 });
                                                                                             })}"
                                                                                         >
-                                                                                            <div style="word-break: break-all;">
-                                                                                                ${Tool.truncateString(
-                                                                                                    (() => {
-                                                                                                        const text = gvc.glitter.utText.removeTag(postMD.content);
-                                                                                                        return text.length > 0 ? text : '點擊填寫商品描述';
-                                                                                                    })(),
-                                                                                                    40
-                                                                                                )}
-                                                                                            </div>
-                                                                                            <i class="fa-solid fa-angle-right" style="font-size: 1.25rem; font-weight: 700;"></i>
+                                                                                            ${(() => {
+                                                                                                const text = gvc.glitter.utText.removeTag(postMD.content);
+                                                                                                return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                                            })()}
                                                                                         </div>`;
                                                                                     },
                                                                                 };

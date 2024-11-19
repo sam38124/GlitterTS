@@ -1332,7 +1332,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             </div>`;
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
@@ -1348,7 +1348,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 timer++;
                                 if (created.header) {
                                     const checkbox = obj.filter.length > 0;
-                                    console.log(`query==>`, ids.tr);
                                     const tr = gvc.glitter.document.querySelector(`.${ids.tr}`);
                                     tr === null || tr === void 0 ? void 0 : tr.querySelectorAll('td').forEach((td, index) => {
                                         if (checkbox && index === 0) {
@@ -1880,6 +1879,76 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
             },
         });
+    }
+    static richTextView(text) {
+        return html `<div style="width: 100%; height: 150px; position: relative; background: white; border-radius: 10px; overflow: hidden; border: 1px #DDDDDD solid">
+            <div
+                style="left: 18px; right: 18px; top: 59px; position: absolute; color: ${text.length > 0
+            ? '#393939'
+            : '#8D8D8D'}; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+            >
+                ${text.length > 0 ? text : '點擊填寫商品描述及說明'}
+            </div>
+            <div
+                style="width: 100%; padding-top: 10px; padding-bottom: 10px; padding-left: 18px; padding-right: 18px; left: 0px; top: 0px; position: absolute; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden; border-bottom: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; display: inline-flex"
+            >
+                <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 24px; display: inline-flex">
+                    <div style="justify-content: flex-start; align-items: center; gap: 44px; display: flex">
+                        <div style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">段落</div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="5" viewBox="0 0 9 5" fill="none">
+                            <path d="M8 1L4.5 4L1 1" stroke="#393939" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div style="width: 0px; height: 16px; border-radius: 1px; border: 1px #8D8D8D solid"></div>
+                    <div style="justify-content: flex-start; align-items: center; gap: 16px; display: flex">
+                        <div style="width: 12px; position: relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15" fill="none">
+                                <path
+                                    d="M0 2.25C0 1.76602 0.446875 1.375 1 1.375H2.5H3H7C9.20938 1.375 11 2.9418 11 4.875C11 5.73086 10.6469 6.51836 10.0625 7.12539C11.2219 7.73789 12 8.85078 12 10.125C12 12.0582 10.2094 13.625 8 13.625H3H2.5H1C0.446875 13.625 0 13.234 0 12.75C0 12.266 0.446875 11.875 1 11.875H1.5V7.5V3.125H1C0.446875 3.125 0 2.73398 0 2.25ZM7 6.625C8.10312 6.625 9 5.84023 9 4.875C9 3.90977 8.10312 3.125 7 3.125H3.5V6.625H7ZM3.5 8.375V11.875H8C9.10312 11.875 10 11.0902 10 10.125C10 9.15977 9.10312 8.375 8 8.375H7H3.5Z"
+                                    fill="#393939"
+                                />
+                            </svg>
+                        </div>
+                        <div style="width: 12px; position: relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15" fill="none">
+                                <g clip-path="url(#clip0_9874_190584)">
+                                    <path
+                                        d="M0.163923 2.25C0.163923 1.76602 0.546959 1.375 1.02107 1.375H3.59249C4.0666 1.375 4.44964 1.76602 4.44964 2.25C4.44964 2.73398 4.0666 3.125 3.59249 3.125H3.16392V6.625C3.16392 8.07422 4.31571 9.25 5.73535 9.25C7.15499 9.25 8.30678 8.07422 8.30678 6.625V3.125H7.87821C7.4041 3.125 7.02107 2.73398 7.02107 2.25C7.02107 1.76602 7.4041 1.375 7.87821 1.375H10.4496C10.9237 1.375 11.3068 1.76602 11.3068 2.25C11.3068 2.73398 10.9237 3.125 10.4496 3.125H10.0211V6.625C10.0211 9.04219 8.10321 11 5.73535 11C3.36749 11 1.44964 9.04219 1.44964 6.625V3.125H1.02107C0.546959 3.125 0.163923 2.73398 0.163923 2.25ZM-0.264648 12.75C-0.264648 12.266 0.118387 11.875 0.592494 11.875H10.8782C11.3523 11.875 11.7354 12.266 11.7354 12.75C11.7354 13.234 11.3523 13.625 10.8782 13.625H0.592494C0.118387 13.625 -0.264648 13.234 -0.264648 12.75Z"
+                                        fill="#393939"
+                                    />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_9874_190584">
+                                        <rect width="12" height="14" fill="white" transform="translate(0 0.5)" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div style="width: 14px; position: relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
+                                <path
+                                    d="M4.41055 4.43771C4.49805 3.96739 4.79336 3.61466 5.33203 3.38224C5.90898 3.13614 6.74844 3.04591 7.75469 3.2045C8.08008 3.25646 9.08906 3.45333 9.39805 3.53263C9.86563 3.65568 10.3441 3.3795 10.4699 2.91192C10.5957 2.44435 10.3168 1.96583 9.84922 1.84005C9.4582 1.73614 8.38359 1.52833 8.02812 1.47364C6.80586 1.28224 5.61367 1.3588 4.6457 1.77169C3.64766 2.19825 2.88477 2.99669 2.68242 4.1588C2.67969 4.17521 2.67695 4.18888 2.67695 4.20528C2.60039 4.8588 2.69062 5.45216 2.95312 5.97169C3.07617 6.21778 3.23203 6.4338 3.40977 6.62521H0.875C0.391016 6.62521 0 7.01622 0 7.50021C0 7.98419 0.391016 8.37521 0.875 8.37521H13.125C13.609 8.37521 14 7.98419 14 7.50021C14 7.01622 13.609 6.62521 13.125 6.62521H7.38555C7.38281 6.62521 7.37734 6.62247 7.37461 6.62247L7.34453 6.61427C6.36016 6.31896 5.56172 6.07833 5.01484 5.70919C4.76055 5.53693 4.60469 5.36466 4.51719 5.18692C4.43242 5.02013 4.375 4.78771 4.41328 4.43771H4.41055ZM9.54023 9.72052C9.61406 9.89825 9.66055 10.1525 9.59219 10.5436C9.51016 11.0248 9.21484 11.3858 8.66523 11.6209C8.08828 11.867 7.25156 11.9572 6.24531 11.7986C5.75312 11.7193 4.90273 11.4295 4.21094 11.1943C4.05781 11.1424 3.91016 11.0932 3.77617 11.0467C3.3168 10.8936 2.82187 11.1424 2.66875 11.6018C2.51562 12.0611 2.76445 12.5561 3.22383 12.7092C3.32227 12.742 3.43984 12.783 3.57109 12.8268C4.25195 13.0592 5.31016 13.4201 5.96641 13.5268H5.97187C7.19414 13.7182 8.38633 13.6416 9.3543 13.2287C10.3523 12.8022 11.1152 12.0037 11.3176 10.8416C11.416 10.2674 11.3914 9.73693 11.2328 9.25294H9.16289C9.3543 9.40607 9.47461 9.55919 9.54297 9.72325L9.54023 9.72052Z"
+                                    fill="#393939"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="width: 0px; height: 16px; border-radius: 1px; border: 1px #8D8D8D solid"></div>
+                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
+                            <path
+                                d="M9 1.5C9 2.05313 8.55312 2.5 8 2.5H1C0.446875 2.5 0 2.05313 0 1.5C0 0.946875 0.446875 0.5 1 0.5H8C8.55312 0.5 9 0.946875 9 1.5ZM9 9.5C9 10.0531 8.55312 10.5 8 10.5H1C0.446875 10.5 0 10.0531 0 9.5C0 8.94688 0.446875 8.5 1 8.5H8C8.55312 8.5 9 8.94688 9 9.5ZM0 5.5C0 4.94688 0.446875 4.5 1 4.5H13C13.5531 4.5 14 4.94688 14 5.5C14 6.05313 13.5531 6.5 13 6.5H1C0.446875 6.5 0 6.05313 0 5.5ZM14 13.5C14 14.0531 13.5531 14.5 13 14.5H1C0.446875 14.5 0 14.0531 0 13.5C0 12.9469 0.446875 12.5 1 12.5H13C13.5531 12.5 14 12.9469 14 13.5Z"
+                                fill="#393939"
+                            />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="5" viewBox="0 0 9 5" fill="none">
+                            <path d="M8 1L4.5 4L1 1" stroke="#393939" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div style="width: 0px; height: 16px; border-radius: 1px; border: 1px #8D8D8D solid"></div>
+                </div>
+            </div>
+        </div>`;
     }
     static selectFilter(obj) {
         var _a;
@@ -2601,7 +2670,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 id: obj.gvc.glitter.getUUID(),
                 loading: false,
             };
-            return html ` <div class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}" style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768 ? `height: calc(100% - 70px);` : `height:${window.parent.innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;">
+            return html ` <div
+                class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}"
+                style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768
+                ? `height: calc(100% - 70px);`
+                : `height:${window.parent.innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;"
+            >
                 ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -2718,36 +2792,64 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
-            class: Tool.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
-        obj.gvc.addStyle(`
-            .${imageVM.class} {
-                display: flex;
-                min-width: ${obj.width}px;
-                min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
-                max-width: ${obj.width}px;
-                max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-            }
-        `);
+        const wh = `
+            display: flex;
+            min-width: ${obj.width}px;
+            min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+            max-width: ${obj.width}px;
+            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        `;
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                var _a, _b, _c, _d;
                 if (imageVM.loading) {
-                    return html ` <div class="${imageVM.class} ${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}">
-                        ${this.spinner({
-                        container: { class: 'mt-0' },
-                        text: { visible: false },
-                    })}
-                    </div>`;
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return this.spinner({
+                                    container: { class: 'mt-0' },
+                                    text: { visible: false },
+                                });
+                            },
+                            divCreate: {
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                            },
+                        };
+                    });
                 }
                 else {
-                    return html `<img class="${imageVM.class} ${(_c = obj.class) !== null && _c !== void 0 ? _c : ''}" style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}" src="${imageVM.url}" />`;
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return '';
+                            },
+                            divCreate: {
+                                elem: 'img',
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                                option: [
+                                    {
+                                        key: 'src',
+                                        value: imageVM.url,
+                                    },
+                                ],
+                            },
+                        };
+                    });
                 }
             },
-            divCreate: {},
             onCreate: () => {
                 if (imageVM.loading) {
                     this.isImageUrlValid(obj.image).then((isValid) => {

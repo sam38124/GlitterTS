@@ -839,7 +839,7 @@ export class imageLibrary {
                         clearNoNeedData(dd.items || []);
                     });
                 }
-                function save(finish) {
+                function save(finish, text) {
                     clearNoNeedData(vm.link);
                     dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
@@ -848,7 +848,7 @@ export class imageLibrary {
                         user_id: 'manager',
                     }).then((data) => {
                         dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: '儲存成功' });
+                        dialog.successMessage({ text: text !== null && text !== void 0 ? text : '儲存成功' });
                         finish();
                     });
                 }
@@ -878,7 +878,7 @@ export class imageLibrary {
                                             cf.getSelect(vm.link);
                                             save(() => {
                                                 gvc.closeDialog();
-                                            });
+                                            }, '刪除成功');
                                         }
                                     },
                                 });

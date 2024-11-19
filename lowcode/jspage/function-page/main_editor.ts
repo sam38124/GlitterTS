@@ -421,7 +421,6 @@ export class Main_editor {
                                                                         const container = element.parentNode;
 
                                                                         if (container.children.length !== target) {
-                                                                            console.log(`index==>${Array.from(container.children).indexOf(element)}length===>${container.children.length}===target===>${target}`)
                                                                             if (!(Array.from(container.children).indexOf(element) > target)) {
                                                                                 target++
                                                                             }
@@ -1362,7 +1361,7 @@ export class Main_editor {
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column `,
                         style: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? ``
-                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${Storage.select_function === 'backend-manger' ? window.parent.innerHeight - 56 : window.innerHeight - (EditorConfig.getPaddingTop(gvc)) - 56}px;overflow:hidden;`
                     }
                 }
             }
@@ -1397,7 +1396,8 @@ export class Main_editor {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
+                            ? `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `414px`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;` 
+                            : `width: calc(${(document.body.clientWidth < 800) ? `${document.body.clientWidth}px` : `100%`});height: ${window.innerHeight - EditorConfig.getPaddingTop(gvc) - 56}px;overflow:hidden;`
                     }
                 }
             }
@@ -1671,7 +1671,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                 glitter.htmlGenerate.saveEvent();
                                                                             } catch (e: any) {
                                                                                 dialog.errorMessage({text: '代碼輸入錯誤'});
-                                                                                console.log(`${e}${e.stack}${e.line}`);
+                                                                                console.error(`${e}${e.stack}${e.line}`);
                                                                             }
                                                                         })}"
                                                                 >

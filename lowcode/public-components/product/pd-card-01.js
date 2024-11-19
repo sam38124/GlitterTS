@@ -62,6 +62,14 @@ export class ProductCard01 {
                 position: relative;
                 overflow: hidden;
             }
+            .card-image-fit-center {
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center;
+            }
             .add-cart-child {
                 width: 100%;
                 height: 45px;
@@ -149,9 +157,10 @@ export class ProductCard01 {
             changePage(path, 'page', {});
         })}"
         >
-            <div
-                class="card-img-top parent card-image"
-                style="background-image: url('${(() => {
+            <div class="card-img-top parent card-image" style="overflow: hidden;">
+                <img
+                    class="card-image-fit-center"
+                    src="${(() => {
             const innerText = prod.preview_image[0] || this.noImageURL;
             let rela_link = innerText;
             if (innerText.includes('size1440_s*px$_')) {
@@ -162,8 +171,8 @@ export class ProductCard01 {
                 });
             }
             return rela_link;
-        })()}')"
-            >
+        })()}"
+                />
                 <div class="child add-cart-child">
                     <div
                         class="w-100 h-100 p-3 add-cart-text"
