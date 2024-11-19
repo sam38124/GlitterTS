@@ -309,7 +309,7 @@ export class ProductsPage {
                                                                                                          value: gvc.event(() => {
                                                                                                              if(selectVariant.show_understocking && selectVariant.stock === 0){
                                                                                                                  const dialog=new ShareDialog(gvc.glitter)
-                                                                                                                 dialog.errorMessage({text:'庫存數量不足'})
+                                                                                                                 dialog.errorMessage({text:' 庫存數量不足'})
                                                                                                                  return
                                                                                                              }
                                                                                                              let addItem = orderDetail.lineItems.find((item: any) => {
