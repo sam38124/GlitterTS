@@ -2969,7 +2969,7 @@ export class ShoppingProductSetting {
                                                                                                                             <div
                                                                                                                                     style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                             >
-                                                                                                                                編輯存貨數量
+                                                                                                                                編輯庫存數量
                                                                                                                             </div>
                                                                                                                             <div
                                                                                                                                     class="w-100 d-flex flex-column"
@@ -3507,7 +3507,29 @@ export class ShoppingProductSetting {
                                                                                             }, '');
                                                                                         })}"
                                                                                                                                     >
-                                                                                                                                        編輯存貨數量
+                                                                                                                                        編輯庫存數量
+                                                                                                                                    </div>
+                                                                                                                                    <div
+                                                                                                                                            class="d-none"
+                                                                                                                                            style="cursor: pointer;"
+                                                                                                                                            onclick="${gvc.event(() => {
+                                                                                            gvc.glitter.innerDialog((gvc) => {
+                                                                                                return editDialog('sku');
+                                                                                            }, 'sku');
+                                                                                        })}"
+                                                                                                                                    >
+                                                                                                                                        編輯存貨單位(SKU)
+                                                                                                                                    </div>
+                                                                                                                                    <div
+                                                                                                                                            class="d-none"
+                                                                                                                                            style="cursor: pointer;"
+                                                                                                                                            onclick="${gvc.event(() => {
+                                                                                            gvc.glitter.innerDialog((gvc) => {
+                                                                                                return editDialog('delete');
+                                                                                            }, 'delete');
+                                                                                        })}"
+                                                                                                                                    >
+                                                                                                                                        刪除規格
                                                                                                                                     </div>
                                                                                                                                     <div
                                                                                                                                             style="cursor: pointer;"
@@ -3549,28 +3571,7 @@ export class ShoppingProductSetting {
                                                                                                                                     >
                                                                                                                                         編輯商品重量
                                                                                                                                     </div>
-                                                                                                                                    <div
-                                                                                                                                            class="d-none"
-                                                                                                                                            style="cursor: pointer;"
-                                                                                                                                            onclick="${gvc.event(() => {
-                                                                                            gvc.glitter.innerDialog((gvc) => {
-                                                                                                return editDialog('sku');
-                                                                                            }, 'sku');
-                                                                                        })}"
-                                                                                                                                    >
-                                                                                                                                        編輯存貨單位(SKU)
-                                                                                                                                    </div>
-                                                                                                                                    <div
-                                                                                                                                            class="d-none"
-                                                                                                                                            style="cursor: pointer;"
-                                                                                                                                            onclick="${gvc.event(() => {
-                                                                                            gvc.glitter.innerDialog((gvc) => {
-                                                                                                return editDialog('delete');
-                                                                                            }, 'delete');
-                                                                                        })}"
-                                                                                                                                    >
-                                                                                                                                        刪除規格
-                                                                                                                                    </div>
+                                                                                                                                    
                                                                                                                                 </div>
                                                                                                                             `
                                                                                         : ``}
@@ -3603,7 +3604,7 @@ export class ShoppingProductSetting {
                                                                                                                              class="me-3">
                                                                                                                             售價*
                                                                                                                         </div>`
-                                                                                    : `${['售價*', '存貨數量*', '運費計算方式']
+                                                                                    : `${['售價*', '庫存數量*', '運費計算方式']
                                                                                         .map((dd) => {
                                                                                         return html `
                                                                                                                                     <div
