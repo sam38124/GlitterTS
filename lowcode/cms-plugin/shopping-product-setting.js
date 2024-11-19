@@ -1125,7 +1125,7 @@ export class ShoppingProductSetting {
                                                                                 key: '庫存',
                                                                                 value: (() => {
                                                                                     const sum = dd.content.variants.reduce((acc, curr) => acc + curr.stock, 0);
-                                                                                    return html `${(dd.content.variants.length > 0) ? `${dd.content.variants.length}個子類` : ``}有${sum}件庫存`;
+                                                                                    return html `${(dd.content.variants.length > 1) ? `${dd.content.variants.length}個子類` : ``}${(sum > 1) ? `有${sum}件庫存` : html `<span style="color:#8E0E2B">有${sum}件庫存</span>`}`;
                                                                                 })(),
                                                                             },
                                                                             {

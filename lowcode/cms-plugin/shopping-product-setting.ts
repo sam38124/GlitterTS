@@ -1366,7 +1366,7 @@ export class ShoppingProductSetting {
                                                                                                         key: '庫存',
                                                                                                         value: (() => {
                                                                                                             const sum = dd.content.variants.reduce((acc: any, curr: any) => acc + curr.stock, 0);
-                                                                                                            return html`${(dd.content.variants.length > 0) ? `${dd.content.variants.length}個子類` : ``}有${sum}件庫存`
+                                                                                                            return html`${(dd.content.variants.length > 1) ? `${dd.content.variants.length}個子類` : ``}${(sum>1)?`有${sum}件庫存`:html`<span style="color:#8E0E2B">有${sum}件庫存</span>`}`
 
                                                                                                         })(),
                                                                                                     },
@@ -2760,7 +2760,6 @@ export class ShoppingProductSetting {
                                                                                                                                                                             <img src="${url.data}"/>`;
                                                                                                                                                                     })
                                                                                                                                                                     .join('');
-                                                                                                                                                            
                                                                                                                                                             editor.html.set(editor.html.get(0).replace(mark, html`<div class="d-flex flex-column">${imgHTML}</div>`));
                                                                                                                                                             editor.undo.saveStep();
                                                                                                                                                         } else {
