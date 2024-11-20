@@ -3,7 +3,8 @@ import { UmClass } from './um-class.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 
 const html = String.raw;
-interface VoucherContent {
+
+export interface VoucherContent {
     id: number;
     for: string;
     code: string;
@@ -35,7 +36,7 @@ interface VoucherContent {
     start_ISO_Date: string;
 }
 
-interface Voucher {
+export interface Voucher {
     id: number;
     userID: number;
     content: VoucherContent;

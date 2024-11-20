@@ -10,9 +10,17 @@ import {FormCheck} from "../../cms-plugin/module/form-check.js";
 import {UmClass} from "../user-manager/um-class.js";
 import {FormWidget} from "../../official_view_component/official/form.js";
 import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
+import {Voucher as OriginVoucher,VoucherContent} from '../user-manager/um-voucher.js'
 
 const html = String.raw;
 const css = String.raw;
+
+interface UserVoucher extends VoucherContent {
+    usePass: boolean;
+}
+interface Voucher extends OriginVoucher {
+    content: UserVoucher;
+}
 
 export class CheckoutIndex {
     static main(gvc: GVC, widget: any, subData: any) {
@@ -257,170 +265,205 @@ export class CheckoutIndex {
 
         function addStyle() {
             gvc.addStyle(css`
-             
-                .${classPrefix}-container {
-                    max-width: 70% !important;
-                    margin: 2.5rem auto !important;
-                }
+            .${classPrefix}-container {
+                max-width: 70% !important;
+                margin: 2.5rem auto !important;
+            }
 
-                .${classPrefix}-null-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    height: 100vh !important;
-                }
+            .${classPrefix}-null-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                height: 100vh !important;
+            }
 
-                .${classPrefix}-header {
-                    color: #393939;
-                    font-size: 24px;
-                    font-weight: 700;
-                    letter-spacing: 12px;
-                    text-align: center;
-                    margin-bottom: 24px;
-                }
+            .${classPrefix}-header {
+                color: #393939;
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: 12px;
+                text-align: center;
+                margin-bottom: 24px;
+            }
 
-                .${classPrefix}-banner-bgr {
-                    padding: 1rem;
-                    border-radius: 10px;
-                    background: #f6f6f6;
-                }
+            .${classPrefix}-banner-bgr {
+                padding: 1rem;
+                border-radius: 10px;
+                background: #f6f6f6;
+            }
 
-                .${classPrefix}-banner-text {
-                    color: #393939;
-                    font-size: 18px;
-                    font-weight: 700;
-                    letter-spacing: 2px;
-                }
+            .${classPrefix}-banner-text {
+                color: #393939;
+                font-size: 18px;
+                font-weight: 700;
+                letter-spacing: 2px;
+            }
 
-                .${classPrefix}-text-1 {
-                    color: #393939;
-                    font-size: 20px;
-                }
+            .${classPrefix}-text-1 {
+                color: #393939;
+                font-size: 20px;
+            }
 
-                .${classPrefix}-text-2 {
-                    color: #393939;
-                    font-size: 16px;
-                }
+            .${classPrefix}-text-2 {
+                color: #393939;
+                font-size: 16px;
+            }
 
-                .${classPrefix}-text-3 {
-                    color: #393939;
-                    font-size: 14px;
-                }
+            .${classPrefix}-text-3 {
+                color: #393939;
+                font-size: 14px;
+            }
 
-                .${classPrefix}-label {
-                    color: #393939;
-                    font-size: 16px;
-                    margin-bottom: 8px;
-                }
+            .${classPrefix}-label {
+                color: #393939;
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
 
-                .${classPrefix}-bold {
-                    font-weight: 700;
-                }
+            .${classPrefix}-bold {
+                font-weight: 700;
+            }
 
-                .${classPrefix}-button-bgr {
-                    width: 100%;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    height: 40px;
-                    background: #393939;
-                    padding: 0 24px;
-                    margin: 18px 0;
-                }
+            .${classPrefix}-button-bgr {
+                width: 100%;
+                border: 0;
+                border-radius: 0.375rem;
+                height: 40px;
+                background: #393939;
+                padding: 0 24px;
+                margin: 18px 0;
+            }
 
-                .${classPrefix}-button-text {
-                    color: #fff;
-                    font-size: 16px;
-                }
+            .${classPrefix}-button-bgr-disable {
+                width: 100%;
+                border: 0;
+                border-radius: 0.375rem;
+                height: 40px;
+                background: #DDDDDD;
+                padding: 0 24px;
+                margin: 18px 0;
+            }
 
-                .${classPrefix}-input {
-                    width: 100%;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    height: 40px;
-                    padding: 0px 18px;
-                }
+            .${classPrefix}-button-text {
+                color: #fff;
+                font-size: 16px;
+            }
 
-                .${classPrefix}-select {
-                    display: flex;
-                    padding: 7px 30px 7px 18px;
-                    max-height: 40px;
-                    align-items: center;
-                    gap: 6px;
-                    border-radius: 10px;
-                    border: 1px solid #ddd;
-                    background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-                    background-position-x: calc(100% - 12px);
-                    background-position-y: 16px;
-                    appearance: none;
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                }
+            .${classPrefix}-input {
+                width: 100%;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+                height: 40px;
+                padding: 0px 18px;
+            }
 
-                .${classPrefix}-select:focus {
-                    outline: 0;
-                }
+            .${classPrefix}-select {
+                display: flex;
+                padding: 7px 30px 7px 18px;
+                max-height: 40px;
+                align-items: center;
+                gap: 6px;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+                background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
+                background-position-x: calc(100% - 12px);
+                background-position-y: 16px;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+            }
 
-                .${classPrefix}-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 15%;
-                }
+            .${classPrefix}-select:focus {
+                outline: 0;
+            }
 
-                .${classPrefix}-first-td {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 40%;
-                }
+            .${classPrefix}-group-input {
+                border:none;
+                background:none;
+                text-align: start; 
+                color: #393939; 
+                font-size: 16px; 
+                font-weight: 400; 
+                word-wrap: break-word;
+                padding-left: 12px;
+            }
 
-                .${classPrefix}-price-container {
-                    display: flex;
-                    flex-direction: column;
-                    width: 400px;
-                    align-items: center;
-                    padding: 0;
-                    gap: 12px;
-                    margin: 24px 0;
-                }
+            .${classPrefix}-group-input:focus {
+                outline: 0;
+            }
 
-                .${classPrefix}-price-row {
-                    display: flex;
-                    width: 100%;
-                    align-items: center;
-                    justify-content: space-between;
-                }
+            .${classPrefix}-group-button {
+                padding: 9px 18px;
+                background: #393939;
+                align-items: center;
+                gap: 5px;
+                display: flex;
+                font-size: 16px;
+                justify-content: center;
+                cursor: pointer;
+            }
 
-                .${classPrefix}-origin-price {
-                    text-align: end;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                    text-decoration: line-through;
-                    color: #636363;
-                    font-style: italic;
-                    margin-top: auto;
-                }
+            .${classPrefix}-td {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 15%;
+            }
 
-                .${classPrefix}-add-item-badge {
-                    height: 22px;
-                    padding-left: 6px;
-                    padding-right: 6px;
-                    padding-top: 4px;
-                    padding-bottom: 4px;
-                    background: #ffe9b2;
-                    border-radius: 7px;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 10px;
-                    display: inline-flex;
-                }
+            .${classPrefix}-first-td {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40%;
+            }
 
-                .${classPrefix}-add-item-text {
-                    color: #393939;
-                    font-size: 14px;
-                    font-weight: 400;
-                    word-wrap: break-word;
-                }
+            .${classPrefix}-price-container {
+                display: flex;
+                flex-direction: column;
+                width: 400px;
+                align-items: center;
+                padding: 0;
+                gap: 12px;
+                margin: 24px 0;
+            }
+
+            .${classPrefix}-price-row {
+                display: flex;
+                width: 100%;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .${classPrefix}-origin-price {
+                text-align: end;
+                font-weight: 400;
+                word-wrap: break-word;
+                text-decoration: line-through;
+                color: #636363;
+                font-style: italic;
+                margin-top: auto;
+            }
+
+            .${classPrefix}-add-item-badge {
+                height: 22px;
+                padding-left: 6px;
+                padding-right: 6px;
+                padding-top: 4px;
+                padding-bottom: 4px;
+                background: #ffe9b2;
+                border-radius: 7px;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                display: inline-flex;
+            }
+
+            .${classPrefix}-add-item-text {
+                color: #393939;
+                font-size: 14px;
+                font-weight: 400;
+                word-wrap: break-word;
+            }
             `);
             gvc.addStyle(css`
                 @media (max-width: 768px) {
@@ -428,10 +471,17 @@ export class CheckoutIndex {
                         max-width: 100% !important;
                         margin: 2.5rem auto !important;
                     }
+                    .${classPrefix}-td {
+                        display: flex;
+                        align-items: center;
+                        justify-content: start;
+                        width: 100%;
+                    }
                 }`)
         }
 
         function refreshCartData() {
+            loadings.page=true;
             gvc.notifyDataChange(ids.page)
         }
 
@@ -489,15 +539,24 @@ export class CheckoutIndex {
                                                                                 .map((item: any,index:number) => {
                                                                                     console.log(`item=>`,item);
                                                                                     return html`
-                                                                                        <div class="d-flex align-items-center p-3 border-bottom flex-column"
+                                                                                     <div class="d-flex w-100 border-bottom p-lg-3 px-1 py-3 position-relative" style="gap:20px;">
+                                                                                         <div class="${gClass('first-td')} justify-content-start  d-sm-none">
+                                                                                             ${validImageBox({
+                                                                                                 gvc,
+                                                                                                 image: noImageURL,
+                                                                                                 width: 100,
+                                                                                             })}
+                                                                                             <span class="ms-2 d-none">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
+                                                                                         </div>
+                                                                                           <div class="d-flex flex-sm-row    flex-column w-100 position-relative"
                                                                                              style="gap: 10px; position: relative;">
-                                                                                            <div class="${gClass('first-td')} justify-content-start">
+                                                                                            <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex">
                                                                                                 ${validImageBox({
-                                                                                                    gvc,
-                                                                                                    image: noImageURL,
-                                                                                                    width: 100,
-                                                                                                })}
-                                                                                                <span class="ms-2 d-none">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
+                                                                                        gvc,
+                                                                                        image: noImageURL,
+                                                                                        width: 100,
+                                                                                    })}
+                                                                                                <span class="ms-2 ">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
                                                                                             </div>
                                                                                             <div class="${gClass('td')}">
                                                                                                 ${item.spec ? item.spec.join(' / ') : ''}
@@ -505,33 +564,33 @@ export class CheckoutIndex {
                                                                                             <div class="${gClass('td')}">
                                                                                                 <div class="${subData.discount_price ? ``:`d-none`}">
                                                                                                     ${(() => {
-                                                                                                        function financial(x: number) {
-                                                                                                            const parsed = Number.parseFloat(`${x}`);
+                                                                                        function financial(x: number) {
+                                                                                            const parsed = Number.parseFloat(`${x}`);
 
-                                                                                                            // 如果數字是整數，直接返回帶千分位的整數
-                                                                                                            if (Number.isInteger(parsed)) {
-                                                                                                                return parsed.toLocaleString();
-                                                                                                            }
+                                                                                            // 如果數字是整數，直接返回帶千分位的整數
+                                                                                            if (Number.isInteger(parsed)) {
+                                                                                                return parsed.toLocaleString();
+                                                                                            }
 
-                                                                                                            // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
-                                                                                                            const decimalPart = parsed.toString().split('.')[1];
+                                                                                            // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
+                                                                                            const decimalPart = parsed.toString().split('.')[1];
 
-                                                                                                            // 根據小數位數的不同情況做處理
-                                                                                                            if (decimalPart && decimalPart.length > 1) {
-                                                                                                                return parsed.toLocaleString(undefined, {
-                                                                                                                    minimumFractionDigits: 1,
-                                                                                                                    maximumFractionDigits: 1
-                                                                                                                });
-                                                                                                            } else {
-                                                                                                                return parsed.toLocaleString(undefined, {
-                                                                                                                    minimumFractionDigits: 1,
-                                                                                                                    maximumFractionDigits: 3
-                                                                                                                });
-                                                                                                            }
-                                                                                                        }
+                                                                                            // 根據小數位數的不同情況做處理
+                                                                                            if (decimalPart && decimalPart.length > 1) {
+                                                                                                return parsed.toLocaleString(undefined, {
+                                                                                                    minimumFractionDigits: 1,
+                                                                                                    maximumFractionDigits: 1
+                                                                                                });
+                                                                                            } else {
+                                                                                                return parsed.toLocaleString(undefined, {
+                                                                                                    minimumFractionDigits: 1,
+                                                                                                    maximumFractionDigits: 3
+                                                                                                });
+                                                                                            }
+                                                                                        }
 
-                                                                                                        return `NT.${financial(subData.sale_price - subData.discount_price)}`;
-                                                                                                    })()}
+                                                                                        return `NT.${financial(subData.sale_price - subData.discount_price)}`;
+                                                                                    })()}
                                                                                                 </div>
                                                                                                 <div>原價: NT.
                                                                                                     ${item.sale_price.toLocaleString()}
@@ -542,69 +601,373 @@ export class CheckoutIndex {
                                                                                                         class="${gClass('select')}"
                                                                                                         style="width: 100px;"
                                                                                                         onchange="${gvc.event((e) => {
-                                                                                                            item.count = parseInt(e.value, 10);
-                                                                                                            gvc.notifyDataChange(ids.cart);
-                                                                                                        })}"
+                                                                                        item.count = parseInt(e.value, 10);
+                                                                                        gvc.notifyDataChange(ids.cart);
+                                                                                    })}"
                                                                                                 >
                                                                                                     ${[...new Array(99)].map((_, index) => {
-                                                                                                        return html`
+                                                                                        return html`
                                                                                                             <option value="${index + 1}" ${(index + 1 === item.count) ? `selected`:``}>
                                                                                                                 ${index + 1}
                                                                                                             </option>`;
-                                                                                                    })}
+                                                                                    })}
                                                                                                 </select>
                                                                                             </div>
-                                                                                            <div class="${gClass('td')}">
-                                                                                                <span>合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
-                                                                                                <div style="position: absolute; right: 0px; transform: translateY(-50%); top: 50%;">
+                                                                                               <div class="d-block d-md-none" style="position: absolute; right: 0px; top:0px;">
+                                                                                                   <i class="fa-solid fa-xmark-large"
+                                                                                                      style="cursor: pointer;" onclick="${gvc.event(()=>{
+                                                                                                       vm.cartData.lineItems.splice(index,1)
+                                                                                                       refreshCartData()
+                                                                                                   })}"></i>
+                                                                                               </div>
+                                                                                               <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                            <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
+                                                                                                <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                                <div class="d-none d-md-block" style="position: absolute; right: 0px; transform: translateY(-50%); top: 50%;">
                                                                                                     <i class="fa-solid fa-xmark-large"
                                                                                                        style="cursor: pointer;" onclick="${gvc.event(()=>{
-                                                                                                        vm.cartData.lineItems.splice(index,1)
-                                                                                                        refreshCartData()
-                                                                                                    })}"></i>
+                                                                                        vm.cartData.lineItems.splice(index,1)
+                                                                                        refreshCartData()
+                                                                                    })}"></i>
                                                                                                 </div>
                                                                                             </div>
-                                                                                        </div>`;
+                                                                                        </div>
+                                                                                     </div>
+                                                                                      `;
                                                                                 })
                                                                                 .join('');
                                                                     },
                                                                 })}
                                                             </section>
                                                             <section class="d-flex">
-                                                                <div class="flex-fill"></div>
-                                                                <div class="${gClass('price-container')}">
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>小計</div>
-                                                                        <div>NT.1,800</div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>運費</div>
-                                                                        <div>NT.1,800</div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>購物金折抵</div>
-                                                                        <div>NT.1,800</div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>優惠代碼</div>
-                                                                        <div>新增</div>
+                                                            <div class="flex-fill"></div>
+                                                            <div class="${gClass('price-container')}">
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>小計總額(合計)</div>
+                                                                    <div>NT. ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>運費</div>
+                                                                    <div>NT. ${vm.cartData.shipment_fee.toLocaleString()}</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>優惠代碼</div>
+                                                                    <div style="cursor: pointer; color: #3564c0;" onclick="${gvc.event(()=>{
+this.viewDialog({
+    gvc: gvc,
+    title: '可使用的優惠券',
+    tag: '',
+    innerHTML: (gvc: GVC) => {
+        return gvc.bindView(
+            (() => {
+                const id = glitter.getUUID();
+                const vmi = {
+                    dataList: [] as Voucher[],
+                }
+                const isWebsite = document.body.clientWidth > 768;
+                let loading = true;
+                return {
+                    bind: id,
+                    view: () => {
+                        if (loading) {
+                            return html`<div style="height: 400px">${spinner()}</div>`;
+                        } else {
+                            if (vmi.dataList.length === 0) {
+                                return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
+                                    <lottie-player
+                                        style="max-width: 100%;width: 300px;"
+                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                        speed="1"
+                                        loop="true"
+                                        background="transparent"
+                                    ></lottie-player>
+                                    <span class="mb-5 fs-5">目前沒有任何優惠券呦</span>
+                                </div>`;
+                            }
+
+                            const header = [
+                                {
+                                    title: '優惠券名稱',
+                                },
+                                {
+                                    title: '優惠券代碼',
+                                },
+                                {
+                                    title: '使用期限',
+                                },
+                                {
+                                    title: '',
+                                },
+                            ];
+
+                        
+                            function formatText(item: UserVoucher) {
+                                return [
+                                    item.title,
+                                    item.code,
+                                    (() => {
+                                        const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : '無使用期限';
+                                        return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
+                                    })(),
+                                    item.usePass ? html`<button
+                                        class="${gClass('button-bgr')} my-2"
+                                        style="max-width: 150px;"
+                                        onclick="${gvc.event(() => {
+                                            vm.cartData.code =item.code
+                                            refreshCartData();
+                                            gvc.closeDialog();
+                                        })}"
+                                    >
+                                        <span 
+                                        class="${gClass('button-text')}">選擇使用</span>
+                                    </button>` :
+                                     html`<button
+                                        class="${gClass('button-bgr-disable')} my-2"
+                                        style="max-width: 150px; cursor: not-allowed"
+                                    >
+                                        <span 
+                                        class="${gClass('button-text')}">未達使用標準</span>
+                                    </button>` ,
+                                ];
+                            }
+
+                            const dialog = new ShareDialog(gvc.glitter);
+
+                            const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
+
+                            function checkCodeValue(code:string){
+                                cloneCart.code = code
+                                     cloneCart.line_items = cloneCart.lineItems 
+                                     dialog.dataLoading({visible: true});
+                                     ApiShop.getCheckout(cloneCart).then((r) => {
+                                        dialog.dataLoading({visible: false});
+                                        if(r.result && r.response.data && r.response.data.voucherList.length > 0){
+                                            vm.cartData.code =code
+                                            refreshCartData();
+                                            gvc.closeDialog();
+                                        }else{
+                                            dialog.errorMessage({
+                                                text: '此代碼無法使用'
+                                            });
+                                        }
+                                         
+                                     });
+                            }
+
+                            if (isWebsite) {
+                                const flexList = [1.2, 1, 1.5, 1.5];
+
+                                return html`
+                                <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="${gClass('label')} mb-0" style="min-width: 80px;">輸入代碼</label>
+                                    <input class="${gClass('input')}" type="text" onchange="${gvc.event((e)=>{
+                                         checkCodeValue(e.value)
+                                    })}"/>
+                                </div>
+                                </div>
+                                    <div class="w-100 d-sm-flex py-4 um-th-bar">
+                                        ${header
+                                            .map((item, index) => {
+                                                return html`<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
+                                            })
+                                            .join('')}
+                                    </div>
+                                    ${vmi.dataList
+                                        .map((item, t1) => {
+                                            const fText = formatText(item.content)
+                                            return html`<div class="w-100 d-sm-flex py-1 align-items-center">
+                                                ${fText
+                                                    .map((dd, t2) => {
+                                                        return html`<div class="um-td ${t2 === fText.length - 1 ? 'text-center':''}" style="flex: ${flexList[t2]}">${dd}</div>`;
+                                                    })
+                                                    .join('')}
+                                            </div>`;
+                                        })
+                                        .join('')}
+                                `;
+                            }
+
+                            return html`<div>
+                                <div class="d-flex">
+                                    <label class="${gClass('label')}">輸入代碼</label>
+                                    <input class="${gClass('input')}" type="text" />
+                                    <button class="${gClass('button-bgr')}" onclick="${gvc.event((e)=>{
+                                         checkCodeValue(e.value)
+                                    })}">
+                                        <span class="${gClass('button-text')}">確認</span>
+                                    </button>
+                                </div>
+                                <div class="w-100 d-sm-none mb-3 s162413">
+                                        ${vmi.dataList
+                                            .map((item) => {
+                                                return html`<div class="um-mobile-area">
+                                                    ${formatText(item.content)
+                                                        .map((dd, index) => {
+                                                            if (header[index].title === '') {
+                                                                return dd;
+                                                            }
+                                                            return html`<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
+                                                        })
+                                                        .join('')}
+                                                </div>`;
+                                            })
+                                            .join('')}
+                                    </div> 
+                            </div>`;
+                        }
+                    },
+                    divCreate: {},
+                    onCreate: () => {
+                        if (loading) {
+                            function isNowBetweenDates(startIso: string, endIso: string): boolean {
+                                const now = new Date();
+                                const startDate = new Date(startIso);
+                                const endDate = new Date(endIso);
+                            
+                                // 確保 `startIso` 和 `endIso` 是有效的日期
+                                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                                    return true
+                                }
+                            
+                                // 判斷現在時間是否在範圍內
+                                return now >= startDate && now <= endDate;
+                            }
+
+                            gvc.addMtScript(
+                                [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
+                                () => {
+                                    ApiShop.getVoucher({
+                                        page: 0,
+                                        limit: 10000,
+                                        data_from: 'user',
+                                    }).then(async (res) => {
+                                        if (res.result && res.response.data) {
+                                            vmi.dataList = res.response.data.filter((item: Voucher) => {
+                                                return item.content.trigger === 'code' && isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date)
+                                            });
+                                        } else {
+                                            vmi.dataList = [];
+                                        }
+                                        const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
+                                        Promise.all(vmi.dataList.map((voucher,index) => {
+                                            return new Promise<{ code:string, response:any }>((resolve) => {
+                                                const code = voucher.content.code
+                                                cloneCart.code = code
+                                                cloneCart.line_items = cloneCart.lineItems 
+                                                ApiShop.getCheckout(cloneCart).then((response) => {
+                                                    resolve({
+                                                        code,
+                                                        response
+                                                    });
+                                                });
+                                            })
+                                        })).then( (resolveArray: { code:string, response:any }[]) =>{
+                                            vmi.dataList = vmi.dataList.map((item) => {
+                                                const f = resolveArray.find(res => {
+                                                    return item.content.code === res.code;
+                                                })
+                                                if(f){
+                                                   const r = f.response
+                                                   if(r.result && r.response.data){
+                                                        item.content.usePass = r.response.data.voucherList.length > 0
+                                                   }
+                                                }
+                                                return item
+                                            })
+                                            loading = false;
+                                            gvc.notifyDataChange(id);
+                                        })
+                                    });
+                                },
+                                () => {}
+                            );
+                        }
+                    },
+                };
+            })()
+        )
+    }
+}
+)
+                                                                    })}">${vm.cartData.code ?? '新增'}</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>購物金折抵</div>
+                                                                    <div>- NT. ${vm.cartData.discount.toLocaleString()}</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div
+                                                                        style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                                                                .body.clientWidth > 768
+                                                                                ? 'gap: 18px; '
+                                                                                : 'flex-direction: column; gap: 0px; '}"
+                                                                        class="w-100"
+                                                                    >
+                                                                        <input
+                                                                                    class="flex-fill ${gClass('group-input')}"
+                                                                                    placeholder="請輸入購物金"
+                                                                                    value="${vm.cartData.use_rebate || ''}"
+                                                                        />
+                                                                        <div class="${gClass('group-button')}" >
+                                                                            <div class="${gClass('button-text')}" 
+                                                                                onclick="${gvc.event((e) => {
+                                                                                    let text = e.value;
+                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                    const textNumber = parseInt(text, 10);
+                                                                                    const subtotal = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                                                                    if (!CheckInput.isNumberString(text)) {
+                                                                                        dialog.infoMessage({text: '僅限輸入數字'});
+                                                                                    } if(textNumber){
+                                                                                        dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(textNumber, subtotal) } 的數值` })
+                                                                                    } else {
+                                                                                        vm.cartData.use_rebate = text;
+                                                                                        refreshCartData()
+                                                                                    }
+                                                                                })}">
+                                                                                套用
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </section>`;
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+
+    ${(()=>{
+        const sum = vm.cartData.user_rebate_sum || 0
+        
+        if(!vm.cartData.useRebateInfo){
+            return '';
+        }
+        
+        const info = vm.cartData.useRebateInfo;
+        if(info.condition){
+            return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`
+        }
+        
+        if(info.limit){
+            return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`
+        }else{
+            return `您目前剩餘 ${sum || 0} 點購物金`
+        }
+        
+    })()}
+                                                                </div>
+                                                            </div>
+                                                        </section>`;
                                                     },
                                                 };
                                             })()
                                     )}
-                                    <section class="border-bottom"></section>
-                                    <section class="d-flex">
-                                        <div class="flex-fill"></div>
-                                        <div class="${gClass('price-container')}">
-                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                                <div>總金額</div>
-                                                <div>NT.1,800</div>
-                                            </div>
+                                   <section class="border-bottom"></section>
+                                <section class="d-flex">
+                                    <div class="flex-fill"></div>
+                                    <div class="${gClass('price-container')}">
+                                        <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                            <div>總金額</div>
+                                            <div>NT. ${vm.cartData.total.toLocaleString()}</div>
                                         </div>
-                                    </section>
+                                    </div>
+                                </section>
                                     <section>
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">付款及配送方式</span>
@@ -1393,112 +1756,112 @@ export class CheckoutIndex {
                     divCreate: {},
                     onCreate: () => {
                         if (loadings.page) {
-                            // new Promise(async (resolve, reject) => {
-                            //     new Promise((resolve, reject) => {
-                            //         setTimeout(() => {
-                            //             resolve(ApiCart.cart);
-                            //         });
-                            //     }).then(async (res: any) => {
-                            //         const cartData: {
-                            //             line_items: {
-                            //                 sku: string;
-                            //                 spec: string[];
-                            //                 stock: number;
-                            //                 sale_price: number;
-                            //                 compare_price: number;
-                            //                 preview_image: string;
-                            //                 title: string;
-                            //                 id: number;
-                            //                 count: number;
-                            //             }[];
-                            //             total: number;
-                            //             user_info: {
-                            //                 shipment: string;
-                            //             };
-                            //         } = {
-                            //             line_items: [],
-                            //             total: 0,
-                            //             user_info: {
-                            //                 shipment: localStorage.getItem('checkout-logistics') as string,
-                            //             },
-                            //         };
-                            //         if (res.line_items) {
-                            //             res.user_info = {
-                            //                 shipment: localStorage.getItem('checkout-logistics') as string,
-                            //             };
-                            //             const cart = res as CartItem;
-                            //             ApiShop.getCheckout(cart).then((res) => {
-                            //                 if (res.result) {
-                            //                     resolve(res.response.data);
-                            //                 } else {
-                            //                     resolve([]);
-                            //                 }
-                            //             });
-                            //         } else {
-                            //             for (const b of Object.keys(res)) {
-                            //                 cartData.line_items.push({
-                            //                     id: b.split('-')[0] as any,
-                            //                     count: res[b] as number,
-                            //                     spec: b.split('-').filter((dd, index) => {
-                            //                         return index !== 0;
-                            //                     }) as any,
-                            //                 } as any);
-                            //             }
-                            //             const voucher = ApiCart.cart.code;
-                            //             const rebate = ApiCart.cart.use_rebate || 0;
-                            //             const distributionCode = localStorage.getItem('distributionCode') ?? '';
-                            //             ApiShop.getCheckout({
-                            //                 line_items: cartData.line_items.map((dd) => {
-                            //                     return {
-                            //                         id: dd.id,
-                            //                         spec: dd.spec,
-                            //                         count: dd.count,
-                            //                     };
-                            //                 }),
-                            //                 code: voucher as string,
-                            //                 use_rebate: GlobalUser.token && rebate ? rebate : undefined,
-                            //                 distribution_code: distributionCode,
-                            //                 user_info: {
-                            //                     shipment: localStorage.getItem('checkout-logistics'),
-                            //                 },
-                            //             }).then((res) => {
-                            //                 if (res.result) {
-                            //                     resolve(res.response.data);
-                            //                 } else {
-                            //                     resolve([]);
-                            //                 }
-                            //             });
-                            //         }
-                            //     });
-                            // }).then((data) => {
-                            //     vm.cartData = data;
-                            //     gvc.addMtScript(
-                            //         [
-                            //             {
-                            //                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                            //             },
-                            //         ],
-                            //         () => {
-                            //             loadings.page = false;
-                            //             gvc.notifyDataChange(ids.page);
-                            //         },
-                            //         () => {}
-                            //     );
-                            // });
-
-                            gvc.addMtScript(
-                                [
-                                    {
-                                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            new Promise(async (resolve, reject) => {
+                                new Promise((resolve, reject) => {
+                                    setTimeout(() => {
+                                        resolve(ApiCart.cart);
+                                    });
+                                }).then(async (res: any) => {
+                                    const cartData: {
+                                        line_items: {
+                                            sku: string;
+                                            spec: string[];
+                                            stock: number;
+                                            sale_price: number;
+                                            compare_price: number;
+                                            preview_image: string;
+                                            title: string;
+                                            id: number;
+                                            count: number;
+                                        }[];
+                                        total: number;
+                                        user_info: {
+                                            shipment: string;
+                                        };
+                                    } = {
+                                        line_items: [],
+                                        total: 0,
+                                        user_info: {
+                                            shipment: localStorage.getItem('shipment-select') as string,
+                                        },
+                                    };
+                                    if (res.line_items) {
+                                        res.user_info = {
+                                            shipment: localStorage.getItem('shipment-select') as string,
+                                        };
+                                        const cart = res as CartItem;
+                                        ApiShop.getCheckout(cart).then((res) => {
+                                            if (res.result) {
+                                                resolve(res.response.data);
+                                            } else {
+                                                resolve([]);
+                                            }
+                                        });
+                                    } else {
+                                        for (const b of Object.keys(res)) {
+                                            cartData.line_items.push({
+                                                id: b.split('-')[0] as any,
+                                                count: res[b] as number,
+                                                spec: b.split('-').filter((dd, index) => {
+                                                    return index !== 0;
+                                                }) as any,
+                                            } as any);
+                                        }
+                                        const voucher = ApiCart.cart.code;
+                                        const rebate = ApiCart.cart.use_rebate || 0;
+                                        const distributionCode = localStorage.getItem('distributionCode') ?? '';
+                                        ApiShop.getCheckout({
+                                            line_items: cartData.line_items.map((dd) => {
+                                                return {
+                                                    id: dd.id,
+                                                    spec: dd.spec,
+                                                    count: dd.count,
+                                                };
+                                            }),
+                                            code: voucher as string,
+                                            use_rebate: GlobalUser.token && rebate ? rebate : undefined,
+                                            distribution_code: distributionCode,
+                                            user_info: {
+                                                shipment: localStorage.getItem('shipment-select'),
+                                            },
+                                        }).then((res) => {
+                                            if (res.result) {
+                                                resolve(res.response.data);
+                                            } else {
+                                                resolve([]);
+                                            }
+                                        });
+                                    }
+                                });
+                            }).then((data) => {
+                                vm.cartData = data;
+                                gvc.addMtScript(
+                                    [
+                                        {
+                                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                        },
+                                    ],
+                                    () => {
+                                        loadings.page = false;
+                                        gvc.notifyDataChange(ids.page);
                                     },
-                                ],
-                                () => {
-                                    loadings.page = false;
-                                    gvc.notifyDataChange(ids.page);
-                                },
-                                () => {
-                                }
-                            );
+                                    () => {}
+                                );
+                            });
+
+                            // gvc.addMtScript(
+                            //     [
+                            //         {
+                            //             src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            //         },
+                            //     ],
+                            //     () => {
+                            //         loadings.page = false;
+                            //         gvc.notifyDataChange(ids.page);
+                            //     },
+                            //     () => {
+                            //     }
+                            // );
                         }
                     },
                 };
