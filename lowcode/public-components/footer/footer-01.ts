@@ -100,8 +100,8 @@ export class Footer01 {
                 <div class="container">
                     <div class="row py-sm-5 f-container">
                         <div class="col-12 col-md-6 f-title-container">
-                            <h4 class="mb-0 f-h4">${formData.logo}</h4>
-                            <ul class="d-flex list-unstyled list-inline mt-2 mb-md-0 text-gray-350">
+                            <img src="${formData.logo}" style="max-height: 90px" />
+                            <ul class="d-flex list-unstyled list-inline mt-3 mb-md-0 text-gray-350">
                                 ${(() => {
                                     try {
                                         return formData.kkk.link
