@@ -727,9 +727,9 @@ export class CheckoutIndex {
         return cartData.shipment_selector;
     }
     static storeLocalData(cartData) {
-        localStorage.setItem('cart_customer_info', JSON.parse(JSON.stringify(cartData.customer_info)));
-        localStorage.setItem('shipment-select', JSON.stringify(cartData.user_info.shipment));
-        localStorage.setItem('checkout-payment', JSON.stringify(cartData.customer_info.payment_select));
+        localStorage.setItem('cart_customer_info', JSON.stringify(cartData.customer_info));
+        localStorage.setItem('shipment-select', cartData.user_info.shipment);
+        localStorage.setItem('checkout-payment', cartData.customer_info.payment_select);
     }
     static initial(cartData) {
         cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || "{}");

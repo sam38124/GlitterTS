@@ -876,11 +876,11 @@ export class CheckoutIndex {
     //儲存本地資料
     public static storeLocalData(cartData:any) {
         //設定顧客
-       localStorage.setItem('cart_customer_info',JSON.parse(JSON.stringify(cartData.customer_info)))
+       localStorage.setItem('cart_customer_info',JSON.stringify(cartData.customer_info))
         //設定配送
-        localStorage.setItem('shipment-select',JSON.stringify(cartData.user_info.shipment))
+        localStorage.setItem('shipment-select',cartData.user_info.shipment)
         //設定付款
-        localStorage.setItem('checkout-payment', JSON.stringify(cartData.customer_info.payment_select));
+        localStorage.setItem('checkout-payment', cartData.customer_info.payment_select);
     }
 
 
