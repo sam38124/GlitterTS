@@ -3189,7 +3189,11 @@ class Shopping {
         let pass2 = {
             "MerchantID": config.merchNO,
             "InvoiceNo": obj.invoiceID,
+<<<<<<< HEAD
             "AllowanceNo": "",
+=======
+            "AllowanceNo": "TZ90991707",
+>>>>>>> dd1ea225 (update: checkout code base)
             "Reason": "error"
         };
         await EcInvoice_1.EcInvoice.allowanceInvoice({

@@ -1,11 +1,11 @@
 'use strict';
-import {Glitter} from './glitterBundle/Glitter.js';
-import {config} from './config.js';
-import {ApiPageConfig} from './api/pageConfig.js';
-import {BaseApi} from './glitterBundle/api/base.js';
-import {GlobalUser} from './glitter-base/global/global-user.js';
-import {EditorConfig} from './editor-config.js';
-import {ShareDialog} from './glitterBundle/dialog/ShareDialog.js';
+import { Glitter } from './glitterBundle/Glitter.js';
+import { config } from './config.js';
+import { ApiPageConfig } from './api/pageConfig.js';
+import { BaseApi } from './glitterBundle/api/base.js';
+import { GlobalUser } from './glitter-base/global/global-user.js';
+import { EditorConfig } from './editor-config.js';
+import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -71,7 +71,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.8.846';
+        glitter.share.editerVersion = 'V_13.8.826';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -90,14 +90,14 @@ export class Entry {
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
                 ${
-                parseInt((window.parent as any).glitter.share.bottom_inset, 10)
-                    ? `
+                    parseInt((window.parent as any).glitter.share.bottom_inset, 10)
+                        ? `
                               .update-bar-container {
                                   padding-bottom: ${(window.parent as any).glitter.share.bottom_inset}px !important;
                               }
                           `
-                    : ``
-            }
+                        : ``
+                }
 
                 .editorParent .editorChild {
                     display: none;
@@ -178,10 +178,9 @@ export class Entry {
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
-                dialog.dataLoading({visible: true, text: '後台載入中'});
+                dialog.dataLoading({ visible: true, text: '後台載入中' });
                 // 頁面編輯器
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => {});
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -193,9 +192,6 @@ export class Entry {
                     location.reload();
                 } else {
                     try {
-                        glitter.addMtScript(['https://kit.fontawesome.com/cccedec0f8.js'], () => {
-                        }, () => {
-                        })
                         const appList = (await ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
                         localStorage.setItem('select_item', '0');
                         if (appList.length === 0) {
@@ -228,7 +224,7 @@ export class Entry {
                             location.reload();
                         }
                     } catch (e) {
-                        console.log(e)
+                        console.log(e);
                         glitter.setUrlParameter('page', 'login');
                         location.reload();
                     }
@@ -379,10 +375,8 @@ export class Entry {
                     src: 'https://kit.fontawesome.com/cccedec0f8.js',
                 },
             ],
-            () => {
-            },
-            () => {
-            }
+            () => {},
+            () => {}
         );
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -423,11 +417,9 @@ export class Entry {
                     type: 'module',
                 };
             }),
-            () => {
-            },
-            () => {
-            },
-            [{key: 'async', value: 'true'}]
+            () => {},
+            () => {},
+            [{ key: 'async', value: 'true' }]
         );
 
         // Preload page script
@@ -448,7 +440,7 @@ export class Entry {
             return eval(evals);
         };
         setTimeout(() => {
-            (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false});
+            (window.parent as any).glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
         }, 2000);
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
@@ -503,8 +495,7 @@ export class Entry {
                     .map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            callback: () => {
-                            },
+                            callback: () => {},
                         };
                     })
             );
@@ -553,7 +544,7 @@ export class Entry {
             },
             {
                 webFunction: () => {
-                    return {data: 0};
+                    return { data: 0 };
                 },
             }
         );
@@ -566,7 +557,7 @@ export class Entry {
             },
             {
                 webFunction: () => {
-                    return {data: 0};
+                    return { data: 0 };
                 },
             }
         );
@@ -597,11 +588,11 @@ export class Entry {
                 glitter.addStyle(`
                     @charset "UTF-8";
                     ${glitter.share.font_theme
-                    .map((dd: any) => {
-                        glitter.share.initial_fonts.push(dd.value);
-                        return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
-                    })
-                    .join('\n')}
+                        .map((dd: any) => {
+                            glitter.share.initial_fonts.push(dd.value);
+                            return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
+                        })
+                        .join('\n')}
                     body {
                         font-family: '${glitter.share.font_theme[0].value}' !important;
                         font-optical-sizing: auto;
@@ -752,4 +743,3 @@ let clockF = () => {
         },
     };
 };
-

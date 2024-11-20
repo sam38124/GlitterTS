@@ -10,6 +10,7 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
 
 const html = String.raw;
+const css = String.raw;
 
 type MenuItem = {
     name: string;
@@ -146,6 +147,7 @@ export class BgWidget {
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
+
     static ai_generator(gvc: GVC, format: any, callback: (data: any) => void) {
         return ``;
         // return html`
@@ -3277,7 +3279,7 @@ ${obj.default ?? ''}</textarea
             min-width: ${obj.width}px;
             min-height: ${obj.height ?? obj.width}px;
             max-width: ${obj.width}px;
-            max-height: ${obj.height ?? obj.width}px; */
+            max-height: ${obj.height ?? obj.width}px;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -3565,7 +3567,7 @@ ${obj.default ?? ''}</textarea
         }, windowID);
     }
 
-    public static customForm(gvc: GVC, key: { title: string; key: string; no_padding?: boolean }[]) {
+    static customForm(gvc: GVC, key: { title: string; key: string; no_padding?: boolean }[]) {
         let form_formats: any = {};
 
         return {
