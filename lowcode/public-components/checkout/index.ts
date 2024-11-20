@@ -427,14 +427,15 @@ export class CheckoutIndex {
                 return {
                     bind: ids.page,
                     view: () => {
-                        if (loadings.page) {
-                            return spinner();
-                        }
+                        try {
+                            if (loadings.page) {
+                                return spinner();
+                            }
 
-                        this.initial(vm.cartData)
-                        addStyle();
-                        if (vm.cartData.lineItems.length === 0) {
-                            return html`
+                            this.initial(vm.cartData)
+                            addStyle();
+                            if (vm.cartData.lineItems.length === 0) {
+                                return html`
                                 <div class="container ${gClass(['container', 'null-container'])}">
                                     <div class="${gClass('header')}">購物明細</div>
                                     <lottie-player
@@ -447,16 +448,16 @@ export class CheckoutIndex {
                                     ></lottie-player>
                                     <div class="mt-3">購物車是空的，趕快前往挑選您心儀的商品</div>
                                 </div> `;
-                        }
-                        return html`
+                            }
+                            return html`
                             <div class="container ${gClass('container')}">
                                 <div class="${gClass('header')}">購物明細</div>
                                 ${gvc.bindView(
-                                        (() => {
-                                            return {
-                                                bind: ids.cart,
-                                                view: () => {
-                                                    return html`
+                                (() => {
+                                    return {
+                                        bind: ids.cart,
+                                        view: () => {
+                                            return html`
                                                         <section>
                                                             <div class="${gClass('banner-bgr')}">
                                                                 <span class="${gClass('banner-text')}">購物車</span>
@@ -469,20 +470,20 @@ export class CheckoutIndex {
                                                                 <div class="${gClass('td')}">小計</div>
                                                             </div>
                                                             ${gvc.bindView({
-                                                                bind: glitter.getUUID(),
-                                                                view: () => {
-                                                                    return vm.cartData.lineItems
-                                                                            .map((item: any) => {
-                                                                                console.log(item);
-                                                                                return html`
+                                                bind: glitter.getUUID(),
+                                                view: () => {
+                                                    return vm.cartData.lineItems
+                                                        .map((item: any) => {
+                                                            console.log(item);
+                                                            return html`
                                                                                     <div class="d-flex align-items-center p-3 border-bottom"
                                                                                          style="gap: 10px; position: relative;">
                                                                                         <div class="${gClass('first-td')} justify-content-start">
                                                                                             ${validImageBox({
-                                                                                                gvc,
-                                                                                                image: noImageURL,
-                                                                                                width: 100,
-                                                                                            })}
+                                                                gvc,
+                                                                image: noImageURL,
+                                                                width: 100,
+                                                            })}
                                                                                             <span class="ms-2">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
                                                                                         </div>
                                                                                         <div class="${gClass('td')}">
@@ -491,33 +492,33 @@ export class CheckoutIndex {
                                                                                         <div class="${gClass('td')}">
                                                                                             <div>
                                                                                                 ${(() => {
-                                                                                                    function financial(x: number) {
-                                                                                                        const parsed = Number.parseFloat(`${x}`);
+                                                                function financial(x: number) {
+                                                                    const parsed = Number.parseFloat(`${x}`);
 
-                                                                                                        // 如果數字是整數，直接返回帶千分位的整數
-                                                                                                        if (Number.isInteger(parsed)) {
-                                                                                                            return parsed.toLocaleString();
-                                                                                                        }
+                                                                    // 如果數字是整數，直接返回帶千分位的整數
+                                                                    if (Number.isInteger(parsed)) {
+                                                                        return parsed.toLocaleString();
+                                                                    }
 
-                                                                                                        // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
-                                                                                                        const decimalPart = parsed.toString().split('.')[1];
+                                                                    // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
+                                                                    const decimalPart = parsed.toString().split('.')[1];
 
-                                                                                                        // 根據小數位數的不同情況做處理
-                                                                                                        if (decimalPart && decimalPart.length > 1) {
-                                                                                                            return parsed.toLocaleString(undefined, {
-                                                                                                                minimumFractionDigits: 1,
-                                                                                                                maximumFractionDigits: 1
-                                                                                                            });
-                                                                                                        } else {
-                                                                                                            return parsed.toLocaleString(undefined, {
-                                                                                                                minimumFractionDigits: 1,
-                                                                                                                maximumFractionDigits: 3
-                                                                                                            });
-                                                                                                        }
-                                                                                                    }
+                                                                    // 根據小數位數的不同情況做處理
+                                                                    if (decimalPart && decimalPart.length > 1) {
+                                                                        return parsed.toLocaleString(undefined, {
+                                                                            minimumFractionDigits: 1,
+                                                                            maximumFractionDigits: 1
+                                                                        });
+                                                                    } else {
+                                                                        return parsed.toLocaleString(undefined, {
+                                                                            minimumFractionDigits: 1,
+                                                                            maximumFractionDigits: 3
+                                                                        });
+                                                                    }
+                                                                }
 
-                                                                                                    return `NT.${financial(subData.sale_price - subData.discount_price)}`;
-                                                                                                })()}
+                                                                return `NT.${financial(subData.sale_price - subData.discount_price)}`;
+                                                            })()}
                                                                                             </div>
                                                                                             <div>原價: NT.
                                                                                                 ${item.sale_price.toLocaleString()}
@@ -528,16 +529,16 @@ export class CheckoutIndex {
                                                                                                     class="${gClass('select')}"
                                                                                                     style="width: 100px;"
                                                                                                     onchange="${gvc.event((e) => {
-                                                                                                        item.count = parseInt(e.value, 10);
-                                                                                                        gvc.notifyDataChange(ids.cart);
-                                                                                                    })}"
+                                                                item.count = parseInt(e.value, 10);
+                                                                gvc.notifyDataChange(ids.cart);
+                                                            })}"
                                                                                             >
                                                                                                 ${[...new Array(50)].map((_, index) => {
-                                                                                                    return html`
+                                                                return html`
                                                                                                         <option value="${index + 1}">
                                                                                                             ${index + 1}
                                                                                                         </option>`;
-                                                                                                })}
+                                                            })}
                                                                                             </select>
                                                                                         </div>
                                                                                         <div class="${gClass('td')}">
@@ -548,10 +549,10 @@ export class CheckoutIndex {
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>`;
-                                                                            })
-                                                                            .join('');
-                                                                },
-                                                            })}
+                                                        })
+                                                        .join('');
+                                                },
+                                            })}
                                                         </section>
                                                         <section class="d-flex">
                                                             <div class="flex-fill"></div>
@@ -574,10 +575,10 @@ export class CheckoutIndex {
                                                                 </div>
                                                             </div>
                                                         </section>`;
-                                                },
-                                            };
-                                        })()
-                                )}
+                                        },
+                                    };
+                                })()
+                            )}
                                 <section class="border-bottom"></section>
                                 <section class="d-flex">
                                     <div class="flex-fill"></div>
@@ -598,18 +599,18 @@ export class CheckoutIndex {
                                             <div>
                                                 <select class="w-100 ${gClass('select')}"
                                                         onchange="${gvc.event((e, event) => {
-                                                            vm.cartData.customer_info.payment_select = e.value;
-                                                            this.storeLocalData(vm.cartData)
-                                                            refreshCartData()
-                                                        })}">
+                                vm.cartData.customer_info.payment_select = e.value;
+                                this.storeLocalData(vm.cartData)
+                                refreshCartData()
+                            })}">
                                                     ${(() => {
-                                                        return this.getPaymentMethod(vm.cartData).map((dd: {
-                                                            name: string,
-                                                            value: string
-                                                        }) => {
-                                                            return `<option value="${dd.value}" ${(localStorage.getItem('checkout-payment') === dd.value) ? `selected` : ``}>${dd.name}</option>`
-                                                        }).join('')
-                                                    })()}
+                                return this.getPaymentMethod(vm.cartData).map((dd: {
+                                    name: string,
+                                    value: string
+                                }) => {
+                                    return `<option value="${dd.value}" ${(localStorage.getItem('checkout-payment') === dd.value) ? `selected` : ``}>${dd.name}</option>`
+                                }).join('')
+                            })()}
                                                 </select>
                                             </div>
                                         </div>
@@ -618,39 +619,39 @@ export class CheckoutIndex {
                                             <div>
                                                 <select class="w-100 ${gClass('select')}"
                                                         onchange="${gvc.event((e, event) => {
-                                                            vm.cartData.user_info.shipment = e.value;
-                                                            this.storeLocalData(vm.cartData)
-                                                            refreshCartData()
-                                                        })}">
+                                vm.cartData.user_info.shipment = e.value;
+                                this.storeLocalData(vm.cartData)
+                                refreshCartData()
+                            })}">
                                                     ${(() => {
-                                                        return this.getShipmentMethod(vm.cartData).map((dd: {
-                                                            name: string,
-                                                            value: string
-                                                        }) => {
-                                                            return `<option value="${dd.value}" ${(vm.cartData.user_info.shipment === dd.value) ? `selected` : ``}>${dd.name}</option>`
-                                                        }).join('')
-                                                    })()}
+                                return this.getShipmentMethod(vm.cartData).map((dd: {
+                                    name: string,
+                                    value: string
+                                }) => {
+                                    return `<option value="${dd.value}" ${(vm.cartData.user_info.shipment === dd.value) ? `selected` : ``}>${dd.name}</option>`
+                                }).join('')
+                            })()}
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
                                             <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
-                                                ApiDelivery.storeMaps({
-                                                    returnURL: location.href,
-                                                    logistics: vm.cartData.user_info.shipment,
-                                                }).then(async (res) => {
-                                                    $('body').html(res.response.form);
-                                                    (document.querySelector('#submit') as any).click();
-                                                })
-                                            })}">
+                                ApiDelivery.storeMaps({
+                                    returnURL: location.href,
+                                    logistics: vm.cartData.user_info.shipment,
+                                }).then(async (res) => {
+                                    $('body').html(res.response.form);
+                                    (document.querySelector('#submit') as any).click();
+                                })
+                            })}">
                                                 <span class="${gClass('button-text')}">${(() => {
-                                                    let cvs = glitter.getUrlParameter('CVSStoreName')
-                                                    if (decodeURIComponent(cvs)) {
-                                                        return `${decodeURIComponent(cvs)} 『 點擊重選門市 』`
-                                                    } else {
-                                                        return `選擇配送門市`
-                                                    }
-                                                })()}</span>
+                                let cvs = glitter.getUrlParameter('CVSStoreName')
+                                if (decodeURIComponent(cvs)) {
+                                    return `${decodeURIComponent(cvs)} 『 點擊重選門市 』`
+                                } else {
+                                    return `選擇配送門市`
+                                }
+                            })()}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -659,26 +660,26 @@ export class CheckoutIndex {
                                     <div class="${gClass('banner-bgr')}">
                                         <span class="${gClass('banner-text')}">顧客資料</span>
                                     </div>
-                                    ${[{
-                                        name:'姓名',
-                                        key:'name'
-                                    },{
-                                        name:'聯絡電話',
-                                        key:'phone'
-                                    },{
-                                        name:'姓名',
-                                        key:'name'
-                                    }].map((dd)=>{
-                                        this.storeLocalData(vm.cartData)
-                                        return `<div class="col-12 col-md-6">
-                                            <label class="${gClass('label')}">電子信箱</label>
-                                            <input class="${gClass('input')}" type="email" onclick="${gvc.event((e,event)=>{
-
-                                        })}"/>
-                                        </div>`
-                                    })}
                                     <div class="row m-0 my-md-3">
-                                        
+                                        ${[{
+                                name:'姓名',
+                                key:'name'
+                            },{
+                                name:'聯絡電話',
+                                key:'phone'
+                            },{
+                                name:'電子信箱',
+                                key:'email'
+                            }].map((dd)=>{
+
+                                return `<div class="col-12 col-md-6">
+                                            <label class="${gClass('label')}">${dd.name}</label>
+                                            <input class="${gClass('input')}" type="${dd.key}" onclick="${gvc.event((e,event)=>{
+                                    vm.cartData.customer_info[dd.key]=e.value
+                                    this.storeLocalData(vm.cartData)
+                                })}"/>
+                                        </div>`
+                            }).join('')}
                                     </div>
                                 </section>
                                 <section>
@@ -693,6 +694,10 @@ export class CheckoutIndex {
                                     </div>
                                 </section>
                             </div>`;
+                        }catch (e) {
+                            console.log(e)
+                            return  ``
+                        }
                     },
                     divCreate: {},
                     onCreate: () => {
@@ -873,15 +878,18 @@ export class CheckoutIndex {
         //設定顧客
        localStorage.setItem('cart_customer_info',JSON.parse(JSON.stringify(cartData.customer_info)))
         //設定配送
-        localStorage.setItem('shipment-select',cartData.user_info.shipment)
+        localStorage.setItem('shipment-select',JSON.stringify(cartData.user_info.shipment))
         //設定付款
-        localStorage.setItem('checkout-payment', cartData.customer_info.payment_select);
+        localStorage.setItem('checkout-payment', JSON.stringify(cartData.customer_info.payment_select));
     }
 
 
     public static initial(cartData: any){
         cartData.customer_info=JSON.parse(localStorage.getItem('cart_customer_info') || "{}")
+        this.getPaymentMethod(cartData)
+        this.getShipmentMethod(cartData)
     }
+
 }
 
 (window as any).glitter.setModule(import.meta.url, CheckoutIndex);
