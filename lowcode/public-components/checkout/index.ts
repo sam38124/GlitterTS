@@ -1868,6 +1868,34 @@ this.viewDialog({
             })()
         );
     }
+    //彈出視窗
+    public static viewDialog(obj: { gvc: GVC; tag: string; title?: string; innerHTML: (gvc: GVC) => string }) {
+        return obj.gvc.glitter.innerDialog((gvc: GVC) => {
+            return html` <div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 600px; width: 700px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
+                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${obj.title ?? ''}</div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
+                                gvc.closeDialog();
+                            })}"
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }, obj.tag);
+    }
 
 
     //取得付款方式
