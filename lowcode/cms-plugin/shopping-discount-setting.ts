@@ -354,6 +354,7 @@ export class ShoppingDiscountSetting {
 
         const pageVM = {
             conditionId: gvc.glitter.getUUID(),
+            countingId: gvc.glitter.getUUID(),
         };
 
         return gvc.bindView(() => {
@@ -796,6 +797,7 @@ export class ShoppingDiscountSetting {
                                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                                 dialog.infoMessage({ text: '數值需介於0~100' });
                                                                                 gvc.notifyDataChange(id);
+                                                                                gvc.notifyDataChange(pageVM.countingId);
                                                                             } else {
                                                                                 voucherData.value = text;
                                                                             }
@@ -1193,7 +1195,8 @@ export class ShoppingDiscountSetting {
                                                                     },
                                                                     { single: true }
                                                                 )}`,
-                                                            html` <div class="tx_700">計算單位</div>
+                                                            html` ${BgWidget.horizontalLine()}
+                                                                <div class="tx_700">計算單位</div>
                                                                 ${BgWidget.mbContainer(18)}
                                                                 ${BgWidget.multiCheckboxContainer(
                                                                     gvc,
@@ -1230,45 +1233,45 @@ export class ShoppingDiscountSetting {
                                                                         readonly: voucherData.reBackType === 'shipment_free',
                                                                     }
                                                                 )}`,
-                                                            html` <div class="tx_700">重複觸發</div>
-                                                                ${BgWidget.mbContainer(18)}
-                                                                ${BgWidget.multiCheckboxContainer(
-                                                                    gvc,
-                                                                    [
-                                                                        {
-                                                                            key: 'single',
-                                                                            name: '不重複',
-                                                                            innerHtml: BgWidget.grayNote(
-                                                                                (() => {
-                                                                                    if (voucherData.reBackType === 'shipment_free') {
-                                                                                        return '整份訂單免運費，優惠不重複';
-                                                                                    }
-                                                                                    if (voucherData.method === 'percent') {
-                                                                                        return '依百分比計算，優惠不重複';
-                                                                                    }
-                                                                                    return `購買${ruleText(n)}折Y元，額外購買至${ruleText(n * 2)}或${ruleText(n * 3)}依然是折Y元`;
-                                                                                })()
-                                                                            ),
-                                                                        },
-                                                                        {
-                                                                            key: 'each',
-                                                                            name: '重複',
-                                                                            innerHtml: BgWidget.grayNote(
-                                                                                `購買${ruleText(n)}折Y元，購買${ruleText(n * 2)}則折Y * 2元，購買${ruleText(n * 3)}則折Y * 3元，以此類推`
-                                                                            ),
-                                                                        },
-                                                                    ],
-                                                                    [voucherData.counting],
-                                                                    (text) => {
-                                                                        voucherData.counting = text[0] as 'single' | 'each';
-                                                                        gvc.notifyDataChange(pageVM.conditionId);
-                                                                    },
-                                                                    {
-                                                                        single: true,
-                                                                        readonly: voucherData.method === 'percent' || voucherData.reBackType === 'shipment_free',
+                                                            gvc.bindView({
+                                                                bind: pageVM.countingId,
+                                                                view: () => {
+                                                                    if (voucherData.method === 'percent' || voucherData.reBackType === 'shipment_free') {
+                                                                        return '';
                                                                     }
-                                                                )}`,
-                                                        ].join(BgWidget.horizontalLine());
+                                                                    return html` ${BgWidget.horizontalLine()}
+                                                                        <div class="tx_700">重複觸發</div>
+                                                                        ${BgWidget.mbContainer(18)}
+                                                                        ${BgWidget.multiCheckboxContainer(
+                                                                            gvc,
+                                                                            [
+                                                                                {
+                                                                                    key: 'single',
+                                                                                    name: '不重複',
+                                                                                    innerHtml: BgWidget.grayNote(
+                                                                                        `購買${ruleText(n)}折Y元，額外購買至${ruleText(n * 2)}或${ruleText(n * 3)}依然是折Y元`
+                                                                                    ),
+                                                                                },
+                                                                                {
+                                                                                    key: 'each',
+                                                                                    name: '重複',
+                                                                                    innerHtml: BgWidget.grayNote(
+                                                                                        `購買${ruleText(n)}折Y元，購買${ruleText(n * 2)}則折Y * 2元，購買${ruleText(n * 3)}則折Y * 3元，以此類推`
+                                                                                    ),
+                                                                                },
+                                                                            ],
+                                                                            [voucherData.counting],
+                                                                            (text) => {
+                                                                                voucherData.counting = text[0] as 'single' | 'each';
+                                                                                gvc.notifyDataChange(pageVM.conditionId);
+                                                                            },
+                                                                            {
+                                                                                single: true,
+                                                                            }
+                                                                        )}`;
+                                                                },
+                                                            }),
+                                                        ].join('');
                                                     },
                                                 };
                                             })
