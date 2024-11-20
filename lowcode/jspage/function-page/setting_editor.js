@@ -890,7 +890,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'member_manager',
             group: '顧客管理',
-            title: '顧客註冊設定',
+            title: '顧客設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
             moduleName: '會員設定',
