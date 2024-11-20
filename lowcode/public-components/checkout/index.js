@@ -30,83 +30,218 @@ export class CheckoutIndex {
         };
         const vm = {
             cartData: {
-                customer_info: {},
-                lineItems: [
+                "customer_info": {},
+                "lineItems": [
                     {
-                        spec: ['黑色', '小號'],
-                        id: 710,
-                        count: 1,
-                        preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
-                        title: '溫德米爾 茶几',
-                        sale_price: 1800,
-                        collection: ['折扣專區'],
-                        sku: '',
-                        shipment_obj: {
-                            type: 'weight',
-                            value: 1,
+                        "spec": [
+                            "黑色",
+                            "小型"
+                        ],
+                        "id": 711,
+                        "count": 1,
+                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
+                        "title": "鱷魚皮沙發",
+                        "sale_price": 25000,
+                        "collection": [
+                            "折扣專區"
+                        ],
+                        "sku": "133",
+                        "shipment_obj": {
+                            "type": "volume",
+                            "value": 1
                         },
-                        discount_price: 0,
-                        rebate: 0,
-                    },
+                        "discount_price": 188,
+                        "rebate": 0
+                    }
                 ],
-                total: 1800,
-                email: 'daniel.lin@ncdesign.info',
-                user_info: {
-                    shipment: '',
+                "total": 24812,
+                "email": "sam38124@gmail.com",
+                "user_info": {
+                    "shipment": "OKMARTC2C"
                 },
-                shipment_fee: 0,
-                rebate: 0,
-                use_rebate: 0,
-                orderID: '1732015169389',
-                shipment_support: ['OKMARTC2C', 'shop', 'FAMIC2C', 'UNIMARTC2C'],
-                shipment_info: '<p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\' id="isPasted">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>商家會約定再次配送的時間，您將支付額外的運費。</p>',
-                shipment_selector: [
-                    {
-                        name: '全家店到店',
-                        value: 'FAMIC2C',
-                    },
-                    {
-                        name: 'OK超商店到店',
-                        value: 'OKMARTC2C',
-                    },
-                    {
-                        name: '7-ELEVEN超商交貨便',
-                        value: 'UNIMARTC2C',
-                    },
-                    {
-                        name: '實體門市取貨',
-                        value: 'shop',
-                    },
+                "shipment_fee": 0,
+                "rebate": 0,
+                "use_rebate": 0,
+                "orderID": "1732127735455",
+                "shipment_support": [
+                    "OKMARTC2C",
+                    "shop",
+                    "FAMIC2C",
+                    "UNIMARTC2C"
                 ],
-                use_wallet: 0,
-                user_email: 'daniel.lin@ncdesign.info',
-                useRebateInfo: {
-                    point: 0,
+                "shipment_info": "<p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;' id=\"isPasted\">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>商家會約定再次配送的時間，您將支付額外的運費。</p>",
+                "shipment_selector": [
+                    {
+                        "name": "全家店到店",
+                        "value": "FAMIC2C"
+                    },
+                    {
+                        "name": "OK超商店到店",
+                        "value": "OKMARTC2C"
+                    },
+                    {
+                        "name": "7-ELEVEN超商交貨便",
+                        "value": "UNIMARTC2C"
+                    },
+                    {
+                        "name": "實體門市取貨",
+                        "value": "shop"
+                    }
+                ],
+                "use_wallet": 0,
+                "user_email": "sam38124@gmail.com",
+                "useRebateInfo": {
+                    "point": 0
                 },
-                orderSource: '',
-                code_array: [],
-                give_away: [],
-                user_rebate_sum: 0,
-                voucherList: [],
-                discount: 0,
-                payment_setting: {
-                    TYPE: 'newWebPay',
+                "orderSource": "",
+                "code_array": [],
+                "give_away": [],
+                "user_rebate_sum": 0,
+                "code": "J3IXLO",
+                "voucherList": [
+                    {
+                        "id": 677,
+                        "for": "all",
+                        "code": "J3IXLO",
+                        "rule": "min_count",
+                        "type": "voucher",
+                        "title": "示範優惠券1011",
+                        "value": "100",
+                        "device": [
+                            "normal",
+                            "pos"
+                        ],
+                        "forKey": [],
+                        "method": "fixed",
+                        "status": 1,
+                        "target": "all",
+                        "userID": 122538856,
+                        "endDate": "2024-11-28",
+                        "endTime": "00:13",
+                        "overlay": false,
+                        "trigger": "code",
+                        "counting": "single",
+                        "ruleValue": 0,
+                        "startDate": "2024-10-11",
+                        "startTime": "17:00",
+                        "reBackType": "discount",
+                        "targetList": [
+                            "neverBuying"
+                        ],
+                        "end_ISO_Date": "2024-11-27T16:13:00.000Z",
+                        "macroLimited": 0,
+                        "microLimited": 0,
+                        "rebateEndDay": "30",
+                        "conditionType": "order",
+                        "start_ISO_Date": "2024-10-11T09:00:00.000Z",
+                        "bind": [
+                            {
+                                "spec": [
+                                    "黑色",
+                                    "小型"
+                                ],
+                                "id": 711,
+                                "count": 1,
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
+                                "title": "鱷魚皮沙發",
+                                "sale_price": 25000,
+                                "collection": [
+                                    "折扣專區"
+                                ],
+                                "sku": "133",
+                                "shipment_obj": {
+                                    "type": "volume",
+                                    "value": 1
+                                },
+                                "discount_price": 188,
+                                "rebate": 0
+                            }
+                        ],
+                        "times": 1,
+                        "bind_subtotal": 25000,
+                        "discount_total": 100,
+                        "rebate_total": 0
+                    },
+                    {
+                        "id": 718,
+                        "for": "all",
+                        "code": "",
+                        "rule": "min_price",
+                        "type": "voucher",
+                        "title": "示範優惠券1121全館",
+                        "value": "88",
+                        "device": [
+                            "normal"
+                        ],
+                        "forKey": [],
+                        "method": "fixed",
+                        "status": 1,
+                        "target": "all",
+                        "userID": 122538856,
+                        "endDate": "2024-11-28",
+                        "endTime": "02:00",
+                        "overlay": true,
+                        "trigger": "auto",
+                        "counting": "single",
+                        "ruleValue": 100,
+                        "startDate": "2024-11-21",
+                        "startTime": "02:00",
+                        "reBackType": "discount",
+                        "targetList": [],
+                        "end_ISO_Date": "2024-11-27T18:00:00.000Z",
+                        "macroLimited": 0,
+                        "microLimited": 0,
+                        "rebateEndDay": "30",
+                        "conditionType": "order",
+                        "start_ISO_Date": "2024-11-20T18:00:00.000Z",
+                        "bind": [
+                            {
+                                "spec": [
+                                    "黑色",
+                                    "小型"
+                                ],
+                                "id": 711,
+                                "count": 1,
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
+                                "title": "鱷魚皮沙發",
+                                "sale_price": 25000,
+                                "collection": [
+                                    "折扣專區"
+                                ],
+                                "sku": "133",
+                                "shipment_obj": {
+                                    "type": "volume",
+                                    "value": 1
+                                },
+                                "discount_price": 188,
+                                "rebate": 0
+                            }
+                        ],
+                        "times": 1,
+                        "bind_subtotal": 25000,
+                        "discount_total": 88,
+                        "rebate_total": 0
+                    }
+                ],
+                "discount": 188,
+                "payment_setting": {
+                    "TYPE": "ecPay"
                 },
-                off_line_support: {
-                    atm: true,
-                    line: true,
-                    cash_on_delivery: true,
+                "off_line_support": {
+                    "atm": true,
+                    "line": true,
+                    "cash_on_delivery": true
                 },
-                payment_info_line_pay: {
-                    text: '<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p><p><br><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png" class="fr-fic fr-dii" style="width: 230px;">&nbsp;<img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png" class="fr-fic fr-dii" style="width: 582px;"></p><p><br></p>',
+                "payment_info_line_pay": {
+                    "text": "<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p><p><br><img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png\" class=\"fr-fic fr-dii\" style=\"width: 230px;\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png\" class=\"fr-fic fr-dii\" style=\"width: 582px;\"></p><p><br></p>"
                 },
-                payment_info_atm: {
-                    text: '<p id="isPasted">當日下單匯款，隔日出貨，後天到貨。</p><p>若有需要統一編號 請提早告知</p><p>------------------------------------------------------------------</p><p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p>',
-                    bank_code: '812',
-                    bank_name: '台新銀行',
-                    bank_user: '陳女士',
-                    bank_account: '888800004567',
-                },
+                "payment_info_atm": {
+                    "text": "<p id=\"isPasted\">當日下單匯款，隔日出貨，後天到貨。</p><p>若有需要統一編號 請提早告知</p><p>------------------------------------------------------------------</p><p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p>",
+                    "bank_code": "812",
+                    "bank_name": "台新銀行",
+                    "bank_user": "陳女士",
+                    "bank_account": "888800004567"
+                }
             },
         };
         const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
@@ -347,7 +482,7 @@ export class CheckoutIndex {
             .${classPrefix}-select:focus {
                 outline: 0;
             }
-
+                
             .${classPrefix}-group-input {
                 border:none;
                 background:none;
@@ -358,6 +493,12 @@ export class CheckoutIndex {
                 word-wrap: break-word;
                 padding-left: 12px;
             }
+                .${classPrefix}-first-td {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 30%;
+                }
 
             .${classPrefix}-group-input:focus {
                 outline: 0;
@@ -486,14 +627,13 @@ export class CheckoutIndex {
                             return {
                                 bind: ids.cart,
                                 view: () => {
-                                    var _a;
                                     return html `
                                                             <section>
                                                                 <div class="${gClass('banner-bgr')}">
                                                                     <span class="${gClass('banner-text')}">購物車</span>
                                                                 </div>
                                                                 <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
-                                                                    <div class="${gClass('first-td')}">商品名稱</div>
+                                                                    <div class="${gClass('first-td')} justify-content-start">商品名稱</div>
                                                                     <div class="${gClass('td')}">規格</div>
                                                                     <div class="${gClass('td')}">單價</div>
                                                                     <div class="${gClass('td')}">數量</div>
@@ -504,57 +644,48 @@ export class CheckoutIndex {
                                         view: () => {
                                             return vm.cartData.lineItems
                                                 .map((item, index) => {
-                                                console.log(`item=>`, item);
+                                                function financial(x) {
+                                                    const parsed = Number.parseFloat(`${x}`);
+                                                    if (Number.isInteger(parsed)) {
+                                                        return parsed.toLocaleString();
+                                                    }
+                                                    const decimalPart = parsed.toString().split('.')[1];
+                                                    if (decimalPart && decimalPart.length > 1) {
+                                                        return parsed.toLocaleString(undefined, {
+                                                            minimumFractionDigits: 1,
+                                                            maximumFractionDigits: 1
+                                                        });
+                                                    }
+                                                    else {
+                                                        return parsed.toLocaleString(undefined, {
+                                                            minimumFractionDigits: 1,
+                                                            maximumFractionDigits: 3
+                                                        });
+                                                    }
+                                                }
                                                 return html `
-                                                                                     <div class="d-flex w-100 border-bottom p-lg-3 px-1 py-3 position-relative" style="gap:20px;">
+                                                                                        <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3"  >
+                                                                                              <div class="d-flex w-100   position-relative" style="gap:20px;">
                                                                                          <div class="${gClass('first-td')} justify-content-start  d-sm-none">
-                                                                                             ${validImageBox({
-                                                    gvc,
-                                                    image: noImageURL,
-                                                    width: 100,
-                                                })}
+                                                                                             <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
                                                                                              <span class="ms-2 d-none">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
                                                                                          </div>
                                                                                            <div class="d-flex flex-sm-row    flex-column w-100 position-relative"
                                                                                              style="gap: 10px; position: relative;">
                                                                                             <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex">
-                                                                                                ${validImageBox({
-                                                    gvc,
-                                                    image: noImageURL,
-                                                    width: 100,
-                                                })}
+                                                                                                <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
                                                                                                 <span class="ms-2 ">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
                                                                                             </div>
                                                                                             <div class="${gClass('td')}">
                                                                                                 ${item.spec ? item.spec.join(' / ') : ''}
                                                                                             </div>
-                                                                                            <div class="${gClass('td')}">
-                                                                                                <div class="${subData.discount_price ? `` : `d-none`}">
+                                                                                            <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center" style="gap:10px;">
+                                                                                                <div class="${item.discount_price ? `` : `d-none`}">
                                                                                                     ${(() => {
-                                                    function financial(x) {
-                                                        const parsed = Number.parseFloat(`${x}`);
-                                                        if (Number.isInteger(parsed)) {
-                                                            return parsed.toLocaleString();
-                                                        }
-                                                        const decimalPart = parsed.toString().split('.')[1];
-                                                        if (decimalPart && decimalPart.length > 1) {
-                                                            return parsed.toLocaleString(undefined, {
-                                                                minimumFractionDigits: 1,
-                                                                maximumFractionDigits: 1
-                                                            });
-                                                        }
-                                                        else {
-                                                            return parsed.toLocaleString(undefined, {
-                                                                minimumFractionDigits: 1,
-                                                                maximumFractionDigits: 3
-                                                            });
-                                                        }
-                                                    }
-                                                    return `NT.${financial(subData.sale_price - subData.discount_price)}`;
+                                                    return `NT.${financial(item.sale_price - item.discount_price)}`;
                                                 })()}
                                                                                                 </div>
-                                                                                                <div>原價: NT.
-                                                                                                    ${item.sale_price.toLocaleString()}
+                                                                                                <div style="${(item.discount_price) ? `text-decoration: line-through;` : ``}">${((item.discount_price)) ? `原價:${item.sale_price.toLocaleString()}` : `${item.sale_price.toLocaleString()}`}
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div class="${gClass('td')}">
@@ -581,9 +712,9 @@ export class CheckoutIndex {
                                                     refreshCartData();
                                                 })}"></i>
                                                                                                </div>
-                                                                                               <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                               <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? ((item.sale_price - item.discount_price) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
                                                                                             <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
-                                                                                                <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                                <span class="d-none d-md-block">合計 NT. ${((item.discount_price) ? ((item.sale_price - item.discount_price) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
                                                                                                 <div class="d-none d-md-block" style="position: absolute; right: 0px; transform: translateY(-50%); top: 50%;">
                                                                                                     <i class="fa-solid fa-xmark-large"
                                                                                                        style="cursor: pointer;" onclick="${gvc.event(() => {
@@ -594,6 +725,16 @@ export class CheckoutIndex {
                                                                                             </div>
                                                                                         </div>
                                                                                      </div>
+                                                                                          <div>
+                                                                                              ${vm.cartData.voucherList.filter((dd) => {
+                                                    return dd.bind.find((d2) => { return d2.id === item.id; });
+                                                }).map((dd) => {
+                                                    return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                }).join('<div class="my-1"></div>')}
+                                                                                          </div>
+                                                                                          
+                                                                                        </div>
+                                                                                   
                                                                                       `;
                                             })
                                                 .join('');
@@ -604,12 +745,16 @@ export class CheckoutIndex {
                                                             <div class="flex-fill"></div>
                                                             <div class="${gClass('price-container')}">
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>小計總額(合計)</div>
+                                                                    <div>商品總計</div>
                                                                     <div>NT. ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}</div>
                                                                 </div>
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div>運費</div>
                                                                     <div>NT. ${vm.cartData.shipment_fee.toLocaleString()}</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>優惠券折抵</div>
+                                                                    <div>- NT. ${vm.cartData.discount.toLocaleString()}</div>
                                                                 </div>
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div>優惠代碼</div>
@@ -671,9 +816,12 @@ export class CheckoutIndex {
                                         class="${gClass('button-bgr')} my-2"
                                         style="max-width: 150px;"
                                         onclick="${gvc.event(() => {
-                                                                            vm.cartData.code = item.code;
-                                                                            refreshCartData();
-                                                                            gvc.closeDialog();
+                                                                            console.log(JSON.stringify(item));
+                                                                            ApiCart.setCart((cartItem) => {
+                                                                                cartItem.code = item.code;
+                                                                                refreshCartData();
+                                                                                gvc.closeDialog();
+                                                                            });
                                                                         })}"
                                     >
                                         <span 
@@ -696,10 +844,14 @@ export class CheckoutIndex {
                                                                     dialog.dataLoading({ visible: true });
                                                                     ApiShop.getCheckout(cloneCart).then((r) => {
                                                                         dialog.dataLoading({ visible: false });
-                                                                        if (r.result && r.response.data && r.response.data.voucherList.length > 0) {
-                                                                            vm.cartData.code = code;
-                                                                            refreshCartData();
-                                                                            gvc.closeDialog();
+                                                                        if (r.result && r.response.data && r.response.data.voucherList.some((dd) => {
+                                                                            return dd.code === code;
+                                                                        })) {
+                                                                            ApiCart.setCart((cartItem) => {
+                                                                                cartItem.code = code;
+                                                                                refreshCartData();
+                                                                                gvc.closeDialog();
+                                                                            });
                                                                         }
                                                                         else {
                                                                             dialog.errorMessage({
@@ -816,7 +968,9 @@ export class CheckoutIndex {
                                                                                 if (f) {
                                                                                     const r = f.response;
                                                                                     if (r.result && r.response.data) {
-                                                                                        item.content.usePass = r.response.data.voucherList.length > 0;
+                                                                                        item.content.usePass = r.response.data.voucherList.some((dd) => {
+                                                                                            return dd.code === f.code;
+                                                                                        });
                                                                                     }
                                                                                 }
                                                                                 return item;
@@ -832,65 +986,113 @@ export class CheckoutIndex {
                                                 })());
                                             }
                                         });
-                                    })}">${(_a = vm.cartData.code) !== null && _a !== void 0 ? _a : '新增'}</div>
+                                    })}">${vm.cartData.code ? `${vm.cartData.code}<i class="fa-solid fa-xmark-large ms-2"
+                                                                                                      style="cursor: pointer;" onclick="${gvc.event((e, event) => {
+                                        event.stopPropagation();
+                                        ApiCart.setCart((cartItem) => {
+                                            cartItem.code = '';
+                                            refreshCartData();
+                                        });
+                                    })}"></i>` : '新增'}</div>
                                                                 </div>
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                ${(() => {
+                                        let tempRebate = 0;
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        return `<div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div>購物金折抵</div>
-                                                                    <div>- NT. ${vm.cartData.discount.toLocaleString()}</div>
+                                                                    <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                 </div>
+                                                              
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div
                                                                         style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
-                                        .body.clientWidth > 768
-                                        ? 'gap: 18px; '
-                                        : 'flex-direction: column; gap: 0px; '}"
+                                            .body.clientWidth > 768
+                                            ? 'gap: 18px; '
+                                            : ' gap: 0px; '}"
                                                                         class="w-100"
                                                                     >
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
                                                                                     placeholder="請輸入購物金"
                                                                                     value="${vm.cartData.use_rebate || ''}"
+                                                                                    onchange="${gvc.event((e, event) => {
+                                            if (CheckInput.isNumberString(e.value)) {
+                                                tempRebate = parseInt(e.value, 10);
+                                            }
+                                            else {
+                                                dialog.errorMessage({ text: `請輸入數值` });
+                                                gvc.notifyDataChange(ids.page);
+                                            }
+                                        })}"
                                                                         />
                                                                         <div class="${gClass('group-button')}" >
                                                                             <div class="${gClass('button-text')}" 
-                                                                                onclick="${gvc.event((e) => {
-                                        let text = e.value;
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        const textNumber = parseInt(text, 10);
-                                        const subtotal = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-                                        if (!CheckInput.isNumberString(text)) {
-                                            dialog.infoMessage({ text: '僅限輸入數字' });
-                                        }
-                                        if (textNumber) {
-                                            dialog.errorMessage({ text: `請輸入 0 到 ${Math.min(textNumber, subtotal)} 的數值` });
-                                        }
-                                        else {
-                                            vm.cartData.use_rebate = text;
-                                            refreshCartData();
-                                        }
-                                    })}">
+                                                                                onclick="${gvc.event((e) => __awaiter(this, void 0, void 0, function* () {
+                                            const sum = yield new Promise((resolve, reject) => {
+                                                ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                                    if (res.result && res.response.sum) {
+                                                        resolve(res.response.sum);
+                                                    }
+                                                    else {
+                                                        resolve(0);
+                                                    }
+                                                }));
+                                            });
+                                            const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                            console.log({
+                                                total: vm.cartData.total,
+                                                use_rebate: vm.cartData.use_rebate,
+                                                shipment_fee: vm.cartData.shipment_fee,
+                                            });
+                                            if (tempRebate > Math.min(sum, limit)) {
+                                                dialog.errorMessage({ text: `請輸入 0 到 ${Math.min(sum, limit)} 的數值` });
+                                            }
+                                            else {
+                                                ApiCart.setCart((cartItem) => {
+                                                    cartItem.use_rebate = tempRebate;
+                                                    refreshCartData();
+                                                });
+                                            }
+                                        }))}">
                                                                                 套用
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
+                                                                </div>`;
+                                    })()}
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
 
     ${(() => {
-                                        const sum = vm.cartData.user_rebate_sum || 0;
-                                        if (!vm.cartData.useRebateInfo) {
-                                            return '';
-                                        }
-                                        const info = vm.cartData.useRebateInfo;
-                                        if (info.condition) {
-                                            return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`;
-                                        }
-                                        if (info.limit) {
-                                            return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`;
-                                        }
-                                        else {
-                                            return `您目前剩餘 ${sum || 0} 點購物金`;
-                                        }
+                                        return gvc.bindView(() => {
+                                            return {
+                                                bind: gvc.glitter.getUUID(),
+                                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                                    const sum = yield new Promise((resolve, reject) => {
+                                                        ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                                            if (res.result && res.response.sum) {
+                                                                resolve(res.response.sum);
+                                                            }
+                                                            else {
+                                                                resolve(0);
+                                                            }
+                                                        }));
+                                                    });
+                                                    if (!vm.cartData.useRebateInfo) {
+                                                        return '';
+                                                    }
+                                                    const info = vm.cartData.useRebateInfo;
+                                                    if (info.condition) {
+                                                        return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`;
+                                                    }
+                                                    if (info.limit) {
+                                                        return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`;
+                                                    }
+                                                    else {
+                                                        return `您目前剩餘 ${sum || 0} 點購物金`;
+                                                    }
+                                                })
+                                            };
+                                        });
                                     })()}
                                                                 </div>
                                                             </div>
@@ -1523,7 +1725,7 @@ export class CheckoutIndex {
                                         hidden_code: 'return false',
                                     },
                                 ].filter((dd) => {
-                                    return (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') || !widget.share.user_info_same;
+                                    return (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') || !vm.cartData.user_info_same;
                                 }),
                                 login_config: {},
                             };
@@ -1591,8 +1793,8 @@ export class CheckoutIndex {
                                     });
                                     return [
                                         ` <div class="d-flex ms-2 my-3" style="gap:10px;cursor:pointer;" onclick="${gvc.event(() => {
-                                            widget.share.user_info_same = !widget.share.user_info_same;
-                                            if (widget.share.user_info_same) {
+                                            vm.cartData.user_info_same = !vm.cartData.user_info_same;
+                                            if (vm.cartData.user_info_same) {
                                                 vm.cartData.user_info.name = vm.cartData.customer_info.name;
                                                 vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
                                                 vm.cartData.user_info.email = vm.cartData.customer_info.email;
@@ -1600,7 +1802,7 @@ export class CheckoutIndex {
                                             this.storeLocalData(vm.cartData);
                                             gvc.notifyDataChange(id);
                                         })}">
-                                            <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(widget.share.user_info_same) ? `checked` : ''}>
+                                            <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(vm.cartData.user_info_same) ? `checked` : ''}>
                                             收件人同購買人資料
                                         </div>`,
                                         FormWidget.editorView({
