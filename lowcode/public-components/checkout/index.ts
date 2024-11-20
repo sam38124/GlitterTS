@@ -1,9 +1,10 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { CheckInput } from '../../modules/checkInput.js';
-import { Tool } from '../../modules/tool.js';
-import { ApiCart, CartItem } from '../../glitter-base/route/api-cart.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {ApiShop} from '../../glitter-base/route/shopping.js';
+import {GlobalUser} from '../../glitter-base/global/global-user.js';
+import {CheckInput} from '../../modules/checkInput.js';
+import {Tool} from '../../modules/tool.js';
+import {ApiCart, CartItem} from '../../glitter-base/route/api-cart.js';
+import {ApiDelivery} from "../../glitter-base/route/delivery.js";
 
 const html = String.raw;
 const css = String.raw;
@@ -43,7 +44,7 @@ export class CheckoutIndex {
                 total: 1800,
                 email: 'daniel.lin@ncdesign.info',
                 user_info: {
-                    shipment: 'FAMIC2C',
+                    shipment: '',
                 },
                 shipment_fee: 0,
                 rebate: 0,
@@ -134,14 +135,17 @@ export class CheckoutIndex {
                 visible: obj?.text?.visible === false ? false : true,
                 fontSize: obj?.text?.fontSize ?? 16,
             };
-            return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
-                <div
-                    class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                    style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                    role="status"
-                ></div>
-                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-            </div>`;
+            return html`
+                <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
+                     style="${container.style}">
+                    <div
+                            class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                            style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                            role="status"
+                    ></div>
+                    <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
+                          style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+                </div>`;
         }
 
         function isImageUrlValid(url: string): Promise<boolean> {
@@ -153,7 +157,14 @@ export class CheckoutIndex {
             });
         }
 
-        function validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
+        function validImageBox(obj: {
+            gvc: GVC;
+            image: string;
+            width: number;
+            height?: number;
+            class?: string;
+            style?: string
+        }) {
             const imageVM = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: true,
@@ -179,8 +190,8 @@ export class CheckoutIndex {
                                 bind: obj.gvc.glitter.getUUID(),
                                 view: () => {
                                     return spinner({
-                                        container: { class: 'mt-0' },
-                                        text: { visible: false },
+                                        container: {class: 'mt-0'},
+                                        text: {visible: false},
                                     });
                                 },
                                 divCreate: {
@@ -233,9 +244,10 @@ export class CheckoutIndex {
         }
 
         function addItemBadge() {
-            return html`<div class="${gClass('add-item-badge')}">
-                <div class="${gClass('add-item-text')}">加購品</div>
-            </div>`;
+            return html`
+                <div class="${gClass('add-item-badge')}">
+                    <div class="${gClass('add-item-text')}">加購品</div>
+                </div>`;
         }
 
         function addStyle() {
@@ -244,12 +256,14 @@ export class CheckoutIndex {
                     max-width: 70% !important;
                     margin: 2.5rem auto !important;
                 }
+
                 .${classPrefix}-null-container {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     height: 100vh !important;
                 }
+
                 .${classPrefix}-header {
                     color: #393939;
                     font-size: 24px;
@@ -258,37 +272,45 @@ export class CheckoutIndex {
                     text-align: center;
                     margin-bottom: 24px;
                 }
+
                 .${classPrefix}-banner-bgr {
                     padding: 1rem;
                     border-radius: 10px;
                     background: #f6f6f6;
                 }
+
                 .${classPrefix}-banner-text {
                     color: #393939;
                     font-size: 18px;
                     font-weight: 700;
                     letter-spacing: 2px;
                 }
+
                 .${classPrefix}-text-1 {
                     color: #393939;
                     font-size: 20px;
                 }
+
                 .${classPrefix}-text-2 {
                     color: #393939;
                     font-size: 16px;
                 }
+
                 .${classPrefix}-text-3 {
                     color: #393939;
                     font-size: 14px;
                 }
+
                 .${classPrefix}-label {
                     color: #393939;
                     font-size: 16px;
                     margin-bottom: 8px;
                 }
+
                 .${classPrefix}-bold {
                     font-weight: 700;
                 }
+
                 .${classPrefix}-button-bgr {
                     width: 100%;
                     border: 0;
@@ -298,10 +320,12 @@ export class CheckoutIndex {
                     padding: 0 24px;
                     margin: 18px 0;
                 }
+
                 .${classPrefix}-button-text {
                     color: #fff;
                     font-size: 16px;
                 }
+
                 .${classPrefix}-input {
                     width: 100%;
                     border-radius: 10px;
@@ -309,6 +333,7 @@ export class CheckoutIndex {
                     height: 40px;
                     padding: 0px 18px;
                 }
+
                 .${classPrefix}-select {
                     display: flex;
                     padding: 7px 30px 7px 18px;
@@ -324,21 +349,25 @@ export class CheckoutIndex {
                     -webkit-appearance: none;
                     -moz-appearance: none;
                 }
+
                 .${classPrefix}-select:focus {
                     outline: 0;
                 }
+
                 .${classPrefix}-td {
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     width: 15%;
                 }
+
                 .${classPrefix}-first-td {
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     width: 40%;
                 }
+
                 .${classPrefix}-price-container {
                     display: flex;
                     flex-direction: column;
@@ -348,12 +377,14 @@ export class CheckoutIndex {
                     gap: 12px;
                     margin: 24px 0;
                 }
+
                 .${classPrefix}-price-row {
                     display: flex;
                     width: 100%;
                     align-items: center;
                     justify-content: space-between;
                 }
+
                 .${classPrefix}-origin-price {
                     text-align: end;
                     font-weight: 400;
@@ -363,6 +394,7 @@ export class CheckoutIndex {
                     font-style: italic;
                     margin-top: auto;
                 }
+
                 .${classPrefix}-add-item-badge {
                     height: 22px;
                     padding-left: 6px;
@@ -376,6 +408,7 @@ export class CheckoutIndex {
                     gap: 10px;
                     display: inline-flex;
                 }
+
                 .${classPrefix}-add-item-text {
                     color: #393939;
                     font-size: 14px;
@@ -383,6 +416,10 @@ export class CheckoutIndex {
                     word-wrap: break-word;
                 }
             `);
+        }
+
+        function refreshCartData() {
+            gvc.notifyDataChange(ids.page)
         }
 
         return gvc.bindView(
@@ -393,199 +430,269 @@ export class CheckoutIndex {
                         if (loadings.page) {
                             return spinner();
                         }
+
+                        this.initial(vm.cartData)
                         addStyle();
                         if (vm.cartData.lineItems.length === 0) {
-                            return html`<div class="container ${gClass(['container', 'null-container'])}">
-                                <div class="${gClass('header')}">購物明細</div>
-                                <lottie-player
-                                    style="max-width: 100%; width: 300px; height: 300px;"
-                                    src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
-                                    speed="1"
-                                    loop=""
-                                    autoplay=""
-                                    background="transparent"
-                                ></lottie-player>
-                                <div class="mt-3">購物車是空的，趕快前往挑選您心儀的商品</div>
-                            </div> `;
+                            return html`
+                                <div class="container ${gClass(['container', 'null-container'])}">
+                                    <div class="${gClass('header')}">購物明細</div>
+                                    <lottie-player
+                                            style="max-width: 100%; width: 300px; height: 300px;"
+                                            src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                            speed="1"
+                                            loop=""
+                                            autoplay=""
+                                            background="transparent"
+                                    ></lottie-player>
+                                    <div class="mt-3">購物車是空的，趕快前往挑選您心儀的商品</div>
+                                </div> `;
                         }
-                        return html`<div class="container ${gClass('container')}">
-                            <div class="${gClass('header')}">購物明細</div>
-                            ${gvc.bindView(
-                                (() => {
-                                    return {
-                                        bind: ids.cart,
-                                        view: () => {
-                                            return html`<section>
-                                                    <div class="${gClass('banner-bgr')}">
-                                                        <span class="${gClass('banner-text')}">購物車</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center p-3 border-bottom">
-                                                        <div class="${gClass('first-td')}">商品名稱</div>
-                                                        <div class="${gClass('td')}">規格</div>
-                                                        <div class="${gClass('td')}">單價</div>
-                                                        <div class="${gClass('td')}">數量</div>
-                                                        <div class="${gClass('td')}">小計</div>
-                                                    </div>
-                                                    ${gvc.bindView({
-                                                        bind: glitter.getUUID(),
-                                                        view: () => {
-                                                            return vm.cartData.lineItems
-                                                                .map((item: any) => {
-                                                                    console.log(item);
-                                                                    return html`<div class="d-flex align-items-center p-3 border-bottom" style="gap: 10px; position: relative;">
-                                                                        <div class="${gClass('first-td')} justify-content-start">
-                                                                            ${validImageBox({
-                                                                                gvc,
-                                                                                image: noImageURL,
-                                                                                width: 100,
-                                                                            })}
-                                                                            <span class="ms-2">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
-                                                                        </div>
-                                                                        <div class="${gClass('td')}">${item.spec ? item.spec.join(' / ') : ''}</div>
-                                                                        <div class="${gClass('td')}">
-                                                                            <div>
-                                                                                ${(() => {
-                                                                                    function financial(x: number) {
-                                                                                        const parsed = Number.parseFloat(`${x}`);
+                        return html`
+                            <div class="container ${gClass('container')}">
+                                <div class="${gClass('header')}">購物明細</div>
+                                ${gvc.bindView(
+                                        (() => {
+                                            return {
+                                                bind: ids.cart,
+                                                view: () => {
+                                                    return html`
+                                                        <section>
+                                                            <div class="${gClass('banner-bgr')}">
+                                                                <span class="${gClass('banner-text')}">購物車</span>
+                                                            </div>
+                                                            <div class="d-flex align-items-center p-3 border-bottom">
+                                                                <div class="${gClass('first-td')}">商品名稱</div>
+                                                                <div class="${gClass('td')}">規格</div>
+                                                                <div class="${gClass('td')}">單價</div>
+                                                                <div class="${gClass('td')}">數量</div>
+                                                                <div class="${gClass('td')}">小計</div>
+                                                            </div>
+                                                            ${gvc.bindView({
+                                                                bind: glitter.getUUID(),
+                                                                view: () => {
+                                                                    return vm.cartData.lineItems
+                                                                            .map((item: any) => {
+                                                                                console.log(item);
+                                                                                return html`
+                                                                                    <div class="d-flex align-items-center p-3 border-bottom"
+                                                                                         style="gap: 10px; position: relative;">
+                                                                                        <div class="${gClass('first-td')} justify-content-start">
+                                                                                            ${validImageBox({
+                                                                                                gvc,
+                                                                                                image: noImageURL,
+                                                                                                width: 100,
+                                                                                            })}
+                                                                                            <span class="ms-2">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
+                                                                                        </div>
+                                                                                        <div class="${gClass('td')}">
+                                                                                            ${item.spec ? item.spec.join(' / ') : ''}
+                                                                                        </div>
+                                                                                        <div class="${gClass('td')}">
+                                                                                            <div>
+                                                                                                ${(() => {
+                                                                                                    function financial(x: number) {
+                                                                                                        const parsed = Number.parseFloat(`${x}`);
 
-                                                                                        // 如果數字是整數，直接返回帶千分位的整數
-                                                                                        if (Number.isInteger(parsed)) {
-                                                                                            return parsed.toLocaleString();
-                                                                                        }
+                                                                                                        // 如果數字是整數，直接返回帶千分位的整數
+                                                                                                        if (Number.isInteger(parsed)) {
+                                                                                                            return parsed.toLocaleString();
+                                                                                                        }
 
-                                                                                        // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
-                                                                                        const decimalPart = parsed.toString().split('.')[1];
+                                                                                                        // 將數字轉換為字串，保留小數點後的原始數字以進行判斷
+                                                                                                        const decimalPart = parsed.toString().split('.')[1];
 
-                                                                                        // 根據小數位數的不同情況做處理
-                                                                                        if (decimalPart && decimalPart.length > 1) {
-                                                                                            return parsed.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-                                                                                        } else {
-                                                                                            return parsed.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 3 });
-                                                                                        }
-                                                                                    }
-                                                                                    return `NT.${financial(subData.sale_price - subData.discount_price)}`;
-                                                                                })()}
-                                                                            </div>
-                                                                            <div>原價: NT. ${item.sale_price.toLocaleString()}</div>
-                                                                        </div>
-                                                                        <div class="${gClass('td')}">
-                                                                            <select
-                                                                                class="${gClass('select')}"
-                                                                                style="width: 100px;"
-                                                                                onchange="${gvc.event((e) => {
-                                                                                    item.count = parseInt(e.value, 10);
-                                                                                    gvc.notifyDataChange(ids.cart);
-                                                                                })}"
-                                                                            >
-                                                                                ${[...new Array(50)].map((_, index) => {
-                                                                                    return html`<option value="${index + 1}">${index + 1}</option>`;
-                                                                                })}
-                                                                            </select>
-                                                                        </div>
-                                                                        <div class="${gClass('td')}">
-                                                                            <span>合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
-                                                                            <div style="position: absolute; right: 5px; transform: translateY(-50%); top: 50%;">
-                                                                                <i class="fa-solid fa-xmark-large" style="cursor: pointer;"></i>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
-                                                                })
-                                                                .join('');
-                                                        },
-                                                    })}
-                                                </section>
-                                                <section class="d-flex">
-                                                    <div class="flex-fill"></div>
-                                                    <div class="${gClass('price-container')}">
-                                                        <div class="${gClass(['price-row', 'text-2'])}">
-                                                            <div>小計</div>
-                                                            <div>NT.1,800</div>
-                                                        </div>
-                                                        <div class="${gClass(['price-row', 'text-2'])}">
-                                                            <div>運費</div>
-                                                            <div>NT.1,800</div>
-                                                        </div>
-                                                        <div class="${gClass(['price-row', 'text-2'])}">
-                                                            <div>購物金折抵</div>
-                                                            <div>NT.1,800</div>
-                                                        </div>
-                                                        <div class="${gClass(['price-row', 'text-2'])}">
-                                                            <div>優惠代碼</div>
-                                                            <div>新增</div>
-                                                        </div>
-                                                    </div>
-                                                </section>`;
-                                        },
-                                    };
-                                })()
-                            )}
-                            <section class="border-bottom"></section>
-                            <section class="d-flex">
-                                <div class="flex-fill"></div>
-                                <div class="${gClass('price-container')}">
-                                    <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                        <div>總金額</div>
-                                        <div>NT.1,800</div>
-                                    </div>
-                                </div>
-                            </section>
-                            <section>
-                                <div class="${gClass('banner-bgr')}">
-                                    <span class="${gClass('banner-text')}">付款及配送方式</span>
-                                </div>
-                                <div class="row m-0 my-md-3">
-                                    <div class="col-12 col-md-6">
-                                        <label class="${gClass('label')}">付款方式</label>
-                                        <div>
-                                            <select class="w-100 ${gClass('select')}">
-                                                <option>1</option>
-                                                <option>2</option>
-                                                <option>3</option>
-                                                <option>4</option>
-                                            </select>
+                                                                                                        // 根據小數位數的不同情況做處理
+                                                                                                        if (decimalPart && decimalPart.length > 1) {
+                                                                                                            return parsed.toLocaleString(undefined, {
+                                                                                                                minimumFractionDigits: 1,
+                                                                                                                maximumFractionDigits: 1
+                                                                                                            });
+                                                                                                        } else {
+                                                                                                            return parsed.toLocaleString(undefined, {
+                                                                                                                minimumFractionDigits: 1,
+                                                                                                                maximumFractionDigits: 3
+                                                                                                            });
+                                                                                                        }
+                                                                                                    }
+
+                                                                                                    return `NT.${financial(subData.sale_price - subData.discount_price)}`;
+                                                                                                })()}
+                                                                                            </div>
+                                                                                            <div>原價: NT.
+                                                                                                ${item.sale_price.toLocaleString()}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="${gClass('td')}">
+                                                                                            <select
+                                                                                                    class="${gClass('select')}"
+                                                                                                    style="width: 100px;"
+                                                                                                    onchange="${gvc.event((e) => {
+                                                                                                        item.count = parseInt(e.value, 10);
+                                                                                                        gvc.notifyDataChange(ids.cart);
+                                                                                                    })}"
+                                                                                            >
+                                                                                                ${[...new Array(50)].map((_, index) => {
+                                                                                                    return html`
+                                                                                                        <option value="${index + 1}">
+                                                                                                            ${index + 1}
+                                                                                                        </option>`;
+                                                                                                })}
+                                                                                            </select>
+                                                                                        </div>
+                                                                                        <div class="${gClass('td')}">
+                                                                                            <span>合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                            <div style="position: absolute; right: 5px; transform: translateY(-50%); top: 50%;">
+                                                                                                <i class="fa-solid fa-xmark-large"
+                                                                                                   style="cursor: pointer;"></i>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>`;
+                                                                            })
+                                                                            .join('');
+                                                                },
+                                                            })}
+                                                        </section>
+                                                        <section class="d-flex">
+                                                            <div class="flex-fill"></div>
+                                                            <div class="${gClass('price-container')}">
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>小計</div>
+                                                                    <div>NT.1,800</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>運費</div>
+                                                                    <div>NT.1,800</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>購物金折抵</div>
+                                                                    <div>NT.1,800</div>
+                                                                </div>
+                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                    <div>優惠代碼</div>
+                                                                    <div>新增</div>
+                                                                </div>
+                                                            </div>
+                                                        </section>`;
+                                                },
+                                            };
+                                        })()
+                                )}
+                                <section class="border-bottom"></section>
+                                <section class="d-flex">
+                                    <div class="flex-fill"></div>
+                                    <div class="${gClass('price-container')}">
+                                        <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                            <div>總金額</div>
+                                            <div>NT.1,800</div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
-                                        <label class="${gClass('label')}">配送方式</label>
-                                        <div>
-                                            <select class="w-100 ${gClass('select')}">
-                                                <option>5</option>
-                                                <option>6</option>
-                                                <option>7</option>
-                                                <option>8</option>
-                                            </select>
+                                </section>
+                                <section>
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">付款及配送方式</span>
+                                    </div>
+                                    <div class="row m-0 my-md-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="${gClass('label')}">付款方式</label>
+                                            <div>
+                                                <select class="w-100 ${gClass('select')}"
+                                                        onchange="${gvc.event((e, event) => {
+                                                            vm.cartData.customer_info.payment_select = e.value;
+                                                            this.storeLocalData(vm.cartData)
+                                                            refreshCartData()
+                                                        })}">
+                                                    ${(() => {
+                                                        return this.getPaymentMethod(vm.cartData).map((dd: {
+                                                            name: string,
+                                                            value: string
+                                                        }) => {
+                                                            return `<option value="${dd.value}" ${(localStorage.getItem('checkout-payment') === dd.value) ? `selected` : ``}>${dd.name}</option>`
+                                                        }).join('')
+                                                    })()}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="${gClass('label')}">配送方式</label>
+                                            <div>
+                                                <select class="w-100 ${gClass('select')}"
+                                                        onchange="${gvc.event((e, event) => {
+                                                            vm.cartData.user_info.shipment = e.value;
+                                                            this.storeLocalData(vm.cartData)
+                                                            refreshCartData()
+                                                        })}">
+                                                    ${(() => {
+                                                        return this.getShipmentMethod(vm.cartData).map((dd: {
+                                                            name: string,
+                                                            value: string
+                                                        }) => {
+                                                            return `<option value="${dd.value}" ${(vm.cartData.user_info.shipment === dd.value) ? `selected` : ``}>${dd.name}</option>`
+                                                        }).join('')
+                                                    })()}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
+                                            <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
+                                                ApiDelivery.storeMaps({
+                                                    returnURL: location.href,
+                                                    logistics: vm.cartData.user_info.shipment,
+                                                }).then(async (res) => {
+                                                    $('body').html(res.response.form);
+                                                    (document.querySelector('#submit') as any).click();
+                                                })
+                                            })}">
+                                                <span class="${gClass('button-text')}">${(() => {
+                                                    let cvs = glitter.getUrlParameter('CVSStoreName')
+                                                    if (decodeURIComponent(cvs)) {
+                                                        return `${decodeURIComponent(cvs)} 『 點擊重選門市 』`
+                                                    } else {
+                                                        return `選擇配送門市`
+                                                    }
+                                                })()}</span>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="col-12">
-                                        <button class="${gClass('button-bgr')}">
-                                            <span class="${gClass('button-text')}">選擇配送方式</span>
-                                        </button>
+                                </section>
+                                <section>
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">顧客資料</span>
                                     </div>
-                                </div>
-                            </section>
-                            <section>
-                                <div class="${gClass('banner-bgr')}">
-                                    <span class="${gClass('banner-text')}">顧客資料</span>
-                                </div>
-                                <div class="row m-0 my-md-3">
-                                    <div class="col-12 col-md-6">
-                                        <label class="${gClass('label')}">電子信箱</label>
-                                        <input class="${gClass('input')}" type="email" />
+                                    ${[{
+                                        name:'姓名',
+                                        key:'name'
+                                    },{
+                                        name:'聯絡電話',
+                                        key:'phone'
+                                    },{
+                                        name:'姓名',
+                                        key:'name'
+                                    }].map((dd)=>{
+                                        this.storeLocalData(vm.cartData)
+                                        return `<div class="col-12 col-md-6">
+                                            <label class="${gClass('label')}">電子信箱</label>
+                                            <input class="${gClass('input')}" type="email" onclick="${gvc.event((e,event)=>{
+
+                                        })}"/>
+                                        </div>`
+                                    })}
+                                    <div class="row m-0 my-md-3">
+                                        
                                     </div>
-                                </div>
-                            </section>
-                            <section>
-                                <div class="${gClass('banner-bgr')}">
-                                    <span class="${gClass('banner-text')}">收件人資料</span>
-                                </div>
-                                <div class="row m-0 my-md-3">
-                                    <div class="col-12 col-md-6">
-                                        <label class="${gClass('label')}">電子信箱</label>
-                                        <input class="${gClass('input')}" type="email" />
+                                </section>
+                                <section>
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">收件人資料</span>
                                     </div>
-                                </div>
-                            </section>
-                        </div>`;
+                                    <div class="row m-0 my-md-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="${gClass('label')}">電子信箱</label>
+                                            <input class="${gClass('input')}" type="email"/>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>`;
                     },
                     divCreate: {},
                     onCreate: () => {
@@ -693,13 +800,87 @@ export class CheckoutIndex {
                                     loadings.page = false;
                                     gvc.notifyDataChange(ids.page);
                                 },
-                                () => {}
+                                () => {
+                                }
                             );
                         }
                     },
                 };
             })()
         );
+    }
+
+
+    //取得付款方式
+    public static getPaymentMethod(cartData: any) {
+        let array = [];
+        switch (cartData.payment_setting.TYPE) {
+            case 'newWebPay':
+                array.push({
+                    name: '藍新金流',
+                    value: 'newWebPay',
+                });
+                break;
+            case 'ecPay':
+                array.push({
+                    name: '綠界金流',
+                    value: 'ecPay',
+                });
+                break;
+        }
+        cartData.off_line_support = cartData.off_line_support ?? {};
+        cartData.off_line_support.atm &&
+        array.push({
+            name: '銀行轉帳',
+            value: 'atm',
+        });
+        cartData.off_line_support.line &&
+        array.push({
+            name: 'Line Pay 付款',
+            value: 'line',
+        });
+        cartData.off_line_support.cash_on_delivery &&
+        array.push({
+            name: '貨到付款',
+            value: 'cash_on_delivery',
+        });
+        //當沒有找到付款方式實則重新inital
+        if (
+            !array.find((dd) => {
+                return dd.value === localStorage.getItem('checkout-payment');
+            })
+        ) {
+            localStorage.setItem('checkout-payment', array[0].value);
+        }
+        cartData.customer_info.payment_select = localStorage.getItem('checkout-payment');
+        return array;
+    }
+
+    //取得配送方式
+    public static getShipmentMethod(cartData: any) {
+        if (!cartData.shipment_selector.find((dd: any) => {
+            return dd.value === localStorage.getItem('shipment-select')
+        })) {
+            localStorage.setItem('shipment-select', cartData.shipment_selector[0].value);
+        }
+
+        cartData.user_info.shipment = localStorage.getItem('shipment-select');
+        return cartData.shipment_selector
+    }
+
+    //儲存本地資料
+    public static storeLocalData(cartData:any) {
+        //設定顧客
+       localStorage.setItem('cart_customer_info',JSON.parse(JSON.stringify(cartData.customer_info)))
+        //設定配送
+        localStorage.setItem('shipment-select',cartData.user_info.shipment)
+        //設定付款
+        localStorage.setItem('checkout-payment', cartData.customer_info.payment_select);
+    }
+
+
+    public static initial(cartData: any){
+        cartData.customer_info=JSON.parse(localStorage.getItem('cart_customer_info') || "{}")
     }
 }
 
