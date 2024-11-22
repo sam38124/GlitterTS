@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Tool } from '../../modules/tool.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
@@ -43,31 +42,34 @@ export class CheckoutIndex {
                         "title": "鱷魚皮沙發",
                         "sale_price": 25000,
                         "collection": [
-                            "折扣專區"
+                            "折扣專區",
+                            "熱門商品",
+                            "熱門商品 / 夏季限定"
                         ],
                         "sku": "133",
                         "shipment_obj": {
-                            "type": "volume",
-                            "value": 1
+                            "type": "weight",
+                            "value": 100
                         },
-                        "discount_price": 188,
+                        "discount_price": 88,
                         "rebate": 0
                     }
                 ],
-                "total": 24812,
+                "total": 25412,
                 "email": "sam38124@gmail.com",
                 "user_info": {
-                    "shipment": "OKMARTC2C"
+                    "shipment": "sescsbsfs4s2s4sf"
                 },
-                "shipment_fee": 0,
+                "shipment_fee": 500,
                 "rebate": 0,
                 "use_rebate": 0,
-                "orderID": "1732127735455",
+                "orderID": "1732290751810",
                 "shipment_support": [
                     "OKMARTC2C",
                     "shop",
                     "FAMIC2C",
-                    "UNIMARTC2C"
+                    "UNIMARTC2C",
+                    "sescsbsfs4s2s4sf"
                 ],
                 "shipment_info": "<p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;' id=\"isPasted\">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>商家會約定再次配送的時間，您將支付額外的運費。</p>",
                 "shipment_selector": [
@@ -86,6 +88,71 @@ export class CheckoutIndex {
                     {
                         "name": "實體門市取貨",
                         "value": "shop"
+                    },
+                    {
+                        "form": [
+                            {
+                                "col": "12",
+                                "key": "1732152125723",
+                                "page": "form-select",
+                                "type": "form_plugin_v2",
+                                "group": "",
+                                "title": "物流司機",
+                                "col_sm": "12",
+                                "toggle": true,
+                                "appName": "cms_system",
+                                "require": "true",
+                                "readonly": "write",
+                                "formFormat": "{}",
+                                "moduleName": "下拉選單",
+                                "style_data": {
+                                    "input": {
+                                        "list": [],
+                                        "class": "",
+                                        "style": "",
+                                        "version": "v2"
+                                    },
+                                    "label": {
+                                        "list": [],
+                                        "class": "form-label fs-base ",
+                                        "style": "",
+                                        "version": "v2"
+                                    },
+                                    "container": {
+                                        "list": [],
+                                        "class": "",
+                                        "style": "",
+                                        "version": "v2"
+                                    }
+                                },
+                                "form_config": {
+                                    "type": "name",
+                                    "title": "",
+                                    "option": [
+                                        {
+                                            "name": "A司機",
+                                            "index": 0,
+                                            "value": "A司機"
+                                        },
+                                        {
+                                            "name": "B司機",
+                                            "index": 0,
+                                            "value": "B司機"
+                                        },
+                                        {
+                                            "name": "C司機",
+                                            "index": 0,
+                                            "value": "C司機"
+                                        }
+                                    ],
+                                    "input_style": {},
+                                    "title_style": {},
+                                    "place_holder": ""
+                                }
+                            }
+                        ],
+                        "name": "小榮物流",
+                        "value": "sescsbsfs4s2s4sf"
                     }
                 ],
                 "use_wallet": 0,
@@ -96,72 +163,8 @@ export class CheckoutIndex {
                 "orderSource": "",
                 "code_array": [],
                 "give_away": [],
-                "user_rebate_sum": 0,
-                "code": "J3IXLO",
+                "user_rebate_sum": 39807,
                 "voucherList": [
-                    {
-                        "id": 677,
-                        "for": "all",
-                        "code": "J3IXLO",
-                        "rule": "min_count",
-                        "type": "voucher",
-                        "title": "示範優惠券1011",
-                        "value": "100",
-                        "device": [
-                            "normal",
-                            "pos"
-                        ],
-                        "forKey": [],
-                        "method": "fixed",
-                        "status": 1,
-                        "target": "all",
-                        "userID": 122538856,
-                        "endDate": "2024-11-28",
-                        "endTime": "00:13",
-                        "overlay": false,
-                        "trigger": "code",
-                        "counting": "single",
-                        "ruleValue": 0,
-                        "startDate": "2024-10-11",
-                        "startTime": "17:00",
-                        "reBackType": "discount",
-                        "targetList": [
-                            "neverBuying"
-                        ],
-                        "end_ISO_Date": "2024-11-27T16:13:00.000Z",
-                        "macroLimited": 0,
-                        "microLimited": 0,
-                        "rebateEndDay": "30",
-                        "conditionType": "order",
-                        "start_ISO_Date": "2024-10-11T09:00:00.000Z",
-                        "bind": [
-                            {
-                                "spec": [
-                                    "黑色",
-                                    "小型"
-                                ],
-                                "id": 711,
-                                "count": 1,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
-                                "title": "鱷魚皮沙發",
-                                "sale_price": 25000,
-                                "collection": [
-                                    "折扣專區"
-                                ],
-                                "sku": "133",
-                                "shipment_obj": {
-                                    "type": "volume",
-                                    "value": 1
-                                },
-                                "discount_price": 188,
-                                "rebate": 0
-                            }
-                        ],
-                        "times": 1,
-                        "bind_subtotal": 25000,
-                        "discount_total": 100,
-                        "rebate_total": 0
-                    },
                     {
                         "id": 718,
                         "for": "all",
@@ -206,14 +209,16 @@ export class CheckoutIndex {
                                 "title": "鱷魚皮沙發",
                                 "sale_price": 25000,
                                 "collection": [
-                                    "折扣專區"
+                                    "折扣專區",
+                                    "熱門商品",
+                                    "熱門商品 / 夏季限定"
                                 ],
                                 "sku": "133",
                                 "shipment_obj": {
-                                    "type": "volume",
-                                    "value": 1
+                                    "type": "weight",
+                                    "value": 100
                                 },
-                                "discount_price": 188,
+                                "discount_price": 88,
                                 "rebate": 0
                             }
                         ],
@@ -223,7 +228,7 @@ export class CheckoutIndex {
                         "rebate_total": 0
                     }
                 ],
-                "discount": 188,
+                "discount": 88,
                 "payment_setting": {
                     "TYPE": "ecPay"
                 },
@@ -594,6 +599,7 @@ export class CheckoutIndex {
         function refreshCartData() {
             loadings.page = true;
             gvc.notifyDataChange(ids.page);
+            gvc.notifyDataChange('js-cart-count');
         }
         return gvc.bindView((() => {
             return {
@@ -693,8 +699,12 @@ export class CheckoutIndex {
                                                                                                         class="${gClass('select')}"
                                                                                                         style="width: 100px;"
                                                                                                         onchange="${gvc.event((e) => {
-                                                    item.count = parseInt(e.value, 10);
-                                                    gvc.notifyDataChange(ids.cart);
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.line_items.find((dd) => {
+                                                            return dd.id === item.id && (item.spec.join('')) === dd.spec.join('');
+                                                        }).count = parseInt(e.value, 10);
+                                                        refreshCartData();
+                                                    });
                                                 })}"
                                                                                                 >
                                                                                                     ${[...new Array(99)].map((_, index) => {
@@ -708,18 +718,26 @@ export class CheckoutIndex {
                                                                                                <div class="d-block d-md-none" style="position: absolute; right: 0px; top:0px;">
                                                                                                    <i class="fa-solid fa-xmark-large"
                                                                                                       style="cursor: pointer;" onclick="${gvc.event(() => {
-                                                    vm.cartData.lineItems.splice(index, 1);
-                                                    refreshCartData();
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                            return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''));
+                                                        });
+                                                        refreshCartData();
+                                                    });
                                                 })}"></i>
                                                                                                </div>
                                                                                                <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? ((item.sale_price - item.discount_price) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
                                                                                             <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
                                                                                                 <span class="d-none d-md-block">合計 NT. ${((item.discount_price) ? ((item.sale_price - item.discount_price) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
-                                                                                                <div class="d-none d-md-block" style="position: absolute; right: 0px; transform: translateY(-50%); top: 50%;">
+                                                                                                <div class="d-none d-md-block" style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;">
                                                                                                     <i class="fa-solid fa-xmark-large"
                                                                                                        style="cursor: pointer;" onclick="${gvc.event(() => {
-                                                    vm.cartData.lineItems.splice(index, 1);
-                                                    refreshCartData();
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                            return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''));
+                                                        });
+                                                        refreshCartData();
+                                                    });
                                                 })}"></i>
                                                                                                 </div>
                                                                                             </div>
@@ -1114,7 +1132,7 @@ export class CheckoutIndex {
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">付款及配送方式</span>
                                         </div>
-                                        ${vm.cartData.shipment_info ? `<div class="py-2 mx-2 mx-sm-0">${vm.cartData.shipment_info}</div>` : ''}
+                                        ${vm.cartData.shipment_info ? `<div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
                                         <div class="row m-0 my-md-3">
                                             <div class="col-12 col-md-6 mb-2 mb-sm-0">
                                                 <label class="${gClass('label')}">付款方式</label>
@@ -1133,7 +1151,7 @@ export class CheckoutIndex {
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6">
+                                            <div class="col-12 col-md-6 mb-2">
                                                 <label class="${gClass('label')}">配送方式</label>
                                                 <div>
                                                     <select class="w-100 ${gClass('select')}"
@@ -1174,13 +1192,77 @@ export class CheckoutIndex {
                         })()}</span>
                                                 </button>
                                             </div>
+                                            ${(() => {
+                            var _a;
+                            try {
+                                vm.cartData.user_info.custom_form_delivery = (_a = vm.cartData.user_info.custom_form_delivery) !== null && _a !== void 0 ? _a : {};
+                                const form_array = JSON.parse(JSON.stringify(this.getShipmentMethod(vm.cartData).find((dd) => {
+                                    return vm.cartData.user_info.shipment === dd.value;
+                                }).form));
+                                form_array.map((dd) => {
+                                    dd.col = '4';
+                                    dd.form_config.title_style = {
+                                        list: [
+                                            {
+                                                class: gClass('label') + ' mb-2',
+                                                style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                                                stylist: [],
+                                                dataType: 'code',
+                                                style_from: 'code',
+                                                classDataType: 'static',
+                                            },
+                                        ],
+                                        class: 'form-label',
+                                        style: 'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                                        stylist: [],
+                                        version: 'v2',
+                                        dataType: 'static',
+                                        style_from: 'code',
+                                        classDataType: 'static',
+                                    };
+                                    dd.form_config.input_style = {
+                                        list: [
+                                            {
+                                                class: gClass('input'),
+                                                style: 'return `border-radius: ${widget.formData.radius}px !important;`',
+                                                stylist: [],
+                                                dataType: 'code',
+                                                style_from: 'code',
+                                                classDataType: 'static',
+                                            },
+                                        ],
+                                        class: ' mb-3',
+                                        style: 'background: #FFF;',
+                                        stylist: [],
+                                        version: 'v2',
+                                        dataType: 'static',
+                                        style_from: 'code',
+                                        classDataType: 'static',
+                                    };
+                                });
+                                return [
+                                    FormWidget.editorView({
+                                        gvc: gvc,
+                                        array: form_array,
+                                        refresh: () => {
+                                            this.storeLocalData(vm.cartData);
+                                        },
+                                        formData: vm.cartData.user_info.custom_form_delivery,
+                                    })
+                                ].join('');
+                            }
+                            catch (e) {
+                                console.log(e);
+                                return ``;
+                            }
+                        })()}
                                         </div>
                                     </section>
                                     <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">顧客資料</span>
                                         </div>
-                                        <div class="row m-0 mt-3">
+                                        <div class="row m-0 mt-3 mb-2">
                                             ${[{
                                 name: '姓名',
                                 key: 'name'
@@ -1287,446 +1369,7 @@ export class CheckoutIndex {
                             const id = 'invoice_place';
                             const vm_info = {
                                 loading: true,
-                                list: [
-                                    {
-                                        col: '3',
-                                        key: 'name',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '姓名',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'true',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入姓名'
-                                        },
-                                        hidden_code: '',
-                                    },
-                                    {
-                                        col: '3',
-                                        key: 'phone',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '聯絡電話',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'true',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'phone',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入聯絡電話'
-                                        },
-                                        hidden_code: '',
-                                    },
-                                    {
-                                        col: '6',
-                                        key: 'email',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '電子信箱',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'true',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'email',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入電子信箱'
-                                        },
-                                        hidden_code: '',
-                                    },
-                                    {
-                                        col: '6',
-                                        key: 'invoice_type',
-                                        page: 'form-select',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '發票開立對象',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'true',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '下拉選單',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            option: [
-                                                { name: '個人', index: 0, value: 'me' },
-                                                { name: '公司', index: 1, value: 'company' },
-                                                { name: '捐贈發票', index: 2, value: 'donate' },
-                                            ],
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '',
-                                        },
-                                        hidden_code: "return (form_data['invoice_method']==='nouse')",
-                                    },
-                                    {
-                                        col: '6',
-                                        key: 'send_type',
-                                        page: 'form-select',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '開立方式',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'true',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '下拉選單',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            option: [
-                                                {
-                                                    name: '傳送至用戶信箱',
-                                                    index: 0,
-                                                    value: 'email'
-                                                },
-                                                {
-                                                    name: '手機條碼載具',
-                                                    index: 1,
-                                                    value: 'carrier'
-                                                },
-                                            ],
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '',
-                                        },
-                                        hidden_code: "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                    },
-                                    {
-                                        key: 'carrier_num',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '載具號碼',
-                                        appName: 'cms_system',
-                                        require: 'false',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        col: '3',
-                                        col_sm: '12',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入載具號碼'
-                                        },
-                                        hidden_code: "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                    },
-                                    {
-                                        key: 'company',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '公司名稱',
-                                        appName: 'cms_system',
-                                        require: 'false',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        col: '3',
-                                        col_sm: '12',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入公司名稱'
-                                        },
-                                        hidden_code: "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                    },
-                                    {
-                                        key: 'gui_number',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '公司統一編號',
-                                        col: '3',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'false',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入公司統一編號'
-                                        },
-                                        hidden_code: "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                    },
-                                    {
-                                        col: '6',
-                                        key: 'love_code',
-                                        page: 'input',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '捐贈碼',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'false',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '輸入框',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'name',
-                                            title: '',
-                                            input_style: { list: [], version: 'v2' },
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入捐贈碼'
-                                        },
-                                        hidden_code: "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
-                                    },
-                                    {
-                                        col: '12',
-                                        key: 'note',
-                                        page: 'multiple_line_text',
-                                        type: 'form_plugin_v2',
-                                        group: '',
-                                        title: '送貨備註',
-                                        col_sm: '12',
-                                        appName: 'cms_system',
-                                        require: 'false',
-                                        readonly: 'write',
-                                        formFormat: '{}',
-                                        moduleName: '多行文字區塊',
-                                        style_data: {
-                                            input: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            label: {
-                                                list: [],
-                                                class: 'form-label fs-base ',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                            container: {
-                                                list: [],
-                                                class: '',
-                                                style: '',
-                                                version: 'v2'
-                                            },
-                                        },
-                                        form_config: {
-                                            type: 'text',
-                                            title: '',
-                                            title_style: { list: [], version: 'v2' },
-                                            place_holder: '請輸入送貨備註'
-                                        },
-                                        hidden_code: 'return false',
-                                    },
-                                ].filter((dd) => {
-                                    return (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') || !vm.cartData.user_info_same;
-                                }),
+                                list: [],
                                 login_config: {},
                             };
                             let method = '';
@@ -1742,6 +1385,446 @@ export class CheckoutIndex {
                                     if (vm_info.loading) {
                                         return ``;
                                     }
+                                    vm_info.list = [
+                                        {
+                                            col: '3',
+                                            key: 'name',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '姓名',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'true',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入姓名'
+                                            },
+                                            hidden_code: '',
+                                        },
+                                        {
+                                            col: '3',
+                                            key: 'phone',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '聯絡電話',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'true',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'phone',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入聯絡電話'
+                                            },
+                                            hidden_code: '',
+                                        },
+                                        {
+                                            col: '6',
+                                            key: 'email',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '電子信箱',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'true',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'email',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入電子信箱'
+                                            },
+                                            hidden_code: '',
+                                        },
+                                        {
+                                            col: '6',
+                                            key: 'invoice_type',
+                                            page: 'form-select',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '發票開立對象',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'true',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '下拉選單',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                option: [
+                                                    { name: '個人', index: 0, value: 'me' },
+                                                    { name: '公司', index: 1, value: 'company' },
+                                                    { name: '捐贈發票', index: 2, value: 'donate' },
+                                                ],
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '',
+                                            },
+                                            hidden_code: "return (form_data['invoice_method']==='nouse')",
+                                        },
+                                        {
+                                            col: '6',
+                                            key: 'send_type',
+                                            page: 'form-select',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '開立方式',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'true',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '下拉選單',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                option: [
+                                                    {
+                                                        name: '傳送至用戶信箱',
+                                                        index: 0,
+                                                        value: 'email'
+                                                    },
+                                                    {
+                                                        name: '手機條碼載具',
+                                                        index: 1,
+                                                        value: 'carrier'
+                                                    },
+                                                ],
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '',
+                                            },
+                                            hidden_code: "    if(form_data['invoice_type']!=='me' || (form_data['invoice_method']==='nouse') || (form_data['invoice_method']==='off_line')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                        },
+                                        {
+                                            key: 'carrier_num',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '載具號碼',
+                                            appName: 'cms_system',
+                                            require: 'false',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            col: '3',
+                                            col_sm: '12',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入載具號碼'
+                                            },
+                                            hidden_code: "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                        },
+                                        {
+                                            key: 'company',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '公司名稱',
+                                            appName: 'cms_system',
+                                            require: 'false',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            col: '3',
+                                            col_sm: '12',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入公司名稱'
+                                            },
+                                            hidden_code: "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                        },
+                                        {
+                                            key: 'gui_number',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '公司統一編號',
+                                            col: '3',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'false',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入公司統一編號'
+                                            },
+                                            hidden_code: "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                        },
+                                        {
+                                            col: '6',
+                                            key: 'love_code',
+                                            page: 'input',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '捐贈碼',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'false',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '輸入框',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'name',
+                                                title: '',
+                                                input_style: { list: [], version: 'v2' },
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入捐贈碼'
+                                            },
+                                            hidden_code: "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
+                                        },
+                                        {
+                                            col: '12',
+                                            key: 'note',
+                                            page: 'multiple_line_text',
+                                            type: 'form_plugin_v2',
+                                            group: '',
+                                            title: '送貨備註',
+                                            col_sm: '12',
+                                            appName: 'cms_system',
+                                            require: 'false',
+                                            readonly: 'write',
+                                            formFormat: '{}',
+                                            moduleName: '多行文字區塊',
+                                            style_data: {
+                                                input: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                label: {
+                                                    list: [],
+                                                    class: 'form-label fs-base ',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                                container: {
+                                                    list: [],
+                                                    class: '',
+                                                    style: '',
+                                                    version: 'v2'
+                                                },
+                                            },
+                                            form_config: {
+                                                type: 'text',
+                                                title: '',
+                                                title_style: { list: [], version: 'v2' },
+                                                place_holder: '請輸入送貨備註'
+                                            },
+                                            hidden_code: 'return false',
+                                        },
+                                    ].filter((dd) => {
+                                        return (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') || !vm.cartData.user_info_same;
+                                    });
                                     vm.cartData.user_info.invoice_method = method;
                                     vm.cartData.user_info.invoice_type = vm.cartData.user_info.invoice_type || 'me';
                                     vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
@@ -1799,7 +1882,6 @@ export class CheckoutIndex {
                                                 vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
                                                 vm.cartData.user_info.email = vm.cartData.customer_info.email;
                                             }
-                                            this.storeLocalData(vm.cartData);
                                             gvc.notifyDataChange(id);
                                         })}">
                                             <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(vm.cartData.user_info_same) ? `checked` : ''}>
@@ -1822,7 +1904,15 @@ export class CheckoutIndex {
                             };
                         })}
                                         <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3" >
-                                            <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
+                                            <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                            if (!(yield this.checkFormData(vm.cartData, widget))) {
+                                return;
+                            }
+                            ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
+                                if (gvc.glitter.getUrlParameter(dd)) {
+                                    vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
+                                }
+                            });
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ visible: true });
                             ApiShop.toCheckout({
@@ -1860,7 +1950,7 @@ export class CheckoutIndex {
                                     ApiCart.clearCart();
                                 }
                             });
-                        })}" style="width:200px;" >
+                        }))}" style="width:200px;" >
                                                 <span class="${gClass('button-text')}">下一步</span>
                                             </button>
                                         </div>
@@ -1876,86 +1966,123 @@ export class CheckoutIndex {
                 divCreate: {},
                 onCreate: () => {
                     if (loadings.page) {
-                        new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                            new Promise((resolve, reject) => {
-                                setTimeout(() => {
-                                    resolve(ApiCart.cart);
-                                });
-                            }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                var _a;
-                                const cartData = {
-                                    line_items: [],
-                                    total: 0,
-                                    user_info: {
-                                        shipment: localStorage.getItem('shipment-select'),
-                                    },
-                                };
-                                if (res.line_items) {
-                                    res.user_info = {
-                                        shipment: localStorage.getItem('shipment-select'),
-                                    };
-                                    const cart = res;
-                                    ApiShop.getCheckout(cart).then((res) => {
-                                        if (res.result) {
-                                            resolve(res.response.data);
-                                        }
-                                        else {
-                                            resolve([]);
-                                        }
-                                    });
-                                }
-                                else {
-                                    for (const b of Object.keys(res)) {
-                                        cartData.line_items.push({
-                                            id: b.split('-')[0],
-                                            count: res[b],
-                                            spec: b.split('-').filter((dd, index) => {
-                                                return index !== 0;
-                                            }),
-                                        });
-                                    }
-                                    const voucher = ApiCart.cart.code;
-                                    const rebate = ApiCart.cart.use_rebate || 0;
-                                    const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
-                                    ApiShop.getCheckout({
-                                        line_items: cartData.line_items.map((dd) => {
-                                            return {
-                                                id: dd.id,
-                                                spec: dd.spec,
-                                                count: dd.count,
-                                            };
-                                        }),
-                                        code: voucher,
-                                        use_rebate: GlobalUser.token && rebate ? rebate : undefined,
-                                        distribution_code: distributionCode,
-                                        user_info: {
-                                            shipment: localStorage.getItem('shipment-select'),
-                                        },
-                                    }).then((res) => {
-                                        if (res.result) {
-                                            resolve(res.response.data);
-                                        }
-                                        else {
-                                            resolve([]);
-                                        }
-                                    });
-                                }
-                            }));
-                        })).then((data) => {
-                            vm.cartData = data;
-                            gvc.addMtScript([
-                                {
-                                    src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                                },
-                            ], () => {
-                                loadings.page = false;
-                                gvc.notifyDataChange(ids.page);
-                            }, () => { });
+                        gvc.addMtScript([
+                            {
+                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            },
+                        ], () => {
+                            loadings.page = false;
+                            gvc.notifyDataChange(ids.page);
+                        }, () => {
                         });
                     }
                 },
             };
         })());
+    }
+    static checkFormData(cartData, widget) {
+        function checkEmailPattern(input) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(input);
+        }
+        function checkPhonePattern(input) {
+            const phonePattern = /^09\d{8}$/;
+            return phonePattern.test(input);
+        }
+        function checkReceiverPattern(input) {
+            const receiverPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
+            return receiverPattern.test(input);
+        }
+        function checkAddressPattern(input) {
+            const addressPattern = /^.{6,60}$/;
+            return addressPattern.test(input);
+        }
+        return new Promise((resolve) => {
+            var _a;
+            let pass = true;
+            const userData = cartData.customer_info;
+            const subData = cartData.user_info;
+            function checkString(text, errorMessage, type = '') {
+                if ((pass && !text) || text === '') {
+                    pass = false;
+                    widget.event('error', { title: `請輸入「${errorMessage}」` });
+                }
+                if (pass && type === 'email' && !checkEmailPattern(text)) {
+                    pass = false;
+                    widget.event('error', { title: `「${errorMessage}」格式錯誤` });
+                }
+                if (pass && type === 'phone' && !checkPhonePattern(text)) {
+                    pass = false;
+                    widget.event('error', { title: `<div class="text-center">「${errorMessage}」格式錯誤<br/>請輸入 09 開頭的手機格式</div>` });
+                }
+                if (pass && type === 'name' && !checkReceiverPattern(text)) {
+                    pass = false;
+                    widget.event('error', { title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)' });
+                }
+            }
+            if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
+                widget.event('error', { title: '請輸入「配送地址」' });
+            }
+            else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
+                widget.event('error', { title: '地址長度需大於6個字元，且不可超過60個字元' });
+            }
+            else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'] || subData['CVSStoreName'] === '')) {
+                widget.event('error', { title: '請選擇「配送門市」' });
+            }
+            else if ((() => {
+                const form = this.getShipmentMethod(cartData).find((dd) => {
+                    return dd.value === subData['shipment'];
+                }).form;
+                return FormWidget.checkLeakData(form, subData.custom_form_delivery);
+            })()) {
+                const form = this.getShipmentMethod(cartData).find((dd) => {
+                    return dd.value === subData['shipment'];
+                }).form;
+                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(form, subData)}」` });
+            }
+            else if ((() => {
+                return FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data);
+            })()) {
+                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data)}」` });
+            }
+            else if (cartData.voucherList
+                .filter((dd) => {
+                return dd.reBackType === 'giveaway';
+            })
+                .find((dd) => {
+                return !dd.select_gif.id;
+            })) {
+                widget.event('error', { title: '請選擇「贈品」' });
+            }
+            else {
+                checkString(userData.name, '顧客姓名', 'name');
+                checkString(userData.phone, '顧客電話', 'phone');
+                checkString(userData.email, '顧客信箱', 'email');
+                checkString(subData.name, '收件人姓名', 'name');
+                checkString(subData.phone, '收件人電話', 'phone');
+                checkString(subData.email, '收件人信箱', 'email');
+                if (pass) {
+                    if (window.gtag) {
+                        window.gtag('event', 'begin_checkout', {
+                            currency: 'TWD',
+                            value: cartData.total,
+                            coupon: (_a = cartData.code) !== null && _a !== void 0 ? _a : '',
+                            items: cartData.lineItems.map((item) => {
+                                return {
+                                    item_id: item.id,
+                                    item_name: item.title,
+                                    item_variant: item.spec.join('-'),
+                                    price: item.sale_price,
+                                    quantity: item.count,
+                                    discount: item.discount_price,
+                                };
+                            }),
+                        });
+                    }
+                    resolve(subData);
+                }
+            }
+        });
     }
     static viewDialog(obj) {
         return obj.gvc.glitter.innerDialog((gvc) => {

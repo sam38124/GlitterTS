@@ -1,5 +1,6 @@
 import { User } from '../services/user.js';
 import { Mail } from '../services/mail.js';
+import {App} from "../../services/app.js";
 
 export class AutoSendEmail {
     public static async getDefCompare(app: string, tag: string) {
@@ -494,11 +495,12 @@ export class AutoSendEmail {
 
     public static async customerOrder(app: string, tag: string, order_id: string, email: string) {
         const customerMail = await this.getDefCompare(app, tag);
+        const brandAndMemberType = await App.checkBrandAndMemberType(app);
         if (customerMail.toggle) {
             await new Mail(app).postMail({
                 name: customerMail.name,
-                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
+                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
                 email: [email],
                 type: tag,
             });

@@ -708,6 +708,12 @@ export class FormWidget {
             .join('')}
             </div>`;
     }
+    static checkLeakData(form_config_list, formData) {
+        const find = form_config_list.find((dd) => {
+            return dd.require === 'true' && !formData[dd.key];
+        });
+        return find && find.title;
+    }
 }
 Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {

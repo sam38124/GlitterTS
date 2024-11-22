@@ -86,11 +86,12 @@ export class SMS {
                     },
                     data: snsData,
                 };
+
                 //扣除點數
                 await this.usePoints({
                     message: obj.data,
                     user_count: 1,
-                    order_id: obj.order_id,
+                    order_id: obj.order_id+'_'+(await Tool.randomNumber(4)),
                     phone: obj.phone,
                 });
                 return new Promise<boolean>((resolve, reject) => {
@@ -118,6 +119,7 @@ export class SMS {
                 return false;
             }
         } catch (e) {
+            console.log(`error`,e)
             throw exception.BadRequestError('BAD_REQUEST', 'send SNS Error:' + e, null);
         }
     }
@@ -322,6 +324,7 @@ export class SMS {
         }
         let total = this.getUsePoints(obj.message, obj.user_count);
         const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
+
         await db.query(
             `insert into \`${brandAndMemberType.brand}\`.t_sms_points
                         set ?`,

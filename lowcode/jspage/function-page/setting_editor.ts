@@ -782,6 +782,7 @@ export class Setting_editor {
                                             //     // resolve(d2.response.result[0])
                                             // })
 
+                                       
                                             $('#editerCenter').html(html`
                                                 <iframe src="${url.href}"
                                                         style="border: none;height: calc(100%);"></iframe>`);
@@ -893,6 +894,7 @@ export class Setting_editor {
                                                                                 ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                 onclick="${gvc.event(async() => {
+                                                                                    gvc.glitter.setUrlParameter('page-id')
                                                                                     if (dd.type === 'container') {
                                                                                         list.map((d1: any) => {
                                                                                             d1.toggle = false;

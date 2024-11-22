@@ -63,7 +63,7 @@ class SMS {
                 await this.usePoints({
                     message: obj.data,
                     user_count: 1,
-                    order_id: obj.order_id,
+                    order_id: obj.order_id + '_' + (await tool_js_1.default.randomNumber(4)),
                     phone: obj.phone,
                 });
                 return new Promise((resolve, reject) => {
@@ -92,6 +92,7 @@ class SMS {
             }
         }
         catch (e) {
+            console.log(`error`, e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'send SNS Error:' + e, null);
         }
     }

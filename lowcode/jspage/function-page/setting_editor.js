@@ -242,6 +242,7 @@ export class Setting_editor {
                                                                                 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                 onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                                    gvc.glitter.setUrlParameter('page-id');
                                                     if (dd.type === 'container') {
                                                         list.map((d1) => {
                                                             d1.toggle = false;
