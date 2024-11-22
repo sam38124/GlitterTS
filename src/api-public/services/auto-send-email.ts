@@ -499,7 +499,7 @@ export class AutoSendEmail {
         if (customerMail.toggle) {
             await new Mail(app).postMail({
                 name: customerMail.name,
-                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
+                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
                 content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
                 email: [email],
                 type: tag,

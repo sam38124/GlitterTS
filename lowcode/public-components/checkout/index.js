@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Tool } from '../../modules/tool.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
@@ -1966,14 +1967,81 @@ export class CheckoutIndex {
                 divCreate: {},
                 onCreate: () => {
                     if (loadings.page) {
-                        gvc.addMtScript([
-                            {
-                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                            },
-                        ], () => {
-                            loadings.page = false;
-                            gvc.notifyDataChange(ids.page);
-                        }, () => {
+                        new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    resolve(ApiCart.cart);
+                                });
+                            }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                var _a;
+                                const cartData = {
+                                    line_items: [],
+                                    total: 0,
+                                    user_info: {
+                                        shipment: localStorage.getItem('shipment-select'),
+                                    },
+                                };
+                                if (res.line_items) {
+                                    res.user_info = {
+                                        shipment: localStorage.getItem('shipment-select'),
+                                    };
+                                    const cart = res;
+                                    ApiShop.getCheckout(cart).then((res) => {
+                                        if (res.result) {
+                                            resolve(res.response.data);
+                                        }
+                                        else {
+                                            resolve([]);
+                                        }
+                                    });
+                                }
+                                else {
+                                    for (const b of Object.keys(res)) {
+                                        cartData.line_items.push({
+                                            id: b.split('-')[0],
+                                            count: res[b],
+                                            spec: b.split('-').filter((dd, index) => {
+                                                return index !== 0;
+                                            }),
+                                        });
+                                    }
+                                    const voucher = ApiCart.cart.code;
+                                    const rebate = ApiCart.cart.use_rebate || 0;
+                                    const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
+                                    ApiShop.getCheckout({
+                                        line_items: cartData.line_items.map((dd) => {
+                                            return {
+                                                id: dd.id,
+                                                spec: dd.spec,
+                                                count: dd.count,
+                                            };
+                                        }),
+                                        code: voucher,
+                                        use_rebate: GlobalUser.token && rebate ? rebate : undefined,
+                                        distribution_code: distributionCode,
+                                        user_info: {
+                                            shipment: localStorage.getItem('shipment-select'),
+                                        },
+                                    }).then((res) => {
+                                        if (res.result) {
+                                            resolve(res.response.data);
+                                        }
+                                        else {
+                                            resolve([]);
+                                        }
+                                    });
+                                }
+                            }));
+                        })).then((data) => {
+                            vm.cartData = data;
+                            gvc.addMtScript([
+                                {
+                                    src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                },
+                            ], () => {
+                                loadings.page = false;
+                                gvc.notifyDataChange(ids.page);
+                            }, () => { });
                         });
                     }
                 },

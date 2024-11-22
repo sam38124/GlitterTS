@@ -2051,113 +2051,113 @@ this.viewDialog({
                     divCreate: {},
                     onCreate: () => {
                         if (loadings.page) {
-                            // new Promise(async (resolve, reject) => {
-                            //     new Promise((resolve, reject) => {
-                            //         setTimeout(() => {
-                            //             resolve(ApiCart.cart);
-                            //         });
-                            //     }).then(async (res: any) => {
-                            //         const cartData: {
-                            //             line_items: {
-                            //                 sku: string;
-                            //                 spec: string[];
-                            //                 stock: number;
-                            //                 sale_price: number;
-                            //                 compare_price: number;
-                            //                 preview_image: string;
-                            //                 title: string;
-                            //                 id: number;
-                            //                 count: number;
-                            //             }[];
-                            //             total: number;
-                            //             user_info: {
-                            //                 shipment: string;
-                            //             };
-                            //         } = {
-                            //             line_items: [],
-                            //             total: 0,
-                            //             user_info: {
-                            //                 shipment: localStorage.getItem('shipment-select') as string,
-                            //             },
-                            //         };
-                            //         if (res.line_items) {
-                            //             res.user_info = {
-                            //                 shipment: localStorage.getItem('shipment-select') as string,
-                            //             };
-                            //             const cart = res as CartItem;
-                            //             ApiShop.getCheckout(cart).then((res) => {
-                            //                 if (res.result) {
-                            //                     resolve(res.response.data);
-                            //                 } else {
-                            //                     resolve([]);
-                            //                 }
-                            //             });
-                            //         } else {
-                            //             for (const b of Object.keys(res)) {
-                            //                 cartData.line_items.push({
-                            //                     id: b.split('-')[0] as any,
-                            //                     count: res[b] as number,
-                            //                     spec: b.split('-').filter((dd, index) => {
-                            //                         return index !== 0;
-                            //                     }) as any,
-                            //                 } as any);
-                            //             }
-                            //             const voucher = ApiCart.cart.code;
-                            //             const rebate = ApiCart.cart.use_rebate || 0;
-                            //             const distributionCode = localStorage.getItem('distributionCode') ?? '';
-                            //             ApiShop.getCheckout({
-                            //                 line_items: cartData.line_items.map((dd) => {
-                            //                     return {
-                            //                         id: dd.id,
-                            //                         spec: dd.spec,
-                            //                         count: dd.count,
-                            //                     };
-                            //                 }),
-                            //                 code: voucher as string,
-                            //                 use_rebate: GlobalUser.token && rebate ? rebate : undefined,
-                            //                 distribution_code: distributionCode,
-                            //                 user_info: {
-                            //                     shipment: localStorage.getItem('shipment-select'),
-                            //                 },
-                            //             }).then((res) => {
-                            //                 if (res.result) {
-                            //                     resolve(res.response.data);
-                            //                 } else {
-                            //                     resolve([]);
-                            //                 }
-                            //             });
-                            //         }
-                            //     });
-                            // }).then((data) => {
-                            //     vm.cartData = data;
-                            //     gvc.addMtScript(
-                            //         [
-                            //             {
-                            //                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                            //             },
-                            //         ],
-                            //         () => {
-                            //             loadings.page = false;
-                            //             gvc.notifyDataChange(ids.page);
-                            //         },
-                            //         () => {}
-                            //     );
-                            // });
-
-
-                            gvc.addMtScript(
-                                [
-                                    {
-                                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            new Promise(async (resolve, reject) => {
+                                new Promise((resolve, reject) => {
+                                    setTimeout(() => {
+                                        resolve(ApiCart.cart);
+                                    });
+                                }).then(async (res: any) => {
+                                    const cartData: {
+                                        line_items: {
+                                            sku: string;
+                                            spec: string[];
+                                            stock: number;
+                                            sale_price: number;
+                                            compare_price: number;
+                                            preview_image: string;
+                                            title: string;
+                                            id: number;
+                                            count: number;
+                                        }[];
+                                        total: number;
+                                        user_info: {
+                                            shipment: string;
+                                        };
+                                    } = {
+                                        line_items: [],
+                                        total: 0,
+                                        user_info: {
+                                            shipment: localStorage.getItem('shipment-select') as string,
+                                        },
+                                    };
+                                    if (res.line_items) {
+                                        res.user_info = {
+                                            shipment: localStorage.getItem('shipment-select') as string,
+                                        };
+                                        const cart = res as CartItem;
+                                        ApiShop.getCheckout(cart).then((res) => {
+                                            if (res.result) {
+                                                resolve(res.response.data);
+                                            } else {
+                                                resolve([]);
+                                            }
+                                        });
+                                    } else {
+                                        for (const b of Object.keys(res)) {
+                                            cartData.line_items.push({
+                                                id: b.split('-')[0] as any,
+                                                count: res[b] as number,
+                                                spec: b.split('-').filter((dd, index) => {
+                                                    return index !== 0;
+                                                }) as any,
+                                            } as any);
+                                        }
+                                        const voucher = ApiCart.cart.code;
+                                        const rebate = ApiCart.cart.use_rebate || 0;
+                                        const distributionCode = localStorage.getItem('distributionCode') ?? '';
+                                        ApiShop.getCheckout({
+                                            line_items: cartData.line_items.map((dd) => {
+                                                return {
+                                                    id: dd.id,
+                                                    spec: dd.spec,
+                                                    count: dd.count,
+                                                };
+                                            }),
+                                            code: voucher as string,
+                                            use_rebate: GlobalUser.token && rebate ? rebate : undefined,
+                                            distribution_code: distributionCode,
+                                            user_info: {
+                                                shipment: localStorage.getItem('shipment-select'),
+                                            },
+                                        }).then((res) => {
+                                            if (res.result) {
+                                                resolve(res.response.data);
+                                            } else {
+                                                resolve([]);
+                                            }
+                                        });
+                                    }
+                                });
+                            }).then((data) => {
+                                vm.cartData = data;
+                                gvc.addMtScript(
+                                    [
+                                        {
+                                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                        },
+                                    ],
+                                    () => {
+                                        loadings.page = false;
+                                        gvc.notifyDataChange(ids.page);
                                     },
-                                ],
-                                () => {
-                                    loadings.page = false;
-                                    gvc.notifyDataChange(ids.page);
-                                },
-                                () => {
-                                }
-                            );
+                                    () => {}
+                                );
+                            });
+
+
+                            // gvc.addMtScript(
+                            //     [
+                            //         {
+                            //             src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            //         },
+                            //     ],
+                            //     () => {
+                            //         loadings.page = false;
+                            //         gvc.notifyDataChange(ids.page);
+                            //     },
+                            //     () => {
+                            //     }
+                            // );
                         }
                     },
                 };
