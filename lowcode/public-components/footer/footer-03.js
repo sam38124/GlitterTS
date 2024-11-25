@@ -145,7 +145,7 @@ export class Footer02 {
                             else {
                                 return footer.list
                                     .map((data) => {
-                                    return html ` <div class="f-ul-div col-12 col-md-4 mt-2">
+                                    return html ` <div class="f-ul-div col-12 col-md-3 col-lg-4 mt-2">
                                                                 <h6
                                                                     class="heading-xxs mb-3 f-title"
                                                                     onclick="${gvc.event(() => {
@@ -179,7 +179,7 @@ export class Footer02 {
                             }
                         },
                         divCreate: {
-                            class: document.body.clientWidth > 768 ? 'd-flex gap-5' : '',
+                            class: document.body.clientWidth > 768 ? 'd-flex justify-content-center gap-2' : '',
                         },
                         onCreate: () => {
                             if (loading) {

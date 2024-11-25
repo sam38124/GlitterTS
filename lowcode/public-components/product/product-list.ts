@@ -1,6 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
+import { PdClass } from './pd-class.js';
 
 const html = String.raw;
 
@@ -339,9 +340,9 @@ export class ProductList {
 
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
-            changePage = (index: string, type: 'page' | 'home', subData: any)=>{
-                gvc.glitter.setUrlParameter('ai-search',undefined)
-                cl.changePage(index,type,subData)
+            changePage = (index: string, type: 'page' | 'home', subData: any) => {
+                gvc.glitter.setUrlParameter('ai-search', undefined);
+                cl.changePage(index, type, subData);
             };
         });
 
@@ -452,7 +453,7 @@ export class ProductList {
                 status: 'active',
                 orderBy: orderBy as string,
                 with_hide_index: 'false',
-                id_list:gvc.glitter.getUrlParameter('ai-search') || undefined
+                id_list: gvc.glitter.getUrlParameter('ai-search') || undefined,
             };
             return new Promise<[]>((resolve, reject) => {
                 ApiShop.getProduct(inputObj).then((data) => {
@@ -493,7 +494,7 @@ export class ProductList {
                                                 gvc.glitter.closeDrawer();
                                             })}"
                                         >
-                                            ${(gvc.glitter.getUrlParameter('ai-search')) ? `AI 選品`:`所有商品`}
+                                            ${gvc.glitter.getUrlParameter('ai-search') ? `AI 選品` : `所有商品`}
                                         </div>
                                     </li>
                                     ${cols
@@ -583,7 +584,7 @@ export class ProductList {
         }
 
         function updatePageTitle() {
-            const all_text=(gvc.glitter.getUrlParameter('ai-search')) ? `AI 選品`:`所有商品`
+            const all_text = gvc.glitter.getUrlParameter('ai-search') ? `AI 選品` : `所有商品`;
             if (!vm.collections || vm.collections.length === 0) {
                 vm.title = all_text;
             } else {
@@ -597,7 +598,17 @@ export class ProductList {
 
         return html`
             <div class="container d-flex mt-2" style="min-height: 1000px;">
-                <div class="d-none d-sm-block mt-4" style="width: 282px; min-width: 282px;">${getCollectionHTML()}</div>
+                <div
+                    class="d-none d-sm-block mt-4"
+                    style="${(() => {
+                        if (PdClass.isPad()) {
+                            return `width: 180px; min-width: 180px;`;
+                        }
+                        return `width: 282px; min-width: 282px;`;
+                    })()}"
+                >
+                    ${getCollectionHTML()}
+                </div>
                 <div class="flex-fill my-4 mx-1 mx-md-5">
                     ${document.body.clientWidth > 768
                         ? ''
@@ -659,7 +670,7 @@ export class ProductList {
                                                 ${vm.dataList.length > 0
                                                     ? gvc.map(
                                                           vm.dataList.map((item: any) => {
-                                                              return html`<div class="col-6 col-md-3 px-1">
+                                                              return html`<div class="col-6 col-sm-4 col-lg-3 px-1">
                                                                   <div class="m-1">
                                                                       ${glitter.htmlGenerate.renderComponent({
                                                                           appName: (window as any).appName,

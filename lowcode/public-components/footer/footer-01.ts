@@ -99,7 +99,7 @@ export class Footer01 {
             <div class="border-gray-700 f-padding-top">
                 <div class="container">
                     <div class="row py-sm-5 f-container">
-                        <div class="col-12 col-md-6 f-title-container">
+                        <div class="col-12 col-md-3 col-lg-4 f-title-container">
                             <img src="${formData.logo}" style="max-height: 90px" />
                             <ul class="d-flex list-unstyled list-inline mt-3 mb-md-0 text-gray-350">
                                 ${(() => {

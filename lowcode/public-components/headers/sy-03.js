@@ -1,7 +1,7 @@
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { AiSearch } from "../ai/ai-search.js";
+import { AiSearch } from '../ai/ai-search.js';
 const html = String.raw;
 export class Sy03 {
     static main(gvc, widget, subData) {
@@ -235,7 +235,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                 },
                 divCreate: {
                     class: `navbar-nav ms-3 me-auto`,
-                    style: ``,
+                    style: `flex-direction: row; gap: 15px;`,
                     elem: `ul`,
                 },
             };
@@ -248,7 +248,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                             ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const vm = {
-                visible: false
+                visible: false,
             };
             ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
                 if (res.response.value.ai_search) {
@@ -271,17 +271,18 @@ padding-bottom: 2px;
                 },
                 divCreate: () => {
                     return {
-                        class: `nav-item  ${(vm.visible) ? `d-flex` : `d-none`} align-items-center justify-content-center`,
+                        class: `nav-item  ${vm.visible ? `d-flex` : `d-none`} align-items-center justify-content-center`,
                         style: `width:45px !important;cursor: pointer;`,
                         option: [
                             {
-                                key: 'onclick', value: gvc.event(() => {
+                                key: 'onclick',
+                                value: gvc.event(() => {
                                     AiSearch.searchProduct(gvc);
-                                })
-                            }
-                        ]
+                                }),
+                            },
+                        ],
                     };
-                }
+                },
             };
         })}
                             <li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">

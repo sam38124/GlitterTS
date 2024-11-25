@@ -111,7 +111,7 @@ export class ProductCard01 {
                 padding-top: 10px;
             }
             .card-title-text {
-                text-align: start;
+                font-size: 16px;
                 font-style: normal;
                 font-weight: 500;
                 line-height: normal;
@@ -266,9 +266,11 @@ export class ProductCard01 {
                 <div class="px-1">
                     <div class="row gx-0 card-title-container mb-1">
                         <div class="col-12 mb-1">
-                            <div class="d-block fs-6 card-title-text">${prod.title}</div>
+                            <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
+                                <span class="card-title-text">${prod.title}</span>
+                            </div>
                         </div>
-                        <div class="d-flex col-12 p-0 card-price-container">
+                        <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container">
                             <div class="fs-6 fw-500 card-sale-price">
                                 ${(() => {
             const minPrice = Math.min(...prod.variants.map((dd) => {

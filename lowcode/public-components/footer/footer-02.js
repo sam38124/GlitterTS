@@ -82,7 +82,7 @@ export class Footer02 {
         `);
         return html `<footer class="f-bgr border-top">
             <div class="border-gray-700 pt-4 pt-md-0">
-                <div class="container">
+                <div class="container px-0">
                     <div class="row py-sm-5 f-container">
                         <div class="col ${document.body.clientWidth > 768 ? '' : 'row'} f-content-container">
                             ${(() => {
@@ -154,7 +154,7 @@ export class Footer02 {
             }
         })()}
                         </div>
-                        <div class="col-12 col-md-6 f-title-container d-flex flex-column ms-auto">
+                        <div class="col-12 col-md-3 col-lg-6 f-title-container d-flex flex-column ms-auto">
                             <div class="d-flex gap-2 p-0 pb-3 justify-content-${document.body.clientWidth > 768 ? 'end' : 'center'}">
                                 ${(() => {
             try {
