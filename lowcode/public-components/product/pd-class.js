@@ -226,7 +226,7 @@ export class PdClass {
             ${gvc.map(prod.specs.map((spec, index1) => {
             return html `<div>
                             <h5>${spec.title}</h5>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 flex-wrap">
                                 ${gvc.map(spec.option.map((opt) => {
                 return html `<div
                                             gvc-option="spec-option-${index1}"
@@ -352,5 +352,11 @@ export class PdClass {
         })}
                 </span>
             </div>`;
+    }
+    static isPhone() {
+        return document.body.clientWidth < 768;
+    }
+    static isPad() {
+        return document.body.clientWidth >= 768 && document.body.clientWidth <= 960;
     }
 }

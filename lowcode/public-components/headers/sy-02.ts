@@ -1,15 +1,14 @@
-import {GVC} from "../../glitterBundle/GVController.js";
-import {ApiUser} from "../../glitter-base/route/user.js";
-import {getCheckoutCount} from "../../official_event/e-commerce/get-count.js";
-import {GlobalUser} from "../../glitter-base/global/global-user.js";
-import {all} from "underscore/index.js";
-import {AiSearch} from "../ai/ai-search.js";
+import { GVC } from '../../glitterBundle/GVController.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import { all } from 'underscore/index.js';
+import { AiSearch } from '../ai/ai-search.js';
 
 const html = String.raw;
 
 export class Sy02 {
     public static main(gvc: GVC, widget: any, subData: any) {
-
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {
             alert('change_page_origin');
         };
@@ -33,164 +32,166 @@ export class Sy02 {
                                 style="width:40px !important;height:40px !important;"
                                 onclick="${gvc.event(() => {
                                     gvc.glitter.setDrawer(
-                                            gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return html`
-                                                            <div class="div d-flex align-items-center flex-column w-100 p-3"
-                                                                 style="border-bottom:1px solid ${widget.formData.theme_color['title']};">
-                                                                <div class="d-flex align-items-center ">
-                                                                    <div>
-                                                                        <div
-                                                                                class="h-100"
-                                                                                onclick="${gvc.event(() => {
-                                                                                    changePage('index', 'home', {});
-                                                                                })}"
-                                                                        >
-                                                                            ${widget.formData.logo.type === 'text'
-                                                                                    ? html`
-                                                                                        <div
-                                                                                                class=" fw-bold d-flex align-items-center justify-content-center"
-                                                                                                style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${widget.formData.theme_color['title'] ?? '#000'};"
-                                                                                        >
-                                                                                            ${widget.formData.logo.value}
-                                                                                        </div>
-                                                                                    `
-                                                                                    : html`<img
-                                                                                            style="width: 150px;
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html` <div
+                                                            class="div d-flex align-items-center flex-column w-100 p-3"
+                                                            style="border-bottom:1px solid ${widget.formData.theme_color['title']};"
+                                                        >
+                                                            <div class="d-flex align-items-center ">
+                                                                <div>
+                                                                    <div
+                                                                        class="h-100"
+                                                                        onclick="${gvc.event(() => {
+                                                                            changePage('index', 'home', {});
+                                                                        })}"
+                                                                    >
+                                                                        ${widget.formData.logo.type === 'text'
+                                                                            ? html`
+                                                                                  <div
+                                                                                      class=" fw-bold d-flex align-items-center justify-content-center"
+                                                                                      style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${widget.formData.theme_color['title'] ??
+                                                                                      '#000'};"
+                                                                                  >
+                                                                                      ${widget.formData.logo.value}
+                                                                                  </div>
+                                                                              `
+                                                                            : html`<img
+                                                                                  style="width: 150px;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     border-radius: 10px;
     margin-bottom: 20px;"
-                                                                                            src="${widget.formData.logo.value}"
-                                                                                    /> `}
-                                                                        </div>
+                                                                                  src="${widget.formData.logo.value}"
+                                                                              /> `}
                                                                     </div>
                                                                 </div>
-                                                                <div class="position-relative">
-                                                                    <input
-                                                                            class="form-control fw-500 "
-                                                                            placeholder="找商品"
-                                                                            autocomplete="off"
-                                                                            value=""
-                                                                            onchange="${gvc.event((e, event) => {
-                                                                                gvc.glitter.href = `/all-product?search=${e.value}`;
-                                                                            })}"
-                                                                    />
+                                                            </div>
+                                                            <div class="position-relative">
+                                                                <input
+                                                                    class="form-control fw-500 "
+                                                                    placeholder="找商品"
+                                                                    autocomplete="off"
+                                                                    value=""
+                                                                    onchange="${gvc.event((e, event) => {
+                                                                        gvc.glitter.href = `/all-product?search=${e.value}`;
+                                                                    })}"
+                                                                />
 
-                                                                    <div
-                                                                            style=" position: absolute;
+                                                                <div
+                                                                    style=" position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: rgb(107, 114, 128);"
-                                                                    >
-                                                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                                                    </div>
+                                                                >
+                                                                    <i class="fa-solid fa-magnifying-glass"></i>
                                                                 </div>
                                                             </div>
+                                                        </div>
 
-                                                            <div class="offcanvas-body p-0 ">
-                                                                ${gvc.bindView(() => {
-                                                                    const id = gvc.glitter.getUUID();
-                                                                    const vm = {
-                                                                        data: [],
-                                                                    };
-                                                                    ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then((res) => {
-                                                                        vm.data = res.response.value;
-                                                                        gvc.notifyDataChange(id);
-                                                                    });
-                                                                    return {
-                                                                        bind: id,
-                                                                        view: () => {
-                                                                            function resetToggle() {
-                                                                                function loop(data: any) {
-                                                                                    data.map((dd: any) => {
-                                                                                        (dd as any).open = false;
-                                                                                        loop((dd as any).items ?? []);
-                                                                                    });
-                                                                                }
-
-                                                                                loop(vm.data);
+                                                        <div class="offcanvas-body p-0 ">
+                                                            ${gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                const vm = {
+                                                                    data: [],
+                                                                };
+                                                                ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then((res) => {
+                                                                    vm.data = res.response.value;
+                                                                    gvc.notifyDataChange(id);
+                                                                });
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        function resetToggle() {
+                                                                            function loop(data: any) {
+                                                                                data.map((dd: any) => {
+                                                                                    (dd as any).open = false;
+                                                                                    loop((dd as any).items ?? []);
+                                                                                });
                                                                             }
 
-                                                                            function loopItems(data: any, show_border: boolean) {
-                                                                                return data
-                                                                                        .map((dd: any) => {
-                                                                                            return html`
-                                                                                                <li
-                                                                                                        style="${show_border
-                                                                                                                ? `border-bottom: 1px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;`
-                                                                                                                : ``}"
+                                                                            loop(vm.data);
+                                                                        }
+
+                                                                        function loopItems(data: any, show_border: boolean) {
+                                                                            return data
+                                                                                .map((dd: any) => {
+                                                                                    return html`
+                                                                                        <li
+                                                                                            style="${show_border
+                                                                                                ? `border-bottom: 1px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;`
+                                                                                                : ``}"
+                                                                                        >
+                                                                                            <div
+                                                                                                class="nav-link d-flex justify-content-between"
+                                                                                                style="padding: 16px;"
+                                                                                                onclick="${gvc.event(() => {
+                                                                                                    if (((dd as any).items ?? []).length === 0) {
+                                                                                                        if (dd.link) {
+                                                                                                            gvc.glitter.href = dd.link;
+                                                                                                            gvc.glitter.closeDrawer();
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        let og = dd.open;
+                                                                                                        resetToggle();
+                                                                                                        if (!og) {
+                                                                                                            dd.open = true;
+                                                                                                        }
+                                                                                                        gvc.notifyDataChange(id);
+                                                                                                    }
+                                                                                                })}"
+                                                                                            >
+                                                                                                <div
+                                                                                                    style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"
+                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                        if (dd.link) {
+                                                                                                            gvc.glitter.href = dd.link;
+                                                                                                            gvc.glitter.closeDrawer();
+                                                                                                        }
+                                                                                                        event.stopPropagation();
+                                                                                                        event.preventDefault();
+                                                                                                    })}"
                                                                                                 >
-                                                                                                    <div
-                                                                                                            class="nav-link d-flex justify-content-between"
-                                                                                                            style="padding: 16px;"
-                                                                                                            onclick="${gvc.event(() => {
-                                                                                                                if (((dd as any).items ?? []).length === 0) {
-                                                                                                                    if (dd.link) {
-                                                                                                                        gvc.glitter.href = dd.link;
-                                                                                                                        gvc.glitter.closeDrawer();
-                                                                                                                    }
-                                                                                                                } else {
-                                                                                                                    let og = dd.open;
-                                                                                                                    resetToggle();
-                                                                                                                    if (!og) {
-                                                                                                                        dd.open = true;
-                                                                                                                    }
-                                                                                                                    gvc.notifyDataChange(id);
-                                                                                                                }
-                                                                                                            })}"
-                                                                                                    >
-                                                                                                        <div
-                                                                                                                style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"
-                                                                                                                onclick="${gvc.event((e, event) => {
-                                                                                                                    if (dd.link) {
-                                                                                                                        gvc.glitter.href = dd.link;
-                                                                                                                        gvc.glitter.closeDrawer();
-                                                                                                                    }
-                                                                                                                    event.stopPropagation();
-                                                                                                                    event.preventDefault();
-                                                                                                                })}"
-                                                                                                        >
-                                                                                                            ${dd.title}
-                                                                                                        </div>
-                                                                                                        ${(dd.items ?? []).length
-                                                                                                                ? `<i class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
+                                                                                                    ${dd.title}
+                                                                                                </div>
+                                                                                                ${(dd.items ?? []).length
+                                                                                                    ? `<i class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
                                                                                    style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"></i>`
-                                                                                                                : ``}
-                                                                                                    </div>
-                                                                                                    ${dd.open ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false)}</ul>` : ``}
-                                                                                                </li>
-                                                                                            `;
-                                                                                        })
-                                                                                        .join('');
-                                                                            }
+                                                                                                    : ``}
+                                                                                            </div>
+                                                                                            ${dd.open ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false)}</ul>` : ``}
+                                                                                        </li>
+                                                                                    `;
+                                                                                })
+                                                                                .join('');
+                                                                        }
 
-                                                                            return loopItems(vm.data, true);
-                                                                        },
-                                                                        divCreate: {
-                                                                            class: `navbar-nav me-auto mb-2 mb-lg-0`,
-                                                                            style: ``,
-                                                                            elem: `ul`,
-                                                                        },
-                                                                    };
-                                                                })}
-                                                            </div>`;
-                                                    },
-                                                    divCreate: {
-                                                        class: `w-100 h-100`,
-                                                        style: `z-index: 9999;overflow-y:auto;
+                                                                        return loopItems(vm.data, true);
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: `navbar-nav me-auto mb-2 mb-lg-0`,
+                                                                        style: ``,
+                                                                        elem: `ul`,
+                                                                    },
+                                                                };
+                                                            })}
+                                                        </div>`;
+                                                },
+                                                divCreate: {
+                                                    class: `w-100 h-100`,
+                                                    style: `z-index: 9999;overflow-y:auto;
 background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: hidden;`,
-                                                    },
-                                                };
-                                            }),
-                                            () => {
-                                                gvc.glitter.openDrawer(280);
-                                            }
+                                                },
+                                            };
+                                        }),
+                                        () => {
+                                            gvc.glitter.openDrawer(280);
+                                        }
                                     );
                                 })}"
                         >
@@ -200,18 +201,18 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
     color: ${widget.formData.theme_color['title'] ?? '#000'};"
                             ></i>
                         </div>
-                        <div class="${(widget.formData.logo.type === 'text') ? `` : `h-100`}"
+                        <div class="${widget.formData.logo.type === 'text' ? `` : `h-100`}"
                              onclick="${gvc.event(() => {
-                                 changePage('index', 'home', {})
-                             })}"> ${(widget.formData.logo.type === 'text') ? html`
-                            <div class=" fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto"
-                                 style="font-size: 28px;line-height: 28px;color: ${widget.formData.theme_color['title'] ?? '#000'};">
-                                ${widget.formData.logo.value}
-                            </div>
-                        ` : html`
-                            <div class="d-flex align-items-center justify-content-center h-100 py-2"><img
-                                    src="${widget.formData.logo.value}" style="height: 100%;"></div>
-                        `}
+                                 changePage('index', 'home', {});
+                             })}"> ${
+            widget.formData.logo.type === 'text'
+                ? html`
+                      <div class=" fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto" style="font-size: 28px;line-height: 28px;color: ${widget.formData.theme_color['title'] ?? '#000'};">
+                          ${widget.formData.logo.value}
+                      </div>
+                  `
+                : html` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="height: 100%;" /></div> `
+        }
                         </div>
                         <!--選單列表顯示區塊-->
                         <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
@@ -228,30 +229,34 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                     bind: id,
                                     view: () => {
                                         function loopItems(data: any) {
-                                            return data.map((dd: any) => {
-                                                return html`
-                                                    <li class="nav-item dropdown">
-                                                        <a class="nav-link header-link "
-                                                           style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;cursor: pointer;"
-                                                           onclick="${gvc.event(() => {
-                                                               if (dd.link) {
-                                                                   gvc.glitter.href = dd.link
-                                                               }
-                                                           })}"
-                                                        >${dd.title}
-                                                            ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a>
-                                                        ${dd.items.length > 0 ? `<ul class="dropdown-menu" style="background:${widget.formData.theme_color['background'] ?? '#000'} !important;
+                                            return data
+                                                .map((dd: any) => {
+                                                    return html` <li class="nav-item dropdown">
+                                                        <a
+                                                            class="nav-link header-link "
+                                                            style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;cursor: pointer;"
+                                                            onclick="${gvc.event(() => {
+                                                                if (dd.link) {
+                                                                    gvc.glitter.href = dd.link;
+                                                                }
+                                                            })}"
+                                                            >${dd.title} ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
+                                                        >
+                                                        ${dd.items.length > 0
+                                                            ? `<ul class="dropdown-menu" style="background:${widget.formData.theme_color['background'] ?? '#000'} !important;
     cursor: pointer;
-    z-index: 99999;">${loopItems(dd.items)}</ul>` : ``}
-                                                    </li>`
-                                            }).join('')
+    z-index: 99999;">${loopItems(dd.items)}</ul>`
+                                                            : ``}
+                                                    </li>`;
+                                                })
+                                                .join('');
                                         }
 
                                         return loopItems(vm.data);
                                     },
                                     divCreate: {
                                         class: `navbar-nav ms-3 me-auto`,
-                                        style: ``,
+                                        style: `flex-direction: row; gap: 15px;`,
                                         elem: `ul`,
                                     },
                                 };
@@ -261,16 +266,16 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                             <!--固定按鈕顯示區塊-->
                             <ul class="navbar-nav flex-row ms-auto">
                                 ${gvc.bindView(() => {
-                                    const id = gvc.glitter.getUUID()
-                                    const vm={
-                                        visible:false
-                                    }
-                                    ApiUser.getPublicConfig('store-information','manager').then((res)=>{
-                                        if(res.response.value.ai_search){
-                                            vm.visible=true
-                                            gvc.notifyDataChange(id)
+                                    const id = gvc.glitter.getUUID();
+                                    const vm = {
+                                        visible: false,
+                                    };
+                                    ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
+                                        if (res.response.value.ai_search) {
+                                            vm.visible = true;
+                                            gvc.notifyDataChange(id);
                                         }
-                                    })
+                                    });
                                     return {
                                         bind: id,
                                         view: () => {
@@ -281,22 +286,23 @@ border-radius: 50%;
 font-weight: 700 !important;
 padding-bottom: 2px;
 ">AI
-                                </div>`
+                                </div>`;
                                         },
                                         divCreate: () => {
                                             return {
-                                                class: `nav-item  ${(vm.visible) ? `d-flex`:`d-none`} align-items-center justify-content-center`,
+                                                class: `nav-item  ${vm.visible ? `d-flex` : `d-none`} align-items-center justify-content-center`,
                                                 style: `width:48px !important;cursor: pointer;`,
                                                 option: [
                                                     {
-                                                        key: 'onclick', value: gvc.event(() => {
-                                                            AiSearch.searchProduct(gvc)
-                                                        })
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    }
+                                                        key: 'onclick',
+                                                        value: gvc.event(() => {
+                                                            AiSearch.searchProduct(gvc);
+                                                        }),
+                                                    },
+                                                ],
+                                            };
+                                        },
+                                    };
                                 })}
                                 <li class="nav-item d-none d-sm-flex align-items-center justify-content-center"
                                     style="">
@@ -310,25 +316,24 @@ padding-bottom: 2px;
                                             view: () => {
                                                 if (!vm.toggle) {
                                                     return html`<i
-                                                            class="fa-regular fa-magnifying-glass"
-                                                            style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
-                                                            onclick="${gvc.event(() => {
-                                                                vm.toggle = !vm.toggle;
-                                                                gvc.notifyDataChange(vm.id);
-                                                            })}"
+                                                        class="fa-regular fa-magnifying-glass"
+                                                        style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
+                                                        onclick="${gvc.event(() => {
+                                                            vm.toggle = !vm.toggle;
+                                                            gvc.notifyDataChange(vm.id);
+                                                        })}"
                                                     ></i>`;
                                                 } else {
-                                                    return html`<a
-                                                            class="nav-link search-container d-flex align-items-center"
-                                                    ><i
+                                                    return html`<a class="nav-link search-container d-flex align-items-center"
+                                                        ><i
                                                             class="fa-regular fa-circle-xmark"
                                                             style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                             onclick="${gvc.event(() => {
                                                                 vm.toggle = !vm.toggle;
                                                                 gvc.notifyDataChange(vm.id);
                                                             })}"
-                                                    ></i
-                                                    ><input
+                                                        ></i
+                                                        ><input
                                                             class="ms-3 form-control"
                                                             style="height:40px;"
                                                             placeholder="輸入商品關鍵字。"
@@ -338,7 +343,7 @@ padding-bottom: 2px;
                                                                 vm.toggle = !vm.toggle;
                                                                 gvc.notifyDataChange(vm.id);
                                                             })}"
-                                                    />
+                                                        />
                                                     </a>`;
                                                 }
                                             },
@@ -361,40 +366,40 @@ padding-bottom: 2px;
                                             bind: vm.id,
                                             view: () => {
                                                 return html`<span
-                                                        class="position-relative"
-                                                        onclick="${gvc.event(() => {
-                                                            gvc.glitter.href = '/checkout';
-                                                        })}"
+                                                    class="position-relative"
+                                                    onclick="${gvc.event(() => {
+                                                        gvc.glitter.href = '/checkout';
+                                                    })}"
                                                 >
-                                                <i class="fa-duotone fa-cart-shopping"
-                                                   style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;cursor: pointer;font-size:20px;"></i>
-                                                ${gvc.bindView(() => {
-                                                    return {
-                                                        bind: gvc.glitter.getUUID(),
-                                                        view: () => {
-                                                            return new Promise((resolve, reject) => {
-                                                                getCheckoutCount((count) => {
-                                                                    vm.count = count;
-                                                                    resolve(
+                                                    <i
+                                                        class="fa-duotone fa-cart-shopping"
+                                                        style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;cursor: pointer;font-size:20px;"
+                                                    ></i>
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: gvc.glitter.getUUID(),
+                                                            view: () => {
+                                                                return new Promise((resolve, reject) => {
+                                                                    getCheckoutCount((count) => {
+                                                                        vm.count = count;
+                                                                        resolve(
                                                                             vm.count
-                                                                                    ? html`
-                                                                                        <div class="position-absolute"
-                                                                                             style="font-size: 10px;right: -10px;top: -6px;">
-                                                                                            <div
-                                                                                                    class="rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500 d-flex"
-                                                                                                    style="width:18px;height: 18px;color: white !important;background:#fe5541;"
-                                                                                            >
-                                                                                                ${vm.count}
-                                                                                            </div>
-                                                                                        </div>`
-                                                                                    : ``
-                                                                    );
+                                                                                ? html` <div class="position-absolute" style="font-size: 10px;right: -10px;top: -6px;">
+                                                                                      <div
+                                                                                          class="rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500 d-flex"
+                                                                                          style="width:18px;height: 18px;color: white !important;background:#fe5541;"
+                                                                                      >
+                                                                                          ${vm.count}
+                                                                                      </div>
+                                                                                  </div>`
+                                                                                : ``
+                                                                        );
+                                                                    });
                                                                 });
-                                                            });
-                                                        },
-                                                    };
-                                                })}
-                                            </span>`;
+                                                            },
+                                                        };
+                                                    })}
+                                                </span>`;
                                             },
                                             divCreate: {
                                                 class: `nav-link js-cart-count `,
