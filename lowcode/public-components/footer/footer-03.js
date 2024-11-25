@@ -84,7 +84,7 @@ export class Footer02 {
                 <div class="container my-5">
                     <div class="d-flex flex-column align-items-center justify-content-center gap-2 mb-3">
                         <div>
-                            <img src="${(_a = formData.logo) !== null && _a !== void 0 ? _a : ''}" />
+                            <img src="${(_a = formData.logo) !== null && _a !== void 0 ? _a : ''}" style="min-height: 40px; max-height: 60px;" />
                         </div>
                         <div>
                             <h4 class="f-content">${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</h4>

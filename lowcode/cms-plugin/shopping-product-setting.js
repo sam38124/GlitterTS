@@ -483,6 +483,7 @@ export class ShoppingProductSetting {
                                 product_type: type,
                             });
                         case 'list':
+                            window.parent.glitter.share.checkData = () => { return true; };
                             const filterID = gvc.glitter.getUUID();
                             vm.tableId = gvc.glitter.getUUID();
                             vm.dataList = [];
@@ -2086,7 +2087,20 @@ export class ShoppingProductSetting {
                             BgWidget.container(html `
                                 <div class="title-container">
                                     ${BgWidget.goBack(obj.gvc.event(() => {
-                                obj.vm.type = 'list';
+                                if (window.parent.glitter.share.checkData && (!window.parent.glitter.share.checkData())) {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.checkYesOrNot({
+                                        text: '尚未儲存內容，是否確認跳轉?', callback: (response) => {
+                                            if (response) {
+                                                window.parent.glitter.share.checkData = () => { return true; };
+                                                obj.vm.type = 'list';
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    obj.vm.type = 'list';
+                                }
                             }))}
                                     <h3 class="mb-0 me-3 tx_title">
                                         ${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>

@@ -1288,7 +1288,7 @@ export class Main_editor {
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column `,
                         style: (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
                             ? ``
-                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${Storage.select_function === 'backend-manger' ? window.parent.innerHeight - 56 : window.innerHeight - (EditorConfig.getPaddingTop(gvc)) - 56}px;overflow:hidden;`
+                            : `width: calc(${(document.body.clientWidth < 992) ? `${document.body.clientWidth}px` : `100%`});height: ${Storage.select_function !== 'backend-manger' ? window.parent.innerHeight - 56 : window.innerHeight - (EditorConfig.getPaddingTop(gvc)) - 56}px;overflow:hidden;`
                     };
                 }
             };

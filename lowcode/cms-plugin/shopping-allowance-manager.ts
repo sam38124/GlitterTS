@@ -1000,7 +1000,7 @@ export class ShoppingAllowanceManager {
 
     public static createOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: 'TZ90991707',
+            searchOrder: '',
             searchData: '',
             orderData: {},
             errorReport: '',

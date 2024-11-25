@@ -71,9 +71,9 @@ export class AboutUs {
                     <div style="${(document.body.clientWidth<800) ? `gap:18px;margin-top: 32px;`:`margin-top: 64px;`}" class="d-flex flex-column flex-sm-row justify-content-between">
                         <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_1.png" class="" style="max-width: 100%;width: 743px;">
                         <div class="d-flex flex-lg-column" style="${(document.body.clientWidth<800) ? `width:100%;`:`width: calc(100% - 773px);`}">
-                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_3.png" class="" style="${(document.body.clientWidth<800) ? `width: calc(50% - 10px);`:`width: 100%;`}">
-                            <div class="flex-fill"></div>
                             <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_2.png" class="" style="${(document.body.clientWidth<800) ? `width: calc(50% - 10px);`:`width: 100%;`}">
+                            <div class="flex-fill"></div>
+                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_3.png" class="" style="${(document.body.clientWidth<800) ? `width: calc(50% - 10px);`:`width: 100%;`}">
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-center justify-content-center mx-auto" style="${(((document.body.clientWidth<800))) ? `gap:8;margin-top:132px;`:`gap:16px;margin-top:200px;`}">

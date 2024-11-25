@@ -39,6 +39,8 @@ import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { Article } from "../glitter-base/route/article.js";
 import { AiChat } from "../glitter-base/route/ai-chat.js";
+import { BgMobileGuide } from "../backend-manager/bg-mobile-guide.js";
+import { SaasViewModel } from "../view-model/saas-view-model.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -214,7 +216,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 tag: glitter.getUrlParameter('page'),
                                 appName: gBundle.appName
                             }, (d2) => {
-                                if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden')) {
+                                if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('shop') || glitter.getUrlParameter('page').startsWith('hidden')) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
@@ -413,7 +415,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             else {
                                 return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                     let result = true;
-                                    if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden')) {
+                                    if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden') || glitter.getUrlParameter('page').startsWith('shop')) {
                                         Article.get({
                                             page: 0,
                                             limit: 1,
@@ -682,16 +684,32 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
                                 console.log("appear -- ");
-                                if (document.body.clientWidth > 1000) {
-                                    ApiShop.getGuideable().then(r => {
-                                        if (!r.response.value || !r.response.value.view) {
-                                            ApiShop.setFEGuideable({});
-                                            bgGuide.drawGuide();
+                                function showTut() {
+                                    if (document.body.clientWidth > 1000) {
+                                        ApiShop.getGuideable().then(r => {
+                                            if (!r.response.value || !r.response.value.view) {
+                                                ApiShop.setFEGuideable({});
+                                                bgGuide.drawGuide();
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        if (!localStorage.getItem('see_bg_mobile_guide')) {
+                                            let bgMobileGuide = new BgMobileGuide(gvc, 1);
+                                            bgMobileGuide.drawGuide();
+                                            localStorage.setItem('see_bg_mobile_guide', 'true');
                                         }
-                                    });
+                                    }
                                 }
-                                else {
-                                }
+                                (ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).then((res) => {
+                                    const userData = res.response;
+                                    if (!userData.userData.name || !userData.userData.contact_phone) {
+                                        SaasViewModel.setContactInfo(gvc);
+                                    }
+                                    else {
+                                        showTut();
+                                    }
+                                });
                                 break;
                             }
                             case 'user-editor': {

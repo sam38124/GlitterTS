@@ -991,10 +991,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
-                    const interval = setInterval(() => {
-                        if ((glitter.window as any).FroalaEditor) {
-                            setTimeout(() => {
-                                gvc.addStyle(`
+                  function render(){
+                      const interval = setInterval(() => {
+                          if ((glitter.window as any).FroalaEditor) {
+                              setTimeout(() => {
+                                  gvc.addStyle(`
                                     #insertImage-1 {
                                         display: none !important;
                                     }
@@ -1005,8 +1006,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         display: none !important;
                                     }
                                     ${
-                                        obj.hiddenBorder
-                                            ? css`
+                                      obj.hiddenBorder
+                                          ? css`
                                                   .fr-box {
                                                       border: none !important;
                                                   }
@@ -1014,123 +1015,132 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                       border: none !important;
                                                   }
                                               `
-                                            : ''
-                                    }
+                                          : ''
+                                  }
                                 `);
 
-                                function generateFontSizeArray() {
-                                    let fontSizes = [];
+                                  function generateFontSizeArray() {
+                                      let fontSizes = [];
 
-                                    // 添加8到30的字體大小
-                                    for (let size = 8; size <= 30; size += 1) {
-                                        fontSizes.push(size.toString());
-                                    }
+                                      // 添加8到30的字體大小
+                                      for (let size = 8; size <= 30; size += 1) {
+                                          fontSizes.push(size.toString());
+                                      }
 
-                                    // 添加30到60的字體大小
-                                    for (let size = 32; size <= 60; size += 2) {
-                                        fontSizes.push(size.toString());
-                                    }
+                                      // 添加30到60的字體大小
+                                      for (let size = 32; size <= 60; size += 2) {
+                                          fontSizes.push(size.toString());
+                                      }
 
-                                    // 添加60到96的字體大小
-                                    for (let size = 64; size <= 96; size += 4) {
-                                        fontSizes.push(size.toString());
-                                    }
+                                      // 添加60到96的字體大小
+                                      for (let size = 64; size <= 96; size += 4) {
+                                          fontSizes.push(size.toString());
+                                      }
 
-                                    return fontSizes;
-                                }
+                                      return fontSizes;
+                                  }
 
-                                const editor = new (glitter.window as any).FroalaEditor('#' + richID, {
-                                    language: 'zh_tw',
-                                    heightMin: obj.setHeight ?? 350,
-                                    content: obj.def,
-                                    fontSize: generateFontSizeArray(),
-                                    quickInsertEnabled: false,
-                                    toolbarSticky: true,
-                                    events: {
-                                        imageMaxSize: 5 * 1024 * 1024,
-                                        imageAllowedTypes: ['jpeg', 'jpg', 'png'],
-                                        contentChanged: function () {
-                                            obj.callback(editor.html.get());
-                                        },
-                                        'image.uploaded': function (response: any) {
-                                            console.info(`image.uploaded`);
-                                            return false;
-                                        },
-                                        'image.inserted': function ($img: any, response: any) {
-                                            console.info(`image.inserted`);
-                                            return false;
-                                        },
-                                        'image.replaced': function ($img: any, response: any) {
-                                            console.info(`image.replaced`);
-                                            return false;
-                                        },
-                                        'image.beforePasteUpload': (e: any, images: any) => {
-                                            function base64ToBlob(base64: any, mimeType: any) {
-                                                mimeType = mimeType || ''; // 设置默认 MIME 类型
-                                                var byteCharacters = atob(base64);
-                                                var byteNumbers = new Array(byteCharacters.length);
+                                  const editor = new (glitter.window as any).FroalaEditor('#' + richID, {
+                                      language: 'zh_tw',
+                                      heightMin: obj.setHeight ?? 350,
+                                      content: obj.def,
+                                      fontSize: generateFontSizeArray(),
+                                      quickInsertEnabled: false,
+                                      toolbarSticky: true,
+                                      events: {
+                                          imageMaxSize: 5 * 1024 * 1024,
+                                          imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                                          contentChanged: function () {
+                                              obj.callback(editor.html.get());
+                                          },
+                                          'image.uploaded': function (response: any) {
+                                              console.info(`image.uploaded`);
+                                              return false;
+                                          },
+                                          'image.inserted': function ($img: any, response: any) {
+                                              console.info(`image.inserted`);
+                                              return false;
+                                          },
+                                          'image.replaced': function ($img: any, response: any) {
+                                              console.info(`image.replaced`);
+                                              return false;
+                                          },
+                                          'image.beforePasteUpload': (e: any, images: any) => {
+                                              function base64ToBlob(base64: any, mimeType: any) {
+                                                  mimeType = mimeType || ''; // 设置默认 MIME 类型
+                                                  var byteCharacters = atob(base64);
+                                                  var byteNumbers = new Array(byteCharacters.length);
 
-                                                for (var i = 0; i < byteCharacters.length; i++) {
-                                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                                }
+                                                  for (var i = 0; i < byteCharacters.length; i++) {
+                                                      byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                                  }
 
-                                                var byteArray = new Uint8Array(byteNumbers);
+                                                  var byteArray = new Uint8Array(byteNumbers);
 
-                                                return new Blob([byteArray], { type: mimeType });
-                                            }
+                                                  return new Blob([byteArray], { type: mimeType });
+                                              }
 
-                                            const mimeType = 'image/jpeg';
-                                            const blob = base64ToBlob(e.src.split(',')[1], mimeType);
-                                            const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                                              const mimeType = 'image/jpeg';
+                                              const blob = base64ToBlob(e.src.split(',')[1], mimeType);
+                                              const saasConfig: { config: any; api: any } = (window as any).saasConfig;
 
-                                            glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
-                                            glitter.share.wait_up_f.push({
-                                                file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
-                                                element: e,
-                                            });
-                                            clearInterval(glitter.share.wait_up_f_timer);
-                                            glitter.share.wait_up_f_timer = setTimeout(() => {
-                                                const dialog = new ShareDialog(obj.gvc.glitter);
-                                                dialog.dataLoading({ visible: true });
-                                                saasConfig.api
-                                                    .uploadFileAll(
-                                                        glitter.share.wait_up_f.map((dd: any) => {
-                                                            return dd.file;
-                                                        })
-                                                    )
-                                                    .then((res: { result: boolean; links: string[] }) => {
-                                                        dialog.dataLoading({ visible: false });
-                                                        glitter.share.wait_up_f.map((dd: any, index: number) => {
-                                                            dd.element.src = res.links[index];
-                                                        });
-                                                        glitter.share.wait_up_f = [];
-                                                    });
-                                            }, 100);
+                                              glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
+                                              glitter.share.wait_up_f.push({
+                                                  file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
+                                                  element: e,
+                                              });
+                                              clearInterval(glitter.share.wait_up_f_timer);
+                                              glitter.share.wait_up_f_timer = setTimeout(() => {
+                                                  const dialog = new ShareDialog(obj.gvc.glitter);
+                                                  dialog.dataLoading({ visible: true });
+                                                  saasConfig.api
+                                                      .uploadFileAll(
+                                                          glitter.share.wait_up_f.map((dd: any) => {
+                                                              return dd.file;
+                                                          })
+                                                      )
+                                                      .then((res: { result: boolean; links: string[] }) => {
+                                                          dialog.dataLoading({ visible: false });
+                                                          glitter.share.wait_up_f.map((dd: any, index: number) => {
+                                                              dd.element.src = res.links[index];
+                                                          });
+                                                          glitter.share.wait_up_f = [];
+                                                      });
+                                              }, 100);
 
-                                            e.src = '';
-                                            return false;
-                                        },
-                                        'image.beforeUpload': function (e: any, images: any) {
-                                            EditorElem.uploadFileFunction({
-                                                gvc: gvc,
-                                                callback: (text) => {
-                                                    editor.html.insert(`<img${text}">`);
-                                                },
-                                                file: e[0],
-                                            });
-                                            return false;
-                                        },
-                                    },
-                                    key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
-                                });
+                                              e.src = '';
+                                              return false;
+                                          },
+                                          'image.beforeUpload': function (e: any, images: any) {
+                                              EditorElem.uploadFileFunction({
+                                                  gvc: gvc,
+                                                  callback: (text) => {
+                                                      editor.html.insert(`<img${text}">`);
+                                                  },
+                                                  file: e[0],
+                                              });
+                                              return false;
+                                          },
+                                      },
+                                      key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
+                                  });
 
-                                if (glitter.document.querySelector(`.${richID}-loading`) as any) {
-                                    (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
-                                }
+                                  if (glitter.document.querySelector(`.${richID}-loading`) as any) {
+                                      (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
+                                  }
 
-                                setTimeout(() => {
-                                    const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
-                                    target.outerHTML = html` <button
+                                  setTimeout(() => {
+                                      const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
+                                      if(!target){
+                                         try {
+                                             editor.destroy()
+                                         }catch (e) {
+
+                                         }
+                                          render()
+                                          return
+                                      }
+                                      target.outerHTML = html` <button
                                         id="insertImage-replace"
                                         type="button"
                                         tabindex="-1"
@@ -1138,43 +1148,43 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         class="fr-command fr-btn "
                                         data-title="插入圖片 (⌘P)"
                                         onclick="${obj.gvc.event(() => {
-                                            if (obj.insertImageEvent) {
-                                                obj.insertImageEvent(editor);
-                                            } else {
-                                                glitter.ut.chooseMediaCallback({
-                                                    single: true,
-                                                    accept: 'image/*',
-                                                    callback(data) {
-                                                        const saasConfig = (window as any).saasConfig;
-                                                        const dialog = new ShareDialog(glitter);
-                                                        dialog.dataLoading({ visible: true });
-                                                        const file = data[0].file;
-                                                        saasConfig.api.uploadFile(file.name).then((data: any) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            const data1 = data.response;
-                                                            dialog.dataLoading({ visible: true });
-                                                            BaseApi.create({
-                                                                url: data1.url,
-                                                                type: 'put',
-                                                                data: file,
-                                                                headers: {
-                                                                    'Content-Type': data1.type,
-                                                                },
-                                                            }).then((res) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (res.result) {
-                                                                    const imgElement = html`<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
-                                                                    editor.html.insert(imgElement);
-                                                                    editor.undo.saveStep();
-                                                                } else {
-                                                                    dialog.errorMessage({ text: '上傳失敗' });
-                                                                }
-                                                            });
-                                                        });
-                                                    },
-                                                });
-                                            }
-                                        })}"
+                                          if (obj.insertImageEvent) {
+                                              obj.insertImageEvent(editor);
+                                          } else {
+                                              glitter.ut.chooseMediaCallback({
+                                                  single: true,
+                                                  accept: 'image/*',
+                                                  callback(data) {
+                                                      const saasConfig = (window as any).saasConfig;
+                                                      const dialog = new ShareDialog(glitter);
+                                                      dialog.dataLoading({ visible: true });
+                                                      const file = data[0].file;
+                                                      saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                          dialog.dataLoading({ visible: false });
+                                                          const data1 = data.response;
+                                                          dialog.dataLoading({ visible: true });
+                                                          BaseApi.create({
+                                                              url: data1.url,
+                                                              type: 'put',
+                                                              data: file,
+                                                              headers: {
+                                                                  'Content-Type': data1.type,
+                                                              },
+                                                          }).then((res) => {
+                                                              dialog.dataLoading({ visible: false });
+                                                              if (res.result) {
+                                                                  const imgElement = html`<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
+                                                                  editor.html.insert(imgElement);
+                                                                  editor.undo.saveStep();
+                                                              } else {
+                                                                  dialog.errorMessage({ text: '上傳失敗' });
+                                                              }
+                                                          });
+                                                      });
+                                                  },
+                                              });
+                                          }
+                                      })}"
                                     >
                                         <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path
@@ -1183,21 +1193,23 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         </svg>
                                         <span class="fr-sr-only">插入圖片</span>
                                     </button>`;
-                                    if(obj.rich_height){
-                                        glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.height=obj.rich_height;
-                                        glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.minHeight='auto';
-                                        glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.overflowY='auto';
-                                    }
+                                      if(obj.rich_height){
+                                          glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.height=obj.rich_height;
+                                          glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.minHeight='auto';
+                                          glitter.document.querySelector(`#`+richID).querySelector(`.fr-view`).style.overflowY='auto';
+                                      }
 
-                                    if (obj.readonly) {
-                                        editor.edit.off();
-                                        editor.toolbar.disable();
-                                    }
-                                }, 200);
-                            }, 100);
-                            clearInterval(interval);
-                        }
-                    }, 100);
+                                      if (obj.readonly) {
+                                          editor.edit.off();
+                                          editor.toolbar.disable();
+                                      }
+                                  }, 200);
+                              }, 100);
+                              clearInterval(interval);
+                          }
+                      }, 100);
+                  }
+                    render()
                 },
             };
         });

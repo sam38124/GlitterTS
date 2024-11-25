@@ -829,7 +829,7 @@ export class ShoppingAllowanceManager {
     }
     static createOrder(gvc, vm) {
         let viewModel = {
-            searchOrder: 'TZ90991707',
+            searchOrder: '',
             searchData: '',
             orderData: {},
             errorReport: '',

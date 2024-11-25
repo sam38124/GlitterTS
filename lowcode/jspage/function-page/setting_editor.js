@@ -242,6 +242,7 @@ export class Setting_editor {
                                                                                 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                 style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                 onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                                    gvc.glitter.setUrlParameter('page-id');
                                                     if (dd.type === 'container') {
                                                         list.map((d1) => {
                                                             d1.toggle = false;
@@ -873,7 +874,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'invoice_list',
-            group: '發票管理',
+            group: '訂單管理',
             title: '發票列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
@@ -881,7 +882,7 @@ Setting_editor.menuItems = () => {
         {
             icon: '',
             page: 'allowance_list',
-            group: '發票管理',
+            group: '訂單管理',
             title: '折讓單列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/file-invoice-dollar-sharp-light.svg',
@@ -890,7 +891,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'member_manager',
             group: '顧客管理',
-            title: '顧客註冊設定',
+            title: '顧客設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
             moduleName: '會員設定',

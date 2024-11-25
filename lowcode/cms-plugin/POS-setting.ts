@@ -379,6 +379,7 @@ height: 51px;
             if (!user.response || !user.response.account) {
                 dialog.errorMessage({text: '查無此會員'});
             } else {
+                dialog.dataLoading({visible:false})
                 OrderDetail.singleInstance.user_info.email = user.response.userData.email;
                 gvc.notifyDataChange(['checkout-page'])
             }

@@ -1,4 +1,3 @@
-/// <reference types="cookie-parser" />
 import express from 'express';
 export declare class UtPermission {
     static isManager(req: express.Request): Promise<unknown>;

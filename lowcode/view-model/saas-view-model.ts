@@ -550,6 +550,88 @@ export class SaasViewModel {
             },
         });
     }
+    public static async setContactInfo(gvc: GVC) {
+        const dialog = new ShareDialog(gvc.glitter);
+        dialog.dataLoading({visible: true});
+        const original = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+        const userData = JSON.parse(JSON.stringify(original));
+        dialog.dataLoading({visible: false});
+
+        let get_verify_timer = 0;
+
+        function recreate() {
+            gvc.recreateView();
+        }
+        userData.userData.name=''
+        const root_gvc = gvc;
+        BgWidget.settingDialog({
+            gvc: gvc,
+            title: '填寫基本資料',
+            innerHTML: (gvc: GVC) => {
+                return html`
+                    <div class="mt-n2">
+                        ${[
+                    BgWidget.editeInput({
+                        gvc: gvc,
+                        title: '公司或單位名稱',
+                        default: userData.userData.name,
+                        callback: (text) => {
+                            userData.userData.name = text;
+                        },
+                        placeHolder: '請輸入公司或單位名稱',
+                    }),
+                    BgWidget.editeInput({
+                        gvc: gvc,
+                        title: html`
+                                    <div class="d-flex flex-column" style="gap:3px;">商家聯絡電話
+                                        ${BgWidget.grayNote('正確填寫重要資料，避免遺漏重要通知')}
+                                    </div>`,
+                        default: userData.userData.contact_phone,
+                        callback: (text) => {
+                            userData.userData.contact_phone = text;
+                        },
+                        placeHolder: '請輸入聯絡電話',
+                    })
+                ].join(html`
+                            <div class="my-2"></div>`)}
+                    </div>`;
+            },
+            footer_html: (gvc: GVC) => {
+                return html`
+                    <div class="w-100 d-flex align-items-center justify-content-end" style="gap:10px;">
+                        ${[
+                    BgWidget.save(
+                        gvc.event(async () => {
+                            if (!userData.userData.name) {
+                                dialog.errorMessage({text: '請輸入公司或單位名稱'});
+                                return;
+                            }else if (!userData.userData.contact_phone) {
+                                dialog.errorMessage({text: '請輸入聯絡人電話'});
+                                return;
+                            }
+                            dialog.dataLoading({visible: true});
+                            ApiUser.setSaasUserData({
+                                userData: userData.userData,
+                            }).then((res) => {
+                                dialog.dataLoading({visible: false});
+                                if (!res.result && res.response.data.msg === 'email-verify-false') {
+                                    dialog.errorMessage({text: '驗證碼輸入錯誤'});
+                                } else if (!res.result) {
+                                    dialog.errorMessage({text: '更新異常'});
+                                } else {
+                                    dialog.successMessage({text: '設定成功'});
+                                    gvc.closeDialog();
+                                    recreate();
+                                }
+                            });
+                            // (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
+                        })
+                    ),
+                ].join('')}
+                    </div>`;
+            },
+        });
+    }
 
     public static openShopList(gvc: GVC) {
         gvc.glitter.innerDialog((gvc: GVC) => {

@@ -437,7 +437,7 @@ export class ShoppingInvoiceManager {
                                                                                  style="padding-left: 10px;">
                                                                                 ${(() => {
                                                                                     let no = dd.invoice_data.original_data.CustomerIdentifier;
-                                                                                    return (no && no.length > 0)? BgWidget.warningInsignia('B2C') : BgWidget.notifyInsignia('B2B')
+                                                                                    return (no && no.length > 0)? BgWidget.warningInsignia('B2B') : BgWidget.notifyInsignia('B2C')
                                                                                 })()}
                                                                             </div>
                                                                         `
@@ -709,7 +709,6 @@ export class ShoppingInvoiceManager {
                                     if (orderData) {
                                         let tax = Math.round(orderData.orderData.total * 0.05);
                                         let sale = orderData.orderData.total - tax;
-                                        let gui_number = orderData.orderData.user_info.gui_number;
                                         let allowanceLoading = true;
                                         let allowanceData: any[] = [];
                                         // CustomerIdentifier
@@ -720,7 +719,7 @@ export class ShoppingInvoiceManager {
                                                     <div>發票種類</div>
                                                     <div style="display: flex;align-items: flex-start;gap: 12px;">
                                                         ${(() => {
-                                                            let invoice_type = (gui_number) ? `B2B` : `B2C`
+                                                            let invoice_type = (invoiceData.invoice_data.original_data.CustomerIdentifier) ? `B2B` : `B2C`
                                                             return ["B2C", "B2B"].map((data) => {
                                                                 return html`
                                                                     <div class="d-flex align-items-center"
@@ -740,79 +739,88 @@ export class ShoppingInvoiceManager {
                                                         })()}
                                                     </div>
                                                 </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '發票編號',
-                                                        default: invoiceData.invoice_no ?? "",
-                                                        readonly: true,
-                                                        placeHolder: '請輸入發票編號',
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '訂單編號',
-                                                        default: orderData.cart_token ?? "",
-                                                        readonly: true,
-                                                        placeHolder: '請輸入訂單編號',
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '買受人姓名',
-                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本無姓名":orderData.orderData?.user_info?.name ?? "",
-                                                        readonly: true,
-                                                        placeHolder: '請輸入買受人姓名',
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '買受人電話',
-                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本無電話":orderData.orderData?.user_info?.phone ?? "",
-                                                        readonly: true,
-                                                        placeHolder: '請輸入買受人電話',
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                </div>
+                                                <div class="row">
+                                                    ${[
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '開立來源',
+                                                            default: ((orderData.orderData as any).orderSource==='POS') ? `線下訂單`:`線上訂單`,
+                                                            readonly: true,
+                                                            placeHolder: '請輸入發票編號',
+                                                            callback: (data) => {
+                                                            },
 
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '買受人地址',
-                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本無地址":orderData.orderData?.user_info?.address ?? "",
-                                                        placeHolder: '請輸入買受人地址',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '買受人電子信箱',
-                                                        default: (orderData.orderData?.user_info?.email == "no-email")?"紙本無信箱":orderData.orderData?.user_info?.email ?? "",
-                                                        placeHolder: '請輸入買受人電子信箱',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    <div class="d-flex flex-column w-50" style="gap:8px;">
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '發票編號',
+                                                            default: invoiceData.invoice_no ?? "",
+                                                            readonly: true,
+                                                            placeHolder: '請輸入發票編號',
+                                                            callback: (data) => {
+                                                            },
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '訂單編號',
+                                                            default: orderData.cart_token ?? "",
+                                                            readonly: true,
+                                                            placeHolder: '請輸入訂單編號',
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }) ,
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '買受人姓名',
+                                                            default: (invoiceData.invoice_data.original_data.CustomerName==='無名氏' || !invoiceData.invoice_data.original_data.CustomerName) ? `無姓名`:invoiceData.invoice_data.original_data.CustomerName,
+                                                            readonly: true,
+                                                            placeHolder: '請輸入買受人姓名',
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }),
+                                                        (invoiceData.invoice_data.original_data.CustomerIdentifier) ? `${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '買受人統編',
+                                                            default: (!invoiceData.invoice_data.original_data.CustomerIdentifier) ? `無統編`:invoiceData.invoice_data.original_data.CustomerIdentifier,
+                                                            readonly: true,
+                                                            placeHolder: '請輸入買受人電話',
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        })}`:``,
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '買受人電話',
+                                                            default: (!invoiceData.invoice_data.original_data.CustomerPhone) ? `無電話`:invoiceData.invoice_data.original_data.CustomerPhone,
+                                                            readonly: true,
+                                                            placeHolder: '請輸入買受人電話',
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '買受人地址',
+                                                            default: (!invoiceData.invoice_data.original_data.CustomerAddr) ? "無地址":invoiceData.invoice_data.original_data.CustomerAddr,
+                                                            placeHolder: '請輸入買受人地址',
+                                                            readonly: true,
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '買受人電子信箱',
+                                                            default: (invoiceData.invoice_data.original_data.CustomerEmail==='pos@ncdesign.info') ? "無信箱":invoiceData.invoice_data.original_data.CustomerEmail,
+                                                            placeHolder: '請輸入買受人電子信箱',
+                                                            readonly: true,
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }),
+                                                            `<div class="d-flex flex-column " style="gap:8px;">
                                                         <div>發票日期</div>
                                                         <input type="date"
                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #dddddd"
@@ -820,96 +828,94 @@ export class ShoppingInvoiceManager {
                                                                readonly disabled
                                                                onchange="${gvc.event((e) => {
 
-                                                               })}">
-                                                    </div>
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '發票時間',
-                                                        default: new Date(invoiceData.create_date).toISOString().split('T')[1].slice(0, 5),
-                                                        readonly: true,
-                                                        placeHolder: '請輸入發票時間',
-                                                        type: 'time',
-                                                        callback: (data) => {
+                                                            })}">
+                                                    </div>`,
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '發票時間',
+                                                            default: new Date(invoiceData.create_date).toISOString().split('T')[1].slice(0, 5),
+                                                            readonly: true,
+                                                            placeHolder: '請輸入發票時間',
+                                                            type: 'time',
+                                                            callback: (data) => {
 
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    <div class="w-50">
+                                                            },
+                                                            
+                                                        }),
+                                                            `<div class="w-100">
                                                         <div>索取紙本發票</div>
                                                         ${BgWidget.select({
-                                                            gvc: gvc,
-                                                            callback: (text) => {
-                                                            },
-                                                            default: (vm.data.invoice_data.original_data.Print == "1")?"Y":"N",
-                                                            readonly: true,
-                                                            options: [{key: "Y", value: "Y"}, {key: "N", value: "N"}],
-                                                            style: `margin: 8px 0;`
-                                                        })}
-                                                    </div>
-                                                    <div class="w-50">
+                                                                gvc: gvc,
+                                                                callback: (text) => {
+                                                                },
+                                                                default: (vm.data.invoice_data.original_data.Print == "1")?"Y":"N",
+                                                                readonly: true,
+                                                                options: [{key: "Y", value: "Y"}, {key: "N", value: "N"}],
+                                                                style: `margin: 8px 0;`
+                                                            })}
+                                                    </div>`,
+                                                            `<div class="w-100">
                                                         <div>課稅別</div>
                                                         ${BgWidget.select({
+                                                                gvc: gvc,
+                                                                callback: (text) => {
+                                                                    // viewModel.invoiceData.getPaper = text;
+                                                                },
+                                                                default: "應稅",
+                                                                readonly: true,
+                                                                options: [{key: "應稅", value: "應稅"}],
+                                                                style: `margin: 8px 0;`
+                                                            })}
+                                                    </div>`,
+                                                        BgWidget.editeInput({
                                                             gvc: gvc,
-                                                            callback: (text) => {
-                                                                // viewModel.invoiceData.getPaper = text;
-                                                            },
-                                                            default: "應稅",
+                                                            title: '稅率(預設5)',
+                                                            default: "5",
+                                                            placeHolder: '請輸入稅率',
                                                             readonly: true,
-                                                            options: [{key: "應稅", value: "應稅"}],
-                                                            style: `margin: 8px 0;`
-                                                        })}
-                                                    </div>
-                                                </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '稅率(預設5)',
-                                                        default: "5",
-                                                        placeHolder: '請輸入稅率',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;color:#393939'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '稅額',
-                                                        default: `${tax}` ?? "0",
-                                                        placeHolder: '請輸入稅額',
-                                                        readonly: true,
-                                                        callback: (data) => {
+                                                            callback: (data) => {
+                                                            },
+                                                            divStyle: 'color:#393939'
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '稅額',
+                                                            default: `${tax}` ?? "0",
+                                                            placeHolder: '請輸入稅額',
+                                                            readonly: true,
+                                                            callback: (data) => {
 
-                                                        },
-                                                        divStyle: 'width:50%;color:#393939'
-                                                    })}
+                                                            },
+                                                            divStyle: 'color:#393939'
+                                                        })  ,
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '銷售額',
+                                                            default: `${sale}` ?? "0",
+                                                            placeHolder: '請輸入銷售額',
+                                                            readonly: true,
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '總金額',
+                                                            default: `${orderData.orderData.total}` ?? "",
+                                                            placeHolder: '請輸入總金額',
+                                                            readonly: true,
+                                                            callback: (data) => {
+                                                            },
+                                                            
+                                                        })
+                                                    ].filter((dd)=>{
+                                                        return dd
+                                                    }).map((dd)=>{
+                                                        return `<div class="col-6">${dd}</div>`
+                                                    }).join('')}
                                                 </div>
-                                                <div class="w-100"
-                                                     style="display: flex;align-items: flex-start;gap: 18px;">
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '銷售額',
-                                                        default: `${sale}` ?? "0",
-                                                        placeHolder: '請輸入銷售額',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '總金額',
-                                                        default: `${orderData.orderData.total}` ?? "",
-                                                        placeHolder: '請輸入總金額',
-                                                        readonly: true,
-                                                        callback: (data) => {
-                                                        },
-                                                        divStyle: 'width:50%;'
-                                                    })}
-                                                </div>
+                                                
+                                                
                                             </div>
                                         `), html`
                                             <div style="margin-top: 24px;"></div>`
@@ -1469,7 +1475,7 @@ export class ShoppingInvoiceManager {
 
     public static createOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: '1729852608721',
+            searchOrder: '',
             searchData: '',
             errorReport: '',
             invoiceData: {

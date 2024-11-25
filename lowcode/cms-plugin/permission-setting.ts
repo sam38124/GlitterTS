@@ -974,6 +974,8 @@ export class PermissionSetting {
             },
         });
     }
+
+
 }
 
 (window as any).glitter.setModule(import.meta.url, PermissionSetting);

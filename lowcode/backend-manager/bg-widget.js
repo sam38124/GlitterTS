@@ -17,6 +17,7 @@ import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
 const html = String.raw;
+const css = String.raw;
 export class BgWidget {
     static title(title, style = '') {
         return html ` <h3 class="tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
@@ -2674,7 +2675,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 class="bg-white shadow ${document.body.clientWidth < 800 ? `` : `rounded-3`}"
                 style="overflow-y: auto; width: calc(100% - ${document.body.clientWidth > 768 ? 70 : 0}px); ${document.body.clientWidth > 768
                 ? `height: calc(100% - 70px);`
-                : `height:${window.parent.innerHeight}px;`};padding-top:${gvc.glitter.share.top_inset || 0}px;"
+                : `height:${window.parent.innerHeight}px;padding-top:${gvc.glitter.share.top_inset || 0}px;`}"
             >
                 ${gvc.bindView({
                 bind: vm.id,
@@ -2800,7 +2801,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             min-width: ${obj.width}px;
             min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
             max-width: ${obj.width}px;
-            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; */
+            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
             width: 100%;
             height: 100%;
             object-fit: cover;

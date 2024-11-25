@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoSendEmail = void 0;
 const user_js_1 = require("../services/user.js");
 const mail_js_1 = require("../services/mail.js");
+const app_js_1 = require("../../services/app.js");
 class AutoSendEmail {
     static async getDefCompare(app, tag) {
         var _a;
@@ -494,11 +495,12 @@ class AutoSendEmail {
     }
     static async customerOrder(app, tag, order_id, email) {
         const customerMail = await this.getDefCompare(app, tag);
+        const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
         if (customerMail.toggle) {
             await new mail_js_1.Mail(app).postMail({
                 name: customerMail.name,
-                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
+                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
                 email: [email],
                 type: tag,
             });

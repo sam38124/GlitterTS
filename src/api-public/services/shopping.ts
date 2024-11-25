@@ -4000,7 +4000,7 @@ export class Shopping {
         let pass2 = {
             "MerchantID": config.merchNO,
             "InvoiceNo": obj.invoiceID,
-            "AllowanceNo":"TZ90991707",
+            "AllowanceNo":"",
             "Reason":"error"
         }
         await EcInvoice.allowanceInvoice({
