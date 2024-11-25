@@ -14,7 +14,7 @@ export class BgProduct {
                 title: '選擇商品',
                 select_data: add_items,
                 select_mode: true,
-                filter_variants: obj.filter_variants
+                filter_variants: obj.filter_variants,
             }, 'hidden')}
                     </div>
                     <div class="c_dialog_bar">
@@ -34,6 +34,7 @@ export class BgProduct {
         return obj.gvc.glitter.innerDialog((gvc) => {
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
+                ids: [],
                 loading: true,
                 checkClass: BgWidget.getCheckedClass(gvc),
                 def: JSON.parse(JSON.stringify(obj.default)),
@@ -47,7 +48,7 @@ export class BgProduct {
                 view: () => {
                     var _a;
                     if (vm.loading) {
-                        return BgWidget.spinner();
+                        return html `<div class="my-5">${BgWidget.spinner()}</div>`;
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -81,16 +82,39 @@ export class BgProduct {
                         options: FilterOptions.productOrderBy,
                     })}
                                         </div>
-                                        ${obj.gvc.map(vm.options.filter((dd) => {
-                        return (!obj.filter) || (obj.filter(dd));
-                    }).map((opt, index) => {
+                                        ${obj.gvc.map(vm.options
+                        .filter((dd) => {
+                        return !obj.filter || obj.filter(dd);
+                    })
+                        .map((opt, index) => {
                         const id = gvc.glitter.getUUID();
+                        vm.ids.push({
+                            key: opt.key,
+                            id: id,
+                        });
                         function call() {
-                            if (obj.default.includes(opt.key)) {
-                                obj.default = obj.default.filter((item) => item !== opt.key);
+                            if (obj.single) {
+                                const tempArray = JSON.parse(JSON.stringify(obj.default));
+                                const tempKey = tempArray[0];
+                                obj.default = [];
+                                vm.ids
+                                    .filter((item) => {
+                                    return tempArray.includes(item.key);
+                                })
+                                    .map((item) => {
+                                    gvc.notifyDataChange(item.id);
+                                });
+                                if (tempKey !== opt.key) {
+                                    obj.default = [opt.key];
+                                }
                             }
                             else {
-                                obj.default.push(opt.key);
+                                if (obj.default.includes(opt.key)) {
+                                    obj.default = obj.default.filter((item) => item !== opt.key);
+                                }
+                                else {
+                                    obj.default.push(opt.key);
+                                }
                             }
                             gvc.notifyDataChange(id);
                         }
@@ -99,22 +123,25 @@ export class BgProduct {
                                 bind: id,
                                 view: () => {
                                     return html `<input
-                                                                    class="form-check-input mt-0 ${vm.checkClass}"
-                                                                    type="checkbox"
-                                                                    id="${opt.key}"
-                                                                    name="radio_${vm.id}_${index}"
-                                                                    onclick="${obj.gvc.event(() => call())}"
-                                                                    ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                                />
-                                                                <div class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3" onclick="${obj.gvc.event(() => call())}">
-                                                                    ${BgWidget.validImageBox({
+                                                                        class="form-check-input mt-0 ${vm.checkClass}"
+                                                                        type="checkbox"
+                                                                        id="${opt.key}"
+                                                                        name="radio_${vm.id}_${index}"
+                                                                        onclick="${obj.gvc.event(() => call())}"
+                                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                    />
+                                                                    <div
+                                                                        class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
+                                                                        onclick="${obj.gvc.event(() => call())}"
+                                                                    >
+                                                                        ${BgWidget.validImageBox({
                                         gvc: gvc,
                                         image: opt.image,
                                         width: 40,
                                     })}
-                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                    ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                </div>`;
+                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                    </div>`;
                                 },
                                 divCreate: {
                                     class: `d-flex align-items-center`,
@@ -159,10 +186,11 @@ export class BgProduct {
                                         return '';
                                 }
                             })(),
-                            productType: obj.productType
+                            productType: obj.productType,
                         }).then((data) => {
                             vm.options = data.response.data.map((product) => {
                                 var _a;
+                                console.log(product.content);
                                 return {
                                     key: product.content.id,
                                     value: product.content.title,
