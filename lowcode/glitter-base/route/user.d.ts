@@ -47,6 +47,10 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
+    static setSaasUserData(json: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static getUsersData(userID: string): Promise<{
         result: boolean;
         response: any;
@@ -55,11 +59,23 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
+    static getUsersDataWithEmailOrPhone(search_s: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static subScribe(email: string, tag: string): Promise<{
         result: boolean;
         response: any;
     }>;
-    static registerFCM(userID: string, deviceToken: string): Promise<{
+    static emailVerify(email: string, app_name?: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static phoneVerify(phone_number: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static registerFCM(userID: string, deviceToken: string, app_name?: string): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -135,7 +151,10 @@ export declare class ApiUser {
         };
     }>;
     static deleteUser(json: {
-        id: string;
+        id?: string;
+        email?: string;
+        code?: string;
+        app_name?: string;
     }): Promise<{
         result: boolean;
         response: any;
@@ -176,9 +195,10 @@ export declare class ApiUser {
         app_name?: string;
         account?: string;
         pwd?: string;
-        login_type?: 'fb' | 'normal' | 'line' | 'google';
+        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple';
         google_token?: string;
         fb_token?: string;
+        token?: string;
         line_token?: string;
         redirect?: string;
     }): Promise<{
@@ -201,7 +221,7 @@ export declare class ApiUser {
         result: boolean;
         response: any;
     }>;
-    static getPublicConfig(key: string, user_id: string): Promise<{
+    static getPublicConfig(key: string, user_id: string, appName?: string): Promise<{
         result: boolean;
         response: any;
     }>;

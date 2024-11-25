@@ -1,30 +1,33 @@
-import { GlobalUser } from '../global/global-user.js';
-import { BaseApi } from '../../glitterBundle/api/base.js';
-export class ApiShop {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApiShop = void 0;
+const global_user_js_1 = require("../global/global-user.js");
+const base_js_1 = require("../../glitterBundle/api/base.js");
+class ApiShop {
     static getGuideable() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guideable`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static getFEGuideable() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=FEguideable`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static setGuideable(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -41,7 +44,7 @@ export class ApiShop {
         });
     }
     static setFEGuideable(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -58,18 +61,18 @@ export class ApiShop {
         });
     }
     static getGuide() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guide`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static setGuide(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -84,18 +87,18 @@ export class ApiShop {
         });
     }
     static getEditorGuide() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=editorGuide`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static setEditorGuide(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -110,18 +113,18 @@ export class ApiShop {
         });
     }
     static getFEGuideLeave() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=FEGuideLeave`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static setFEGuideLeave() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -138,7 +141,7 @@ export class ApiShop {
         });
     }
     static postProduct(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
             type: 'POST',
             headers: {
@@ -150,7 +153,7 @@ export class ApiShop {
         });
     }
     static postMultiProduct(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/multiple`,
             type: 'POST',
             headers: {
@@ -162,7 +165,7 @@ export class ApiShop {
         });
     }
     static putProduct(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
             type: 'PUT',
             headers: {
@@ -174,7 +177,7 @@ export class ApiShop {
         });
     }
     static putCollections(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection`,
             type: 'PUT',
             headers: {
@@ -186,7 +189,7 @@ export class ApiShop {
         });
     }
     static sortCollections(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection/sort`,
             type: 'PUT',
             headers: {
@@ -198,7 +201,7 @@ export class ApiShop {
         });
     }
     static deleteCollections(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection`,
             type: 'DELETE',
             headers: {
@@ -210,7 +213,7 @@ export class ApiShop {
         });
     }
     static getRebate(query) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/rebate/sum?${(() => {
                     let par = [];
@@ -221,29 +224,29 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: !query.userID ? GlobalUser.token : getConfig().config.token,
+                Authorization: !query.userID ? global_user_js_1.GlobalUser.token : getConfig().config.token,
             },
         });
     }
     static getPaymentMethod(query) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/payment/method`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: !query.userID ? GlobalUser.token : getConfig().config.token,
+                Authorization: !query.userID ? global_user_js_1.GlobalUser.token : getConfig().config.token,
             },
         });
     }
     static postWishList(wishList) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify({
                 product_id: wishList,
@@ -251,13 +254,13 @@ export class ApiShop {
         });
     }
     static deleteWishList(wishList) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist`,
             type: 'delete',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify({
                 product_id: wishList,
@@ -265,29 +268,29 @@ export class ApiShop {
         });
     }
     static getWishList() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist?page=0&limit=200`,
             type: 'get',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static checkWishList(product_id) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkWishList?product_id=${product_id}`,
             type: 'get',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static getProduct(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/product?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -315,7 +318,7 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || (window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName)),
-                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || global_user_js_1.GlobalUser.token,
             },
         });
     }
@@ -395,7 +398,7 @@ export class ApiShop {
     }
     static getOrder(json) {
         const filterString = this.orderListFilterString(json.filter);
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/order?${(() => {
                     var _a;
@@ -419,13 +422,13 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: json.data_from === 'user' ? GlobalUser.token : getConfig().config.token,
+                Authorization: json.data_from === 'user' ? global_user_js_1.GlobalUser.token : getConfig().config.token,
             },
         });
     }
     static getSearchReturnOrder(json) {
         const filterString = this.returnOrderListFilterString(json.filter);
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/returnOrder?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -443,23 +446,23 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: json.data_from === 'user' ? GlobalUser.token : getConfig().config.token,
+                Authorization: json.data_from === 'user' ? global_user_js_1.GlobalUser.token : getConfig().config.token,
             },
         });
     }
     static searchOrderExist(orderId) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/search`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
         });
     }
     static getVoucher(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/voucher?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -472,12 +475,12 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: json.data_from === 'user' ? GlobalUser.token : getConfig().config.token,
+                Authorization: json.data_from === 'user' ? global_user_js_1.GlobalUser.token : getConfig().config.token,
             },
         });
     }
     static putOrder(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order`,
             type: 'PUT',
             headers: {
@@ -489,7 +492,7 @@ export class ApiShop {
         });
     }
     static delete(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product?id=${json.id}`,
             type: 'DELETE',
             headers: {
@@ -500,7 +503,7 @@ export class ApiShop {
         });
     }
     static deleteOrders(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order`,
             type: 'DELETE',
             headers: {
@@ -512,7 +515,7 @@ export class ApiShop {
         });
     }
     static deleteVoucher(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/voucher?id=${json.id}`,
             type: 'DELETE',
             headers: {
@@ -523,7 +526,7 @@ export class ApiShop {
         });
     }
     static setCollection(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -546,7 +549,7 @@ export class ApiShop {
                 resolve(config[`collection-manager`]);
                 return;
             }
-            BaseApi.create({
+            base_js_1.BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/manager/config?key=collection`,
                 type: 'GET',
                 headers: {
@@ -562,7 +565,7 @@ export class ApiShop {
     static getInvoice(json) {
         console.log("json.filter -- ", json);
         let filterString = this.invoiceListFilterString(json.filter);
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/invoice?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -583,7 +586,7 @@ export class ApiShop {
     }
     static getAllowance(json) {
         let filterString = this.allowanceListFilterString(json.filter);
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/invoice/allowance?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -603,7 +606,7 @@ export class ApiShop {
         });
     }
     static getInvoiceType() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/invoice/invoice-type`,
             type: 'GET',
             headers: {
@@ -613,7 +616,7 @@ export class ApiShop {
         });
     }
     static getLoginForOrder() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/check-login-for-order`,
             type: 'GET',
             headers: {
@@ -623,7 +626,7 @@ export class ApiShop {
         });
     }
     static setShowList(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
             headers: {
@@ -638,7 +641,7 @@ export class ApiShop {
         });
     }
     static getShowList() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=product_show_list`,
             type: 'GET',
             headers: {
@@ -648,31 +651,31 @@ export class ApiShop {
         });
     }
     static toCheckout(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify(json),
         });
     }
     static getCheckout(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify(json),
         });
     }
     static getManualCheckout(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/preview`,
             type: 'POST',
             headers: {
@@ -684,7 +687,7 @@ export class ApiShop {
         });
     }
     static toManualCheckout(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/`,
             type: 'POST',
             headers: {
@@ -696,7 +699,7 @@ export class ApiShop {
         });
     }
     static toPOSCheckout(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/pos/checkout/`,
             type: 'POST',
             headers: {
@@ -708,7 +711,7 @@ export class ApiShop {
         });
     }
     static toPOSLinePay(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/pos/linePay`,
             type: 'POST',
             headers: {
@@ -720,7 +723,7 @@ export class ApiShop {
         });
     }
     static getOrderPaymentMethod() {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/payment-method`,
             type: 'GET',
             headers: {
@@ -731,7 +734,7 @@ export class ApiShop {
         });
     }
     static proofPurchase(order_id, text) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/proof-purchase`,
             type: 'PUT',
             headers: {
@@ -746,7 +749,7 @@ export class ApiShop {
         });
     }
     static repay(order_id, return_url) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/repay`,
             type: 'POST',
             headers: {
@@ -761,7 +764,7 @@ export class ApiShop {
         });
     }
     static app_subscription(receipt, app_name) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
             type: 'POST',
             headers: {
@@ -778,7 +781,7 @@ export class ApiShop {
         });
     }
     static ecDataAnalyze(tagArray) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,
             type: 'GET',
             headers: {
@@ -803,7 +806,7 @@ export class ApiShop {
         ];
     }
     static getVariants(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/product/variants?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -829,7 +832,7 @@ export class ApiShop {
         });
     }
     static putVariants(cf) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/variants`,
             type: 'PUT',
             headers: {
@@ -841,7 +844,7 @@ export class ApiShop {
         });
     }
     static postReturnOrder(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,
             type: 'POST',
             headers: {
@@ -853,7 +856,7 @@ export class ApiShop {
         });
     }
     static putReturnOrder(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,
             type: 'PUT',
             headers: {
@@ -865,7 +868,7 @@ export class ApiShop {
         });
     }
     static postInvoice(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/customer_invoice`,
             type: 'POST',
             headers: {
@@ -882,7 +885,7 @@ export class ApiShop {
             voidReason: voidReason,
             createDate: createDate
         };
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_invoice`,
             type: 'POST',
             headers: {
@@ -894,7 +897,7 @@ export class ApiShop {
         });
     }
     static postAllowance(passData) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/allowance_invoice`,
             type: 'POST',
             headers: {
@@ -911,7 +914,7 @@ export class ApiShop {
             allowanceNo: allowanceNo,
             voidReason: voidReason,
         };
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_allowance`,
             type: 'POST',
             headers: {
@@ -923,6 +926,7 @@ export class ApiShop {
         });
     }
 }
+exports.ApiShop = ApiShop;
 ApiShop.rebateID = 'asko323';
 ApiShop.voucherID = 'voucxasw';
 ApiShop.cartID = 'lemnoas';
@@ -939,3 +943,4 @@ const interVal = setInterval(() => {
         window.glitter.share.ApiShop = ApiShop;
     }
 }, 100);
+//# sourceMappingURL=shopping.js.map

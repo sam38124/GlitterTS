@@ -24,9 +24,9 @@ export class GlitterUtil {
     }
 
     public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
-        sitemap_test: (req: express.Request, resp: express.Response) => Promise<string>
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>
-        robots:(req: express.Request, resp: express.Response) => Promise<string>
+        robots:(req: express.Request, resp: express.Response) => Promise<string>,
+        tw_shop:(req: express.Request, resp: express.Response) => Promise<string>
     }[]) {
         for (const dd of rout) {
             express.use(dd.rout, async (req: express.Request, resp: express.Response, next) => {
@@ -39,13 +39,13 @@ export class GlitterUtil {
                     }
                 })()
 
-                if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_test.xml'){
-                    resp.set('Content-Type', 'application/xml');
-                    return resp.send(await dd.sitemap_test(req, resp))
-                }else if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt'){
+                 if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt'){
                     resp.set('Content-Type', 'plan/text');
                     return resp.send(await dd.robots(req, resp))
-                }else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                }else  if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'twshop.xml'){
+                     resp.set('Content-Type', 'plan/text');
+                     return resp.send(await dd.tw_shop(req, resp))
+                 }else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
                     resp.set('Content-Type', 'application/xml');
                     return resp.send(await dd.sitemap(req, resp))
                 } else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_detail.xml') {

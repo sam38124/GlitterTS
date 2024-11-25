@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiShop } from "../glitter-base/route/shopping.js";
 export class MarketAmerica {
     static main(gvc) {
         return (BgWidget.container(gvc.bindView(() => {
@@ -36,10 +37,11 @@ export class MarketAmerica {
                     }
                     const html = String.raw;
                     return [
-                        html `<div class="title-container">
-                                    ${BgWidget.title('美安串接')}
-                                    <div class="flex-fill"></div>
-                                </div>`,
+                        html `
+                                    <div class="title-container">
+                                        ${BgWidget.title('美安串接')}
+                                        <div class="flex-fill"></div>
+                                    </div>`,
                         BgWidget.mbContainer(18),
                         BgWidget.mainCard(html `
                                     <div class="d-flex flex-column" style="gap:12px;">
@@ -49,10 +51,13 @@ export class MarketAmerica {
                                 `),
                         BgWidget.mbContainer(18),
                         BgWidget.container(BgWidget.mainCard([
-                            html `<div class="tx_700">串接綁定</div>`,
+                            html `
+                                                <div class="tx_700">串接綁定</div>`,
                             BgWidget.editeInput({
                                 gvc: gvc,
-                                title: html `<div class="d-flex align-items-center" style="gap:10px;">Offer ID</div>`,
+                                title: html `
+                                                    <div class="d-flex align-items-center" style="gap:10px;">Offer ID
+                                                    </div>`,
                                 default: vm.data.offer_ID,
                                 placeHolder: '請填入Offer ID',
                                 callback: (text) => {
@@ -61,7 +66,10 @@ export class MarketAmerica {
                             }),
                             BgWidget.editeInput({
                                 gvc: gvc,
-                                title: html `<div class="d-flex align-items-center" style="gap:10px;">Advertiser ID</div>`,
+                                title: html `
+                                                    <div class="d-flex align-items-center" style="gap:10px;">Advertiser
+                                                        ID
+                                                    </div>`,
                                 default: vm.data.advertiser_ID,
                                 placeHolder: '請填入Advertiser ID',
                                 callback: (text) => {
@@ -70,7 +78,70 @@ export class MarketAmerica {
                             }),
                             BgWidget.editeInput({
                                 gvc: gvc,
-                                title: html `<div class="d-flex align-items-center" style="gap:10px;">佣金%數</div>`,
+                                title: html `
+                                                    <div class="d-flex align-items-center" style="gap:10px;">佣金%數
+                                                    </div>`,
+                                default: vm.data.commission,
+                                type: 'number',
+                                placeHolder: '請填入佣金%數',
+                                callback: (text) => {
+                                    vm.data.commission = text;
+                                },
+                            }),
+                            html `
+                                                <div
+                                                        onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                const appData = (yield ApiUser.getPublicConfig('store-information', 'manager')).response.value;
+                                ApiShop.getProduct({
+                                    page: 0,
+                                    limit: 1000,
+                                    search: '',
+                                }).then((data) => {
+                                    let printData = data.response.data.map((product) => {
+                                        return product.content.variants.map((variant) => {
+                                            var _a, _b;
+                                            return html `
+                                                                        <Product>
+                                                                            <SKU>${variant.sku}</SKU>
+                                                                            <Name>${product.content.title}</Name>
+                                                                            <Description>${appData.shop_name} - ${product.content.title}</Description>
+                                                                            <URL>
+                                                                                ${`https://` + window.parent.glitter.share.editorViewModel.domain + '/products/' + product.content.title}
+                                                                            </URL>
+                                                                            <Price>${(_a = variant.compare_price) !== null && _a !== void 0 ? _a : variant.sale_price}</Price>
+                                                                            <LargeImage>
+                                                                                ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ""}
+                                                                            </LargeImage>
+                                                                            <SalePrice>${variant.sale_price}</SalePrice>
+                                                                            <Category>${product.content.collection.join('')}</Category>
+                                                                        </Product>
+                                                                    `;
+                                        }).join('');
+                                    }).join('');
+                                    console.log("printData -- ", printData);
+                                });
+                            }))}"
+                                                >
+                                                    ${BgWidget.editeInput({
+                                readonly: true,
+                                gvc: gvc,
+                                title: html `
+                                                            <div class="d-flex flex-column" style="gap:5px;">
+                                                                產品資料XML
+                                                            </div>`,
+                                default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/tw_shop',
+                                placeHolder: '',
+                                callback: (text) => {
+                                },
+                            })}
+                                                </div>`,
+                            BgWidget.editeInput({
+                                gvc: gvc,
+                                title: html `
+                                                    <div class="d-flex align-items-center" style="gap:10px;">
+                                                        產品資料xml
+                                                    </div>`,
                                 default: vm.data.commission,
                                 type: 'number',
                                 placeHolder: '請填入佣金%數',
@@ -79,8 +150,9 @@ export class MarketAmerica {
                                 },
                             }),
                         ].join(BgWidget.mbContainer(12)))),
-                        html `<div class="update-bar-container">
-                                    ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                        html `
+                                    <div class="update-bar-container">
+                                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ visible: true });
                             ApiUser.setPublicConfig({
@@ -93,7 +165,7 @@ export class MarketAmerica {
                                 gvc.closeDialog();
                             });
                         })))}
-                                </div>`,
+                                    </div>`,
                     ].join('');
                 },
             };

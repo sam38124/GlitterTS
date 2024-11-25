@@ -1,19 +1,13 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-import { BaseApi } from '../../glitterBundle/api/base.js';
-import { GlobalUser } from '../global/global-user.js';
-import { ApiShop } from './shopping.js';
-export class ApiUser {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApiUser = void 0;
+const base_js_1 = require("../../glitterBundle/api/base.js");
+const global_user_js_1 = require("../global/global-user.js");
+const shopping_js_1 = require("./shopping.js");
+class ApiUser {
     constructor() { }
     static register(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
             type: 'POST',
             headers: {
@@ -24,7 +18,7 @@ export class ApiUser {
         });
     }
     static quickRegister(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/manager/register`,
             type: 'POST',
             headers: {
@@ -37,7 +31,7 @@ export class ApiUser {
     }
     static getNotice(cf) {
         if (window.glitter.getUrlParameter('cms') === 'true') {
-            return BaseApi.create({
+            return base_js_1.BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
                 type: 'GET',
                 headers: {
@@ -48,30 +42,30 @@ export class ApiUser {
             });
         }
         else {
-            return BaseApi.create({
+            return base_js_1.BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
                 type: 'GET',
                 headers: {
                     'g-app': getConfig().config.appName,
                     'Content-Type': 'application/json',
-                    Authorization: GlobalUser.userToken,
+                    Authorization: global_user_js_1.GlobalUser.userToken,
                 },
             });
         }
     }
     static getNoticeUnread(appName, token) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
             type: 'GET',
             headers: {
                 'g-app': appName || getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: token || GlobalUser.userToken,
+                Authorization: token || global_user_js_1.GlobalUser.userToken,
             },
         });
     }
     static getUserData(token, type) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
             type: 'GET',
             headers: {
@@ -82,7 +76,7 @@ export class ApiUser {
         });
     }
     static getUserLevel(token, user_id) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/level?id=${user_id}`,
             type: 'GET',
             headers: {
@@ -93,7 +87,7 @@ export class ApiUser {
         });
     }
     static getLevelConfig(token) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/level/config`,
             type: 'GET',
             headers: {
@@ -104,7 +98,7 @@ export class ApiUser {
         });
     }
     static getEmailCount(email) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
             type: 'GET',
             headers: {
@@ -114,7 +108,7 @@ export class ApiUser {
         });
     }
     static getSaasUserData(token, type) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
             type: 'GET',
             headers: {
@@ -125,13 +119,13 @@ export class ApiUser {
         });
     }
     static setSaasUserData(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'PUT',
             headers: {
                 'g-app': window.glitterBase,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.saas_token,
+                Authorization: global_user_js_1.GlobalUser.saas_token,
             },
             data: JSON.stringify({
                 userData: json,
@@ -139,40 +133,40 @@ export class ApiUser {
         });
     }
     static getUsersData(userID) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: getConfig().config.token || GlobalUser.token,
+                Authorization: getConfig().config.token || global_user_js_1.GlobalUser.token,
             },
         });
     }
     static getUsersDataWithEmail(email) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?email=${email}&type=account`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: getConfig().config.token || GlobalUser.token,
+                Authorization: getConfig().config.token || global_user_js_1.GlobalUser.token,
             },
         });
     }
     static getUsersDataWithEmailOrPhone(search_s) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?search=${search_s}&type=email_or_phone`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: getConfig().config.token || GlobalUser.token,
+                Authorization: getConfig().config.token || global_user_js_1.GlobalUser.token,
             },
         });
     }
     static subScribe(email, tag) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/subscribe`,
             type: 'POST',
             headers: {
@@ -186,7 +180,7 @@ export class ApiUser {
         });
     }
     static emailVerify(email, app_name) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/email-verify`,
             type: 'POST',
             headers: {
@@ -199,7 +193,7 @@ export class ApiUser {
         });
     }
     static phoneVerify(phone_number) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
             type: 'POST',
             headers: {
@@ -212,7 +206,7 @@ export class ApiUser {
         });
     }
     static registerFCM(userID, deviceToken, app_name) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/fcm`,
             type: 'POST',
             headers: {
@@ -226,7 +220,7 @@ export class ApiUser {
         });
     }
     static getFCM(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user/fcm?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -254,7 +248,7 @@ export class ApiUser {
         return list;
     }
     static getSubScribe(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user/subscribe?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -272,7 +266,7 @@ export class ApiUser {
         });
     }
     static getSubScribeMailSettingList(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user/subscribe?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
@@ -289,7 +283,7 @@ export class ApiUser {
         });
     }
     static deleteSubscribe(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/subscribe`,
             type: 'DELETE',
             headers: {
@@ -301,7 +295,7 @@ export class ApiUser {
         });
     }
     static getUserList(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
@@ -354,7 +348,7 @@ export class ApiUser {
     static getUserListOrders(json) {
         const filterString = this.userListFilterString(json.filter);
         const groupString = this.userListGroupString(json.group);
-        const userData = BaseApi.create({
+        const userData = base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
@@ -373,7 +367,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-        }).then((data) => __awaiter(this, void 0, void 0, function* () {
+        }).then(async (data) => {
             if (!data.result) {
                 return {
                     response: {
@@ -384,7 +378,7 @@ export class ApiUser {
             }
             const array = data.response.data;
             if (array.length > 0) {
-                yield new Promise((resolve, reject) => {
+                await new Promise((resolve, reject) => {
                     let pass = 0;
                     function checkPass() {
                         pass++;
@@ -407,7 +401,7 @@ export class ApiUser {
                                     });
                                 }),
                                 new Promise((resolve) => {
-                                    ApiShop.getOrder({
+                                    shopping_js_1.ApiShop.getOrder({
                                         page: 0,
                                         limit: 99999,
                                         data_from: 'manager',
@@ -445,11 +439,11 @@ export class ApiUser {
                     extra: data.response.extra,
                 },
             };
-        }));
+        });
         return userData;
     }
     static deleteUser(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'DELETE',
             headers: {
@@ -461,7 +455,7 @@ export class ApiUser {
         });
     }
     static getPublicUserData(id) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/userdata?userID=${id}`,
             type: 'GET',
             headers: {
@@ -472,7 +466,7 @@ export class ApiUser {
     }
     static forgetPwd(email) {
         const href = new URL('./index.html', location.href);
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/forget`,
             type: 'POST',
             headers: {
@@ -486,7 +480,7 @@ export class ApiUser {
         });
     }
     static forgetPwdCheckCode(email, code) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/forget/check-code`,
             type: 'POST',
             headers: {
@@ -500,7 +494,7 @@ export class ApiUser {
         });
     }
     static resetPwdV2(email, code, pwd) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/reset/pwd`,
             type: 'PUT',
             headers: {
@@ -515,13 +509,13 @@ export class ApiUser {
         });
     }
     static resetPwd(pwd) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/resetPwd`,
             type: 'PUT',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify({
                 pwd: pwd,
@@ -529,13 +523,13 @@ export class ApiUser {
         });
     }
     static resetPwdCheck(oldPwd, pwd) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/resetPwdNeedCheck`,
             type: 'PUT',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify({
                 pwd: pwd,
@@ -544,13 +538,13 @@ export class ApiUser {
         });
     }
     static updateUserData(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user`,
             type: 'PUT',
             headers: {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.token,
+                Authorization: global_user_js_1.GlobalUser.token,
             },
             data: JSON.stringify({
                 userData: json,
@@ -558,7 +552,7 @@ export class ApiUser {
         });
     }
     static updateUserDataManager(json, userID) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?userID=${userID}`,
             type: 'PUT',
             headers: {
@@ -572,7 +566,7 @@ export class ApiUser {
         });
     }
     static login(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/login`,
             type: 'POST',
             headers: {
@@ -583,7 +577,7 @@ export class ApiUser {
         });
     }
     static checkAdminAuth(cg) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/check-admin-auth`,
             type: 'GET',
             headers: {
@@ -598,13 +592,13 @@ export class ApiUser {
         window.glitter.share._public_config = (_a = window.glitter.share._public_config) !== null && _a !== void 0 ? _a : {};
         const config = window.glitter.share._public_config;
         config[cf.key + cf.user_id] = undefined;
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/public/config`,
             type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: cf.token || (cf.user_id ? getConfig().config.token : GlobalUser.token),
+                Authorization: cf.token || (cf.user_id ? getConfig().config.token : global_user_js_1.GlobalUser.token),
             },
             data: JSON.stringify({
                 key: cf.key,
@@ -622,7 +616,7 @@ export class ApiUser {
                 resolve(config[key + user_id]);
                 return;
             }
-            BaseApi.create({
+            base_js_1.BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
                 type: 'GET',
                 headers: {
@@ -647,7 +641,7 @@ export class ApiUser {
         });
     }
     static getUserGroupList(type, tag) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/group?type=${type !== null && type !== void 0 ? type : ''}&tag=${tag !== null && tag !== void 0 ? tag : ''}`,
             type: 'GET',
             headers: {
@@ -658,7 +652,7 @@ export class ApiUser {
         });
     }
     static getUserRebate(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/rebate?type=user&${(() => {
                     let par = [];
@@ -686,7 +680,7 @@ export class ApiUser {
         return list;
     }
     static getPermission(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user/permission?page=${json.page}&limit=${json.limit}&${(() => {
                     let par = [];
@@ -708,7 +702,7 @@ export class ApiUser {
         });
     }
     static setPermission(json) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/permission`,
             type: 'POST',
             headers: {
@@ -720,7 +714,7 @@ export class ApiUser {
         });
     }
     static deletePermission(email) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/permission`,
             type: 'DELETE',
             headers: {
@@ -732,7 +726,7 @@ export class ApiUser {
         });
     }
     static togglePermissionStatus(email) {
-        return BaseApi.create({
+        return base_js_1.BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/permission/status`,
             type: 'PUT',
             headers: {
@@ -744,6 +738,7 @@ export class ApiUser {
         });
     }
 }
+exports.ApiUser = ApiUser;
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
@@ -751,3 +746,4 @@ function getConfig() {
 function getBaseUrl() {
     return getConfig().config.url;
 }
+//# sourceMappingURL=user.js.map

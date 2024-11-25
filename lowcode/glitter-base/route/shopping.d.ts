@@ -3,7 +3,15 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static getFEGuideable(): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static setGuideable(json: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static setFEGuideable(json: any): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -20,6 +28,14 @@ export declare class ApiShop {
         response: any;
     }>;
     static setEditorGuide(json: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getFEGuideLeave(): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static setFEGuideLeave(): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -98,6 +114,7 @@ export declare class ApiShop {
         page: number;
         search?: string;
         searchType?: string;
+        domain?: string;
         id?: string;
         collection?: string;
         accurate_search_collection?: boolean;
@@ -109,17 +126,22 @@ export declare class ApiShop {
         id_list?: string;
         with_hide_index?: string;
         productType?: string;
+        filter_visible?: string;
+        app_name?: string;
     }): Promise<{
         result: boolean;
         response: any;
     }>;
     static orderListFilterString(obj: any): string[];
     static returnOrderListFilterString(obj: any): string[];
+    static invoiceListFilterString(obj: any): string[];
+    static allowanceListFilterString(obj: any): string[];
     static getOrder(json: {
         limit: number;
         page: number;
         search?: string;
         email?: string;
+        phone?: number;
         searchType?: string;
         id?: string;
         data_from?: 'user' | 'manager';
@@ -197,6 +219,28 @@ export declare class ApiShop {
         response: any;
     }>;
     static getCollection(): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getInvoice(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getAllowance(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+    }): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -299,6 +343,10 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
+    static app_subscription(receipt: string, app_name: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
     static rebateID: string;
     static voucherID: string;
     static cartID: string;
@@ -329,6 +377,7 @@ export declare class ApiShop {
             key: string;
             value: string;
         };
+        productType?: 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all';
     }): Promise<{
         result: boolean;
         response: any;
@@ -345,6 +394,22 @@ export declare class ApiShop {
         response: any;
     }>;
     static putReturnOrder(passData: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static postInvoice(passData: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static voidInvoice(invoiceNo: string, voidReason: string, createDate: string): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static postAllowance(passData: any): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static voidAllowance(invoiceNo: string, allowanceNo: string, voidReason: string): Promise<{
         result: boolean;
         response: any;
     }>;

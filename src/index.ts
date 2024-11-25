@@ -616,11 +616,26 @@ export async function createAPP(dd: any) {
                 )[0]['domain'];
                 return html`# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
-            sitemap_test: async (req, resp) => {
+            tw_shop:async (req,resp)=>{
                 let appName = dd.appName;
+                const escapeHtml = (text: string): string => {
+                    const map: Record<string, string> = {
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#039;",
+                    };
+                    return text.replace(/[&<>"']/g, (m) => map[m] || m);
+                };
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
+                const products = await db.query(
+                    `SELECT * FROM \`${dd.appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
+                `,
+                    []
+                );
                 const domain = (
                     await db.query(
                         `select \`domain\`
@@ -629,20 +644,32 @@ export async function createAPP(dd: any) {
                         [appName]
                     )
                 )[0]['domain'];
-                return `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset
-                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-                        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd"
-                        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                    >
-                        <url>
-                            <loc>https://${domain}/index</loc>
-                            <lastmod>2024-06-16T02:53:00+00:00</lastmod>
-                            <changefreq>weekly</changefreq>
-                        </url>
-                    </urlset>`;
-            },
+                let printData = (products).map((product: any) => {
+                    return product.content.variants.map((variant: any) => {
+                        return html`
+                                                                        <Product>
+                                                                            <SKU>${variant.sku}</SKU>
+                                                                            <Name>${product.content.title}</Name>
+                                                                            <Description>${dd.appName} - ${product.content.title}</Description>
+                                                                            <URL>
+                                                                                ${`https://` + domain + '/products/' + product.content.title}
+                                                                            </URL>
+                                                                            <Price>${variant.compare_price??variant.sale_price}</Price>
+                                                                            <LargeImage>
+                                                                                ${variant.preview_image??""}
+                                                                            </LargeImage>
+                                                                            <SalePrice>${variant.sale_price}</SalePrice>
+                                                                            <Category>${product.content.collection.join('')}</Category>
+                                                                        </Product>
+                                                                    `
+                    }).join('');
+                }).join('')
+                return xmlFormatter(`<Product>${printData}</Product>`, {
+                    indentation: '  ', // 使用兩個空格進行縮進
+                    filter: (node) => node.type !== 'Comment', // 選擇性過濾節點
+                    collapseContent: true, // 折疊內部文本
+                });
+            }
         },
     ]);
 }

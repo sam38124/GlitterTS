@@ -26,9 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = void 0;
-exports.initial = initial;
-exports.createAPP = createAPP;
+exports.createAPP = exports.initial = exports.app = void 0;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -118,6 +116,7 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
+exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -588,31 +587,57 @@ async function createAPP(dd) {
                          where appName = ?`, [appName]))[0]['domain'];
                 return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
-            sitemap_test: async (req, resp) => {
+            tw_shop: async (req, resp) => {
                 let appName = dd.appName;
+                const escapeHtml = (text) => {
+                    const map = {
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#039;",
+                    };
+                    return text.replace(/[&<>"']/g, (m) => map[m] || m);
+                };
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
+                const products = await database_2.default.query(`SELECT * FROM \`${dd.appName}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';
+                `, []);
                 const domain = (await database_2.default.query(`select \`domain\`
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
-                return `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset
-                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-                        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd"
-                        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                    >
-                        <url>
-                            <loc>https://${domain}/index</loc>
-                            <lastmod>2024-06-16T02:53:00+00:00</lastmod>
-                            <changefreq>weekly</changefreq>
-                        </url>
-                    </urlset>`;
-            },
+                let printData = (products).map((product) => {
+                    return product.content.variants.map((variant) => {
+                        var _a, _b;
+                        return html `
+                                                                        <Product>
+                                                                            <SKU>${variant.sku}</SKU>
+                                                                            <Name>${product.content.title}</Name>
+                                                                            <Description>${dd.appName} - ${product.content.title}</Description>
+                                                                            <URL>
+                                                                                ${`https://` + domain + '/products/' + product.content.title}
+                                                                            </URL>
+                                                                            <Price>${(_a = variant.compare_price) !== null && _a !== void 0 ? _a : variant.sale_price}</Price>
+                                                                            <LargeImage>
+                                                                                ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ""}
+                                                                            </LargeImage>
+                                                                            <SalePrice>${variant.sale_price}</SalePrice>
+                                                                            <Category>${product.content.collection.join('')}</Category>
+                                                                        </Product>
+                                                                    `;
+                    }).join('');
+                }).join('');
+                return (0, xml_formatter_1.default)(`<Product>${printData}</Product>`, {
+                    indentation: '  ',
+                    filter: (node) => node.type !== 'Comment',
+                    collapseContent: true,
+                });
+            }
         },
     ]);
 }
+exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

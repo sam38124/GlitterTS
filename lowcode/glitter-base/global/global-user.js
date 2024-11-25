@@ -1,4 +1,7 @@
-export class GlobalUser {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GlobalUser = void 0;
+class GlobalUser {
     static getWindow() {
         if (window.glitter.getUrlParameter('cms') === 'true') {
             return window.parent;
@@ -37,6 +40,8 @@ export class GlobalUser {
         GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('language'), value);
     }
 }
+exports.GlobalUser = GlobalUser;
 GlobalUser.tagId = 'sjnsannsai23ij3as';
 GlobalUser.userInfo = undefined;
 GlobalUser.updateUserData = {};
+//# sourceMappingURL=global-user.js.map
