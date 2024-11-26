@@ -35,7 +35,8 @@ export class AiChat{
     }
 
     public static generateHtml(json: {   app_name?:string,
-        text:string
+        text:string,
+        token?:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ai/generate-html`,
@@ -43,7 +44,7 @@ export class AiChat{
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": json.app_name || getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": json.token || GlobalUser.token
             },
             "data":JSON.stringify(json)
         })

@@ -94,6 +94,14 @@ export class ProductSelect {
             containerId: Tool.randomString(6),
             loading: true,
         };
+        const is_page=(window.parent as any).glitter.getUrlParameter('page').startsWith('shop') || (window.parent as any).glitter.getUrlParameter('page').startsWith('hidden')
+        //隱形賣場和一頁商店僅能單選
+        if (is_page) {
+            if (bundle.formData[bundle.key].select !== 'product') {
+                bundle.formData[bundle.key].select = 'product'
+                bundle.formData[bundle.key].value = []
+            }
+        }
         return gvc.bindView(() => {
             return {
                 bind: subVM.id,
@@ -120,12 +128,12 @@ export class ProductSelect {
                             <div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
                                 <div class="d-flex align-items-center gray-bottom-line-18 pb-2"
                                      style="gap: 10px; justify-content: space-between;">
-                                    <div class="flex-fill">
+                                    <div class="flex-fill ">
                                         ${EditorElem.select({
                                             title: bundle.title,
                                             gvc: gvc,
                                             def: bundle.formData[bundle.key].select,
-                                            array: [
+                                            array: (is_page) ? [{value: 'product', title: '單一商品'}]:[
                                                 {value: 'collection', title: '商品系列'},
                                                 {value: 'product', title: '單一商品'},
                                                 {value: 'all', title: '所有商品'},

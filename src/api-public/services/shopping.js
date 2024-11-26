@@ -182,7 +182,7 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            const productList = Array.isArray(products.data) ? products.data : [products.data];
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
@@ -283,6 +283,7 @@ class Shopping {
             return products;
         }
         catch (e) {
+            console.log(e);
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
@@ -2044,29 +2045,24 @@ class Shopping {
     async getActiveRecentYear() {
         try {
             const countArray = [];
-            const monthRegisterSQL = `
-                    SELECT  mac_address,created_time
-                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time > ?
-                `;
-            const start_date = new Date();
-            start_date.setDate(new Date().getDate() - 365);
-            start_date.setHours(0, 0, 0);
-            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
             for (let index = 0; index < 12; index++) {
+                const start_date = this.getTaiwanTimeZero();
+                start_date.setMonth(start_date.getMonth() - (index + 1));
+                const end_date = this.getTaiwanTimeZero();
+                end_date.setMonth(start_date.getMonth());
+                const sql = `SELECT  mac_address,created_time
+                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
+               `;
+                const data = (await database_js_1.default.query(sql, []));
+                let cp_date = new Date();
                 let mac_address = [];
-                const now_date = new Date();
-                now_date.setMonth(now_date.getMonth() - index);
-                countArray.push(data.filter((dd) => {
-                    if (mac_address.includes(dd.mac_address)) {
-                        return false;
-                    }
-                    const date = (new Date(dd.created_time));
-                    if (date.getMonth() == now_date.getMonth()) {
+                cp_date.setDate(cp_date.getDate() - index);
+                countArray.unshift(data.filter((dd) => {
+                    if (!mac_address.includes(dd.mac_address)) {
                         mac_address.push(dd.mac_address);
-                        return true;
+                        return (new Date(dd.created_time).getDate()) == cp_date.getDate();
                     }
                     else {
                         return false;
@@ -2082,20 +2078,26 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
         }
     }
+    getTaiwanTimeZero() {
+        const date = (new Date((0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')));
+        date.setTime(date.getTime() + (8 * 1000 * 3600));
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
     async getActiveRecent2Weak() {
         try {
             const countArray = [];
-            const monthRegisterSQL = `
-                    SELECT  mac_address,created_time
+            for (let index = 0; index < 14; index++) {
+                const end_date = this.getTaiwanTimeZero();
+                end_date.setTime(end_date.getTime() - (24 * 1000 * 3600 * index));
+                const start_date = this.getTaiwanTimeZero();
+                start_date.setTime(start_date.getTime() - (24 * 1000 * 3600 * (index + 1)));
+                const sql = `SELECT  mac_address,created_time
                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                     WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time > ?
-                `;
-            const start_date = new Date();
-            start_date.setDate(new Date().getDate() - 14);
-            start_date.setHours(0, 0, 0);
-            const data = (await database_js_1.default.query(monthRegisterSQL, [start_date.toISOString()]));
-            for (let index = 0; index < 14; index++) {
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
+               `;
+                const data = (await database_js_1.default.query(sql, []));
                 let cp_date = new Date();
                 let mac_address = [];
                 cp_date.setDate(cp_date.getDate() - index);

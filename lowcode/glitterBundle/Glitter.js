@@ -729,7 +729,14 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (tag === 'page' && value) {
             try {
                 this.page = value;
-                const url = new URL(this.root_path + value + window.location.search);
+                const url = new URL((() => {
+                    if (value === 'index') {
+                        return this.root_path.substring(0, this.root_path.length - 1) + window.location.search;
+                    }
+                    else {
+                        return this.root_path + value + window.location.search;
+                    }
+                })());
                 url.searchParams.delete('page');
                 window.history.replaceState({}, document.title, url.href);
             }

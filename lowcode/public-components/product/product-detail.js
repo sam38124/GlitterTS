@@ -83,6 +83,7 @@ export class ProductDetail {
                 <span class="mt-3">載入中</span>
             </div>`;
         }
+        gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
         return gvc.bindView({
             bind: ids.page,
             view: () => {
@@ -284,7 +285,8 @@ export class ProductDetail {
                             search: decodeURIComponent(title),
                             status: 'active',
                             orderBy: '',
-                            with_hide_index: 'false',
+                            with_hide_index: 'true',
+                            show_hidden: true
                         };
                         Promise.all([
                             new Promise((resolve, reject) => {

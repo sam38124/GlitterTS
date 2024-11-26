@@ -234,8 +234,13 @@ export class BgWidget {
         return html `<div
             class="bt_orange_lin"
             onclick="${obj.gvc.event(() => {
-            window.parent.glitter.share.ai_message.vm.select_bt = obj.select;
-            window.parent.glitter.share.ai_message.toggle(true);
+            if (obj.click) {
+                obj.click && obj.click();
+            }
+            else {
+                window.parent.glitter.share.ai_message.vm.select_bt = obj.select;
+                window.parent.glitter.share.ai_message.toggle(true);
+            }
         })}"
         >
             <img
@@ -2687,7 +2692,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
-                                <div class="tx_700">${(_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
+                                <div class="tx_700">${(typeof obj.title === 'function') ? obj.title(gvc) : ((_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表')}</div>
                                 <div class="flex-fill"></div>
                                 <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"

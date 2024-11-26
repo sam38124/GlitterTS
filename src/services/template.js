@@ -153,7 +153,8 @@ class Template {
         }
     }
     static async getRealPage(query_page, appName) {
-        query_page = query_page || '';
+        query_page = query_page || 'index';
+        console.log(`query_page=>${query_page}`);
         let page = query_page;
         if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
             page = (await database_1.default.query(`SELECT *

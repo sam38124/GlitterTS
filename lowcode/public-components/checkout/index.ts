@@ -622,15 +622,140 @@ export class CheckoutIndex {
                         justify-content: start;
                         width: 100%;
                     }
+                    .${classPrefix}-price-container {
+                        display: flex;
+                        flex-direction: column;
+                        width: 100% !important;
+                        align-items: center;
+                        padding: 0;
+                        gap: 12px;
+                        margin: 24px 0;
+                    }
                 }`)
         }
 
-        function refreshCartData() {
-            loadings.page=true;
-            gvc.notifyDataChange(ids.page)
-            gvc.notifyDataChange('js-cart-count')
-        }
 
+        function refreshCartData() {
+            const dialog=new ShareDialog(gvc.glitter)
+            dialog.dataLoading({visible:true})
+            const beta=false
+            if(!beta){
+                new Promise(async (resolve, reject) => {
+                    new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve(ApiCart.cart);
+                        });
+                    }).then(async (res: any) => {
+                        const cartData: {
+                            line_items: {
+                                sku: string;
+                                spec: string[];
+                                stock: number;
+                                sale_price: number;
+                                compare_price: number;
+                                preview_image: string;
+                                title: string;
+                                id: number;
+                                count: number;
+                            }[];
+                            total: number;
+                            user_info: {
+                                shipment: string;
+                            };
+                        } = {
+                            line_items: [],
+                            total: 0,
+                            user_info: {
+                                shipment: localStorage.getItem('shipment-select') as string,
+                            },
+                        };
+                        if (res.line_items) {
+                            res.user_info = {
+                                shipment: localStorage.getItem('shipment-select') as string,
+                            };
+                            const cart = res as CartItem;
+                            ApiShop.getCheckout(cart).then((res) => {
+                                if (res.result) {
+                                    resolve(res.response.data);
+                                } else {
+                                    resolve([]);
+                                }
+                            });
+                        } else {
+                            for (const b of Object.keys(res)) {
+                                cartData.line_items.push({
+                                    id: b.split('-')[0] as any,
+                                    count: res[b] as number,
+                                    spec: b.split('-').filter((dd, index) => {
+                                        return index !== 0;
+                                    }) as any,
+                                } as any);
+                            }
+                            const voucher = ApiCart.cart.code;
+                            const rebate = ApiCart.cart.use_rebate || 0;
+                            const distributionCode = localStorage.getItem('distributionCode') ?? '';
+                            ApiShop.getCheckout({
+                                line_items: cartData.line_items.map((dd) => {
+                                    return {
+                                        id: dd.id,
+                                        spec: dd.spec,
+                                        count: dd.count,
+                                    };
+                                }),
+                                code: voucher as string,
+                                use_rebate: GlobalUser.token && rebate ? rebate : undefined,
+                                distribution_code: distributionCode,
+                                user_info: {
+                                    shipment: localStorage.getItem('shipment-select'),
+                                },
+                            }).then((res) => {
+                                if (res.result) {
+                                    resolve(res.response.data);
+                                } else {
+                                    resolve([]);
+                                }
+                            });
+                        }
+                    });
+                }).then((data) => {
+                    vm.cartData = data;
+                    gvc.addMtScript(
+                        [
+                            {
+                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            },
+                        ],
+                        () => {
+                            loadings.page = false;
+                            dialog.dataLoading({visible:false})
+                            gvc.notifyDataChange(['js-cart-count',ids.page])
+                        },
+                        () => {}
+                    );
+                });
+            }else{
+                gvc.addMtScript(
+                    [
+                        {
+                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                        },
+                    ],
+                    () => {
+                        loadings.page = false;
+                        dialog.dataLoading({visible:false})
+                        gvc.notifyDataChange(ids.page);
+                    },
+                    () => {
+                    }
+                );
+            }
+
+
+
+
+
+        }
+        refreshCartData()
         return gvc.bindView(
             (() => {
                 return {
@@ -724,14 +849,10 @@ export class CheckoutIndex {
                                                                                                 ${item.spec ? item.spec.join(' / ') : ''}
                                                                                             </div>
                                                                                             <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center" style="gap:10px;">
-                                                                                                <div class="${item.discount_price ? ``:`d-none`}">
+                                                                                                <div class="">
                                                                                                     ${(() => {
-                                                                                   
-
-                                                                                        return `NT.${financial(item.sale_price - item.discount_price)}`;
+                                                                                        return `NT.${parseInt(item.sale_price,10).toLocaleString()}`;
                                                                                     })()}
-                                                                                                </div>
-                                                                                                <div style="${(item.discount_price) ? `text-decoration: line-through;`:``}">${((item.discount_price)) ? `原價:${item.sale_price.toLocaleString()}`:`${item.sale_price.toLocaleString()}`}
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div class="${gClass('td')}">
@@ -769,7 +890,7 @@ export class CheckoutIndex {
                                                                                                </div>
                                                                                                <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? (((item.sale_price - item.discount_price)  as any)* item.count):(item.sale_price * item.count)).toLocaleString()}</span>
                                                                                             <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
-                                                                                                <span class="d-none d-md-block">合計 NT. ${((item.discount_price) ? (((item.sale_price - item.discount_price)  as any)* item.count):(item.sale_price * item.count)).toLocaleString()}</span>
+                                                                                                <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
                                                                                                 <div class="d-none d-md-block" style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;">
                                                                                                     <i class="fa-solid fa-xmark-large"
                                                                                                        style="cursor: pointer;" onclick="${gvc.event(()=>{
@@ -837,18 +958,18 @@ this.viewDialog({
                         if (loading) {
                             return html`<div style="height: 400px">${spinner()}</div>`;
                         } else {
-                            if (vmi.dataList.length === 0) {
-                                return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                                    <lottie-player
-                                        style="max-width: 100%;width: 300px;"
-                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                        speed="1"
-                                        loop="true"
-                                        background="transparent"
-                                    ></lottie-player>
-                                    <span class="mb-5 fs-5">目前沒有任何優惠券呦</span>
-                                </div>`;
-                            }
+                            // if (vmi.dataList.length === 0) {
+                            //     return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
+                            //         <lottie-player
+                            //             style="max-width: 100%;width: 300px;"
+                            //             src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                            //             speed="1"
+                            //             loop="true"
+                            //             background="transparent"
+                            //         ></lottie-player>
+                            //         <span class="mb-5 fs-5">目前沒有任何優惠券呦</span>
+                            //     </div>`;
+                            // }
 
                             const header = [
                                 {
@@ -961,33 +1082,41 @@ this.viewDialog({
                                 `;
                             }
 
-                            return html`<div>
-                                <div class="d-flex">
-                                    <label class="${gClass('label')}">輸入代碼</label>
-                                    <input class="${gClass('input')}" type="text" />
-                                    <button class="${gClass('button-bgr')}" onclick="${gvc.event((e)=>{
-                                         checkCodeValue(e.value)
-                                    })}">
-                                        <span class="${gClass('button-text')}">確認</span>
-                                    </button>
-                                </div>
-                                <div class="w-100 d-sm-none mb-3 s162413">
+                            return html`
+                                <div>
+                                    <div class="d-flex flex-column flex-sm-row align-items-center ">
+                                        <div class="d-flex align-items-center">
+                                            <input class="${gClass('input')}" type="text"
+                                                   style="border-top-right-radius: 0;border-bottom-right-radius: 0px;" placeholder="請輸入優惠代碼"/>
+                                            <button class="${gClass('button-bgr')}" style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
+                                                    onclick="${gvc.event((e) => {
+                                                        checkCodeValue(e.value)
+                                                    })}">
+                                                <span class="${gClass('button-text')}" style="">確認</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="w-100 d-sm-none mb-3 s162413">
                                         ${vmi.dataList
-                                            .map((item) => {
-                                                return html`<div class="um-mobile-area">
-                                                    ${formatText(item.content)
-                                                        .map((dd, index) => {
-                                                            if (header[index].title === '') {
-                                                                return dd;
-                                                            }
-                                                            return html`<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
-                                                        })
-                                                        .join('')}
-                                                </div>`;
-                                            })
-                                            .join('')}
-                                    </div> 
-                            </div>`;
+                                                .map((item) => {
+                                                    return html`
+                                                        <div class="um-mobile-area">
+                                                            ${formatText(item.content)
+                                                                    .map((dd, index) => {
+                                                                        if (header[index].title === '') {
+                                                                            return dd;
+                                                                        }
+                                                                        return html`
+                                                                            <div class="um-mobile-text">
+                                                                                ${header[index].title}: ${dd}
+                                                                            </div>`;
+                                                                    })
+                                                                    .join('')}
+                                                        </div>`;
+                                                })
+                                                .join('')}
+                                    </div>
+                                </div>`;
                         }
                     },
                     divCreate: {},
@@ -1075,9 +1204,13 @@ this.viewDialog({
                                                                     })}"></i>`:'新增'}</div>
                                                                 </div>
                                                                 ${(()=>{
-                                                                    let tempRebate:number = 0;
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    return `<div class="${gClass(['price-row', 'text-2'])}">
+                                                                    if(!GlobalUser.token){
+                                                                        return ``
+                                                                    }else{
+                                                                        return  ` ${(()=>{
+                                                                            let tempRebate:number = 0;
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            return `<div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div>購物金折抵</div>
                                                                     <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                 </div>
@@ -1085,98 +1218,100 @@ this.viewDialog({
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div
                                                                         style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
-                                                                            .body.clientWidth > 768
-                                                                            ? 'gap: 18px; '
-                                                                            : ' gap: 0px; '}"
+                                                                                    .body.clientWidth > 768
+                                                                                    ? 'gap: 18px; '
+                                                                                    : ' gap: 0px; '}"
                                                                         class="w-100"
                                                                     >
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
                                                                                     placeholder="請輸入購物金"
+                                                                                    style="${document.body.clientWidth<800 ? `width:calc(100% - 150px) !important;`:``}"
                                                                                     value="${vm.cartData.use_rebate || ''}"
                                                                                     onchange="${gvc.event((e,event)=>{
-                                                                                        if(CheckInput.isNumberString(e.value)){
-                                                                                            tempRebate=parseInt(e.value,10)
-                                                                                        }else{
-                                                                                            dialog.errorMessage({text:  `請輸入數值` })
-                                                                                            gvc.notifyDataChange(ids.page)
-                                                                                        }
-                                                                    })}"
+                                                                                if(CheckInput.isNumberString(e.value)){
+                                                                                    tempRebate=parseInt(e.value,10)
+                                                                                }else{
+                                                                                    dialog.errorMessage({text:  `請輸入數值` })
+                                                                                    gvc.notifyDataChange(ids.page)
+                                                                                }
+                                                                            })}"
                                                                         />
                                                                         <div class="${gClass('group-button')}" >
                                                                             <div class="${gClass('button-text')}" 
                                                                                 onclick="${gvc.event(async (e) => {
-                                                                        const sum:number=await new Promise((resolve, reject)=>{
-                                                                            ApiShop.getRebate({}).then(async (res) => {
-                                                                                if (res.result && res.response.sum) {
-                                                                                    resolve(res.response.sum);
+                                                                                const sum:number=await new Promise((resolve, reject)=>{
+                                                                                    ApiShop.getRebate({}).then(async (res) => {
+                                                                                        if (res.result && res.response.sum) {
+                                                                                            resolve(res.response.sum);
+                                                                                        } else {
+                                                                                            resolve(0);
+                                                                                        }
+                                                                                    })
+                                                                                });
+                                                                                const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+
+                                                                                // const subtotal = data.total - data.shipment_fee + data.use_rebate;
+                                                                                //
+                                                                                // if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
+
+                                                                                console.log({
+                                                                                    total: vm.cartData.total,
+                                                                                    use_rebate: vm.cartData.use_rebate,
+                                                                                    shipment_fee: vm.cartData.shipment_fee,
+                                                                                })
+                                                                                if(tempRebate > Math.min(sum, limit) ){
+                                                                                    dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(sum, limit) } 的數值` })
                                                                                 } else {
-                                                                                    resolve(0);
+                                                                                    ApiCart.setCart((cartItem)=>{
+                                                                                        cartItem.use_rebate=tempRebate
+                                                                                        refreshCartData()
+                                                                                    })
                                                                                 }
-                                                                            })
-                                                                        });
-                                                                        const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-
-                                                                        // const subtotal = data.total - data.shipment_fee + data.use_rebate;
-                                                                        //
-                                                                        // if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-
-                                                                        console.log({
-                                                                            total: vm.cartData.total,
-                                                                            use_rebate: vm.cartData.use_rebate,
-                                                                            shipment_fee: vm.cartData.shipment_fee,
-                                                                        })
-                                                                         if(tempRebate > Math.min(sum, limit) ){
-                                                                            dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(sum, limit) } 的數值` })
-                                                                        } else {
-                                                                            ApiCart.setCart((cartItem)=>{
-                                                                                cartItem.use_rebate=tempRebate
-                                                                                refreshCartData()
-                                                                            })
-                                                                        }
-                                                                    })}">
+                                                                            })}">
                                                                                 套用
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>`
-                                                                })()}
+                                                                        })()}
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
 
     ${(()=>{
-        return gvc.bindView(()=>{
-            return {
-                bind:gvc.glitter.getUUID(),
-                view:async ()=>{
-                    const sum=await new Promise((resolve, reject)=>{
-                        ApiShop.getRebate({}).then(async (res) => {
-                            if (res.result && res.response.sum) {
-                                resolve(res.response.sum);
-                            } else {
-                                resolve(0);
-                            }
-                        })
-                    })
-                    if(!vm.cartData.useRebateInfo){
-                        return '';
-                    }
+                                                                            return gvc.bindView(()=>{
+                                                                                return {
+                                                                                    bind:gvc.glitter.getUUID(),
+                                                                                    view:async ()=>{
+                                                                                        const sum=(await new Promise((resolve, reject)=>{
+                                                                                            ApiShop.getRebate({}).then(async (res) => {
+                                                                                                if (res.result && res.response.sum) {
+                                                                                                    resolve(res.response.sum);
+                                                                                                } else {
+                                                                                                    resolve(0);
+                                                                                                }
+                                                                                            })
+                                                                                        }));
+                                                                                        if(!vm.cartData.useRebateInfo){
+                                                                                            return '';
+                                                                                        }
 
-                    const info = vm.cartData.useRebateInfo;
-                    if(info.condition){
-                        return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`
-                    }
-
-                    if(info.limit){
-                        return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`
-                    }else{
-                        return `您目前剩餘 ${sum || 0} 點購物金`
-                    }
-                }
-            }
-        })
-        
-    })()}
-                                                                </div>
+                                                                                        const info = vm.cartData.useRebateInfo;
+                                                                                        if(info.condition){
+                                                                                            return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`
+                                                                                        }
+                                                                                        if(info.limit){
+                                                                                            return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`
+                                                                                        }else{
+                                                                                            return `您目前剩餘 ${sum || 0} 點購物金`
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            })
+                                                                        })()}
+                                                                </div>`
+                                                                    }
+                                                                })()}
+                                                               
                                                             </div>
                                                         </section>`;
                                                     },
@@ -2050,115 +2185,6 @@ this.viewDialog({
                     },
                     divCreate: {},
                     onCreate: () => {
-                        if (loadings.page) {
-                            new Promise(async (resolve, reject) => {
-                                new Promise((resolve, reject) => {
-                                    setTimeout(() => {
-                                        resolve(ApiCart.cart);
-                                    });
-                                }).then(async (res: any) => {
-                                    const cartData: {
-                                        line_items: {
-                                            sku: string;
-                                            spec: string[];
-                                            stock: number;
-                                            sale_price: number;
-                                            compare_price: number;
-                                            preview_image: string;
-                                            title: string;
-                                            id: number;
-                                            count: number;
-                                        }[];
-                                        total: number;
-                                        user_info: {
-                                            shipment: string;
-                                        };
-                                    } = {
-                                        line_items: [],
-                                        total: 0,
-                                        user_info: {
-                                            shipment: localStorage.getItem('shipment-select') as string,
-                                        },
-                                    };
-                                    if (res.line_items) {
-                                        res.user_info = {
-                                            shipment: localStorage.getItem('shipment-select') as string,
-                                        };
-                                        const cart = res as CartItem;
-                                        ApiShop.getCheckout(cart).then((res) => {
-                                            if (res.result) {
-                                                resolve(res.response.data);
-                                            } else {
-                                                resolve([]);
-                                            }
-                                        });
-                                    } else {
-                                        for (const b of Object.keys(res)) {
-                                            cartData.line_items.push({
-                                                id: b.split('-')[0] as any,
-                                                count: res[b] as number,
-                                                spec: b.split('-').filter((dd, index) => {
-                                                    return index !== 0;
-                                                }) as any,
-                                            } as any);
-                                        }
-                                        const voucher = ApiCart.cart.code;
-                                        const rebate = ApiCart.cart.use_rebate || 0;
-                                        const distributionCode = localStorage.getItem('distributionCode') ?? '';
-                                        ApiShop.getCheckout({
-                                            line_items: cartData.line_items.map((dd) => {
-                                                return {
-                                                    id: dd.id,
-                                                    spec: dd.spec,
-                                                    count: dd.count,
-                                                };
-                                            }),
-                                            code: voucher as string,
-                                            use_rebate: GlobalUser.token && rebate ? rebate : undefined,
-                                            distribution_code: distributionCode,
-                                            user_info: {
-                                                shipment: localStorage.getItem('shipment-select'),
-                                            },
-                                        }).then((res) => {
-                                            if (res.result) {
-                                                resolve(res.response.data);
-                                            } else {
-                                                resolve([]);
-                                            }
-                                        });
-                                    }
-                                });
-                            }).then((data) => {
-                                vm.cartData = data;
-                                gvc.addMtScript(
-                                    [
-                                        {
-                                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                                        },
-                                    ],
-                                    () => {
-                                        loadings.page = false;
-                                        gvc.notifyDataChange(ids.page);
-                                    },
-                                    () => {}
-                                );
-                            });
-
-
-                            // gvc.addMtScript(
-                            //     [
-                            //         {
-                            //             src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                            //         },
-                            //     ],
-                            //     () => {
-                            //         loadings.page = false;
-                            //         gvc.notifyDataChange(ids.page);
-                            //     },
-                            //     () => {
-                            //     }
-                            // );
-                        }
                     },
                 };
             })()
