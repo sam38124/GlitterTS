@@ -1421,6 +1421,7 @@ export class Shopping {
                         return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     };
                 } else {
+
                     const subMitData = await new FinancialService(this.app, {
                         HASH_IV: keyData.HASH_IV,
                         HASH_KEY: keyData.HASH_KEY,
@@ -2671,34 +2672,59 @@ export class Shopping {
     async getActiveRecentYear() {
         try {
             const countArray = [];
-            const monthRegisterSQL = `
-                    SELECT  mac_address,created_time
-                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)}
-                      and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time > ?
-                `;
-            const start_date=new Date();
-            start_date.setDate(new Date().getDate()-365);
-            start_date.setHours(0,0,0)
-            const data=(await db.query(monthRegisterSQL, [start_date.toISOString()]));
+
             for (let index = 0; index < 12; index++) {
+                const start_date=this.getTaiwanTimeZero();
+                start_date.setMonth(start_date.getMonth() -(index+1));
+                const end_date=this.getTaiwanTimeZero();
+                end_date.setMonth(start_date.getMonth());
+                const sql=`SELECT  mac_address,created_time
+                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${db.escape(this.app)} and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
+               `
+                const data=(await db.query(sql, []));
+                let cp_date=new Date()
                 let mac_address:string[]=[]
-                const now_date=new Date()
-                now_date.setMonth(now_date.getMonth()-index)
-                countArray.push(data.filter((dd:any)=>{
-                    if(mac_address.includes(dd.mac_address)){
-                        return false
-                    }
-                    const date=(new Date(dd.created_time))
-                    if(date.getMonth()==now_date.getMonth()){
+                cp_date.setDate(cp_date.getDate()-index)
+                countArray.unshift(data.filter((dd:any)=>{
+                    if(!mac_address.includes(dd.mac_address)){
                         mac_address.push(dd.mac_address)
-                        return true
+                        return (new Date(dd.created_time).getDate())==cp_date.getDate()
                     }else{
-                        return false
+                        return  false
                     }
                 }).length);
             }
+            // const countArray = [];
+            // const monthRegisterSQL = `
+            //         SELECT  mac_address,created_time
+            //         from \`${saasConfig.SAAS_NAME}\`.t_monitor
+            //         WHERE app_name = ${db.escape(this.app)}
+            //           and ip != 'ffff:127.0.0.1'
+            //           and req_type = 'file' and created_time > ? group by id,mac_address
+            //     `;
+            // const start_date=new Date();
+            // start_date.setDate(new Date().getDate()-365);
+            // start_date.setHours(0,0,0)
+            // const data=(await db.query(monthRegisterSQL, [start_date.toISOString()]));
+            // for (let index = 0; index < 12; index++) {
+            //     let mac_address:string[]=[]
+            //     const now_date=new Date()
+            //     now_date.setMonth(now_date.getMonth()-index)
+            //     countArray.push(data.filter((dd:any)=>{
+            //         if(mac_address.includes(dd.mac_address)){
+            //             return false
+            //         }
+            //         const date=(new Date(dd.created_time))
+            //         if(date.getMonth()==now_date.getMonth()){
+            //             mac_address.push(dd.mac_address)
+            //             return true
+            //         }else{
+            //             return false
+            //         }
+            //     }).length);
+            // }
             return {
                 count_array: countArray.reverse(),
             };
@@ -2708,20 +2734,28 @@ export class Shopping {
         }
     }
 
+     getTaiwanTimeZero(){
+        const date=(new Date(moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')));
+         date.setTime(date.getTime() + (8 * 1000 * 3600))
+         date.setHours(0,0,0,0)
+        return date
+    }
     async getActiveRecent2Weak() {
         try {
+
             const countArray = [];
-            const monthRegisterSQL = `
-                    SELECT  mac_address,created_time
+
+            for (let index = 0; index < 14; index++) {
+                const end_date=this.getTaiwanTimeZero();
+                end_date.setTime(end_date.getTime() - (24 * 1000 * 3600 * index));
+                const start_date=this.getTaiwanTimeZero();
+                start_date.setTime(start_date.getTime() - (24 * 1000 * 3600 * (index + 1)));
+                const sql=`SELECT  mac_address,created_time
                     from \`${saasConfig.SAAS_NAME}\`.t_monitor
                     WHERE app_name = ${db.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time > ?
-                `;
-            const start_date=new Date();
-            start_date.setDate(new Date().getDate()-14);
-            start_date.setHours(0,0,0)
-            const data=(await db.query(monthRegisterSQL, [start_date.toISOString()]));
-            for (let index = 0; index < 14; index++) {
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
+               `
+                const data=(await db.query(sql, []));
                 let cp_date=new Date()
                 let mac_address:string[]=[]
                 cp_date.setDate(cp_date.getDate()-index)

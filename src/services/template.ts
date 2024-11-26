@@ -182,7 +182,8 @@ export class Template {
     }
 
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
-        query_page = query_page || '';
+        query_page = query_page || 'index';
+        console.log(`query_page=>${query_page}`)
         let page = query_page;
 
         //當判斷是Blog時

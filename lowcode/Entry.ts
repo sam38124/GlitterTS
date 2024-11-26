@@ -72,7 +72,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_13.9.5';
+        glitter.share.editerVersion = 'V_13.9.9';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -645,7 +645,7 @@ export class Entry {
             function loopVersion() {
                 ApiPageConfig.getGlitterVersion().then((res) => {
                     console.log('glitterVersion:', res.response.result);
-                    if (!glitter.share.editerVersion.includes(res.response.result)) {
+                    if (res.result && (!glitter.share.editerVersion.includes(res.response.result))) {
                         const dialog = new ShareDialog(glitter);
                         dialog.checkYesOrNot({
                             text: '新版本已發佈，是否進行更新?',

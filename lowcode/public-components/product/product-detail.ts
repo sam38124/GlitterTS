@@ -91,6 +91,7 @@ export class ProductDetail {
             </div>`;
         }
 
+        gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css'])
         return gvc.bindView({
             bind: ids.page,
             view: () => {
@@ -179,7 +180,6 @@ export class ProductDetail {
                                         if (!template) {
                                             return '';
                                         }
-
                                         let htmlString = template.data.content;
                                         if (jsonData) {
                                             jsonData.list.map((data) => {
@@ -189,7 +189,7 @@ export class ProductDetail {
                                                     regex,
                                                     html`<span
                                                         style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '${titleFontColor}'}; background: ${cssStyle?.font_bgr ??
-                                                        '#fff'};"
+                                                    '#fff'};"
                                                         >${data.value}</span
                                                     >`
                                                 );

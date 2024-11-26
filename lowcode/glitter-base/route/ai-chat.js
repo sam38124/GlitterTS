@@ -32,7 +32,7 @@ export class AiChat {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": json.app_name || getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": json.token || GlobalUser.token
             },
             "data": JSON.stringify(json)
         });
