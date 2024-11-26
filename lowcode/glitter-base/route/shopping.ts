@@ -317,6 +317,7 @@ export class ApiShop {
         productType?: string;
         filter_visible?: string;
         app_name?: string;
+        show_hidden?:boolean
     }) {
         return BaseApi.create({
             url:
@@ -338,8 +339,11 @@ export class ApiShop {
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
-                    if (location.pathname.includes('/hidden/')) {
+                    json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
+                    if(location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
+                    }else if ( (window as any).glitter.getUrlParameter('function')==='user-editor') {
+                        par.push(`filter_visible=true`);
                     }
                     return par.join('&');
                 })()}`,

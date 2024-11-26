@@ -595,21 +595,112 @@ export class CheckoutIndex {
                         justify-content: start;
                         width: 100%;
                     }
+                    .${classPrefix}-price-container {
+                        display: flex;
+                        flex-direction: column;
+                        width: 100% !important;
+                        align-items: center;
+                        padding: 0;
+                        gap: 12px;
+                        margin: 24px 0;
+                    }
                 }`);
         }
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
-            gvc.addMtScript([
-                {
-                    src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                },
-            ], () => {
-                loadings.page = false;
-                dialog.dataLoading({ visible: false });
-                gvc.notifyDataChange(ids.page);
-            }, () => {
-            });
+            const beta = false;
+            if (!beta) {
+                new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve(ApiCart.cart);
+                        });
+                    }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        const cartData = {
+                            line_items: [],
+                            total: 0,
+                            user_info: {
+                                shipment: localStorage.getItem('shipment-select'),
+                            },
+                        };
+                        if (res.line_items) {
+                            res.user_info = {
+                                shipment: localStorage.getItem('shipment-select'),
+                            };
+                            const cart = res;
+                            ApiShop.getCheckout(cart).then((res) => {
+                                if (res.result) {
+                                    resolve(res.response.data);
+                                }
+                                else {
+                                    resolve([]);
+                                }
+                            });
+                        }
+                        else {
+                            for (const b of Object.keys(res)) {
+                                cartData.line_items.push({
+                                    id: b.split('-')[0],
+                                    count: res[b],
+                                    spec: b.split('-').filter((dd, index) => {
+                                        return index !== 0;
+                                    }),
+                                });
+                            }
+                            const voucher = ApiCart.cart.code;
+                            const rebate = ApiCart.cart.use_rebate || 0;
+                            const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
+                            ApiShop.getCheckout({
+                                line_items: cartData.line_items.map((dd) => {
+                                    return {
+                                        id: dd.id,
+                                        spec: dd.spec,
+                                        count: dd.count,
+                                    };
+                                }),
+                                code: voucher,
+                                use_rebate: GlobalUser.token && rebate ? rebate : undefined,
+                                distribution_code: distributionCode,
+                                user_info: {
+                                    shipment: localStorage.getItem('shipment-select'),
+                                },
+                            }).then((res) => {
+                                if (res.result) {
+                                    resolve(res.response.data);
+                                }
+                                else {
+                                    resolve([]);
+                                }
+                            });
+                        }
+                    }));
+                })).then((data) => {
+                    vm.cartData = data;
+                    gvc.addMtScript([
+                        {
+                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                        },
+                    ], () => {
+                        loadings.page = false;
+                        dialog.dataLoading({ visible: false });
+                        gvc.notifyDataChange(['js-cart-count', ids.page]);
+                    }, () => { });
+                });
+            }
+            else {
+                gvc.addMtScript([
+                    {
+                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                    },
+                ], () => {
+                    loadings.page = false;
+                    dialog.dataLoading({ visible: false });
+                    gvc.notifyDataChange(ids.page);
+                }, () => {
+                });
+            }
         }
         refreshCartData();
         return gvc.bindView((() => {
@@ -1042,6 +1133,7 @@ export class CheckoutIndex {
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
                                                                                     placeholder="請輸入購物金"
+                                                                                    style="${document.body.clientWidth < 800 ? `width:calc(100% - 150px) !important;` : ``}"
                                                                                     value="${vm.cartData.use_rebate || ''}"
                                                                                     onchange="${gvc.event((e, event) => {
                                                     if (CheckInput.isNumberString(e.value)) {

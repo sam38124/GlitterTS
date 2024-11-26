@@ -273,6 +273,8 @@ export class Shopping {
             } else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
+
+
             //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
@@ -343,7 +345,7 @@ export class Shopping {
             const products = await this.querySql(querySql, query);
 
             // 產品清單
-            const productList = Array.isArray(products.data) ? products.data : [products.data];
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
 
             // 許願清單判斷
             if (this.token && this.token.userID) {
@@ -384,9 +386,9 @@ export class Shopping {
                     }
                 }
             }
-
             // 尋找過期訂單
             if (productList.length > 0) {
+
                 const stockList = await db.query(
                     `SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
                      FROM \`${this.app}\`.t_stock_recover,
@@ -467,6 +469,7 @@ export class Shopping {
             }
             return products;
         } catch (e) {
+            console.log(e);
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }

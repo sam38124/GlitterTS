@@ -285,7 +285,8 @@ export class ProductDetail {
                             search: decodeURIComponent(title),
                             status: 'active',
                             orderBy: '',
-                            with_hide_index: 'false',
+                            with_hide_index: 'true',
+                            show_hidden: true
                         };
                         Promise.all([
                             new Promise((resolve, reject) => {

@@ -31,9 +31,10 @@ export class BgProduct {
         }, 'variantsSelector');
     }
     static productsDialog(obj) {
-        return obj.gvc.glitter.innerDialog((gvc) => {
+        const glitter = window.parent.glitter;
+        return window.parent.glitter.innerDialog((gvc) => {
             const vm = {
-                id: obj.gvc.glitter.getUUID(),
+                id: glitter.getUUID(),
                 ids: [],
                 loading: true,
                 checkClass: BgWidget.getCheckedClass(gvc),
@@ -43,7 +44,7 @@ export class BgProduct {
                 orderString: '',
             };
             return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
-                ${obj.gvc.bindView({
+                ${gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     var _a;
@@ -69,20 +70,20 @@ export class BgProduct {
                                             ${BgWidget.searchFilter(gvc.event((e, event) => {
                         vm.query = e.value;
                         vm.loading = true;
-                        obj.gvc.notifyDataChange(vm.id);
+                        gvc.notifyDataChange(vm.id);
                     }), vm.query || '', '搜尋')}
                                             ${BgWidget.updownFilter({
                         gvc,
                         callback: (value) => {
                             vm.orderString = value;
                             vm.loading = true;
-                            obj.gvc.notifyDataChange(vm.id);
+                            gvc.notifyDataChange(vm.id);
                         },
                         default: vm.orderString || 'default',
                         options: FilterOptions.productOrderBy,
                     })}
                                         </div>
-                                        ${obj.gvc.map(vm.options
+                                        ${(gvc.map(vm.options
                         .filter((dd) => {
                         return !obj.filter || obj.filter(dd);
                     })
@@ -127,12 +128,12 @@ export class BgProduct {
                                                                         type="checkbox"
                                                                         id="${opt.key}"
                                                                         name="radio_${vm.id}_${index}"
-                                                                        onclick="${obj.gvc.event(() => call())}"
+                                                                        onclick="${gvc.event(() => call())}"
                                                                         ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                                     />
                                                                     <div
                                                                         class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
-                                                                        onclick="${obj.gvc.event(() => call())}"
+                                                                        onclick="${gvc.event(() => call())}"
                                                                     >
                                                                         ${BgWidget.validImageBox({
                                         gvc: gvc,
@@ -149,18 +150,18 @@ export class BgProduct {
                                 },
                             };
                         });
-                    }))}
+                    }))).trim() || `<div class="w-100 d-flex align-items-center justify-content-center">尚未加入任何商品，請前往管理中心加入商品。</div>`}
                                     </div>
                                     <div class="c_dialog_bar">
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                                        ${BgWidget.cancel(gvc.event(() => {
                         obj.callback([]);
                         gvc.closeDialog();
                     }), '清除全部')}
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                                        ${BgWidget.cancel(gvc.event(() => {
                         obj.callback(vm.def);
                         gvc.closeDialog();
                     }))}
-                                        ${BgWidget.save(obj.gvc.event(() => {
+                                        ${BgWidget.save(gvc.event(() => {
                         obj.callback(obj.default.filter((item) => {
                             return vm.options.find((opt) => opt.key === item);
                         }));
@@ -187,6 +188,7 @@ export class BgProduct {
                                 }
                             })(),
                             productType: obj.productType,
+                            filter_visible: obj.filter_visible,
                         }).then((data) => {
                             vm.options = data.response.data.map((product) => {
                                 var _a;
@@ -198,7 +200,7 @@ export class BgProduct {
                                 };
                             });
                             vm.loading = false;
-                            obj.gvc.notifyDataChange(vm.id);
+                            gvc.notifyDataChange(vm.id);
                         });
                     }
                 },

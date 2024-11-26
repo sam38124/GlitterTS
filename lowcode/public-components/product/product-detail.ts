@@ -316,7 +316,8 @@ export class ProductDetail {
                             search: decodeURIComponent(title) as string,
                             status: 'active',
                             orderBy: '',
-                            with_hide_index: 'false',
+                            with_hide_index: 'true',
+                            show_hidden:true
                         };
 
                         Promise.all([

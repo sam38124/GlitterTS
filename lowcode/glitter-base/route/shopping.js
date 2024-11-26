@@ -306,8 +306,12 @@ export class ApiShop {
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
+                    json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
                     if (location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
+                    }
+                    else if (window.glitter.getUrlParameter('function') === 'user-editor') {
+                        par.push(`filter_visible=true`);
                     }
                     return par.join('&');
                 })()}`,
