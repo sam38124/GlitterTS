@@ -216,6 +216,9 @@ export class ProductDetail {
                                             }, 10),
                                         });
                                     }, 100);
+                                    if (!product.length) {
+                                        return ``;
+                                    }
                                     resolve(html `
                                             <div class="w-100 d-flex align-items-center justify-content-center ">
                                                 <div class="mx-auto" style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">

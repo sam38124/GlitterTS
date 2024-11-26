@@ -3,6 +3,7 @@ import { BgWidget } from './bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { StockList } from '../cms-plugin/shopping-product-stock.js';
+import {ProductConfig} from "../cms-plugin/product-config.js";
 
 const html = String.raw;
 
@@ -55,7 +56,7 @@ export class BgProduct {
         }, 'variantsSelector');
     }
 
-    static productsDialog(obj: { gvc:GVC, title?: string; default: (number | string)[]; callback: (value: any) => void; filter?: (data: any) => boolean; productType?: string; single?: boolean;filter_visible?:string }) {
+    static productsDialog(obj: { gvc:GVC, title?: string; default: (number | string)[]; callback: (value: any) => void; filter?: (data: any) => boolean; productType?: string; single?: boolean;filter_visible?:string,show_product_type?:boolean }) {
        const glitter=(window.parent as any).glitter
         return (window.parent as any).glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -170,7 +171,8 @@ export class BgProduct {
                                                                             image: opt.image,
                                                                             width: 40,
                                                                         })}
-                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column" style="gap:5px;">
+                                                                            ${(obj.show_product_type) ? BgWidget.infoInsignia(`來源:${ProductConfig.getName((opt as any).content as any)}`):''}${opt.value}</div>
                                                                         ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                                     </div>`;
                                                                     },
@@ -236,6 +238,7 @@ export class BgProduct {
                                     return {
                                         key: product.content.id,
                                         value: product.content.title,
+                                        content:product.content,
                                         image: product.content.preview_image[0] ?? BgWidget.noImageURL,
                                     };
                                 });

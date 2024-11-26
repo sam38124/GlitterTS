@@ -2045,8 +2045,9 @@ export class ShoppingProductSetting {
                         var _a;
                         return [
                             BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.goBack(obj.gvc.event(() => {
+                                <div class="title-container flex-column" style="gap:10px;">
+                                   <div class="d-flex align-items-center w-100">
+                                       ${BgWidget.goBack(obj.gvc.event(() => {
                                 if (window.parent.glitter.share.checkData && !window.parent.glitter.share.checkData()) {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.checkYesOrNot({
@@ -2065,9 +2066,12 @@ export class ShoppingProductSetting {
                                     obj.vm.type = 'list';
                                 }
                             }))}
-                                    <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
-                                    <div class="flex-fill"></div>
-                                    ${[
+                                       <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                       <div class="flex-fill"></div>
+                                   </div>
+                                  <div class="d-flex w-100">
+                                      <div class="flex-fill"></div>
+                                      ${[
                                 BgWidget.grayButton('複製現有商品', gvc.event(() => {
                                     BgProduct.productsDialog({
                                         gvc: gvc,
@@ -2090,6 +2094,7 @@ export class ShoppingProductSetting {
                                                 }
                                             });
                                         },
+                                        show_product_type: true
                                     });
                                 }), {}),
                                 BgWidget.grayButton('AI 生成', gvc.event(() => {
@@ -2102,6 +2107,7 @@ export class ShoppingProductSetting {
                                     window.parent.glitter.openNewTab(href);
                                 }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }),
                             ].join(html `<div class="mx-1"></div>`)}
+                                  </div>
                                 </div>
                                 ${BgWidget.container1x2({
                                 html: [

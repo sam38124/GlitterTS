@@ -273,7 +273,7 @@ export class PdClass {
                 if (!variant) {
                     return html `<button class="no-stock" disabled>發生錯誤</button>`;
                 }
-                if (variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) {
+                if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) && (`${variant.show_understocking}` !== 'false')) {
                     return html `<button class="no-stock" disabled>庫存不足</button>`;
                 }
                 return html `<button

@@ -278,7 +278,7 @@ export class Shopping {
             //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
-                    querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                        querySql.push(`(content->>'$.productType.${dd}' = "true")`);
                 });
             } else if (!query.id) {
                 querySql.push(`(content->>'$.productType.product' = "true")`);

@@ -2416,76 +2416,82 @@ export class ShoppingProductSetting {
                     return [
                         BgWidget.container(
                             html`
-                                <div class="title-container">
-                                    ${BgWidget.goBack(
-                                        obj.gvc.event(() => {
-                                            if ((window.parent as any).glitter.share.checkData && !(window.parent as any).glitter.share.checkData()) {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '尚未儲存內容，是否確認跳轉?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            (window.parent as any).glitter.share.checkData = () => {
-                                                                return true;
-                                                            };
-                                                            obj.vm.type = 'list';
-                                                        }
-                                                    },
-                                                });
-                                            } else {
-                                                obj.vm.type = 'list';
-                                            }
-                                        })
-                                    )}
-                                    <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
-                                    <div class="flex-fill"></div>
-                                    ${[
-                                        BgWidget.grayButton(
-                                            '複製現有商品',
-                                            gvc.event(() => {
-                                                BgProduct.productsDialog({
-                                                    gvc: gvc,
-                                                    default: [],
-                                                    single: true,
-                                                    callback: (value) => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.dataLoading({ visible: true });
-                                                        ApiShop.getProduct({
-                                                            page: 0,
-                                                            limit: 1,
-                                                            id: value[0],
-                                                        }).then((data) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            if (data.result && data.response.data && data.response.data.content) {
-                                                                postMD = data.response.data.content;
-                                                                postMD.id = undefined;
-                                                                setProductType();
-                                                                gvc.notifyDataChange(vm.id);
-                                                            }
-                                                        });
-                                                    },
-                                                });
-                                            }),
-                                            {}
-                                        ),
-                                        BgWidget.grayButton(
-                                            'AI 生成',
-                                            gvc.event(() => {
-                                                ProductAi.setProduct(gvc, postMD, () => {
-                                                    gvc.notifyDataChange(vm.id);
-                                                });
-                                            }),
-                                            {}
-                                        ),
-                                        BgWidget.grayButton(
-                                            document.body.clientWidth > 768 ? '預覽商品' : '預覽',
-                                            gvc.event(() => {
-                                                const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
-                                                (window.parent as any).glitter.openNewTab(href);
-                                            }),
-                                            { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
-                                        ),
-                                    ].join(html`<div class="mx-1"></div>`)}
+                                <div class="title-container flex-column" style="gap:10px;">
+                                   <div class="d-flex align-items-center w-100">
+                                       ${BgWidget.goBack(
+                                               obj.gvc.event(() => {
+                                                   if ((window.parent as any).glitter.share.checkData && !(window.parent as any).glitter.share.checkData()) {
+                                                       const dialog = new ShareDialog(gvc.glitter);
+                                                       dialog.checkYesOrNot({
+                                                           text: '尚未儲存內容，是否確認跳轉?',
+                                                           callback: (response) => {
+                                                               if (response) {
+                                                                   (window.parent as any).glitter.share.checkData = () => {
+                                                                       return true;
+                                                                   };
+                                                                   obj.vm.type = 'list';
+                                                               }
+                                                           },
+                                                       });
+                                                   } else {
+                                                       obj.vm.type = 'list';
+                                                   }
+                                               })
+                                       )}
+                                       <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                       <div class="flex-fill"></div>
+                                   </div>
+                                  <div class="d-flex w-100">
+                                      <div class="flex-fill"></div>
+                                      ${[
+                                          BgWidget.grayButton(
+                                                  '複製現有商品',
+                                                  gvc.event(() => {
+                                                      BgProduct.productsDialog({
+                                                          gvc: gvc,
+                                                          default: [],
+                                                          single: true,
+                                                          callback: (value) => {
+                                                              const dialog = new ShareDialog(gvc.glitter);
+                                                              dialog.dataLoading({ visible: true });
+                                                              ApiShop.getProduct({
+                                                                  page: 0,
+                                                                  limit: 1,
+                                                                  id: value[0],
+                                                              }).then((data) => {
+                                                                  dialog.dataLoading({ visible: false });
+                                                                  if (data.result && data.response.data && data.response.data.content) {
+                                                                      postMD = data.response.data.content;
+                                                                      postMD.id = undefined;
+                                                                      setProductType();
+                                                                      gvc.notifyDataChange(vm.id);
+                                                                  }
+                                                              });
+                                                          },
+                                                          show_product_type:true
+                                                      });
+                                                  }),
+                                                  {}
+                                          ),
+                                          BgWidget.grayButton(
+                                                  'AI 生成',
+                                                  gvc.event(() => {
+                                                      ProductAi.setProduct(gvc, postMD, () => {
+                                                          gvc.notifyDataChange(vm.id);
+                                                      });
+                                                  }),
+                                                  {}
+                                          ),
+                                          BgWidget.grayButton(
+                                                  document.body.clientWidth > 768 ? '預覽商品' : '預覽',
+                                                  gvc.event(() => {
+                                                      const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
+                                                      (window.parent as any).glitter.openNewTab(href);
+                                                  }),
+                                                  { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
+                                          ),
+                                      ].join(html`<div class="mx-1"></div>`)}
+                                  </div>
                                 </div>
                                 ${BgWidget.container1x2(
                                     {

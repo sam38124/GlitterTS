@@ -749,11 +749,7 @@ export class CheckoutIndex {
                     }
                 );
             }
-
-
-
-
-
+            gvc.glitter.recreateView('.js-cart-count')
         }
         refreshCartData()
         return gvc.bindView(
