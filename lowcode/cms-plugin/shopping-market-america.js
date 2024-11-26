@@ -119,7 +119,6 @@ export class MarketAmerica {
                                                                     `;
                                         }).join('');
                                     }).join('');
-                                    console.log("printData -- ", printData);
                                 });
                             }))}"
                                                 >
@@ -130,25 +129,12 @@ export class MarketAmerica {
                                                             <div class="d-flex flex-column" style="gap:5px;">
                                                                 產品資料XML
                                                             </div>`,
-                                default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/tw_shop',
+                                default: `https://` + window.parent.glitter.share.editorViewModel.domain + '/tw_shop.xml',
                                 placeHolder: '',
                                 callback: (text) => {
                                 },
                             })}
-                                                </div>`,
-                            BgWidget.editeInput({
-                                gvc: gvc,
-                                title: html `
-                                                    <div class="d-flex align-items-center" style="gap:10px;">
-                                                        產品資料xml
-                                                    </div>`,
-                                default: vm.data.commission,
-                                type: 'number',
-                                placeHolder: '請填入佣金%數',
-                                callback: (text) => {
-                                    vm.data.commission = text;
-                                },
-                            }),
+                                                </div>`
                         ].join(BgWidget.mbContainer(12)))),
                         html `
                                     <div class="update-bar-container">

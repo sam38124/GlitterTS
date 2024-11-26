@@ -124,7 +124,6 @@ export class MarketAmerica {
                                                                     `
                                                                     }).join('');
                                                                 }).join('')
-                                                                console.log("printData -- " , printData)
                                                             });
                                                             // navigator.clipboard.writeText(`https://` + (window.parent as any).glitter.share.editorViewModel.domain + '/tw_shop');
                                                             // dialog.successMessage({ text: '已複製至剪貼簿' });
@@ -137,26 +136,13 @@ export class MarketAmerica {
                                                             <div class="d-flex flex-column" style="gap:5px;">
                                                                 產品資料XML
                                                             </div>`,
-                                                        default: `https://` + (window.parent as any).glitter.share.editorViewModel.domain + '/tw_shop',
+                                                        default: `https://` + (window.parent as any).glitter.share.editorViewModel.domain + '/tw_shop.xml',
                                                         placeHolder: '',
                                                         callback: (text) => {
                                                         },
                                                     })}
                                                 </div>`
-                                            ,
-                                            BgWidget.editeInput({
-                                                gvc: gvc,
-                                                title: html`
-                                                    <div class="d-flex align-items-center" style="gap:10px;">
-                                                        產品資料xml
-                                                    </div>`,
-                                                default: vm.data.commission,
-                                                type: 'number',
-                                                placeHolder: '請填入佣金%數',
-                                                callback: (text) => {
-                                                    vm.data.commission = text;
-                                                },
-                                            }),
+
                                         ].join(BgWidget.mbContainer(12))
                                     )
                                 ),
