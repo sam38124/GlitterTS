@@ -182,7 +182,7 @@ export class ProductDetail {
                         divCreate: {
                             style: (() => {
                                 if (PdClass.isPad()) {
-                                    return 'margin: 0 120px;';
+                                    return 'margin: 0 60px;';
                                 }
                                 if (PdClass.isPhone()) {
                                     return '';
@@ -289,7 +289,7 @@ export class ProductDetail {
                             status: 'active',
                             orderBy: '',
                             with_hide_index: 'true',
-                            show_hidden: true
+                            show_hidden: true,
                         };
                         Promise.all([
                             new Promise((resolve, reject) => {
