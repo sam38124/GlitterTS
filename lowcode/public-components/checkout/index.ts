@@ -2131,7 +2131,8 @@ this.viewDialog({
                                                     }
                                                 });
                                                 const dialog=new ShareDialog(gvc.glitter)
-                                                dialog.dataLoading({visible:true})
+                                                // dialog.dataLoading({visible:true})
+                                           
                                                 ApiShop.toCheckout({
                                                     line_items: vm.cartData.lineItems.map((dd:any) => {
                                                         return {
@@ -2157,6 +2158,7 @@ this.viewDialog({
                                                     distribution_code: ApiCart.cart.distribution_code,
                                                     give_away:ApiCart.cart.give_away
                                                 }).then((res) => {
+                                                    
                                                     if (res.response.off_line || res.response.is_free) {
                                                         ApiCart.clearCart()
                                                         location.href = res.response.return_url;

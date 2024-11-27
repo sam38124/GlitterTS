@@ -1,6 +1,9 @@
 import crypto, { Encoding } from 'crypto';
 import db from '../../modules/database.js';
 import moment from 'moment-timezone';
+import axios, {AxiosRequestConfig} from "axios";
+
+import paypal from "@paypal/checkout-server-sdk";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -67,6 +70,7 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
+        return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -494,5 +498,187 @@ export class EcPay {
                 <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
             </form>
         `;
+    }
+}
+
+// PayPal金流
+export class PayPal {
+    keyData: KeyData;
+    appName: string;
+    PAYPAL_CLIENT_ID:string;
+    PAYPAL_SECRET:string;
+    PAYPAL_BASE_URL:string
+
+    constructor(appName: string, keyData: KeyData) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.PAYPAL_CLIENT_ID = "AfxmQilUtZiATwO5vEZH_RPRJWBTiEGhUm27Wu5LyElZ7_OlXGwkc2vDlpUPsJHjoA8rVARy7i8A6VbY"; // 替換為您的 Client ID
+        this.PAYPAL_SECRET = "EKSx6S6nnjPgrjcEPLFytJGqwakuZ5vUcTv-kF-eKkprd7Ci22P7UV93-85b0Xupa9ggULebx9Rvsx7e"; // 替換為您的 Secret Key
+        this.PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com"; // 沙箱環境
+        // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
+    }
+
+    async getAccessToken(): Promise<string> {
+        try {
+            const tokenUrl = `${this.PAYPAL_BASE_URL}/v1/oauth2/token`;
+
+            const config: AxiosRequestConfig = {
+                method: "POST",
+                url: tokenUrl,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                auth: {
+                    username: this.PAYPAL_CLIENT_ID,
+                    password: this.PAYPAL_SECRET,
+                },
+                data: new URLSearchParams({
+                    grant_type: "client_credentials",
+                }).toString(),
+            };
+
+            const response = await axios.request(config);
+            return response.data.access_token;
+        } catch (error: any) {
+            console.error("Error fetching access token:", error.response?.data || error.message);
+            throw new Error("Failed to retrieve PayPal access token.");
+        }
+    }
+    async checkout(orderData:any){
+        const accessToken = await this.getAccessToken();
+        // Step 2: 建立 PayPal 訂單
+        const order = await this.createOrderPage(accessToken , orderData);
+        return {
+            orderId: order.id,
+            approveLink: order.links.find((link: any) => link.rel === "approve")?.href,
+        }
+    }
+    async createOrderPage(accessToken: string,orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title:string
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method?: string;
+    }) {
+        try {
+            const createOrderUrl = `${this.PAYPAL_BASE_URL}/v2/checkout/orders`;
+            let itemPrice = 0
+            orderData.lineItems.forEach((item)=>{
+                itemPrice += item.sale_price;
+            })
+            const config: AxiosRequestConfig = {
+                method: "POST",
+                url: createOrderUrl,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                data: {
+                    intent: "CAPTURE", // 訂單目標: CAPTURE (立即支付) 或 AUTHORIZE (授權後支付)
+                    purchase_units: [
+                        {
+                            reference_id: orderData.orderID, // 訂單參考 ID，可自定義
+                            amount: {
+                                currency_code: "TWD", // 貨幣
+                                value: "100.00", // 總金額
+                                breakdown: {
+                                    item_total: {
+                                        currency_code: "TWD",
+                                        value: itemPrice,
+                                    },
+                                },
+                            },
+                            items:orderData.lineItems.map((item)=>{
+                                return {
+                                    name: item.title, // 商品名稱
+                                    unit_amount: {
+                                        currency_code: "TWD",
+                                        value: item.sale_price,
+                                    },
+                                    quantity: item.count, // 商品數量
+                                    description:item.spec.join(',')??""
+                                }
+                            }),
+                        },
+                    ],
+
+                    application_context: {
+                        brand_name: this.appName, // 商店名稱
+                        landing_page: "NO_PREFERENCE", // 登陸頁面類型
+                        user_action: "PAY_NOW", // 用戶操作: PAY_NOW (立即支付)
+                        return_url: "https://your-website.com/success", // 成功返回 URL
+                        cancel_url: "https://your-website.com/cancel", // 取消返回 URL
+                    },
+                },
+            };
+
+            const response = await axios.request(config);
+            return response.data;
+        } catch (error: any) {
+            console.error("Error creating order:", error.response?.data || error.message);
+            throw new Error("Failed to create PayPal order.");
+        }
+    }
+    async capture(){
+
+    }
+
+    async saveMoney(orderData: { total: number; userID: number; note: string,table:string,title:string,ratio:number }) {
+        // 1. 建立請求的參數
+        const params = {
+            MerchantID: this.keyData.MERCHANT_ID,
+            RespondType: 'JSON',
+            TimeStamp: Math.floor(Date.now() / 1000),
+            Version: '2.0',
+            MerchantOrderNo: new Date().getTime(),
+            Amt: orderData.total,
+            ItemDesc: orderData.title,
+            NotifyURL: this.keyData.NotifyURL,
+            ReturnURL: this.keyData.ReturnURL,
+        };
+
+        const appName = this.appName;
+        await db.execute(
+            `INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `,
+            [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
+        );
+
+        // 2. 產生 Query String
+        const qs = FinancialService.JsonToQueryString(params);
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+
+        // 4. 產生檢查碼
+        const tradeSha = crypto.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
+        const subMitData = {
+            actionURL: this.keyData.ActionURL,
+            MerchantOrderNo: params.MerchantOrderNo,
+            MerchantID: this.keyData.MERCHANT_ID,
+            TradeInfo: tradeInfo,
+            TradeSha: tradeSha,
+            Version: params.Version,
+        };
+
+        // 5. 回傳物件
+        return html`<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
+            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
+            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
+            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
+            <input type="hidden" name="Version" value="${subMitData.Version}" />
+            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
+            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+        </form>`;
     }
 }

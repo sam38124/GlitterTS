@@ -2020,7 +2020,6 @@ export class CheckoutIndex {
                                 }
                             });
                             const dialog = new ShareDialog(gvc.glitter);
-                            dialog.dataLoading({ visible: true });
                             ApiShop.toCheckout({
                                 line_items: vm.cartData.lineItems.map((dd) => {
                                     return {

@@ -617,10 +617,10 @@ export class Shopping {
             };
             axios
                 .request(config)
-                .then((response) => {
+                .then((response:any) => {
                     resolve(response.data.returnCode === '0000');
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     resolve(false);
                 });
         });
@@ -1287,8 +1287,8 @@ export class Shopping {
                         order_id: carData.orderID,
                     });
 
-                    if (carData.voucherList && carData.voucherList.length > 0) {
-                        for (const voucher of carData.voucherList) {
+                    if (carData.voucherList && (carData as any).voucherList.length > 0) {
+                        for (const voucher of (carData as any).voucherList) {
                             await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
                         }
                     }
@@ -1424,7 +1424,7 @@ export class Shopping {
                         return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     };
                 } else {
-
+                    //paypal 付款
                     const subMitData = await new FinancialService(this.app, {
                         HASH_IV: keyData.HASH_IV,
                         HASH_KEY: keyData.HASH_KEY,

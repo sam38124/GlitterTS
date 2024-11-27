@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
 interface KeyData {
     MERCHANT_ID: string;
@@ -100,6 +101,44 @@ export declare class EcPay {
         note: string;
         method: string;
         CheckMacValue?: string;
+        table: string;
+        title: string;
+        ratio: number;
+    }): Promise<string>;
+}
+export declare class PayPal {
+    keyData: KeyData;
+    appName: string;
+    PAYPAL_CLIENT_ID: string;
+    PAYPAL_SECRET: string;
+    PAYPAL_BASE_URL: string;
+    constructor(appName: string, keyData: KeyData);
+    getAccessToken(): Promise<string>;
+    checkout(orderData: any): Promise<{
+        orderId: any;
+        approveLink: any;
+    }>;
+    createOrderPage(accessToken: string, orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method?: string;
+    }): Promise<any>;
+    capture(): Promise<void>;
+    saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: string;
         table: string;
         title: string;
         ratio: number;

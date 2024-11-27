@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EcPay = exports.EzPay = void 0;
+exports.PayPal = exports.EcPay = exports.EzPay = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const axios_1 = __importDefault(require("axios"));
 const html = String.raw;
 class FinancialService {
     constructor(appName, keyData) {
@@ -39,6 +40,7 @@ class FinancialService {
     }
     async createOrderPage(orderData) {
         orderData.method = orderData.method || 'ALL';
+        return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         }
@@ -369,4 +371,147 @@ class EcPay {
     }
 }
 exports.EcPay = EcPay;
+class PayPal {
+    constructor(appName, keyData) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.PAYPAL_CLIENT_ID = "AfxmQilUtZiATwO5vEZH_RPRJWBTiEGhUm27Wu5LyElZ7_OlXGwkc2vDlpUPsJHjoA8rVARy7i8A6VbY";
+        this.PAYPAL_SECRET = "EKSx6S6nnjPgrjcEPLFytJGqwakuZ5vUcTv-kF-eKkprd7Ci22P7UV93-85b0Xupa9ggULebx9Rvsx7e";
+        this.PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";
+    }
+    async getAccessToken() {
+        var _a;
+        try {
+            const tokenUrl = `${this.PAYPAL_BASE_URL}/v1/oauth2/token`;
+            const config = {
+                method: "POST",
+                url: tokenUrl,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                auth: {
+                    username: this.PAYPAL_CLIENT_ID,
+                    password: this.PAYPAL_SECRET,
+                },
+                data: new URLSearchParams({
+                    grant_type: "client_credentials",
+                }).toString(),
+            };
+            const response = await axios_1.default.request(config);
+            return response.data.access_token;
+        }
+        catch (error) {
+            console.error("Error fetching access token:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw new Error("Failed to retrieve PayPal access token.");
+        }
+    }
+    async checkout(orderData) {
+        var _a;
+        const accessToken = await this.getAccessToken();
+        const order = await this.createOrderPage(accessToken, orderData);
+        return {
+            orderId: order.id,
+            approveLink: (_a = order.links.find((link) => link.rel === "approve")) === null || _a === void 0 ? void 0 : _a.href,
+        };
+    }
+    async createOrderPage(accessToken, orderData) {
+        var _a;
+        try {
+            const createOrderUrl = `${this.PAYPAL_BASE_URL}/v2/checkout/orders`;
+            let itemPrice = 0;
+            orderData.lineItems.forEach((item) => {
+                itemPrice += item.sale_price;
+            });
+            const config = {
+                method: "POST",
+                url: createOrderUrl,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                data: {
+                    intent: "CAPTURE",
+                    purchase_units: [
+                        {
+                            reference_id: orderData.orderID,
+                            amount: {
+                                currency_code: "TWD",
+                                value: "100.00",
+                                breakdown: {
+                                    item_total: {
+                                        currency_code: "TWD",
+                                        value: itemPrice,
+                                    },
+                                },
+                            },
+                            items: orderData.lineItems.map((item) => {
+                                var _a;
+                                return {
+                                    name: item.title,
+                                    unit_amount: {
+                                        currency_code: "TWD",
+                                        value: item.sale_price,
+                                    },
+                                    quantity: item.count,
+                                    description: (_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : ""
+                                };
+                            }),
+                        },
+                    ],
+                    application_context: {
+                        brand_name: this.appName,
+                        landing_page: "NO_PREFERENCE",
+                        user_action: "PAY_NOW",
+                        return_url: "https://your-website.com/success",
+                        cancel_url: "https://your-website.com/cancel",
+                    },
+                },
+            };
+            const response = await axios_1.default.request(config);
+            return response.data;
+        }
+        catch (error) {
+            console.error("Error creating order:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw new Error("Failed to create PayPal order.");
+        }
+    }
+    async capture() {
+    }
+    async saveMoney(orderData) {
+        const params = {
+            MerchantID: this.keyData.MERCHANT_ID,
+            RespondType: 'JSON',
+            TimeStamp: Math.floor(Date.now() / 1000),
+            Version: '2.0',
+            MerchantOrderNo: new Date().getTime(),
+            Amt: orderData.total,
+            ItemDesc: orderData.title,
+            NotifyURL: this.keyData.NotifyURL,
+            ReturnURL: this.keyData.ReturnURL,
+        };
+        const appName = this.appName;
+        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `, [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
+        const qs = FinancialService.JsonToQueryString(params);
+        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        const tradeSha = crypto_1.default.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
+        const subMitData = {
+            actionURL: this.keyData.ActionURL,
+            MerchantOrderNo: params.MerchantOrderNo,
+            MerchantID: this.keyData.MERCHANT_ID,
+            TradeInfo: tradeInfo,
+            TradeSha: tradeSha,
+            Version: params.Version,
+        };
+        return html `<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
+            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
+            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
+            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
+            <input type="hidden" name="Version" value="${subMitData.Version}" />
+            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
+            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+        </form>`;
+    }
+}
+exports.PayPal = PayPal;
 //# sourceMappingURL=financial-service.js.map

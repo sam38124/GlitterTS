@@ -1028,11 +1028,11 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         const receipt: any = await new Promise((resolve, reject) => {
             axios
                 .request(config)
-                .then((response) => {
+                .then((response:any) => {
                     console.log(JSON.stringify(response.data));
                     resolve(response.data);
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error);
                     resolve(false);
                 });
