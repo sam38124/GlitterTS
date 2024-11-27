@@ -66,7 +66,7 @@ class User {
             const authData = (await database_1.default.query(`SELECT *
                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
                      WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-                    `, [email]))[0];
+                    `, [email || '-21']))[0];
             return authData;
         }
         catch (e) {
@@ -284,7 +284,8 @@ class User {
         if ((await database_1.default.query(`select count(1)
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
-            const userID = User.generateUserID();
+            const findAuth = await this.findAuthUser(fbResponse.email);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`, [
                 userID,
@@ -386,7 +387,8 @@ class User {
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email' = ?`, [line_profile.email]))[0]['count(1)'] == 0) {
-                const userID = User.generateUserID();
+                const findAuth = await this.findAuthUser(line_profile.email);
+                const userID = findAuth ? findAuth.user : User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
                     userID,
@@ -459,7 +461,8 @@ class User {
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email' = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
-                const userID = User.generateUserID();
+                const findAuth = await this.findAuthUser(payload === null || payload === void 0 ? void 0 : payload.email);
+                const userID = findAuth ? findAuth.user : User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
                     userID,
@@ -519,6 +522,8 @@ class User {
             });
             const decoded = jsonwebtoken_1.default.decode(res['id_token'], { complete: true });
             const uid = decoded.payload.sub;
+            const findAuth = await this.findAuthUser(decoded.payload.email);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email' = ?`, [decoded.payload.email]))[0]['count(1)'] == 0) {

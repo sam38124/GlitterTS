@@ -583,7 +583,7 @@ export class SaasViewModel {
                     BgWidget.editeInput({
                         gvc: gvc,
                         title: html`
-                                    <div class="d-flex flex-column" style="gap:3px;">商家聯絡電話
+                                    <div class="d-flex flex-column" style="gap:3px;">聯絡電話
                                         ${BgWidget.grayNote('正確填寫重要資料，避免遺漏重要通知')}
                                     </div>`,
                         default: userData.userData.contact_phone,

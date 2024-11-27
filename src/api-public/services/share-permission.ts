@@ -243,17 +243,17 @@ export class SharePermission {
                 const findAuth = (
                     await db.query(
                         `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config 
-                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ? ;
                         `,
-                        [data.email]
+                        [data.email, base.app]
                     )
                 )[0];
                 if (findAuth) {
                     userData = { userID: findAuth.user };
                 } else {
                     userData = { userID: User.generateUserID() };
-                    data.config.verifyEmail = data.email;
                 }
+                data.config.verifyEmail = data.email;
             }
             if (userData.userID === this.token.userID) {
                 return { result: false };
@@ -299,8 +299,8 @@ export class SharePermission {
                         user: userData.userID,
                         appName: base.app,
                         config: JSON.stringify(data.config),
-                        status:data.config.come_from==='pos' ? 1:0,
-                        invited:data.config.come_from==='pos' ? 1:0
+                        status:1,
+                        invited:0
                     },
                 ]);
                 const keyValue = await SharePermission.generateToken({
@@ -370,16 +370,12 @@ export class SharePermission {
                     `,
                     [email]
                 )
-            )[0];
-            if (userData === undefined) {
-                return { result: false };
-            }
-
+            )[0] ?? {userID:-99};
             const authData = (
                 await db.query(
-                    `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
+                    `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
                     `,
-                    [userData.userID, base.app]
+                    [userData.userID, email,base.app]
                 )
             )[0];
             if (authData) {
