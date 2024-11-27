@@ -12,6 +12,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { Ad } from '../public/ad.js';
 const html = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
@@ -273,13 +274,61 @@ export class PdClass {
                 if (!variant) {
                     return html `<button class="no-stock" disabled>發生錯誤</button>`;
                 }
-                if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) && (`${variant.show_understocking}` !== 'false')) {
+                Ad.gtagEvent('view_item', {
+                    currency: 'TWD',
+                    value: variant.sale_price,
+                    items: [
+                        {
+                            item_id: prod.id,
+                            item_name: prod.title,
+                            item_variant: variant.spec.length > 0 ? variant.spec.join('-') : '',
+                            price: variant.sale_price,
+                        },
+                    ],
+                });
+                Ad.fbqEvent('ViewContent', {
+                    content_ids: [prod.id],
+                    content_type: 'product',
+                    contents: [
+                        {
+                            id: prod.id,
+                            quantity: 1,
+                        },
+                    ],
+                    value: variant.sale_price,
+                    currency: 'TWD',
+                });
+                if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) && `${variant.show_understocking}` !== 'false') {
                     return html `<button class="no-stock" disabled>庫存不足</button>`;
                 }
                 return html `<button
                             class="add-cart-btn"
                             onclick="${gvc.event(() => {
                     ApiCart.addToCart(`${prod.id}`, vm.specs, vm.quantity);
+                    Ad.gtagEvent('add_to_cart', {
+                        currency: 'TWD',
+                        value: parseInt(`${variant.sale_price}`, 10) * parseInt(`${vm.quantity}`, 10),
+                        items: [
+                            {
+                                item_id: prod.id,
+                                item_name: prod.title,
+                                item_variant: variant.spec.length > 0 ? variant.spec.join('-') : '',
+                                price: variant.sale_price,
+                                quantity: parseInt(`${vm.quantity}`, 10),
+                            },
+                        ],
+                    });
+                    Ad.fbqEvent('AddToCart', {
+                        contents: [
+                            {
+                                id: prod.id,
+                                quantity: parseInt(`${vm.quantity}`, 10),
+                            },
+                        ],
+                        content_type: 'product',
+                        value: parseInt(`${variant.sale_price}`, 10) * parseInt(`${vm.quantity}`, 10),
+                        currency: 'TWD',
+                    });
                     gvc.glitter.recreateView('.js-cart-count');
                     gvc.glitter.recreateView('.shopping-cart');
                     PdClass.jumpAlert({
@@ -308,6 +357,7 @@ export class PdClass {
                 return;
             }
             ApiShop.getWishList().then((getRes) => {
+                var _a;
                 if (getRes.result && getRes.response.data) {
                     if (getRes.response.data.find((item) => item.id === prod.id)) {
                         ApiShop.deleteWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
@@ -322,6 +372,30 @@ export class PdClass {
                         }));
                     }
                     else {
+                        const variant = (_a = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs))) !== null && _a !== void 0 ? _a : prod.variants[0];
+                        Ad.gtagEvent('add_to_wishlist', {
+                            currency: 'TWD',
+                            value: variant.sale_price,
+                            items: [
+                                {
+                                    item_id: prod.id,
+                                    item_name: prod.title,
+                                    item_variant: variant.spec.length > 0 ? variant.spec.join('-') : '',
+                                    price: variant.sale_price,
+                                },
+                            ],
+                        });
+                        Ad.fbqEvent('AddToWishlist', {
+                            content_ids: [prod.id],
+                            contents: [
+                                {
+                                    id: prod.id,
+                                    quantity: 1,
+                                },
+                            ],
+                            value: variant.sale_price,
+                            currency: 'TWD',
+                        });
                         ApiShop.postWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
                             PdClass.jumpAlert({
                                 gvc,

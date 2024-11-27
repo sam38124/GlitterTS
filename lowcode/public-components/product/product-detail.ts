@@ -3,6 +3,10 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { PdClass, Product, FileList } from './pd-class.js';
 
+/*
+ * Page: product_show_widget
+ */
+
 const html = String.raw;
 
 export class ProductDetail {
@@ -244,8 +248,8 @@ export class ProductDetail {
                                                 ),
                                             });
                                         }, 100);
-                                        if(!product.length){
-                                            return ``
+                                        if (!product.length) {
+                                            return ``;
                                         }
                                         resolve(html`
                                             <div class="w-100 d-flex align-items-center justify-content-center ">
@@ -272,7 +276,7 @@ export class ProductDetail {
                                                         ? `width:${200 * product.length}px;`
                                                         : `width:100%;`}"
                                                 >
-                                                    <div class="swiper  w-100" style="" id="${swipID}">
+                                                    <div class="swiper w-100" id="${swipID}">
                                                         <div class="swiper-wrapper">
                                                             ${product
                                                                 .map((dd: any, index: number) => {

@@ -241,7 +241,7 @@ export class ProductDetail {
                                         ? `width:${200 * product.length}px;`
                                         : `width:100%;`}"
                                                 >
-                                                    <div class="swiper  w-100" style="" id="${swipID}">
+                                                    <div class="swiper w-100" id="${swipID}">
                                                         <div class="swiper-wrapper">
                                                             ${product
                                         .map((dd, index) => {

@@ -2,6 +2,11 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
 import { PdClass } from './pd-class.js';
+import { Ad } from '../public/ad.js';
+
+/*
+ * Page: sy01_pd_collection
+ */
 
 const html = String.raw;
 
@@ -296,7 +301,7 @@ export class ProductList {
         });
     };
 
-    public static main(gvc: GVC, widget: any, subData: any) {
+    static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
 
         const vm: any = {
@@ -564,6 +569,7 @@ export class ProductList {
                                         const products: Product[] = d.response.data;
                                         ApiShop.getCollection().then((data: any) => {
                                             if (data.result && data.response.value.length > 0) {
+                                                setAdTag(data.response.value);
                                                 vm.allParents = ['(無)'].concat(data.response.value.map((item: { title: string }) => item.title));
                                                 vm.collections = updateCollections({
                                                     products,
@@ -594,6 +600,61 @@ export class ProductList {
                 vm.title = collectionObj ? collectionObj.title : all_text;
             }
             gvc.notifyDataChange(ids.pageTitle);
+        }
+
+        function setAdTag(data: any) {
+            const path = location.pathname;
+            const pathParts = path.split('/');
+            const collectionIndex = pathParts.indexOf('collections');
+            const index = collectionIndex + 1;
+            const collection = pathParts[index];
+            const collectionName = decodeURIComponent(collection);
+
+            function findObjectByValue(arr: any, value: string): any {
+                for (const item of arr) {
+                    if (item.code === value) {
+                        return item;
+                    }
+                    if (item.array.length > 0) {
+                        const found = findObjectByValue(item.array, value);
+                        if (found) {
+                            return found;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            if ((window as any).gtag) {
+                if (collectionName) {
+                    const foundObject = findObjectByValue(data, collectionName);
+                    Ad.gtagEvent('view_item_list', {
+                        items: [
+                            {
+                                item_id: foundObject.code,
+                                item_name: foundObject.title,
+                            },
+                        ],
+                    });
+                    Ad.fbqEvent('ViewContent', {
+                        content_ids: [foundObject.code],
+                        content_type: 'product_group',
+                    });
+                } else {
+                    Ad.gtagEvent('view_item_list', {
+                        items: [
+                            {
+                                item_id: 'all-product',
+                                item_name: '所有商品',
+                            },
+                        ],
+                    });
+                    Ad.fbqEvent('ViewContent', {
+                        content_ids: ['all-product'],
+                        content_type: 'product_group',
+                    });
+                }
+            }
         }
 
         return html`
