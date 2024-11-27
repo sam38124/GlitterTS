@@ -855,6 +855,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
                 `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
                 `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
+                `https://cdn.jsdelivr.net/npm/froala-editor/js/languages/zh_tw.js`,
                 `froala_editor.min.js`,
                 `plugins/align.min.js`,
                 `plugins/char_counter.min.js`,
@@ -913,26 +914,26 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                 setTimeout(() => {
                                     var _a;
                                     gvc.addStyle(`
-                                    #insertImage-1 {
-                                        display: none !important;
-                                    }
-                                    #insertImage-2 {
-                                        display: none !important;
-                                    }
-                                    .fr-sticky-dummy {
-                                        display: none !important;
-                                    }
-                                    ${obj.hiddenBorder
+                                        #insertImage-1 {
+                                            display: none !important;
+                                        }
+                                        #insertImage-2 {
+                                            display: none !important;
+                                        }
+                                        .fr-sticky-dummy {
+                                            display: none !important;
+                                        }
+                                        ${obj.hiddenBorder
                                         ? css `
-                                                  .fr-box {
-                                                      border: none !important;
-                                                  }
-                                                  .fr-box > div {
-                                                      border: none !important;
-                                                  }
-                                              `
+                                                      .fr-box {
+                                                          border: none !important;
+                                                      }
+                                                      .fr-box > div {
+                                                          border: none !important;
+                                                      }
+                                                  `
                                         : ''}
-                                `);
+                                    `);
                                     function generateFontSizeArray() {
                                         let fontSizes = [];
                                         for (let size = 8; size <= 30; size += 1) {
@@ -946,7 +947,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         return fontSizes;
                                     }
-                                    const editor = new glitter.window.FroalaEditor('#' + richID, {
+                                    const FroalaEditor = glitter.window.FroalaEditor;
+                                    const editor = new FroalaEditor('#' + richID, {
                                         language: 'zh_tw',
                                         heightMin: (_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350,
                                         content: obj.def,
@@ -1022,6 +1024,38 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
+                                        toolbarButtons: [
+                                            'bold',
+                                            'italic',
+                                            'underline',
+                                            'align',
+                                            '|',
+                                            'paragraphFormat',
+                                            'fontSize',
+                                            'fontFamily',
+                                            'textColor',
+                                            'backgroundColor',
+                                            'clearFormatting',
+                                            '|',
+                                            'insertTable',
+                                            'insertLink',
+                                            'insertImage',
+                                            'insertVideo',
+                                            'insertHR',
+                                            '|',
+                                            'formatOL',
+                                            'emoticons',
+                                            'html',
+                                        ],
+                                        paragraphFormat: {
+                                            N: '普通文字',
+                                            H1: '標題 1',
+                                            H2: '標題 2',
+                                            H3: '標題 3',
+                                            H4: '標題 4',
+                                            H5: '標題 5',
+                                            H6: '標題 6',
+                                        },
                                     });
                                     if (glitter.document.querySelector(`.${richID}-loading`)) {
                                         glitter.document.querySelector(`.${richID}-loading`).remove();
@@ -1032,19 +1066,20 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             try {
                                                 editor.destroy();
                                             }
-                                            catch (e) {
-                                            }
-                                            render();
+                                            catch (e) { }
+                                            setTimeout(() => {
+                                                render();
+                                            }, 500);
                                             return;
                                         }
                                         target.outerHTML = html ` <button
-                                        id="insertImage-replace"
-                                        type="button"
-                                        tabindex="-1"
-                                        role="button"
-                                        class="fr-command fr-btn "
-                                        data-title="插入圖片 (⌘P)"
-                                        onclick="${obj.gvc.event(() => {
+                                            id="insertImage-replace"
+                                            type="button"
+                                            tabindex="-1"
+                                            role="button"
+                                            class="fr-command fr-btn "
+                                            data-title="插入圖片 (⌘P)"
+                                            onclick="${obj.gvc.event(() => {
                                             if (obj.insertImageEvent) {
                                                 obj.insertImageEvent(editor);
                                             }
@@ -1084,14 +1119,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 });
                                             }
                                         })}"
-                                    >
-                                        <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path
-                                                d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
-                                            ></path>
-                                        </svg>
-                                        <span class="fr-sr-only">插入圖片</span>
-                                    </button>`;
+                                        >
+                                            <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
+                                                ></path>
+                                            </svg>
+                                            <span class="fr-sr-only">插入圖片</span>
+                                        </button>`;
                                         if (obj.rich_height) {
                                             glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
                                             glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';

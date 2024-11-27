@@ -42,8 +42,8 @@ export class GlitterUtil {
                  if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt'){
                     resp.set('Content-Type', 'plan/text');
                     return resp.send(await dd.robots(req, resp))
-                }else  if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'twshop.xml'){
-                     resp.set('Content-Type', 'plan/text');
+                }else  if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'tw_shop.xml'){
+                     resp.set('Content-Type', 'application/xml');
                      return resp.send(await dd.tw_shop(req, resp))
                  }else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
                     resp.set('Content-Type', 'application/xml');

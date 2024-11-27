@@ -34,49 +34,64 @@ export class CheckoutIndex {
                 "lineItems": [
                     {
                         "spec": [
-                            "黑色",
-                            "小型"
+                            "黃色",
+                            "L"
                         ],
-                        "id": 711,
+                        "id": 715,
                         "count": 1,
-                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
-                        "title": "鱷魚皮沙發",
-                        "sale_price": 25000,
-                        "collection": [
-                            "折扣專區",
-                            "熱門商品",
-                            "熱門商品 / 夏季限定"
-                        ],
-                        "sku": "133",
+                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
+                        "title": "Adidas衣服",
+                        "sale_price": 1000,
+                        "collection": [],
+                        "sku": "",
                         "shipment_obj": {
                             "type": "weight",
-                            "value": 100
+                            "value": 1
                         },
-                        "discount_price": 88,
+                        "discount_price": 188,
                         "rebate": 0
                     }
                 ],
-                "total": 25412,
+                "total": 812,
                 "email": "sam38124@gmail.com",
                 "user_info": {
-                    "shipment": "sescsbsfs4s2s4sf"
+                    "shipment": "sescsbsfs4s2s4sf",
+                    "invoice_type": "me",
+                    "send_type": "email",
+                    "custom_form_delivery": {
+                        "1732152125723": "A司機"
+                    },
+                    "name": "王建智",
+                    "phone": "0978028730",
+                    "email": "sam38124@gmail.com",
+                    "note": "kldskds"
                 },
-                "shipment_fee": 500,
+                "shipment_fee": 0,
                 "rebate": 0,
                 "use_rebate": 0,
-                "orderID": "1732290751810",
+                "orderID": "1732683468622",
                 "shipment_support": [
                     "OKMARTC2C",
                     "shop",
                     "FAMIC2C",
                     "UNIMARTC2C",
-                    "sescsbsfs4s2s4sf"
+                    "sescsbsfs4s2s4sf",
+                    "normal",
+                    "HILIFEC2C"
                 ],
                 "shipment_info": "<p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;' id=\"isPasted\">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>商家會約定再次配送的時間，您將支付額外的運費。</p>",
                 "shipment_selector": [
                     {
+                        "name": "一般宅配",
+                        "value": "normal"
+                    },
+                    {
                         "name": "全家店到店",
                         "value": "FAMIC2C"
+                    },
+                    {
+                        "name": "萊爾富店到店",
+                        "value": "HILIFEC2C"
                     },
                     {
                         "name": "OK超商店到店",
@@ -165,7 +180,69 @@ export class CheckoutIndex {
                 "code_array": [],
                 "give_away": [],
                 "user_rebate_sum": 39807,
+                "code": "J3IXLO",
                 "voucherList": [
+                    {
+                        "id": 677,
+                        "for": "all",
+                        "code": "J3IXLO",
+                        "rule": "min_count",
+                        "type": "voucher",
+                        "title": "示範優惠券1011",
+                        "value": "100",
+                        "device": [
+                            "normal",
+                            "pos"
+                        ],
+                        "forKey": [],
+                        "method": "fixed",
+                        "status": 1,
+                        "target": "all",
+                        "userID": 122538856,
+                        "endDate": "2024-11-28",
+                        "endTime": "00:13",
+                        "overlay": false,
+                        "trigger": "code",
+                        "counting": "single",
+                        "ruleValue": 0,
+                        "startDate": "2024-10-11",
+                        "startTime": "17:00",
+                        "reBackType": "discount",
+                        "targetList": [
+                            "neverBuying"
+                        ],
+                        "end_ISO_Date": "2024-11-27T16:13:00.000Z",
+                        "macroLimited": 0,
+                        "microLimited": 0,
+                        "rebateEndDay": "30",
+                        "conditionType": "order",
+                        "start_ISO_Date": "2024-10-11T09:00:00.000Z",
+                        "bind": [
+                            {
+                                "spec": [
+                                    "黃色",
+                                    "L"
+                                ],
+                                "id": 715,
+                                "count": 1,
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
+                                "title": "Adidas衣服",
+                                "sale_price": 1000,
+                                "collection": [],
+                                "sku": "",
+                                "shipment_obj": {
+                                    "type": "weight",
+                                    "value": 1
+                                },
+                                "discount_price": 188,
+                                "rebate": 0
+                            }
+                        ],
+                        "times": 1,
+                        "bind_subtotal": 1000,
+                        "discount_total": 100,
+                        "rebate_total": 0
+                    },
                     {
                         "id": 718,
                         "for": "all",
@@ -201,35 +278,31 @@ export class CheckoutIndex {
                         "bind": [
                             {
                                 "spec": [
-                                    "黑色",
-                                    "小型"
+                                    "黃色",
+                                    "L"
                                 ],
-                                "id": 711,
+                                "id": 715,
                                 "count": 1,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-1219.41.03-Aluxuriouscrocodileleathersofainamodernlivingroomsetting,showcasingahigh-qualitycrocodileskintexturethatlooksdurableandelegant.T.webp",
-                                "title": "鱷魚皮沙發",
-                                "sale_price": 25000,
-                                "collection": [
-                                    "折扣專區",
-                                    "熱門商品",
-                                    "熱門商品 / 夏季限定"
-                                ],
-                                "sku": "133",
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
+                                "title": "Adidas衣服",
+                                "sale_price": 1000,
+                                "collection": [],
+                                "sku": "",
                                 "shipment_obj": {
                                     "type": "weight",
-                                    "value": 100
+                                    "value": 1
                                 },
-                                "discount_price": 88,
+                                "discount_price": 188,
                                 "rebate": 0
                             }
                         ],
                         "times": 1,
-                        "bind_subtotal": 25000,
+                        "bind_subtotal": 1000,
                         "discount_total": 88,
                         "rebate_total": 0
                     }
                 ],
-                "discount": 88,
+                "discount": 188,
                 "payment_setting": {
                     "TYPE": "ecPay"
                 },
@@ -609,7 +682,7 @@ export class CheckoutIndex {
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
-            const beta = false;
+            const beta = true;
             if (!beta) {
                 new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                     new Promise((resolve, reject) => {
@@ -1277,6 +1350,13 @@ export class CheckoutIndex {
                                                     </select>
                                                 </div>
                                             </div>
+                                            ${(vm.cartData.user_info.shipment === 'normal') ? `<div class="col-12 col-md-6 mb-2">
+                                                        <label class="${gClass('label')}">配送地址</label>
+                                                        <input class="${gClass('input')}" type="address" placeholder="請輸入配送地址" value="${vm.cartData.user_info.address || ''}" onchange="${gvc.event((e, event) => {
+                            vm.cartData.user_info.address = e.value;
+                            this.storeLocalData(vm.cartData);
+                        })}">
+                                                    </div>` : ``}
                                             <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
                                                 <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
                             ApiDelivery.storeMaps({

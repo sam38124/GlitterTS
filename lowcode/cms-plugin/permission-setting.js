@@ -34,7 +34,7 @@ export class PermissionSetting {
                         },
                         created_time: '',
                         updated_time: '',
-                        status: 0,
+                        status: 1,
                         invited: 0,
                         email: '',
                         online_time: '',
@@ -122,7 +122,7 @@ export class PermissionSetting {
                                     return BgWidget.switchTextButton(gvc, dd.status, {
                                         left: dd.status ? '啟用' : '關閉',
                                     }, () => {
-                                        ApiUser.togglePermissionStatus(dd.email).then((data) => {
+                                        ApiUser.togglePermissionStatus(dd.email || dd.config.verifyEmail).then((data) => {
                                             if (data.result) {
                                                 dd.status = data.response.status;
                                                 dialog.successMessage({ text: `${dd.status ? '啟用' : '關閉'}成功` });
@@ -494,7 +494,7 @@ export class PermissionSetting {
                                     phone: vm.data.config.phone,
                                     auth: vm.data.config.auth,
                                 },
-                                status: vm.data.status,
+                                status: obj.type === 'add' ? 1 : vm.data.status,
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
                                 if (res.result) {

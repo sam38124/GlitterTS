@@ -91,7 +91,7 @@ export class ProductDetail {
             </div>`;
         }
 
-        gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css'])
+        gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
         return gvc.bindView({
             bind: ids.page,
             view: () => {
@@ -189,7 +189,7 @@ export class ProductDetail {
                                                     regex,
                                                     html`<span
                                                         style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '${titleFontColor}'}; background: ${cssStyle?.font_bgr ??
-                                                    '#fff'};"
+                                                        '#fff'};"
                                                         >${data.value}</span
                                                     >`
                                                 );
@@ -201,7 +201,7 @@ export class ProductDetail {
                                 divCreate: {
                                     style: (() => {
                                         if (PdClass.isPad()) {
-                                            return 'margin: 0 120px;';
+                                            return 'margin: 0 60px;';
                                         }
                                         if (PdClass.isPhone()) {
                                             return '';
@@ -320,7 +320,7 @@ export class ProductDetail {
                             status: 'active',
                             orderBy: '',
                             with_hide_index: 'true',
-                            show_hidden:true
+                            show_hidden: true,
                         };
 
                         Promise.all([

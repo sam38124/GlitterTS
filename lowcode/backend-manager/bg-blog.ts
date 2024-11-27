@@ -895,7 +895,10 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                             vm.data.content.relative = vm.data.content.relative || 'collection';
                             vm.data.content.relative_data = vm.data.content.relative_data || [];
                             vm.data.content.with_discount = vm.data.content.with_discount || 'false';
-
+                            vm.data.content.show_auth=vm.data.content.show_auth ?? {
+                                auth:'all',
+                                value:''
+                            }
                             return gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 return {
@@ -1158,7 +1161,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                             });
                         })(),
                     ].join(''),
-                    ratio: 75,
+                    ratio: 70,
                 },
                 {
                     html: BgWidget.summaryCard(
@@ -1207,15 +1210,110 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                         return filter_result;
                                                     }
                                             ),
-                                            EditorElem.editeInput({
-                                                gvc: gvc,
-                                                title: '作者名稱',
-                                                default: vm.data.content.author,
-                                                placeHolder: '請輸入作者名稱',
-                                                callback: (text) => {
-                                                    vm.data.content.author = text;
-                                                },
-                                            }),
+                                                ...(()=>{
+                                                    if(page_tab==='hidden'){
+                                                        return [gvc.bindView(()=>{
+                                                            const id=gvc.glitter.getUUID()
+                                                            return {
+                                                                bind:id,
+                                                                view:()=>{
+                                                                    let array=[html`<div class="tx_normal fw-normal mt-2">檢視權限</div>`,
+                                                                        BgWidget.select({
+                                                                            gvc: gvc,
+                                                                            callback: (text) => {
+                                                                                vm.data.content.show_auth.auth=text
+                                                                                if( vm.data.content.show_auth.auth==='member_type'){
+                                                                                    vm.data.content.show_auth.value=[]
+                                                                                }else{
+                                                                                    vm.data.content.show_auth.value=''
+                                                                                }
+                                                                                gvc.notifyDataChange(id)
+                                                                            },
+                                                                            options: [
+                                                                                { key: 'all', value: '知道鏈結的所有人' },
+                                                                                { key: 'member_type', value: '會員等級' },
+                                                                                { key: 'password', value: '輸入密碼' }
+                                                                            ],
+                                                                            default: vm.data.content.show_auth.auth,
+                                                                        })];
+                                                                    if(vm.data.content.show_auth.auth==='password'){
+                                                                        array.push(BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: '設定瀏覽密碼',
+                                                                            placeHolder: `請輸入瀏覽密碼`,
+                                                                            default: vm.data.content.show_auth.value,
+                                                                            callback: (text) => {
+                                                                                vm.data.content.show_auth.value = text;
+                                                                            },
+                                                                        }))
+                                                                    }else  if(vm.data.content.show_auth.auth==='member_type'){
+                                                                        array.push((() => {
+                                                                            const levelVM = {
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                loading: true,
+                                                                                dataList: [],
+                                                                            };
+                                                                            return gvc.bindView({
+                                                                                bind: levelVM.id,
+                                                                                view: () => {
+                                                                                    if (levelVM.loading) {
+                                                                                        return BgWidget.spinner({ text: { visible: false } });
+                                                                                    } else {
+                                                                                        return BgWidget.selectDropList({
+                                                                                            gvc: gvc,
+                                                                                            callback: (value: []) => {
+                                                                                                vm.data.content.show_auth.value = value;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            },
+                                                                                            default: vm.data.content.show_auth.value ?? [],
+                                                                                            options: levelVM.dataList,
+                                                                                            style: 'width: 100%;',
+                                                                                        });
+                                                                                    }
+                                                                                },
+                                                                                divCreate: {
+                                                                                    style: 'width: 100%;',
+                                                                                },
+                                                                                onCreate: () => {
+                                                                                    if (levelVM.loading) {
+                                                                                        ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                                                            if (dd.result && dd.response.value) {
+                                                                                                levelVM.dataList = dd.response.value.levels.map(
+                                                                                                        (item: { id: string; tag_name: string }) => {
+                                                                                                            return {
+                                                                                                                key: item.id,
+                                                                                                                value: item.tag_name,
+                                                                                                                // note.txt: '人數'
+                                                                                                            };
+                                                                                                        }
+                                                                                                );
+                                                                                                levelVM.loading = false;
+                                                                                                gvc.notifyDataChange(levelVM.id);
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                },
+                                                                            });
+                                                                        })())
+                                                                    }
+                                                                    return array.join('<div class="my-2"></div>')
+                                                                }
+                                                            }
+                                                        })]
+                                                    }else{
+                                                        return [
+                                                            EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: '作者名稱',
+                                                                default: vm.data.content.author,
+                                                                placeHolder: '請輸入作者名稱',
+                                                                callback: (text) => {
+                                                                    vm.data.content.author = text;
+                                                                },
+                                                            })
+                                                        ]
+                                                    }
+                                                })(),
                                             gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
@@ -1316,7 +1414,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                 };
                             })
                     ),
-                    ratio: 25,
+                    ratio: 30,
                 }
         )}
         ${BgWidget.mbContainer(240)}

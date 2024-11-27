@@ -2046,8 +2046,8 @@ export class ShoppingProductSetting {
                         return [
                             BgWidget.container(html `
                                 <div class="title-container flex-column" style="gap:10px;">
-                                   <div class="d-flex align-items-center w-100">
-                                       ${BgWidget.goBack(obj.gvc.event(() => {
+                                    <div class="d-flex align-items-center w-100">
+                                        ${BgWidget.goBack(obj.gvc.event(() => {
                                 if (window.parent.glitter.share.checkData && !window.parent.glitter.share.checkData()) {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.checkYesOrNot({
@@ -2066,37 +2066,39 @@ export class ShoppingProductSetting {
                                     obj.vm.type = 'list';
                                 }
                             }))}
-                                       <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
-                                       <div class="flex-fill"></div>
-                                   </div>
-                                  <div class="d-flex w-100">
-                                      <div class="flex-fill"></div>
-                                      ${[
-                                BgWidget.grayButton('複製現有商品', gvc.event(() => {
-                                    BgProduct.productsDialog({
-                                        gvc: gvc,
-                                        default: [],
-                                        single: true,
-                                        callback: (value) => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.dataLoading({ visible: true });
-                                            ApiShop.getProduct({
-                                                page: 0,
-                                                limit: 1,
-                                                id: value[0],
-                                            }).then((data) => {
-                                                dialog.dataLoading({ visible: false });
-                                                if (data.result && data.response.data && data.response.data.content) {
-                                                    postMD = data.response.data.content;
-                                                    postMD.id = undefined;
-                                                    setProductType();
-                                                    gvc.notifyDataChange(vm.id);
-                                                }
-                                            });
-                                        },
-                                        show_product_type: true
-                                    });
-                                }), {}),
+                                        <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                        <div class="flex-fill"></div>
+                                    </div>
+                                    <div class="d-flex w-100">
+                                        <div class="flex-fill"></div>
+                                        ${[
+                                obj.type === 'replace'
+                                    ? ''
+                                    : BgWidget.grayButton('複製現有商品', gvc.event(() => {
+                                        BgProduct.productsDialog({
+                                            gvc: gvc,
+                                            default: [],
+                                            single: true,
+                                            callback: (value) => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.dataLoading({ visible: true });
+                                                ApiShop.getProduct({
+                                                    page: 0,
+                                                    limit: 1,
+                                                    id: value[0],
+                                                }).then((data) => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    if (data.result && data.response.data && data.response.data.content) {
+                                                        postMD = data.response.data.content;
+                                                        postMD.id = undefined;
+                                                        setProductType();
+                                                        gvc.notifyDataChange(vm.id);
+                                                    }
+                                                });
+                                            },
+                                            show_product_type: true,
+                                        });
+                                    }), {}),
                                 BgWidget.grayButton('AI 生成', gvc.event(() => {
                                     ProductAi.setProduct(gvc, postMD, () => {
                                         gvc.notifyDataChange(vm.id);
@@ -2107,7 +2109,7 @@ export class ShoppingProductSetting {
                                     window.parent.glitter.openNewTab(href);
                                 }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }),
                             ].join(html `<div class="mx-1"></div>`)}
-                                  </div>
+                                    </div>
                                 </div>
                                 ${BgWidget.container1x2({
                                 html: [
@@ -4281,7 +4283,6 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     Number(variant['v_width']) == 0 ||
                                                     variant['v_length'] == undefined ||
                                                     Number(variant['v_length']) == 0) {
-                                                    console.log('variant -- ', variant);
                                                     dialog.infoMessage({
                                                         text: `規格 ${variant.spec.join(',')} 材積資訊未填`,
                                                     });

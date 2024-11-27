@@ -102,7 +102,7 @@ export class User {
         return userID;
     }
 
-    public async findAuthUser(email: string) {
+    public async findAuthUser(email?: string) {
         try {
             const authData = (
                 await db.query(
@@ -110,7 +110,7 @@ export class User {
                      FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
                      WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
                     `,
-                    [email]
+                    [email || '-21']
                 )
             )[0];
             return authData;
@@ -369,7 +369,8 @@ export class User {
                 )
             )[0]['count(1)'] == 0
         ) {
-            const userID = User.generateUserID();
+            const findAuth = await this.findAuthUser(fbResponse.email);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`,
@@ -490,7 +491,8 @@ export class User {
                     )
                 )[0]['count(1)'] == 0
             ) {
-                const userID = User.generateUserID();
+                const findAuth = await this.findAuthUser(line_profile.email);
+                const userID = findAuth ? findAuth.user : User.generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`,
@@ -586,7 +588,8 @@ export class User {
                     )
                 )[0]['count(1)'] == 0
             ) {
-                const userID = User.generateUserID();
+                const findAuth = await this.findAuthUser(payload?.email!!);
+                const userID = findAuth ? findAuth.user : User.generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`,
@@ -660,6 +663,8 @@ export class User {
                 payload: { sub: string; email: string };
             };
             const uid = decoded.payload.sub;
+            const findAuth = await this.findAuthUser(decoded.payload.email);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
             if (
                 (
                     await db.query(

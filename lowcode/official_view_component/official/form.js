@@ -709,6 +709,8 @@ export class FormWidget {
             </div>`;
     }
     static checkLeakData(form_config_list, formData) {
+        formData = formData || {};
+        form_config_list = form_config_list || [];
         const find = form_config_list.find((dd) => {
             return dd.require === 'true' && !formData[dd.key];
         });

@@ -571,6 +571,9 @@ async function createAPP(dd) {
                     .join('')}
                         ${extractCols(cols)
                     .map((item) => {
+                    if (!item.code) {
+                        return ``;
+                    }
                     return `<url>
                                     <loc>https://${domain}/collections/${item.code}</loc>
                                     <lastmod>${item.updated_at}</lastmod>
@@ -580,6 +583,9 @@ async function createAPP(dd) {
                     .join('')}
                         ${extractProds(products)
                     .map((item) => {
+                    if (!item.code) {
+                        return ``;
+                    }
                     return `<url>
                                     <loc>https://${domain}/products/${item.code}</loc>
                                     <lastmod>${item.updated_at}</lastmod>

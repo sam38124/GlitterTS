@@ -176,15 +176,15 @@ class SharePermission {
                 `, [data.email]))[0];
             if (userData === undefined) {
                 const findAuth = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
-                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
-                        `, [data.email]))[0];
+                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ? ;
+                        `, [data.email, base.app]))[0];
                 if (findAuth) {
                     userData = { userID: findAuth.user };
                 }
                 else {
                     userData = { userID: user_1.User.generateUserID() };
-                    data.config.verifyEmail = data.email;
                 }
+                data.config.verifyEmail = data.email;
             }
             if (userData.userID === this.token.userID) {
                 return { result: false };
@@ -215,8 +215,8 @@ class SharePermission {
                         user: userData.userID,
                         appName: base.app,
                         config: JSON.stringify(data.config),
-                        status: data.config.come_from === 'pos' ? 1 : 0,
-                        invited: data.config.come_from === 'pos' ? 1 : 0
+                        status: 1,
+                        invited: 0
                     },
                 ]);
                 const keyValue = await SharePermission.generateToken({
@@ -253,18 +253,16 @@ class SharePermission {
         }
     }
     async toggleStatus(email) {
+        var _a;
         try {
             const base = await this.getBaseData();
             if (!base) {
                 return { result: false };
             }
-            const userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
-                    `, [email]))[0];
-            if (userData === undefined) {
-                return { result: false };
-            }
-            const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
-                    `, [userData.userID, base.app]))[0];
+            const userData = (_a = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
+                    `, [email]))[0]) !== null && _a !== void 0 ? _a : { userID: -99 };
+            const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
+                    `, [userData.userID, email, base.app]))[0];
             if (authData) {
                 const bool = (authData.status - 1) * -1;
                 await database_1.default.query(`UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config

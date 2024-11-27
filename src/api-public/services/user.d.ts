@@ -48,7 +48,7 @@ export declare class User {
     app: string;
     token?: IToken;
     static generateUserID(): string;
-    findAuthUser(email: string): Promise<any>;
+    findAuthUser(email?: string): Promise<any>;
     emailVerify(account: string): Promise<{
         result: boolean;
     }>;
