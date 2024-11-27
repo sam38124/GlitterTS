@@ -855,6 +855,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
                 `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
                 `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
+                `https://cdn.jsdelivr.net/npm/froala-editor/js/languages/zh_tw.js`,
                 `froala_editor.min.js`,
                 `plugins/align.min.js`,
                 `plugins/char_counter.min.js`,
@@ -946,7 +947,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         return fontSizes;
                                     }
-                                    const editor = new glitter.window.FroalaEditor('#' + richID, {
+                                    const FroalaEditor = glitter.window.FroalaEditor;
+                                    const editor = new FroalaEditor('#' + richID, {
                                         language: 'zh_tw',
                                         heightMin: (_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350,
                                         content: obj.def,
@@ -1022,6 +1024,38 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
+                                        toolbarButtons: [
+                                            'bold',
+                                            'italic',
+                                            'underline',
+                                            'align',
+                                            '|',
+                                            'paragraphFormat',
+                                            'fontSize',
+                                            'fontFamily',
+                                            'textColor',
+                                            'backgroundColor',
+                                            'clearFormatting',
+                                            '|',
+                                            'insertTable',
+                                            'insertLink',
+                                            'insertImage',
+                                            'insertVideo',
+                                            'insertHR',
+                                            '|',
+                                            'formatOL',
+                                            'emoticons',
+                                            'html',
+                                        ],
+                                        paragraphFormat: {
+                                            N: '普通文字',
+                                            H1: '標題 1',
+                                            H2: '標題 2',
+                                            H3: '標題 3',
+                                            H4: '標題 4',
+                                            H5: '標題 5',
+                                            H6: '標題 6',
+                                        },
                                     });
                                     if (glitter.document.querySelector(`.${richID}-loading`)) {
                                         glitter.document.querySelector(`.${richID}-loading`).remove();
