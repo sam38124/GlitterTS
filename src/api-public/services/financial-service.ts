@@ -70,7 +70,7 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
-        return await new PayPal(this.appName, this.keyData).checkout(orderData);
+        // return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
