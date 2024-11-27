@@ -2125,14 +2125,20 @@ export class CheckoutIndex {
                                 distribution_code: ApiCart.cart.distribution_code,
                                 give_away: ApiCart.cart.give_away
                             }).then((res) => {
+                                dialog.dataLoading({ visible: false });
                                 if (res.response.off_line || res.response.is_free) {
                                     ApiCart.clearCart();
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    const id = gvc.glitter.getUUID();
-                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                    document.querySelector(`#${id} #submit`).click();
+                                    if (res.response.form.approveLink) {
+                                        location.href = res.response.form.approveLink;
+                                    }
+                                    else {
+                                        const id = gvc.glitter.getUUID();
+                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                        document.querySelector(`#${id} #submit`).click();
+                                    }
                                     ApiCart.clearCart();
                                 }
                             });

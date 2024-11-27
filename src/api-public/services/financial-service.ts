@@ -4,6 +4,7 @@ import moment from 'moment-timezone';
 import axios, {AxiosRequestConfig} from "axios";
 
 import paypal from "@paypal/checkout-server-sdk";
+import redis from "../../modules/redis";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -12,7 +13,7 @@ interface KeyData {
     NotifyURL: string;
     ReturnURL: string;
     ActionURL: string;
-    TYPE: 'newWebPay' | 'ecPay';
+    TYPE: 'newWebPay' | 'ecPay' | 'PayPal';
 }
 
 const html = String.raw;
@@ -70,7 +71,8 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
-        // return await new PayPal(this.appName, this.keyData).checkout(orderData);
+        //todo 修改付款方式 to paypal
+        return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -508,7 +510,7 @@ export class PayPal {
     PAYPAL_CLIENT_ID:string;
     PAYPAL_SECRET:string;
     PAYPAL_BASE_URL:string
-
+    //todo PAYPAL_CLIENT_ID PAYPAL_SECRET 會是動態的 還有 PAYPAL_BASE_URL的沙箱環境
     constructor(appName: string, keyData: KeyData) {
         this.keyData = keyData;
         this.appName = appName;
@@ -546,7 +548,6 @@ export class PayPal {
     }
     async checkout(orderData:any){
         const accessToken = await this.getAccessToken();
-        // Step 2: 建立 PayPal 訂單
         const order = await this.createOrderPage(accessToken , orderData);
         return {
             orderId: order.id,
@@ -589,7 +590,7 @@ export class PayPal {
                             reference_id: orderData.orderID, // 訂單參考 ID，可自定義
                             amount: {
                                 currency_code: "TWD", // 貨幣
-                                value: "100.00", // 總金額
+                                value: itemPrice, // 總金額
                                 breakdown: {
                                     item_total: {
                                         currency_code: "TWD",
@@ -615,22 +616,98 @@ export class PayPal {
                         brand_name: this.appName, // 商店名稱
                         landing_page: "NO_PREFERENCE", // 登陸頁面類型
                         user_action: "PAY_NOW", // 用戶操作: PAY_NOW (立即支付)
-                        return_url: "https://your-website.com/success", // 成功返回 URL
-                        cancel_url: "https://your-website.com/cancel", // 取消返回 URL
+                        return_url: `${this.keyData.ReturnURL}&payment=true&appName=${this.appName}&orderID=${orderData.orderID}`, // 成功返回 URL
+                        cancel_url: `${this.keyData.ReturnURL}&payment=false`, // 取消返回 URL
                     },
                 },
             };
 
             const response = await axios.request(config);
+            await db.execute(
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `,
+                [orderData.orderID, 0, orderData.user_email, orderData]
+            );
+            await redis.setValue('paypal'+orderData.orderID,response.data.id)
             return response.data;
         } catch (error: any) {
             console.error("Error creating order:", error.response?.data || error.message);
             throw new Error("Failed to create PayPal order.");
         }
     }
-    async capture(){
+    async getOrderDetails(orderId: string, accessToken: string) {
+        const url = `/v2/checkout/orders/${orderId}`;
+        const axiosInstance = axios.create({
+            baseURL: this.PAYPAL_BASE_URL,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        const config: AxiosRequestConfig = {
+            method: "GET",
+            url: url,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        };
 
+        try {
+            const response = await axiosInstance.request(config);
+            const order = response.data;
+
+            // 檢查訂單狀態是否為 APPROVED
+            if (order.status === "APPROVED") {
+                return order;
+            } else {
+                throw new Error(`Order status is not APPROVED. Current status: ${order.status}`);
+            }
+        } catch (error:any) {
+            console.error("Error fetching order details:", error.response?.data || error.message);
+            throw error;
+        }
     }
+
+    async capturePayment(orderId: string, accessToken: string) {
+        const url = `/v2/checkout/orders/${orderId}/capture`;
+        const axiosInstance = axios.create({
+            baseURL: this.PAYPAL_BASE_URL,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        const config: AxiosRequestConfig = {
+            method: "POST",
+            url: url,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        };
+
+        try {
+            const response = await axiosInstance.request(config);
+            return response.data;
+        } catch (error:any) {
+            console.error("Error capturing payment:", error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    async confirmAndCaptureOrder(orderId: string) {
+        try {
+            const accessToken = await this.getAccessToken();
+            // 確認訂單狀態
+            const order = await this.getOrderDetails(orderId, accessToken);
+            // 捕獲付款
+            const captureResult = await this.capturePayment(order.id, accessToken);
+
+            console.log("Payment process completed successfully.");
+            return captureResult;
+        } catch (error:any) {
+            console.error("Error during order confirmation or payment capture:", error.message);
+            throw error;
+        }
+    }
+
 
     async saveMoney(orderData: { total: number; userID: number; note: string,table:string,title:string,ratio:number }) {
         // 1. 建立請求的參數

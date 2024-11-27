@@ -2212,7 +2212,6 @@ this.viewDialog({
                                                 });
                                                 const dialog=new ShareDialog(gvc.glitter)
                                                 dialog.dataLoading({visible:true})
-                                           
                                                 ApiShop.toCheckout({
                                                     line_items: vm.cartData.lineItems.map((dd:any) => {
                                                         return {
@@ -2238,14 +2237,21 @@ this.viewDialog({
                                                     distribution_code: ApiCart.cart.distribution_code,
                                                     give_away:ApiCart.cart.give_away
                                                 }).then((res) => {
+                                                    dialog.dataLoading({visible:false})
                                                     
                                                     if (res.response.off_line || res.response.is_free) {
                                                         ApiCart.clearCart()
                                                         location.href = res.response.return_url;
                                                     } else {
-                                                        const id = gvc.glitter.getUUID();
-                                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                                        (document.querySelector(`#${id} #submit`) as any).click();
+                                                        // todo if 他是paypal的key值 上面應該有select之類的
+                                                        if (res.response.form.approveLink){
+                                                            location.href = res.response.form.approveLink;
+                                                        }else{
+                                                            const id = gvc.glitter.getUUID();
+                                                            $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                                            (document.querySelector(`#${id} #submit`) as any).click();
+                                                        }
+                                                        
                                                         ApiCart.clearCart()
                                                     }
                                                 })                                        

@@ -7,7 +7,7 @@ interface KeyData {
     NotifyURL: string;
     ReturnURL: string;
     ActionURL: string;
-    TYPE: 'newWebPay' | 'ecPay';
+    TYPE: 'newWebPay' | 'ecPay' | 'PayPal';
 }
 export default class FinancialService {
     keyData: KeyData;
@@ -134,7 +134,9 @@ export declare class PayPal {
         user_email: string;
         method?: string;
     }): Promise<any>;
-    capture(): Promise<void>;
+    getOrderDetails(orderId: string, accessToken: string): Promise<any>;
+    capturePayment(orderId: string, accessToken: string): Promise<any>;
+    confirmAndCaptureOrder(orderId: string): Promise<any>;
     saveMoney(orderData: {
         total: number;
         userID: number;

@@ -8,6 +8,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const axios_1 = __importDefault(require("axios"));
+const redis_1 = __importDefault(require("../../modules/redis"));
 const html = String.raw;
 class FinancialService {
     constructor(appName, keyData) {
@@ -436,7 +437,7 @@ class PayPal {
                             reference_id: orderData.orderID,
                             amount: {
                                 currency_code: "TWD",
-                                value: "100.00",
+                                value: itemPrice,
                                 breakdown: {
                                     item_total: {
                                         currency_code: "TWD",
@@ -462,12 +463,15 @@ class PayPal {
                         brand_name: this.appName,
                         landing_page: "NO_PREFERENCE",
                         user_action: "PAY_NOW",
-                        return_url: "https://your-website.com/success",
-                        cancel_url: "https://your-website.com/cancel",
+                        return_url: `${this.keyData.ReturnURL}&payment=true&appName=${this.appName}&orderID=${orderData.orderID}`,
+                        cancel_url: `${this.keyData.ReturnURL}&payment=false`,
                     },
                 },
             };
             const response = await axios_1.default.request(config);
+            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `, [orderData.orderID, 0, orderData.user_email, orderData]);
+            await redis_1.default.setValue('paypal' + orderData.orderID, response.data.id);
             return response.data;
         }
         catch (error) {
@@ -475,7 +479,74 @@ class PayPal {
             throw new Error("Failed to create PayPal order.");
         }
     }
-    async capture() {
+    async getOrderDetails(orderId, accessToken) {
+        var _a;
+        const url = `/v2/checkout/orders/${orderId}`;
+        const axiosInstance = axios_1.default.create({
+            baseURL: this.PAYPAL_BASE_URL,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        const config = {
+            method: "GET",
+            url: url,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        };
+        try {
+            const response = await axiosInstance.request(config);
+            const order = response.data;
+            if (order.status === "APPROVED") {
+                return order;
+            }
+            else {
+                throw new Error(`Order status is not APPROVED. Current status: ${order.status}`);
+            }
+        }
+        catch (error) {
+            console.error("Error fetching order details:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw error;
+        }
+    }
+    async capturePayment(orderId, accessToken) {
+        var _a;
+        const url = `/v2/checkout/orders/${orderId}/capture`;
+        const axiosInstance = axios_1.default.create({
+            baseURL: this.PAYPAL_BASE_URL,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        const config = {
+            method: "POST",
+            url: url,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        };
+        try {
+            const response = await axiosInstance.request(config);
+            return response.data;
+        }
+        catch (error) {
+            console.error("Error capturing payment:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw error;
+        }
+    }
+    async confirmAndCaptureOrder(orderId) {
+        try {
+            const accessToken = await this.getAccessToken();
+            const order = await this.getOrderDetails(orderId, accessToken);
+            const captureResult = await this.capturePayment(order.id, accessToken);
+            console.log("Payment process completed successfully.");
+            return captureResult;
+        }
+        catch (error) {
+            console.error("Error during order confirmation or payment capture:", error.message);
+            throw error;
+        }
     }
     async saveMoney(orderData) {
         const params = {

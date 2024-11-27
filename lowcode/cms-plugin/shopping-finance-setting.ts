@@ -54,7 +54,7 @@ export class ShoppingFinanceSetting {
             offBoxId: gvc.glitter.getUUID(),
             loading: true,
         };
-
+        // todo 這邊要多設定paypal
         const onlinePayArray = [
             { key: 'newWebPay', name: '藍新金流' },
             { key: 'ecPay', name: '綠界金流' },

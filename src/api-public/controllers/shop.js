@@ -494,6 +494,22 @@ router.delete('/voucher', async (req, resp) => {
 async function redirect_link(req, resp) {
     try {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
+        if (req.query.payment && req.query.payment == "true") {
+            const check_id = (await redis_js_1.default.getValue(`paypal` + req.query.orderID));
+            const paypal = new financial_service_js_1.PayPal(req.query.appName, {
+                ActionURL: "",
+                HASH_IV: "",
+                HASH_KEY: "",
+                MERCHANT_ID: "",
+                NotifyURL: "",
+                ReturnURL: "",
+                TYPE: "PayPal"
+            });
+            const data = await paypal.confirmAndCaptureOrder(check_id);
+            if (data.status === 'COMPLETED') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
+        }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
             <html lang="en">

@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import { EcPay, EzPay } from '../services/financial-service.js';
+import {EcPay, EzPay, PayPal} from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -552,7 +552,31 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
+        // console.log(`req.query=>` , req.query )
+        // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
+        if (req.query.payment && req.query.payment=="true") {
+            const check_id=(await redis.getValue(`paypal`+req.query.orderID))
+
+            const paypal = new PayPal(req.query.appName as string,{
+                ActionURL: "",
+                HASH_IV: "",
+                HASH_KEY: "",
+                MERCHANT_ID: "",
+                NotifyURL: "",
+                ReturnURL: "",
+                TYPE: "PayPal"
+            })
+            const data = await paypal.confirmAndCaptureOrder(check_id as string);
+            if (data.status === 'COMPLETED') {
+                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            }
+        }
+
+
+
+
+
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
             <html lang="en">
