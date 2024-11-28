@@ -12,440 +12,14 @@ import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { ProductAi } from './ai-generator/product-ai.js';
-import * as url from 'node:url';
-
-interface variant {
-    save_stock?: string;
-    sale_price: number;
-    compare_price: number;
-    cost: number;
-    spec: string[];
-    profit: number;
-    v_length: number;
-    v_width: number;
-    v_height: number;
-    weight: number;
-    shipment_type: 'weight' | 'none' | 'volume';
-    sku: string;
-    barcode: string;
-    stock: number;
-    preview_image: string;
-    show_understocking: string;
-    type: string;
-}
-
-class Excel {
-    private workbook: any;
-    private worksheet: any;
-    private ExcelJS: any;
-    private gvc: GVC;
-    public headers: string[];
-    public lineName: string[];
-
-    constructor(gvc: GVC, headers: string[], lineName: string[]) {
-        this.gvc = gvc;
-        this.headers = headers;
-        this.lineName = lineName;
-    }
-
-    loadScript() {
-        return new Promise((resolve) => {
-            if ((window as any).ExcelJS) {
-                this.initExcel();
-                resolve(true);
-            } else {
-                this.gvc.addMtScript(
-                    [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js' }],
-                    () => {
-                        if ((window as any).XLSX) {
-                            this.initExcel();
-                            resolve(true);
-                        }
-                    },
-                    () => {}
-                );
-            }
-        });
-    }
-
-    private initExcel() {
-        this.ExcelJS = (window as any).ExcelJS;
-        this.workbook = new this.ExcelJS.Workbook();
-        this.worksheet = this.workbook.addWorksheet('Sheet1');
-    }
-
-    // 匯入excel
-    async importData(notifyId: string, file: any) {
-        await this.loadScript();
-        const reader = new FileReader();
-        const dialog = new ShareDialog(this.gvc.glitter);
-        dialog.dataLoading({ visible: true, text: '資料處理中' });
-
-        reader.onload = async (e) => {
-            const arrayBuffer = e.target!.result;
-            const workbook = new this.ExcelJS.Workbook();
-            await workbook.xlsx.load(arrayBuffer);
-            const worksheet = workbook.getWorksheet(1);
-
-            const data: any = [];
-            worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: any) => {
-                const rowData: any = [];
-                row.eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-                    rowData.push(cell.value);
-                });
-                const isEmptyRow = rowData.every((cellValue: any) => cellValue === null || cellValue === '');
-                if (!isEmptyRow) {
-                    data.push(rowData);
-                }
-            });
-            let error = false;
-            let addCollection: any = [];
-            let postMD: {
-                title: string;
-                productType: {
-                    product: boolean;
-                    addProduct: boolean;
-                    giveaway: boolean;
-                };
-                content: string;
-                preview_image: string;
-                hideIndex: string;
-                collection: string[];
-                status: 'active' | 'draft';
-                specs: { title: string; option: any }[];
-                variants: variant[];
-                seo: {
-                    title: string;
-                    content: string;
-                    keywords: string;
-                };
-                template: string;
-            }[] = [];
-            let productData: any = {};
-            let variantData: variant = {
-                barcode: '',
-                compare_price: 0,
-                cost: 0,
-                preview_image: '',
-                profit: 0,
-                sale_price: 0,
-                shipment_type: 'weight',
-                show_understocking: '',
-                sku: '',
-                spec: [],
-                stock: 0,
-                type: '',
-                v_height: 0,
-                v_length: 0,
-                v_width: 0,
-                weight: 0,
-            };
-            data.forEach((row: any, index: number) => {
-                variantData = {
-                    barcode: '',
-                    compare_price: 0,
-                    cost: 0,
-                    preview_image: '',
-                    profit: 0,
-                    sale_price: 0,
-                    shipment_type: 'weight',
-                    show_understocking: '',
-                    sku: '',
-                    spec: [],
-                    stock: 0,
-                    type: '',
-                    v_height: 0,
-                    v_length: 0,
-                    v_width: 0,
-                    weight: 0,
-                };
-                if (index != 0) {
-                    if (row[1]) {
-                        if (Object.keys(productData).length != 0) {
-                            postMD.push(productData);
-                        }
-                        addCollection = [];
-                        productData = {
-                            title: '',
-                            productType: {
-                                product: true,
-                                addProduct: false,
-                                giveaway: false,
-                            },
-                            content: '',
-                            status: 'active',
-                            collection: [],
-                            hideIndex: 'false',
-                            preview_image: '',
-                            specs: [],
-                            variants: [],
-                            seo: {
-                                title: '',
-                                content: '',
-                                keywords: '',
-                            },
-                            template: '',
-                        };
-                        productData.title = row[0] ?? '';
-                        productData.status = row[1] == '上架' ? 'active' : 'draft';
-                        productData.collection = row[2].split(',') ?? [];
-                        const regex = /[\s\/\\]+/g;
-                        // 去除多餘空白
-                        productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
-
-                        productData.collection.forEach((row: any) => {
-                            let collection = row.replace(/\s+/g, '');
-                            if (regex.test(collection)) {
-                                error = true;
-                                const dialog = new ShareDialog(this.gvc.glitter);
-                                dialog.infoMessage({ text: `第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別` });
-                                return;
-                            }
-
-                            // 若帶有/，要自動加上父類
-                            function splitStringIncrementally(input: string): string[] {
-                                const parts = input.split('/');
-                                const result: string[] = [];
-
-                                // 使用 reduce 来构建每一部分的拼接字符串
-                                parts.reduce((acc, part) => {
-                                    const newAcc = acc ? `${acc}/${part}` : part;
-                                    result.push(newAcc);
-                                    return newAcc;
-                                }, '');
-
-                                return result;
-                            }
-
-                            if (collection.split('/').length > 1) {
-                                // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
-                                // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
-                                // 然後把父層自動推進去
-                                let check = splitStringIncrementally(collection);
-                                const newItems = check.filter((item: string) => !productData.collection.includes(item));
-                                addCollection.push(...newItems);
-                            }
-                            addCollection.push(collection);
-                        });
-                        productData.collection = addCollection;
-                        productData.productType.addProduct = row[3].includes('加購品');
-                        productData.productType.product = row[3].includes('商品');
-                        productData.productType.giveaway = row[3].includes('贈品');
-                        productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
-                        productData.seo.title = row[5] ?? '';
-                        productData.seo.content = row[6] ?? '';
-                        productData.seo.keywords = row[7] ?? '';
-                        // spec值 merge
-                        let indices = [8, 10, 12];
-                        indices.forEach((index) => {
-                            if (row[index]) {
-                                productData.specs.push({
-                                    title: row[index],
-                                    option: [],
-                                });
-                            }
-                        });
-                    }
-
-                    let indices = [9, 11, 13];
-                    indices.forEach((rowindex, key) => {
-                        if (row[rowindex] && productData.specs.length > key) {
-                            productData.specs[key].option = productData.specs[key].option ?? [];
-                            const exists = productData.specs[key].option.some((item: any) => item.title === row[rowindex]);
-                            if (!exists) {
-                                productData.specs[key].option.push({ title: row[rowindex], expand: true });
-                            }
-                            variantData.spec.push(row[rowindex]);
-                        }
-                    });
-                    variantData.sku = row[14] ?? '';
-                    variantData.cost = row[15] ?? '';
-                    variantData.sale_price = row[16] ?? 0;
-                    variantData.compare_price = row[17] ?? 0;
-                    variantData.profit = row[18] ?? 0;
-
-                    const shipmentTypeMap: { [key: string]: string } = {
-                        依材積計算: 'volume',
-                        不計算運費: 'none',
-                    };
-                    // @ts-ignore
-                    variantData.shipment_type = shipmentTypeMap[row[19]] || 'weight';
-
-                    variantData.v_length = row[20] ?? 0;
-                    variantData.v_width = row[21] ?? 0;
-                    variantData.v_height = row[22] ?? 0;
-                    variantData.weight = row[23] ?? 0;
-                    variantData.show_understocking = row[25] == '追蹤' ? 'true' : 'false';
-                    variantData.stock = row[26] ?? 0;
-                    variantData.save_stock = row[27] ?? 0;
-                    variantData.barcode = row[28] ?? '';
-
-                    productData.variants.push(JSON.parse(JSON.stringify(variantData)));
-                }
-            });
-            postMD.push(productData);
-            productData.reverse;
-            let passData = {
-                data: postMD,
-                collection: addCollection,
-            };
-
-            dialog.dataLoading({ visible: false });
-            if (!error) {
-                dialog.dataLoading({ visible: true, text: '上傳資料中' });
-                await ApiShop.postMultiProduct({
-                    data: passData,
-                    token: (window.parent as any).config.token,
-                }).then(() => {
-                    dialog.dataLoading({ visible: false });
-                    dialog.successMessage({ text: '上傳成功' });
-                    this.gvc.glitter.closeDiaLog();
-                    this.gvc.notifyDataChange(notifyId);
-                });
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    static getFileTime() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        return `${year}${month}${day}${hours}${minutes}`;
-    }
-
-    async exportData(data: any, name?: string) {
-        await this.loadScript();
-        this.setHeader();
-        this.insertData(data);
-        this.setHeaderStyle();
-        this.setRowHeight();
-        this.setFontAndAlignmentStyle();
-        this.adjustColumnWidths(data);
-        const buffer = await this.workbook.xlsx.writeBuffer();
-        let fileName = name ?? `example_${new Date().toISOString()}`;
-        this.saveAsExcelFile(buffer, `${fileName}.xlsx`);
-    }
-
-    private insertData(data: any): void {
-        data.forEach((row: any) => {
-            this.worksheet.addRow(Object.values(row));
-        });
-    }
-
-    private setHeader(): void {
-        this.worksheet.addRow(this.headers);
-    }
-
-    // 設定標頭粗體
-    private setHeaderStyle(): void {
-        this.worksheet.getRow(1).eachCell((cell: any) => {
-            cell.font = { name: 'Microsoft JhengHei', bold: true };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE1E1E1' } };
-        });
-    }
-
-    // 設定行高1.2
-    private setRowHeight(): void {
-        this.worksheet.eachRow((row: any) => {
-            row.height = 18;
-        });
-    }
-
-    private setFontAndAlignmentStyle(): void {
-        this.worksheet.eachRow((row: any) => {
-            row.eachCell((cell: any) => {
-                cell.font = { name: 'Microsoft JhengHei' };
-                cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            });
-        });
-    }
-
-    // 將內容匯出成excel檔
-    public async exportToExcel(): Promise<void> {
-        const buffer = await this.workbook.xlsx.writeBuffer();
-        this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
-    }
-
-    private saveAsExcelFile(buffer: any, fileName: string): void {
-        const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-        const dialog = new ShareDialog(this.gvc.glitter);
-        saasConfig.api.uploadFile(fileName).then((data: any) => {
-            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-            const blobData: Blob = new Blob([buffer], { type: EXCEL_TYPE });
-            const data1 = data.response;
-            dialog.dataLoading({ visible: true });
-            $.ajax({
-                url: data1.url,
-                type: 'put',
-                data: blobData,
-                processData: false,
-                headers: {
-                    'Content-Type': data1.type,
-                },
-                crossDomain: true,
-                success: () => {
-                    dialog.dataLoading({ visible: false });
-                    const link = document.createElement('a');
-                    link.href = data1.fullUrl;
-                    link.download = fileName;
-                    link.click();
-                },
-                error: () => {
-                    dialog.dataLoading({ visible: false });
-                    dialog.errorMessage({ text: '上傳失敗' });
-                },
-            });
-        });
-    }
-
-    // 透過位元組的大小，判斷內容文字的適合寬度計算
-    private getByteLength(str: string): number {
-        let byteLength = 0;
-        for (let i = 0; i < str.length; i++) {
-            const charCode = str.charCodeAt(i);
-            if (charCode <= 0x007f) {
-                // ASCII 字符
-                byteLength += 1;
-            } else if (charCode <= 0x07ff) {
-                // 扩展拉丁字符
-                byteLength += 2;
-            } else if (charCode <= 0xffff) {
-                // 大部分语言字符
-                byteLength += 3;
-            } else {
-                // 补充字符
-                byteLength += 4;
-            }
-        }
-        return byteLength;
-    }
-
-    // 調整excel內容的寬度
-    private adjustColumnWidths(sheetData: any): void {
-        const maxLengths = this.headers.map((header) => this.getByteLength(header));
-        sheetData.forEach((row: any) => {
-            Object.values(row).forEach((value, index) => {
-                const valueLength = this.getByteLength(value as string);
-                if (valueLength > maxLengths[index]) {
-                    maxLengths[index] = valueLength;
-                }
-            });
-        });
-        this.worksheet.columns = this.headers.map((header, index) => {
-            return { header, width: maxLengths[index] + 2 };
-        });
-    }
-}
+import { ProductExcel, Variant as variant, RowInitData } from './module/product-excel.js';
 
 export class ShoppingProductSetting {
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
         const html = String.raw;
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const excelHeader = ProductExcel.exampleHeader();
 
         const vm: {
             id: string;
@@ -472,45 +46,16 @@ export class ShoppingProductSetting {
             replaceData: '',
             ai_initial: {},
         };
-        const rowInitData: {
-            name: string;
-            status: string;
-            category: string;
-            productType: string;
-            img: string;
-            SEO_title: string;
-            SEO_desc: string;
-            SEO_keyword: string;
-            spec1: string;
-            spec1Value: string;
-            spec2: string;
-            spec2Value: string;
-            spec3: string;
-            spec3Value: string;
-            sku: string;
-            cost: string;
-            sale_price: string;
-            compare_price: string;
-            benefit: string;
-            shipment_type: string;
-            length: string;
-            width: string;
-            height: string;
-            weight: string;
-            weightUnit: string;
-            stockPolicy: string;
-            stock: string;
-            save_stock: string;
-            barcode: string;
-        } = {
+
+        const rowInitData: RowInitData = {
             name: '',
             status: '',
             category: '',
             productType: ``,
             img: '',
+            SEO_domain: '',
             SEO_title: '',
             SEO_desc: '',
-            SEO_keyword: '',
             spec1: '',
             spec1Value: '',
             spec2: '',
@@ -533,50 +78,14 @@ export class ShoppingProductSetting {
             save_stock: '',
             barcode: '',
         };
-        const excel = new Excel(
+
+        const excel = new ProductExcel(
             gvc,
-            [
-                '商品ID',
-                '商品名稱',
-                '啟用狀態',
-                '商品類別',
-                '商品類型',
-                '商品圖片',
-                'SEO標題',
-                'SEO內文',
-                'SEO關鍵字',
-                '規格1',
-                '規格詳細',
-                '規格2',
-                '規格詳細',
-                '規格3',
-                '規格詳細',
-                'sku',
-                '成本',
-                '售價',
-                '原價',
-                '利潤',
-                '運費計算方式',
-                '長度',
-                '寬度',
-                '高度',
-                '商品重量',
-                '重量單位',
-                '庫存政策',
-                '庫存',
-                '安全庫存',
-                '商品條碼',
-            ],
+            excelHeader.filter((item) => item !== '商品ID'),
             Object.keys(rowInitData)
         );
-        let dialog = new ShareDialog(glitter);
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
-        gvc.addMtScript(
-            [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
-            () => {},
-            () => {}
-        );
         vm.filter = ListComp.getFilterObject();
 
         return gvc.bindView(() => {
@@ -614,7 +123,6 @@ export class ShoppingProductSetting {
                             (window.parent as any).glitter.share.checkData = () => {
                                 return true;
                             };
-                            const filterID = gvc.glitter.getUUID();
                             vm.tableId = gvc.glitter.getUUID();
                             vm.dataList = [];
                             const vmlist = {
@@ -679,157 +187,7 @@ export class ShoppingProductSetting {
                                                                                                 class="cursor_pointer"
                                                                                                 style="color: #36B; font-size: 14px; font-style: normal; font-weight: 400; line-height: normal; text-decoration-line: underline;"
                                                                                                 onclick="${gvc.event(() => {
-                                                                                                    let sample = [
-                                                                                                        [
-                                                                                                            '產品1',
-                                                                                                            '啟用',
-                                                                                                            '商品',
-                                                                                                            '精品/手套',
-                                                                                                            'image1',
-                                                                                                            'SEO標題',
-                                                                                                            'SEO內文',
-                                                                                                            'SEO關鍵字',
-                                                                                                            '大小',
-                                                                                                            'S',
-                                                                                                            '形狀',
-                                                                                                            '長方形',
-                                                                                                            '顏色',
-                                                                                                            '白色',
-                                                                                                            'product-1-variant-1',
-                                                                                                            '5000',
-                                                                                                            '13000',
-                                                                                                            '12000',
-                                                                                                            '7000',
-                                                                                                            '依重量計算',
-                                                                                                            '10',
-                                                                                                            '15',
-                                                                                                            '10',
-                                                                                                            '7',
-                                                                                                            'KG',
-                                                                                                            '追蹤商品庫存',
-                                                                                                            '13',
-                                                                                                            '35',
-                                                                                                            '001001001',
-                                                                                                        ],
-                                                                                                        [
-                                                                                                            '產品1',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            'image2',
-                                                                                                            '',
-                                                                                                            'S',
-                                                                                                            '',
-                                                                                                            '長方形',
-                                                                                                            '',
-                                                                                                            '黑色',
-                                                                                                            'product-1-variant-2',
-                                                                                                            '5000',
-                                                                                                            '13000',
-                                                                                                            '12000',
-                                                                                                            '7000',
-                                                                                                            '依重量計算',
-                                                                                                            '10',
-                                                                                                            '15',
-                                                                                                            '10',
-                                                                                                            '7',
-                                                                                                            'KG',
-                                                                                                            '追蹤商品庫存',
-                                                                                                            '13',
-                                                                                                            '35',
-                                                                                                            '001001002',
-                                                                                                        ],
-                                                                                                        [
-                                                                                                            '產品1',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            'image3',
-                                                                                                            '',
-                                                                                                            'L',
-                                                                                                            '',
-                                                                                                            '正方形',
-                                                                                                            '',
-                                                                                                            '黑色',
-                                                                                                            'product-1-variant-3',
-                                                                                                            '4300',
-                                                                                                            '12000',
-                                                                                                            '11000',
-                                                                                                            '7000',
-                                                                                                            '依重量計算',
-                                                                                                            '10',
-                                                                                                            '10',
-                                                                                                            '10',
-                                                                                                            '6',
-                                                                                                            'KG',
-                                                                                                            '追蹤商品庫存',
-                                                                                                            '13',
-                                                                                                            '35',
-                                                                                                            '001001003',
-                                                                                                        ],
-                                                                                                        [
-                                                                                                            '產品2',
-                                                                                                            '啟用',
-                                                                                                            '商品',
-                                                                                                            '工具/餐具',
-                                                                                                            'image1-1',
-                                                                                                            'SEO標題',
-                                                                                                            'SEO內文',
-                                                                                                            'SEO關鍵字',
-                                                                                                            '材質',
-                                                                                                            '木頭',
-                                                                                                            '形狀',
-                                                                                                            '長方形',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            'product-2-variant-1',
-                                                                                                            '700',
-                                                                                                            '1300',
-                                                                                                            '1200',
-                                                                                                            '700',
-                                                                                                            '依體積計算',
-                                                                                                            '5',
-                                                                                                            '5',
-                                                                                                            '6',
-                                                                                                            '2',
-                                                                                                            'KG',
-                                                                                                            '不追蹤',
-                                                                                                            '5',
-                                                                                                            '35',
-                                                                                                            '001002001',
-                                                                                                        ],
-                                                                                                        [
-                                                                                                            '產品2',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            '工具/',
-                                                                                                            'image1-2',
-                                                                                                            '',
-                                                                                                            '金屬',
-                                                                                                            '',
-                                                                                                            '長方形',
-                                                                                                            '',
-                                                                                                            '',
-                                                                                                            'product-2-variant-2',
-                                                                                                            '700',
-                                                                                                            '1300',
-                                                                                                            '1200',
-                                                                                                            '700',
-                                                                                                            '依體積計算',
-                                                                                                            '5',
-                                                                                                            '5',
-                                                                                                            '6',
-                                                                                                            '3',
-                                                                                                            'KG',
-                                                                                                            '不追蹤',
-                                                                                                            '5',
-                                                                                                            '35',
-                                                                                                            '001002002',
-                                                                                                        ],
-                                                                                                    ];
-                                                                                                    excel.exportData(sample, '商品詳細列表_範例').then(() => {
-                                                                                                        dialog.successMessage({ text: '匯出成功' });
-                                                                                                    });
+                                                                                                    excel.exportData(ProductExcel.exampleSheet(), `範例_商品詳細列表_${ProductExcel.getFileTime()}`);
                                                                                                 })}"
                                                                                             >
                                                                                                 下載範例
@@ -1025,143 +383,63 @@ export class ShoppingProductSetting {
 
                                                                                             ApiShop.getProduct(getFormData).then((response) => {
                                                                                                 dialog.dataLoading({ visible: false });
-                                                                                                let exportData: any = [];
-                                                                                                response.response.data.map((productData: any) => {
-                                                                                                    let rowData: {
-                                                                                                        id: string;
-                                                                                                        name: string;
-                                                                                                        status: string;
-                                                                                                        category: string;
-                                                                                                        productType: string;
-                                                                                                        img: string;
-                                                                                                        SEO_title: string;
-                                                                                                        SEO_desc: string;
-                                                                                                        SEO_keyword: string;
-                                                                                                        spec1: string;
-                                                                                                        spec1Value: string;
-                                                                                                        spec2: string;
-                                                                                                        spec2Value: string;
-                                                                                                        spec3: string;
-                                                                                                        spec3Value: string;
-                                                                                                        sku: string;
-                                                                                                        cost: string;
-                                                                                                        sale_price: string;
-                                                                                                        compare_price: string;
-                                                                                                        benefit: string;
-                                                                                                        shipment_type: string;
-                                                                                                        length: string;
-                                                                                                        width: string;
-                                                                                                        height: string;
-                                                                                                        weight: string;
-                                                                                                        weightUnit: string;
-                                                                                                        stockPolicy: string;
-                                                                                                        stock: string;
-                                                                                                        save_stock: string;
-                                                                                                        barcode: string;
-                                                                                                    } = {
-                                                                                                        id: '',
-                                                                                                        name: productData.content.title ?? '未命名商品',
-                                                                                                        status: '',
-                                                                                                        category: '',
-                                                                                                        productType: ``,
-                                                                                                        img: '',
-                                                                                                        SEO_title: '',
-                                                                                                        SEO_desc: '',
-                                                                                                        SEO_keyword: '',
-                                                                                                        spec1: '',
-                                                                                                        spec1Value: '',
-                                                                                                        spec2: '',
-                                                                                                        spec2Value: '',
-                                                                                                        spec3: '',
-                                                                                                        spec3Value: '',
-                                                                                                        sku: '',
-                                                                                                        cost: '',
-                                                                                                        sale_price: '',
-                                                                                                        compare_price: '',
-                                                                                                        benefit: '',
-                                                                                                        shipment_type: '',
-                                                                                                        length: '',
-                                                                                                        width: '',
-                                                                                                        height: '',
-                                                                                                        weight: '',
-                                                                                                        weightUnit: '',
-                                                                                                        stockPolicy: '',
-                                                                                                        stock: '',
-                                                                                                        save_stock: '',
-                                                                                                        barcode: '',
+                                                                                                const expo = new ProductExcel(gvc, excelHeader, Object.keys(rowInitData));
+                                                                                                let exportData: any[] = [];
+
+                                                                                                response.response.data.forEach((productData: any) => {
+                                                                                                    const baseRowData = (index: number): RowInitData => ({
+                                                                                                        id: index === 0 ? productData.content.id || '' : '',
+                                                                                                        name: index === 0 ? productData.content.title || '未命名商品' : '',
+                                                                                                        status: index === 0 ? (productData.content?.status === 'active' ? '啟用' : '草稿') : '',
+                                                                                                        category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
+                                                                                                        productType:
+                                                                                                            index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
+                                                                                                        img: index === 0 ? expo.checkString(productData.content.preview_image[0]) : '',
+                                                                                                        SEO_domain: index === 0 ? expo.checkString(productData.content?.seo?.domain) : '',
+                                                                                                        SEO_title: index === 0 ? expo.checkString(productData.content?.seo?.title) : '',
+                                                                                                        SEO_desc: index === 0 ? expo.checkString(productData.content?.seo?.content) : '',
+                                                                                                        spec1: index === 0 ? expo.checkString(productData.content?.specs[0]?.title) : '',
+                                                                                                        spec1Value: expo.checkString(productData.content.variants[index]?.spec[0]),
+                                                                                                        spec2: index === 0 ? expo.checkString(productData.content?.specs[1]?.title) : '',
+                                                                                                        spec2Value: expo.checkString(productData.content.variants[index]?.spec[1]),
+                                                                                                        spec3: index === 0 ? expo.checkString(productData.content?.specs[2]?.title) : '',
+                                                                                                        spec3Value: expo.checkString(productData.content.variants[index]?.spec[2]),
+                                                                                                        sku: expo.checkString(productData.content.variants[index]?.sku),
+                                                                                                        cost: expo.checkNumber(productData.content.variants[index]?.cost),
+                                                                                                        sale_price: expo.checkNumber(productData.content.variants[index]?.sale_price),
+                                                                                                        compare_price: expo.checkNumber(productData.content.variants[index]?.compare_price),
+                                                                                                        benefit: expo.checkNumber(productData.content.variants[index]?.profit),
+                                                                                                        shipment_type: getShipmentType(productData.content.variants[index]?.shipment_type),
+                                                                                                        length: expo.checkNumber(productData.content.variants[index]?.v_length || 0),
+                                                                                                        width: expo.checkNumber(productData.content.variants[index]?.v_width || 0),
+                                                                                                        height: expo.checkNumber(productData.content.variants[index]?.v_height || 0),
+                                                                                                        weight: expo.checkNumber(productData.content.variants[index]?.weight || 0),
+                                                                                                        weightUnit: expo.checkString(productData.content.variants[index]?.weightUnit || 'KG'),
+                                                                                                        stockPolicy:
+                                                                                                            productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
+                                                                                                        stock: expo.checkNumber(productData.content.variants[index]?.stock),
+                                                                                                        save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
+                                                                                                        barcode: expo.checkString(productData.content.variants[index]?.barcode),
+                                                                                                    });
+
+                                                                                                    const getShipmentType = (type: string) => {
+                                                                                                        switch (type) {
+                                                                                                            case 'volume':
+                                                                                                                return '依材積計算';
+                                                                                                            case 'none':
+                                                                                                                return '不計算運費';
+                                                                                                            default:
+                                                                                                                return '依重量計算';
+                                                                                                        }
                                                                                                     };
 
-                                                                                                    productData.content.variants.map((variant: any, index: number) => {
-                                                                                                        if (index == 0) {
-                                                                                                            rowData.SEO_title = productData.content?.seo?.title ?? '';
-                                                                                                            rowData.SEO_desc = productData.content?.seo?.content ?? '';
-                                                                                                            rowData.SEO_keyword = productData.content?.seo?.keyword ?? '';
-                                                                                                            rowData.category = productData.content.collection.join(' , ') ?? '';
-                                                                                                            rowData.productType = `${productData.content?.productType?.product ? '商品' : ''} ${
-                                                                                                                productData.content?.productType?.addProduct ? '加購品' : ''
-                                                                                                            } ${productData.content?.productType?.giveaway ? '贈品' : ''}`;
-                                                                                                            rowData.status = productData.content?.status == 'active' ? '上架' : '下架';
-                                                                                                            rowData.spec1 = productData.content?.specs[0]?.title ?? '';
-                                                                                                            rowData.spec2 = productData.content?.specs[1]?.title ?? '';
-                                                                                                            rowData.spec3 = productData.content?.specs[2]?.title ?? '';
-                                                                                                            rowData.img = productData.content.preview_image[0];
-                                                                                                        } else {
-                                                                                                            rowData.category = ``;
-                                                                                                            rowData.productType = ``;
-                                                                                                            rowData.status = ``;
-                                                                                                            rowData.spec1 = '';
-                                                                                                            rowData.spec2 = '';
-                                                                                                            rowData.spec3 = '';
-                                                                                                            rowData.img = '';
-                                                                                                            rowData.SEO_title = '';
-                                                                                                            rowData.SEO_desc = '';
-                                                                                                            rowData.SEO_keyword = '';
-                                                                                                        }
-                                                                                                        rowData.img = rowData.img ?? variant.preview_image ?? '';
-                                                                                                        rowData.spec1Value = variant.spec[0] ?? '';
-                                                                                                        rowData.spec2Value = variant.spec[1] ?? '';
-                                                                                                        rowData.spec3Value = variant.spec[2] ?? '';
-                                                                                                        rowData.sku = variant.sku ?? '';
-                                                                                                        rowData.cost = variant.cost ?? '';
-                                                                                                        rowData.sale_price = variant.sale_price ?? '';
-                                                                                                        rowData.benefit = variant.profit ?? '';
-                                                                                                        rowData.compare_price = variant.compare_price ?? '';
-                                                                                                        rowData.width = variant?.v_width ?? '0';
-                                                                                                        rowData.height = variant?.v_height ?? '0';
-                                                                                                        rowData.length = variant?.v_length ?? '0';
-                                                                                                        rowData.weight = variant.weight ?? '0';
-                                                                                                        rowData.weightUnit = variant.weightUnit ?? 'KG';
-                                                                                                        rowData.stockPolicy = variant.show_understocking ? '追蹤' : '不追蹤';
-                                                                                                        rowData.stock = variant.stock ?? '0';
-                                                                                                        rowData.save_stock = variant.save_stock ?? '0';
-                                                                                                        rowData.barcode = variant.barcode ?? '';
-                                                                                                        rowData.id = productData.content.id;
-                                                                                                        if (variant.shipment_type) {
-                                                                                                            switch (variant.shipment_type) {
-                                                                                                                case 'volume': {
-                                                                                                                    rowData.shipment_type = '依材積計算';
-                                                                                                                    break;
-                                                                                                                }
-                                                                                                                case 'none': {
-                                                                                                                    rowData.shipment_type = '不計算運費';
-                                                                                                                    break;
-                                                                                                                }
-                                                                                                                default: {
-                                                                                                                    rowData.shipment_type = '依重量計算';
-                                                                                                                }
-                                                                                                            }
-                                                                                                        } else {
-                                                                                                            rowData.shipment_type = '依重量計算';
-                                                                                                        }
-
-                                                                                                        exportData.push(JSON.parse(JSON.stringify(rowData)));
+                                                                                                    productData.content.variants.forEach((variant: any, index: number) => {
+                                                                                                        const rowData = baseRowData(index);
+                                                                                                        exportData.push(rowData);
                                                                                                     });
                                                                                                 });
-                                                                                                ``;
 
-                                                                                                excel.exportData(exportData, `商品詳細列表_${Excel.getFileTime()}`).then(() => {
-                                                                                                    dialog.successMessage({ text: '匯出成功' });
-                                                                                                });
+                                                                                                expo.exportData(exportData, `商品詳細列表_${ProductExcel.getFileTime()}`);
                                                                                             });
                                                                                         }),
                                                                                         '匯出'
@@ -1369,7 +647,7 @@ export class ShoppingProductSetting {
                                                                                                             BgWidget.switchTextButton(
                                                                                                                 gvc,
                                                                                                                 dd.content.status === 'active',
-                                                                                                                { left: dd.content.status === 'active' ? '上架' : '下架' },
+                                                                                                                { left: dd.content.status === 'active' ? '啟用' : '草稿' },
                                                                                                                 (bool) => {
                                                                                                                     dd.content.status = bool ? 'active' : 'draft';
                                                                                                                     ApiPost.put({
@@ -1382,8 +660,8 @@ export class ShoppingProductSetting {
                                                                                                                 }
                                                                                                             );
                                                                                                             return dd.content.status === 'active'
-                                                                                                                ? BgWidget.successInsignia('上架')
-                                                                                                                : BgWidget.secondaryInsignia('下架');
+                                                                                                                ? BgWidget.successInsignia('啟用')
+                                                                                                                : BgWidget.secondaryInsignia('草稿');
                                                                                                         },
                                                                                                         divCreate: {
                                                                                                             option: [
@@ -1419,7 +697,7 @@ export class ShoppingProductSetting {
                                                                         },
                                                                         filter: [
                                                                             {
-                                                                                name: '上架',
+                                                                                name: '啟用',
                                                                                 event: (checkedData) => {
                                                                                     const selCount = checkedData.length;
                                                                                     dialog.dataLoading({ visible: true });
@@ -1451,7 +729,7 @@ export class ShoppingProductSetting {
                                                                                 option: true,
                                                                             },
                                                                             {
-                                                                                name: '下架',
+                                                                                name: '草稿',
                                                                                 event: (checkedData) => {
                                                                                     const selCount = checkedData.length;
                                                                                     dialog.dataLoading({ visible: true });
@@ -1557,6 +835,7 @@ export class ShoppingProductSetting {
                 divCreate: {
                     class: `w-100 h-100`,
                 },
+                onCreate: () => {},
             };
         });
     }
@@ -4977,8 +4256,6 @@ ${postMD.seo.content ?? ''}</textarea
                                             } else {
                                                 ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                             }
-                                        } else {
-                                            // const dialog = new ShareDialog(gvc.glitter)
                                         }
                                     }, 500);
                                 }),

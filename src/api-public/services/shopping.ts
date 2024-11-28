@@ -278,7 +278,11 @@ export class Shopping {
             //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
+                    if (dd === 'hidden') {
+                        querySql.push(`(content->>'$.visible' = "false")`);
+                    } else {
                         querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                    }
                 });
             } else if (!query.id) {
                 querySql.push(`(content->>'$.productType.product' = "true")`);
@@ -343,6 +347,8 @@ export class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+            console.log(querySql);
+            console.log(query);
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
