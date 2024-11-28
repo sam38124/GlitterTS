@@ -124,7 +124,12 @@ class Shopping {
             }
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
-                    querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                    if (dd === 'hidden') {
+                        querySql.push(`(content->>'$.visible' = "false")`);
+                    }
+                    else {
+                        querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                    }
                 });
             }
             else if (!query.id) {
@@ -182,6 +187,8 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+            console.log(querySql);
+            console.log(query);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
             if (this.token && this.token.userID) {
                 for (const b of productList) {
