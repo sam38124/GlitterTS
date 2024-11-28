@@ -1297,33 +1297,35 @@ export class ShoppingInvoiceManager {
                                                     -->
                                                     ${(()=>{
                                                         console.log(" invoiceData.status -- " , invoiceData.status)
-                                                        return``
-                                                    })()}
-                                                    ${BgWidget.save(gvc.event(() => {
-                                                    }), '發票折讓')}
-                                                    ${BgWidget.danger(gvc.event(() => {
-                                                        glitter.innerDialog((gvc: GVC) => {
-                                                            let step = 1;
-                                                            let reason = ""
+                                                        if (invoiceData.status == 2){
+                                                            return ``
+                                                        }
+                                                        
+                                                        return html`${BgWidget.save(gvc.event(() => {
+                                                        }), '發票折讓')}
+                                                        ${BgWidget.danger(gvc.event(() => {
+                                                            glitter.innerDialog((gvc: GVC) => {
+                                                                let step = 1;
+                                                                let reason = ""
 
-                                                            return gvc.bindView({
-                                                                bind:"voidDialog",
-                                                                view:()=>{
-                                                                    return html`
+                                                                return gvc.bindView({
+                                                                    bind:"voidDialog",
+                                                                    view:()=>{
+                                                                        return html`
                                                                         <div class="d-flex align-items-center justify-content-center"
                                                                              style="width: 100vw;height: 100vw;"
                                                                              onclick="${gvc.event(() => {
-                                                                        glitter.closeDiaLog();
-                                                                    })}">
+                                                                            glitter.closeDiaLog();
+                                                                        })}">
                                                                             ${(()=>{
-                                                                        switch (step){
-                                                                            case 2:
-                                                                                return html`
+                                                                            switch (step){
+                                                                                case 2:
+                                                                                    return html`
                                                                                             <div class="d-flex flex-column"
                                                                                                  style="width: 532px;height: 409px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
                                                                                                  onclick="${gvc.event(() => {
-                                                                                    event!.stopPropagation();
-                                                                                })}">
+                                                                                        event!.stopPropagation();
+                                                                                    })}">
                                                                                                 <div style="position: absolute;right: 20px;top: 17px;">
                                                                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                                                                          width="14" height="14"
@@ -1377,31 +1379,31 @@ export class ShoppingInvoiceManager {
                                                                                                     <div class="btn btn-white"
                                                                                                          style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
                                                                                                          onclick="${gvc.event(() => {
-                                                                                    step = 1;
-                                                                                    gvc.notifyDataChange(`voidDialog`);
-                                                                                })}">
+                                                                                        step = 1;
+                                                                                        gvc.notifyDataChange(`voidDialog`);
+                                                                                    })}">
                                                                                                         上一步
                                                                                                     </div>
                                                                                                     <div class="btn btn-red"
                                                                                                          style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
                                                                                                          onclick="${gvc.event(() => {
-                                                                                    ApiShop.voidInvoice(invoiceData.invoice_no , reason , invoiceData.create_date).then(r => {
-                                                                                        vm.type = "list";
-                                                                                        glitter.closeDiaLog();
-                                                                                    });
-                                                                                })}">
+                                                                                        ApiShop.voidInvoice(invoiceData.invoice_no , reason , invoiceData.create_date).then(r => {
+                                                                                            vm.type = "list";
+                                                                                            glitter.closeDiaLog();
+                                                                                        });
+                                                                                    })}">
                                                                                                         作廢
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         `
-                                                                            default:
-                                                                                return html`
+                                                                                default:
+                                                                                    return html`
                                                                                             <div class="d-flex flex-column"
                                                                                                  style="width: 532px;height: 270px;flex-shrink: 0;border-radius: 10px;background: #FFF;position: relative;padding: 36px 64px;gap: 24px;"
                                                                                                  onclick="${gvc.event(() => {
-                                                                                    event!.stopPropagation();
-                                                                                })}">
+                                                                                        event!.stopPropagation();
+                                                                                    })}">
                                                                                                 <div style="position: absolute;right: 20px;top: 17px;">
                                                                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                                                                          width="14" height="14"
@@ -1416,40 +1418,42 @@ export class ShoppingInvoiceManager {
                                                                                                      style="text-align: center;font-size: 16px;gap:12px;">
                                                                                                     <div>請填寫作廢原因</div>
                                                                                                     <textarea style="display: flex;height: 100px;padding: 5px 18px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e)=>{
-                                                                                    reason = e.value;
-                                                                                })}">${reason}</textarea>
+                                                                                        reason = e.value;
+                                                                                    })}">${reason}</textarea>
                                                                                                 </div>
                                                                                                 <div class="d-flex align-items-center justify-content-center w-100"
                                                                                                      style="gap: 14px;">
                                                                                                     <div class="btn btn-white"
                                                                                                          style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-size: 16px;font-weight: 700;color: #393939;"
                                                                                                          onclick="${gvc.event(() => {
-                                                                                    glitter.closeDiaLog()
-                                                                                })}">
+                                                                                        glitter.closeDiaLog()
+                                                                                    })}">
                                                                                                         取消
                                                                                                     </div>
                                                                                                     <div class="btn btn-red"
                                                                                                          style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;font-weight: 700;"
                                                                                                          onclick="${gvc.event(() => {
-                                                                                    step = 2;
-                                                                                    gvc.notifyDataChange('voidDialog')
-                                                                                })}">
+                                                                                        step = 2;
+                                                                                        gvc.notifyDataChange('voidDialog')
+                                                                                    })}">
                                                                                                         下一步
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         `
-                                                                        }
-                                                                    })()}
+                                                                            }
+                                                                        })()}
                                                                             
                                                                         </div>
                                                                     `
-                                                                },divCreate:{
+                                                                    },divCreate:{
 
-                                                                }
-                                                            })
-                                                        }, 'voidWarning')
-                                                    }), "發票作廢")}
+                                                                    }
+                                                                })
+                                                            }, 'voidWarning')
+                                                        }), "發票作廢")}`
+                                                    })()}
+                                                    
 
                                                 </div>`
                                         ].join('')
