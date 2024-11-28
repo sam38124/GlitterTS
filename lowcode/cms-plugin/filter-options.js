@@ -219,10 +219,8 @@ FilterOptions.invoiceFunnel = [
         type: 'multi_checkbox',
         name: '發票狀態',
         data: [
-            { key: '2', name: '已折讓' },
+            { key: '2', name: '已作廢' },
             { key: '1', name: '已開立' },
-            { key: '0', name: '待審核' },
-            { key: '-1', name: '已作廢' },
         ],
     },
     {

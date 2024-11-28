@@ -13,7 +13,7 @@ interface KeyData {
     NotifyURL: string;
     ReturnURL: string;
     ActionURL: string;
-    TYPE: 'newWebPay' | 'ecPay' | 'PayPal';
+    TYPE: 'newWebPay' | 'ecPay' | 'PayPal' | 'LinePay';
 }
 
 const html = String.raw;
@@ -758,4 +758,23 @@ export class PayPal {
             <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
         </form>`;
     }
+}
+
+// LinePay金流
+export class LinePay {
+    keyData: KeyData;
+    appName: string;
+    LinePay_CLIENT_ID:string;
+    LinePay_SECRET:string;
+    LinePay_BASE_URL:string
+    //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
+    constructor(appName: string, keyData: KeyData) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
+        this.LinePay_SECRET = "05231f46428525ee68c2816f16635145"; // 替換為您的 Secret Key
+        this.LinePay_BASE_URL = "https://api-m.sandbox.paypal.com"; // 沙箱環境
+        // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
+    }
+
 }

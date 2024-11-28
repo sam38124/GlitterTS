@@ -4034,13 +4034,7 @@ export class Shopping {
             "AllowanceAmount": obj.allowanceInvoiceTotalAmount,
             "Items": obj.allowanceData.invoiceArray
         }
-        let pass2 = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoiceID,
-            "AllowanceNo":"",
-            "Reason":"error"
-        }
-        await EcInvoice.allowanceInvoice({
+        return await EcInvoice.allowanceInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,
@@ -4050,20 +4044,6 @@ export class Shopping {
             db_data: obj.allowanceData,
             order_id: obj.orderID,
         })
-        // await EcInvoice.voidAllowance({
-        //     hashKey: config.hashkey,
-        //     hash_IV: config.hashiv,
-        //     merchNO: config.merchNO,
-        //     app_name:this.app,
-        //     invoice_data: pass2,
-        //     beta: config.point === 'beta',
-        // })
-        // await db.query(
-        //     `UPDATE \`${this.app}\`.t_invoice_memory
-        //              SET ?
-        //              WHERE invoice_no = ?`,
-        //     [{ status : 2}, obj.invoice_no]
-        // );
     }
     async voidAllowance(obj: {
         invoiceNo: string,

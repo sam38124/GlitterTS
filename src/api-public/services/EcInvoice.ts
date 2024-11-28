@@ -263,22 +263,27 @@ export class EcInvoice {
                         e instanceof Error && console.log(e.message);
                     }
                     const resp = JSON.parse(decodeURIComponent(decrypted))
-                    console.log(`resp--->`, resp)
-
-                    await db.query(`insert into \`${obj.app_name}\`.t_allowance_memory
+                    if (resp.RtnCode!=1){
+                        resolve(resp)
+                        return resp
+                    }else {
+                        await db.query(`insert into \`${obj.app_name}\`.t_allowance_memory
                                     set ?`, [
-                        {
-                            status: "1",
-                            order_id: obj.order_id,
-                            invoice_no: resp.IA_Invoice_No,
-                            allowance_no: resp.IA_Allow_No,
-                            allowance_data: JSON.stringify(obj.db_data),
-                            create_date: resp.IA_Date,
-                        }
-                    ])
-                    resolve(response.data)
+                            {
+                                status: "1",
+                                order_id: obj.order_id,
+                                invoice_no: obj.allowance_data.InvoiceNo,
+                                allowance_no: resp.IA_Allow_No,
+                                allowance_data: JSON.stringify(obj.db_data),
+                                create_date: resp.IA_Date,
+                            }
+                        ])
+                        resolve(resp)
+                        return resp
+                    }
+
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error)
                     resolve(false)
                 });

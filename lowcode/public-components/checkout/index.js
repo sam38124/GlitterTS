@@ -2100,6 +2100,8 @@ export class CheckoutIndex {
                                 }
                             });
                             const dialog = new ShareDialog(gvc.glitter);
+                            console.log("vm.cartData.customer_info.payment_select -- ", vm.cartData.customer_info.payment_select);
+                            return;
                             dialog.dataLoading({ visible: true });
                             ApiShop.toCheckout({
                                 line_items: vm.cartData.lineItems.map((dd) => {

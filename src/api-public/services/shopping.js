@@ -1012,6 +1012,7 @@ class Shopping {
                     };
                 }
                 else {
+                    return ``;
                     const subMitData = await new financial_service_js_1.default(this.app, {
                         HASH_IV: keyData.HASH_IV,
                         HASH_KEY: keyData.HASH_KEY,
@@ -3188,13 +3189,7 @@ class Shopping {
             "AllowanceAmount": obj.allowanceInvoiceTotalAmount,
             "Items": obj.allowanceData.invoiceArray
         };
-        let pass2 = {
-            "MerchantID": config.merchNO,
-            "InvoiceNo": obj.invoiceID,
-            "AllowanceNo": "",
-            "Reason": "error"
-        };
-        await EcInvoice_1.EcInvoice.allowanceInvoice({
+        return await EcInvoice_1.EcInvoice.allowanceInvoice({
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,

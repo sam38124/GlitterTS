@@ -178,7 +178,6 @@ export class ShoppingInvoiceManager {
                                     ${BgWidget.grayButton(
                                             '匯出',
                                             gvc.event(() => {
-
                                                 dialog.warningMessage({
                                                     text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
                                                     callback: (bool) => {
@@ -1235,7 +1234,7 @@ export class ShoppingInvoiceManager {
                                                                 </div>
                                                             </div>
                                                         `
-                                                    })
+                                                    }).join('')
                                                 })()}
                                                 <div style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"></div>
                                                 ${(() => {
@@ -1296,6 +1295,10 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.grayButton('寄送紙本', gvc.event(() => {
                                                     }))}
                                                     -->
+                                                    ${(()=>{
+                                                        console.log(" invoiceData.status -- " , invoiceData.status)
+                                                        return``
+                                                    })()}
                                                     ${BgWidget.save(gvc.event(() => {
                                                     }), '發票折讓')}
                                                     ${BgWidget.danger(gvc.event(() => {

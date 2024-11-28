@@ -129,7 +129,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -243,7 +243,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<"" | {
         data: Cart;
         result?: undefined;
         message?: undefined;
@@ -502,7 +502,7 @@ export declare class Shopping {
         allowanceInvoiceTotalAmount: string;
         itemList: any;
         invoiceDate: string;
-    }): Promise<void>;
+    }): Promise<boolean>;
     voidAllowance(obj: {
         invoiceNo: string;
         allowanceNo: string;

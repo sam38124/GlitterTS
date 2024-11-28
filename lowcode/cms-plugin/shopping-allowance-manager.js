@@ -829,7 +829,7 @@ export class ShoppingAllowanceManager {
     }
     static createOrder(gvc, vm) {
         let viewModel = {
-            searchOrder: '',
+            searchOrder: 'VF10008513',
             searchData: '',
             orderData: {},
             errorReport: '',
@@ -1203,10 +1203,17 @@ export class ShoppingAllowanceManager {
                                     dialog.dataLoading({
                                         visible: false
                                     });
-                                    dialog.infoMessage({
-                                        text: '折讓單建立完成'
-                                    });
-                                    vm.type = 'list';
+                                    if (r.response.RtnCode == "1") {
+                                        dialog.infoMessage({
+                                            text: html `折讓單建立完成<br>可折讓金額剩餘${r.response.IA_Remain_Allowance_Amt}`
+                                        });
+                                    }
+                                    else {
+                                        dialog.warningMessage({
+                                            callback: () => { },
+                                            text: html `此發票已無可用折讓餘額`
+                                        });
+                                    }
                                 });
                             }
                         }), '開立')}

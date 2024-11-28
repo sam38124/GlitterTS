@@ -7,7 +7,7 @@ interface KeyData {
     NotifyURL: string;
     ReturnURL: string;
     ActionURL: string;
-    TYPE: 'newWebPay' | 'ecPay' | 'PayPal';
+    TYPE: 'newWebPay' | 'ecPay' | 'PayPal' | 'LinePay';
 }
 export default class FinancialService {
     keyData: KeyData;
@@ -145,5 +145,13 @@ export declare class PayPal {
         title: string;
         ratio: number;
     }): Promise<string>;
+}
+export declare class LinePay {
+    keyData: KeyData;
+    appName: string;
+    LinePay_CLIENT_ID: string;
+    LinePay_SECRET: string;
+    LinePay_BASE_URL: string;
+    constructor(appName: string, keyData: KeyData);
 }
 export {};

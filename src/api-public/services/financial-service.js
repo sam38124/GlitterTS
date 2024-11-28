@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PayPal = exports.EcPay = exports.EzPay = void 0;
+exports.LinePay = exports.PayPal = exports.EcPay = exports.EzPay = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
@@ -585,4 +585,14 @@ class PayPal {
     }
 }
 exports.PayPal = PayPal;
+class LinePay {
+    constructor(appName, keyData) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.LinePay_CLIENT_ID = "2006615995";
+        this.LinePay_SECRET = "05231f46428525ee68c2816f16635145";
+        this.LinePay_BASE_URL = "https://api-m.sandbox.paypal.com";
+    }
+}
+exports.LinePay = LinePay;
 //# sourceMappingURL=financial-service.js.map

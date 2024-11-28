@@ -1043,7 +1043,7 @@ export class ShoppingInvoiceManager {
                                                                 </div>
                                                             </div>
                                                         `;
-                                        });
+                                        }).join('');
                                     })()}
                                                 <div style="width: 100%;height: 1px;margin-top: 18px;margin-bottom: 18px;background-color: #DDD"></div>
                                                 ${(() => {
@@ -1104,6 +1104,10 @@ export class ShoppingInvoiceManager {
                                                     ${BgWidget.grayButton('寄送紙本', gvc.event(() => {
                                     }))}
                                                     -->
+                                                    ${(() => {
+                                        console.log(" invoiceData.status -- ", invoiceData.status);
+                                        return ``;
+                                    })()}
                                                     ${BgWidget.save(gvc.event(() => {
                                     }), '發票折讓')}
                                                     ${BgWidget.danger(gvc.event(() => {
