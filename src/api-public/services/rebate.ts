@@ -76,6 +76,22 @@ export class Rebate {
             .tz(timeZone ?? 'Asia/Taipei')
             .format('YYYY-MM-DD HH:mm:ss');
 
+    // 取得購物金基本設置
+    async getConfig() {
+        try {
+            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            if (getRS[0] && getRS[0].value) {
+                return getRS[0].value;
+            }
+            return {};
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
+        }
+    }
+
     // 確認購物金功能是否啟用
     async mainStatus() {
         try {
@@ -303,8 +319,8 @@ export class Rebate {
         try {
             let minus = -originMinus;
             do {
-            const oldest = await this.getOldestRebate(user_id);
-            if (oldest?.data) {
+                const oldest = await this.getOldestRebate(user_id);
+                if (oldest?.data) {
                     const { id, remain } = oldest?.data;
                     if (id && remain !== undefined) {
                         if (remain - minus > 0) {
@@ -315,9 +331,9 @@ export class Rebate {
                             minus = minus - remain;
                         }
                     }
-            }else{
-                return false
-            }
+                } else {
+                    return false;
+                }
             } while (minus > 0);
             return true;
         } catch (error) {

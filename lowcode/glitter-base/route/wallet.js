@@ -136,6 +136,17 @@ export class ApiWallet {
             },
         });
     }
+    static getRebateConfig(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/rebate/config`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: json.type === 'me' ? GlobalUser.token : getConfig().config.token,
+            },
+        });
+    }
     static getRebate(json) {
         return BaseApi.create({
             url: getBaseUrl() +

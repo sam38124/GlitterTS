@@ -37,7 +37,6 @@ const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
 
     const css = String.raw;
@@ -555,7 +554,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         view.push(BgCustomerMessage.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
-
                         try {
                             const doc = new Editor(gvc, viewModel);
                             view.push(

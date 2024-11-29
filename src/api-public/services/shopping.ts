@@ -104,6 +104,7 @@ type CartItem = {
     spec: string[];
     count: number;
     sale_price: number;
+    is_gift?:boolean;
     collection: string[];
     title: string;
     preview_image: string;
@@ -473,7 +474,6 @@ export class Shopping {
             }
             return products;
         } catch (e) {
-            console.log(e);
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
@@ -645,6 +645,7 @@ export class Shopping {
                     type: string;
                     value: number;
                 };
+                is_gift?:boolean
             }[];
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
@@ -911,6 +912,7 @@ export class Shopping {
             }
 
             const add_on_items: any[] = [];
+            let gift_product: any[] =[]
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -932,7 +934,6 @@ export class Shopping {
                             if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
                                 b.count = variant.stock;
                             }
-
                             if (variant && b.count > 0) {
                                 b.preview_image = variant.preview_image || pd.preview_image[0];
                                 b.title = pd.title;
@@ -956,8 +957,11 @@ export class Shopping {
                                 };
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.lineItems.push(b as any);
-                                if (type !== 'manual') {
+                                if (type !== 'manual' && (!pd.productType.giveaway)) {
                                     carData.total += variant.sale_price * b.count;
+                                }
+                                if(pd.productType.giveaway){
+                                    b.sale_price=0
                                 }
                             }
                             // 當為結帳時則更改商品庫存數量
@@ -994,6 +998,11 @@ export class Shopping {
                         if (!pd.productType.product && pd.productType.addProduct) {
                             (b as any).is_add_on_items = true;
                             add_on_items.push(b);
+                        }
+                        if (pd.productType.giveaway) {
+                            (b as any).is_gift = true;
+                            b.sale_price=0;
+                            gift_product.push(b);
                         }
                     }
                 } catch (e) {
@@ -1060,13 +1069,13 @@ export class Shopping {
 
             // 手動新增訂單的優惠卷設定
             if (type !== 'manual' && type !== 'manual-preview') {
-                //過濾贈品
-                carData.lineItems = carData.lineItems.filter((dd) => {
-                    return !add_on_items.includes(dd);
-                });
                 //過濾加購品
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
+                });
+                //過濾贈品
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !gift_product.includes(dd);
                 });
                 // 濾出可用的加購商品，避免折扣被double所以要stringify
                 const c_carData=await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
@@ -1083,15 +1092,40 @@ export class Shopping {
                             })
                         ) {
                             //把加購品加回去
-                            c_carData.lineItems.push(dd);
+                            carData.lineItems.push(dd);
                         }
                     } catch (e) {
                     }
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
-                const gift_product: any[] = [];
                 //過濾可選贈品
+                let can_add_gift: any[] = [];
+
+                carData.voucherList.filter((dd) => {
+                    return dd.reBackType === 'giveaway';
+                }).map((dd)=>{
+                    can_add_gift.push(dd.add_on_products)
+                });
+                gift_product.map((dd)=>{
+                    let max_count=can_add_gift.filter((d1)=>{
+                        return d1.includes(dd.id)
+                    }).length;
+                    if(dd.count<=max_count){
+                        for (let a=0 ; a<dd.count;a++){
+                            let find=false
+                            can_add_gift=can_add_gift.filter((d1)=>{
+                                if((d1.includes(dd.id)) || find){
+                                    find=true
+                                    return false;
+                                }else{
+                                    return  true
+                                }
+                            })
+                        }
+                        carData.lineItems.push(dd)
+                    }
+                })
                 for (const dd of carData.voucherList.filter((dd) => {
                     return dd.reBackType === 'giveaway';
                 })) {
@@ -1111,53 +1145,7 @@ export class Shopping {
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
                     }
-                    const addGift = data.give_away?.find((d1) => {
-                        return ((dd.add_on_products ?? []) as any).find((d2: any) => {
-                            return (
-                                `${d1.id}` === `${d2.id}` &&
-                                `${d1.voucher_id}` === `${dd.id}` &&
-                                d2.variants.find((dd: any) => {
-                                    return dd.spec.join('') === d1.spec.join('');
-                                })
-                            );
-                        });
-                    });
-                    if (addGift) {
-                        const gift = {
-                            spec: addGift.spec,
-                            id: addGift.id,
-                            count: 1,
-                            voucher_id: dd.id,
-                        };
-                        const pd = ((dd.add_on_products ?? []) as any).find((d2: any) => {
-                            return `${gift.id}` === `${d2.id}` && `${gift.voucher_id}` === `${dd.id}`;
-                        }) as any;
-                        pd.selected = true;
-                        gift_product.push(gift);
-                        (dd as any).select_gif = gift;
-                        for (const b of dd.add_on_products ?? []) {
-                            (b as any).have_select = true;
-                        }
-                        if (type !== 'preview') {
-                            const variant: any =
-                                (pd as any).variants.find((d1: any) => {
-                                    return d1.spec.join('-') === gift.spec.join('-');
-                                })! ?? {};
-                            carData.lineItems.push({
-                                spec: gift.spec,
-                                id: gift.id as any,
-                                count: 1,
-                                preview_image: pd.preview_image,
-                                title: `《 贈品 》 ${pd.title}`,
-                                sale_price: 0,
-                                sku: (variant as any).sku,
-                            } as any);
-                        }
-                    } else {
-                        (dd as any).select_gif = {};
-                    }
                 }
-                data.give_away = gift_product;
             }
 
             // 付款資訊設定
@@ -1177,7 +1165,13 @@ export class Shopping {
             // 防止帶入購物金時，總計小於0
             let subtotal = 0;
             carData.lineItems.map((item) => {
-                subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
+                console.log(`item==>`,item)
+                if(item.is_gift){
+                    item.sale_price=0
+                }
+                if(!item.is_gift){
+                    subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
+                }
             });
             if (carData.total < 0 || carData.use_rebate > subtotal) {
                 carData.use_rebate = 0;
@@ -1427,8 +1421,7 @@ export class Shopping {
                         off_line: true,
                         return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     };
-                } else {
-                    //todo paypal 付款 LinePay付款
+                }else{
                     const subMitData = await new FinancialService(this.app, {
                         HASH_IV: keyData.HASH_IV,
                         HASH_KEY: keyData.HASH_KEY,
@@ -1442,6 +1435,22 @@ export class Shopping {
                         form: subMitData,
                     };
                 }
+
+                // {
+                //     //paypal 付款
+                //     const subMitData = await new FinancialService(this.app, {
+                //         HASH_IV: keyData.HASH_IV,
+                //         HASH_KEY: keyData.HASH_KEY,
+                //         ActionURL: keyData.ActionURL,
+                //         NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                //         ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                //         MERCHANT_ID: keyData.MERCHANT_ID,
+                //         TYPE: keyData.TYPE,
+                //     }).createOrderPage(carData);
+                //     return {
+                //         form: subMitData,
+                //     };
+                // }
             }
         } catch (e) {
             console.error(e);
@@ -4026,7 +4035,6 @@ export class Shopping {
             SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
         `,[])
         invoiceData = invoiceData[0]
-        // console.log("obj.allowanceData -- " , invoiceData.invoice_data.original_data.Items);
         const passData = {
             "MerchantID": config.merchNO,
             "InvoiceNo": obj.invoiceID,

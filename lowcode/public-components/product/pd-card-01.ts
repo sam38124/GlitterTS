@@ -182,7 +182,7 @@ export class ProductCard01 {
                         onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
                             return gvc.glitter.innerDialog((gvc: GVC) => {
-                                return html` <div
+                                return html`<div
                                     class="bg-white shadow rounded-3"
                                     style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
                                 >

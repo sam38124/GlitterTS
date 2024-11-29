@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toJSONSafeString = exports.getUUID = void 0;
+exports.getUUID = getUUID;
+exports.toJSONSafeString = toJSONSafeString;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const underscore_1 = __importDefault(require("underscore"));
 const config_1 = __importDefault(require("../config"));
@@ -32,7 +33,6 @@ function getUUID() {
         return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
     });
 }
-exports.getUUID = getUUID;
 function replaceDatetime(datetime) {
     if (datetime)
         return datetime.replace('T', ' ').replace('.000Z', '').replace('+00:00', '');
@@ -52,7 +52,6 @@ function toJSONSafeString(val) {
         }
     });
 }
-exports.toJSONSafeString = toJSONSafeString;
 function getMaskObj(obj) {
     const maskObj = {};
     underscore_1.default.map(obj, (value, key) => {

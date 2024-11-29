@@ -314,7 +314,7 @@ export class BgProduct {
         return text.replace(/\//g, html `<i class="fa-solid fa-angle-right mx-1"></i>`);
     }
 }
-BgProduct.getProductOpts = (def) => {
+BgProduct.getProductOpts = (def, product_type) => {
     return new Promise((resolve) => {
         if (!def || def.length === 0) {
             resolve([]);
@@ -323,6 +323,7 @@ BgProduct.getProductOpts = (def) => {
         ApiShop.getProduct({
             page: 0,
             limit: 99999,
+            productType: product_type,
             id_list: def.map((d) => `${d}`).join(','),
         }).then((data) => {
             resolve(data.response.data.map((product) => {

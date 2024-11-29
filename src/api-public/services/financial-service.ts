@@ -2,8 +2,6 @@ import crypto, { Encoding } from 'crypto';
 import db from '../../modules/database.js';
 import moment from 'moment-timezone';
 import axios, {AxiosRequestConfig} from "axios";
-
-import paypal from "@paypal/checkout-server-sdk";
 import redis from "../../modules/redis";
 
 interface KeyData {
@@ -71,9 +69,9 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
-        //todo 修改付款方式 to paypal
-        return await new LinePay(this.appName,this.keyData).createOrder(orderData);
-        return await new PayPal(this.appName, this.keyData).checkout(orderData);
+//todo 修改付款方式 to paypal
+//         return await new LinePay(this.appName,this.keyData).createOrder(orderData);
+//         return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -84,6 +82,9 @@ export default class FinancialService {
             `,
             [orderData.orderID, 0, orderData.user_email, orderData]
         );
+
+        // //todo 修改付款方式 to paypal
+        // return await new PayPal(this.appName, this.keyData).checkout(orderData);
     }
 
     async saveWallet(orderData: { total: number; userID: number; note: any; method: string ,table:string,title:string,ratio:number}): Promise<string> {

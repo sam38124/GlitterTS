@@ -11,11 +11,15 @@ const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../api-public/utils/ut-database.js");
 class Template {
     async verifyPermission(appName) {
-        const count = await database_1.default.execute(`
-            select count(1)
-            from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-            where (user = ${this.token.userID} and appName = ${database_1.default.escape(appName)})
-        `, []);
+        const count = await database_1.default.query(`SELECT count(1) 
+                    FROM ${config_1.saasConfig.SAAS_NAME}.app_config
+                    WHERE 
+                        (user = ? and appName = ?)
+                        OR appName in (
+                            (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
+                    `, [this.token.userID, appName, this.token.userID, appName]);
         return count[0]['count(1)'] === 1;
     }
     async createPage(config) {

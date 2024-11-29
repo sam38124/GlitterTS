@@ -288,7 +288,6 @@ class Shopping {
             return products;
         }
         catch (e) {
-            console.log(e);
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
@@ -401,7 +400,7 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -602,6 +601,7 @@ class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
             const add_on_items = [];
+            let gift_product = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -642,8 +642,11 @@ class Shopping {
                                 };
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.lineItems.push(b);
-                                if (type !== 'manual') {
+                                if (type !== 'manual' && (!pd.productType.giveaway)) {
                                     carData.total += variant.sale_price * b.count;
+                                }
+                                if (pd.productType.giveaway) {
+                                    b.sale_price = 0;
                                 }
                             }
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
@@ -670,6 +673,11 @@ class Shopping {
                         if (!pd.productType.product && pd.productType.addProduct) {
                             b.is_add_on_items = true;
                             add_on_items.push(b);
+                        }
+                        if (pd.productType.giveaway) {
+                            b.is_gift = true;
+                            b.sale_price = 0;
+                            gift_product.push(b);
                         }
                     }
                 }
@@ -726,7 +734,7 @@ class Shopping {
                     return !add_on_items.includes(dd);
                 });
                 carData.lineItems = carData.lineItems.filter((dd) => {
-                    return !add_on_items.includes(dd);
+                    return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
                 add_on_items.map((dd) => {
@@ -738,14 +746,39 @@ class Shopping {
                                     return `${dd.id}` === `${d2}`;
                                 }));
                         })) {
-                            c_carData.lineItems.push(dd);
+                            carData.lineItems.push(dd);
                         }
                     }
                     catch (e) {
                     }
                 });
                 await this.checkVoucher(carData);
-                const gift_product = [];
+                let can_add_gift = [];
+                carData.voucherList.filter((dd) => {
+                    return dd.reBackType === 'giveaway';
+                }).map((dd) => {
+                    can_add_gift.push(dd.add_on_products);
+                });
+                gift_product.map((dd) => {
+                    let max_count = can_add_gift.filter((d1) => {
+                        return d1.includes(dd.id);
+                    }).length;
+                    if (dd.count <= max_count) {
+                        for (let a = 0; a < dd.count; a++) {
+                            let find = false;
+                            can_add_gift = can_add_gift.filter((d1) => {
+                                if ((d1.includes(dd.id)) || find) {
+                                    find = true;
+                                    return false;
+                                }
+                                else {
+                                    return true;
+                                }
+                            });
+                        }
+                        carData.lineItems.push(dd);
+                    }
+                });
                 for (const dd of carData.voucherList.filter((dd) => {
                     return dd.reBackType === 'giveaway';
                 })) {
@@ -761,52 +794,7 @@ class Shopping {
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
-                    const addGift = (_h = data.give_away) === null || _h === void 0 ? void 0 : _h.find((d1) => {
-                        var _a;
-                        return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
-                            return (`${d1.id}` === `${d2.id}` &&
-                                `${d1.voucher_id}` === `${dd.id}` &&
-                                d2.variants.find((dd) => {
-                                    return dd.spec.join('') === d1.spec.join('');
-                                }));
-                        });
-                    });
-                    if (addGift) {
-                        const gift = {
-                            spec: addGift.spec,
-                            id: addGift.id,
-                            count: 1,
-                            voucher_id: dd.id,
-                        };
-                        const pd = ((_j = dd.add_on_products) !== null && _j !== void 0 ? _j : []).find((d2) => {
-                            return `${gift.id}` === `${d2.id}` && `${gift.voucher_id}` === `${dd.id}`;
-                        });
-                        pd.selected = true;
-                        gift_product.push(gift);
-                        dd.select_gif = gift;
-                        for (const b of (_k = dd.add_on_products) !== null && _k !== void 0 ? _k : []) {
-                            b.have_select = true;
-                        }
-                        if (type !== 'preview') {
-                            const variant = (_l = pd.variants.find((d1) => {
-                                return d1.spec.join('-') === gift.spec.join('-');
-                            })) !== null && _l !== void 0 ? _l : {};
-                            carData.lineItems.push({
-                                spec: gift.spec,
-                                id: gift.id,
-                                count: 1,
-                                preview_image: pd.preview_image,
-                                title: `《 贈品 》 ${pd.title}`,
-                                sale_price: 0,
-                                sku: variant.sku,
-                            });
-                        }
-                    }
-                    else {
-                        dd.select_gif = {};
-                    }
                 }
-                data.give_away = gift_product;
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
@@ -821,7 +809,13 @@ class Shopping {
             let subtotal = 0;
             carData.lineItems.map((item) => {
                 var _a;
-                subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
+                console.log(`item==>`, item);
+                if (item.is_gift) {
+                    item.sale_price = 0;
+                }
+                if (!item.is_gift) {
+                    subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
+                }
             });
             if (carData.total < 0 || carData.use_rebate > subtotal) {
                 carData.use_rebate = 0;
@@ -868,7 +862,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_m = data.total) !== null && _m !== void 0 ? _m : 0;
+                carData.total = (_h = data.total) !== null && _h !== void 0 ? _h : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;

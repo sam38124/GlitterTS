@@ -30,6 +30,21 @@ class Rebate {
         const [year, month, day, hour, minute, second] = formattedDateTimeString.split(/[- :]/).map(Number);
         return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getHours() === hour && date.getMinutes() === minute && date.getSeconds() === second;
     }
+    async getConfig() {
+        try {
+            const getRS = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            if (getRS[0] && getRS[0].value) {
+                return getRS[0].value;
+            }
+            return {};
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
+        }
+    }
     async mainStatus() {
         try {
             const getRS = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });

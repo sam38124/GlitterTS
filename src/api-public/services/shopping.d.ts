@@ -71,6 +71,7 @@ type CartItem = {
     spec: string[];
     count: number;
     sale_price: number;
+    is_gift?: boolean;
     collection: string[];
     title: string;
     preview_image: string;
@@ -220,6 +221,7 @@ export declare class Shopping {
                 type: string;
                 value: number;
             };
+            is_gift?: boolean;
         }[];
         customer_info?: any;
         email?: string;

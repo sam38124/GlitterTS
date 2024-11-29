@@ -78,10 +78,7 @@ export class BgRecommend {
                         },
                     });
                 },
-                divCreate: {
-                    class: 'mx-auto',
-                    style: 'max-width: 100%; width: 960px;',
-                },
+                divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
                         new Promise((resolve) => {
@@ -133,7 +130,7 @@ export class BgRecommend {
                                 bind: id,
                                 view: () => {
                                     return html `<span
-                                            style="color: #4D86DB;"
+                                            style="cursor: pointer; color: #4D86DB;"
                                             onclick="${gvc.event(() => {
                                         glitter.openNewTab(url);
                                     })}"
@@ -142,6 +139,7 @@ export class BgRecommend {
                                         </span>`;
                                 },
                                 divCreate: {
+                                    class: 'me-4',
                                     option: [
                                         {
                                             key: 'onclick',
@@ -180,7 +178,7 @@ export class BgRecommend {
                     },
                     {
                         key: '期限',
-                        value: `<div class="fs-7">${dd.content.startDate} ~<br/> ${(_c = dd.content.endDate) !== null && _c !== void 0 ? _c : '永不過期'}</div>`,
+                        value: `<div class="fs-7">${dd.content.startDate} ~ ${(_c = dd.content.endDate) !== null && _c !== void 0 ? _c : '永不過期'}</div>`,
                     },
                     {
                         key: '狀態',

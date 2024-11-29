@@ -29,6 +29,7 @@ export declare class Rebate {
     constructor(app: string, token?: IToken);
     static isValidDateTimeString(dateTimeString: string): boolean;
     static nowTime: (timeZone?: string) => string;
+    getConfig(): Promise<any>;
     mainStatus(): Promise<boolean | undefined>;
     getOneRebate(obj: {
         user_id?: number;

@@ -1,7 +1,9 @@
 import { GVC } from '../glitterBundle/GVController.js';
 
 export class NormalPageEditor {
-    public static refresh = () => {};
+    public static refresh = () => {
+        ((window).parent as any).glitter.recreateView('.normal_page_editor')
+    };
 
     public static back() {
         const index2 = NormalPageEditor.viewArray.length;
@@ -15,9 +17,6 @@ export class NormalPageEditor {
         const html = String.raw;
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
-            NormalPageEditor.refresh = () => {
-                gvc.notifyDataChange(id);
-            };
             return {
                 bind: id,
                 view: () => {
@@ -62,6 +61,9 @@ export class NormalPageEditor {
                         html` <div style="height:calc(100vh - ${(65 + gvc.glitter.share.top_inset)}px); overflow-y: auto; ">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}</div>`,
                     ].join('');
                 },
+                divCreate:{
+                    class:`normal_page_editor`
+                }
             };
         });
     }

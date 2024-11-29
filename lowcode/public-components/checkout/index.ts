@@ -10,7 +10,11 @@ import {FormCheck} from "../../cms-plugin/module/form-check.js";
 import {UmClass} from "../user-manager/um-class.js";
 import {FormWidget} from "../../official_view_component/official/form.js";
 import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
-import {Voucher as OriginVoucher,VoucherContent} from '../user-manager/um-voucher.js'
+import {Voucher as OriginVoucher, VoucherContent} from '../user-manager/um-voucher.js'
+import {PdClass} from "../product/pd-class.js";
+import * as vm from "node:vm";
+import {Ad} from "../public/ad.js";
+import { ApiWallet } from '../../glitter-base/route/wallet.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -18,6 +22,7 @@ const css = String.raw;
 interface UserVoucher extends VoucherContent {
     usePass: boolean;
 }
+
 interface Voucher extends OriginVoucher {
     content: UserVoucher;
 }
@@ -32,48 +37,43 @@ export class CheckoutIndex {
         const loadings = {
             page: true,
         };
-        const vm = {
-            cartData:{
+        const vm: any = {
+            cartData: {
                 "customer_info": {},
                 "lineItems": [
                     {
                         "spec": [
-                            "黃色",
-                            "L"
+                            "黑色",
+                            "小號"
                         ],
-                        "id": 715,
-                        "count": 1,
-                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
-                        "title": "Adidas衣服",
-                        "sale_price": 1000,
-                        "collection": [],
+                        "id": 710,
+                        "count": 5,
+                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
+                        "title": "溫德米爾 茶几",
+                        "sale_price": 1800,
+                        "collection": [
+                            "折扣專區",
+                            "熱門商品",
+                            "熱門商品 / 夏季限定"
+                        ],
                         "sku": "",
                         "shipment_obj": {
-                            "type": "weight",
-                            "value": 1
+                            "type": "volume",
+                            "value": 600
                         },
-                        "discount_price": 188,
+                        "discount_price": 17.6,
                         "rebate": 0
                     }
                 ],
-                "total": 812,
+                "total": 9212,
                 "email": "sam38124@gmail.com",
                 "user_info": {
-                    "shipment": "sescsbsfs4s2s4sf",
-                    "invoice_type": "me",
-                    "send_type": "email",
-                    "custom_form_delivery": {
-                        "1732152125723": "A司機"
-                    },
-                    "name": "王建智",
-                    "phone": "0978028730",
-                    "email": "sam38124@gmail.com",
-                    "note": "kldskds"
+                    "shipment": "shop"
                 },
-                "shipment_fee": 0,
+                "shipment_fee": 300,
                 "rebate": 0,
                 "use_rebate": 0,
-                "orderID": "1732683468622",
+                "orderID": "1732712547962",
                 "shipment_support": [
                     "OKMARTC2C",
                     "shop",
@@ -182,71 +182,19 @@ export class CheckoutIndex {
                 },
                 "orderSource": "",
                 "code_array": [],
-                "give_away": [],
-                "user_rebate_sum": 39807,
-                "code": "J3IXLO",
-                "voucherList": [
+                "give_away": [
                     {
-                        "id": 677,
-                        "for": "all",
-                        "code": "J3IXLO",
-                        "rule": "min_count",
-                        "type": "voucher",
-                        "title": "示範優惠券1011",
-                        "value": "100",
-                        "device": [
-                            "normal",
-                            "pos"
+                        "id": 737,
+                        "spec": [
+                            "淺木色",
+                            "4人座"
                         ],
-                        "forKey": [],
-                        "method": "fixed",
-                        "status": 1,
-                        "target": "all",
-                        "userID": 122538856,
-                        "endDate": "2024-11-28",
-                        "endTime": "00:13",
-                        "overlay": false,
-                        "trigger": "code",
-                        "counting": "single",
-                        "ruleValue": 0,
-                        "startDate": "2024-10-11",
-                        "startTime": "17:00",
-                        "reBackType": "discount",
-                        "targetList": [
-                            "neverBuying"
-                        ],
-                        "end_ISO_Date": "2024-11-27T16:13:00.000Z",
-                        "macroLimited": 0,
-                        "microLimited": 0,
-                        "rebateEndDay": "30",
-                        "conditionType": "order",
-                        "start_ISO_Date": "2024-10-11T09:00:00.000Z",
-                        "bind": [
-                            {
-                                "spec": [
-                                    "黃色",
-                                    "L"
-                                ],
-                                "id": 715,
-                                "count": 1,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
-                                "title": "Adidas衣服",
-                                "sale_price": 1000,
-                                "collection": [],
-                                "sku": "",
-                                "shipment_obj": {
-                                    "type": "weight",
-                                    "value": 1
-                                },
-                                "discount_price": 188,
-                                "rebate": 0
-                            }
-                        ],
-                        "times": 1,
-                        "bind_subtotal": 1000,
-                        "discount_total": 100,
-                        "rebate_total": 0
-                    },
+                        "count": 1,
+                        "voucher_id": 738
+                    }
+                ],
+                "user_rebate_sum": 39807,
+                "voucherList": [
                     {
                         "id": 718,
                         "for": "all",
@@ -282,31 +230,717 @@ export class CheckoutIndex {
                         "bind": [
                             {
                                 "spec": [
-                                    "黃色",
-                                    "L"
+                                    "黑色",
+                                    "小號"
                                 ],
-                                "id": 715,
-                                "count": 1,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/size1440_s*px$_sfs0s0s4s5s7sds6_AI助手.png",
-                                "title": "Adidas衣服",
-                                "sale_price": 1000,
-                                "collection": [],
+                                "id": 710,
+                                "count": 5,
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
+                                "title": "溫德米爾 茶几",
+                                "sale_price": 1800,
+                                "collection": [
+                                    "折扣專區",
+                                    "熱門商品",
+                                    "熱門商品 / 夏季限定"
+                                ],
                                 "sku": "",
                                 "shipment_obj": {
-                                    "type": "weight",
-                                    "value": 1
+                                    "type": "volume",
+                                    "value": 600
                                 },
-                                "discount_price": 188,
+                                "discount_price": 17.6,
                                 "rebate": 0
                             }
                         ],
                         "times": 1,
-                        "bind_subtotal": 1000,
+                        "bind_subtotal": 9000,
                         "discount_total": 88,
                         "rebate_total": 0
+                    },
+                    {
+                        "id": 738,
+                        "for": "all",
+                        "code": "",
+                        "rule": "min_price",
+                        "type": "voucher",
+                        "title": "滿100贈送",
+                        "value": "0",
+                        "device": [
+                            "normal"
+                        ],
+                        "forKey": [],
+                        "method": "fixed",
+                        "status": 1,
+                        "target": "all",
+                        "userID": 122538856,
+                        "overlay": false,
+                        "trigger": "auto",
+                        "counting": "single",
+                        "ruleValue": 1000,
+                        "startDate": "2024-11-20",
+                        "startTime": "20:00",
+                        "reBackType": "giveaway",
+                        "targetList": [],
+                        "end_ISO_Date": "",
+                        "macroLimited": 0,
+                        "microLimited": 0,
+                        "rebateEndDay": "30",
+                        "conditionType": "order",
+                        "start_ISO_Date": "2024-11-20T12:00:00.000Z",
+                        "add_on_products": [
+                            {
+                                "id": 737,
+                                "seo": {
+                                    "title": "北歐風實木餐桌 - 優雅的餐桌選擇",
+                                    "domain": "北歐風實木餐桌 ( 贈品 )",
+                                    "content": "選擇北歐風實木餐桌，帶給您的家居新氣象。",
+                                    "keywords": ""
+                                },
+                                "type": "product",
+                                "specs": [
+                                    {
+                                        "title": "顏色",
+                                        "option": [
+                                            {
+                                                "title": "淺木色",
+                                                "expand": true
+                                            },
+                                            {
+                                                "title": "胡桃木色",
+                                                "expand": true
+                                            },
+                                            {
+                                                "title": "黑色",
+                                                "expand": true
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "title": "尺寸",
+                                        "option": [
+                                            {
+                                                "title": "4人座"
+                                            },
+                                            {
+                                                "title": "6人座"
+                                            },
+                                            {
+                                                "title": "8人座"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "title": "北歐風實木餐桌 ( 贈品 )",
+                                "token": {
+                                    "exp": 1764244210,
+                                    "iat": 1732708210,
+                                    "userID": 122538856,
+                                    "account": "rdtest",
+                                    "userData": {}
+                                },
+                                "status": "active",
+                                "content": "北歐風實木餐桌，提供多種顏色與尺寸，適合不同家庭。",
+                                "visible": "true",
+                                "template": "",
+                                "variants": [
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "淺木色",
+                                            "4人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 3500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "淺木色",
+                                            "6人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 3000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "淺木色",
+                                            "8人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "胡桃木色",
+                                            "4人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "胡桃木色",
+                                            "6人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "胡桃木色",
+                                            "8人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "4人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "6人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "8人座"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 737,
+                                        "sale_price": 2500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    }
+                                ],
+                                "hideIndex": "false",
+                                "max_price": 3500,
+                                "min_price": 2500,
+                                "collection": [],
+                                "productType": {
+                                    "product": false,
+                                    "giveaway": true,
+                                    "addProduct": false
+                                },
+                                "content_json": [],
+                                "in_wish_list": false,
+                                "content_array": [],
+                                "preview_image": [
+                                    "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E 2024-11-04 11.13.58 - A Scandinavian-style solid wood dining table in a minimalist dining room setting. The table has a simple yet elegant design, showcasing natural wood g.webp"
+                                ],
+                                "relative_product": [],
+                                "voucher_id": 738,
+                                "selected": true,
+                                "have_select": true
+                            },
+                            {
+                                "id": 739,
+                                "seo": {
+                                    "title": "摩根鋼架書架 - 多色多層選擇",
+                                    "domain": "摩根鋼架書架 ( 贈品 )",
+                                    "content": "摩根鋼架書架，提供黑色、白色和灰色選擇，適合家庭及辦公室使用，尺寸有3層、4層、5層，價格合理。",
+                                    "keywords": ""
+                                },
+                                "type": "product",
+                                "specs": [
+                                    {
+                                        "title": "顏色",
+                                        "option": [
+                                            {
+                                                "title": "黑色",
+                                                "expand": true
+                                            },
+                                            {
+                                                "title": "白色",
+                                                "expand": true
+                                            },
+                                            {
+                                                "title": "灰色",
+                                                "expand": true
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "title": "尺寸",
+                                        "option": [
+                                            {
+                                                "title": "3層"
+                                            },
+                                            {
+                                                "title": "4層"
+                                            },
+                                            {
+                                                "title": "5層"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "title": "摩根鋼架書架 ( 贈品 )",
+                                "token": {
+                                    "exp": 1764244210,
+                                    "iat": 1732708210,
+                                    "userID": 122538856,
+                                    "account": "rdtest",
+                                    "userData": {}
+                                },
+                                "status": "active",
+                                "content": "摩根鋼架書架，完美擺放您的書籍與裝飾品，適合不同空間需求，提供不同顏色及層數選擇。",
+                                "visible": "true",
+                                "template": "",
+                                "variants": [
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "3層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1500,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "4層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1300,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "黑色",
+                                            "5層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "白色",
+                                            "3層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "白色",
+                                            "4層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "白色",
+                                            "5層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "灰色",
+                                            "3層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "灰色",
+                                            "4層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    },
+                                    {
+                                        "sku": "",
+                                        "cost": 0,
+                                        "spec": [
+                                            "灰色",
+                                            "5層"
+                                        ],
+                                        "type": "variants",
+                                        "stock": 0,
+                                        "profit": 0,
+                                        "weight": "1",
+                                        "barcode": "",
+                                        "v_width": 0,
+                                        "editable": false,
+                                        "v_height": 0,
+                                        "v_length": 0,
+                                        "product_id": 739,
+                                        "sale_price": 1000,
+                                        "compare_price": 0,
+                                        "preview_image": "",
+                                        "shipment_type": "weight",
+                                        "shipment_weight": 0,
+                                        "show_understocking": "false"
+                                    }
+                                ],
+                                "hideIndex": "false",
+                                "max_price": 1500,
+                                "min_price": 1000,
+                                "collection": [],
+                                "productType": {
+                                    "product": false,
+                                    "giveaway": true,
+                                    "addProduct": false
+                                },
+                                "content_json": [],
+                                "in_wish_list": false,
+                                "content_array": [],
+                                "preview_image": [
+                                    "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0412.09.55-AmodernMorgansteel-framebookshelfwithaminimalist,industrialdesign.Thebookshelffeaturessturdy,darkmetalframeswithmultipleopenwood.webp"
+                                ],
+                                "relative_product": [],
+                                "voucher_id": 738,
+                                "have_select": true
+                            }
+                        ],
+                        "bind": [
+                            {
+                                "spec": [
+                                    "黑色",
+                                    "小號"
+                                ],
+                                "id": 710,
+                                "count": 5,
+                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
+                                "title": "溫德米爾 茶几",
+                                "sale_price": 1800,
+                                "collection": [
+                                    "折扣專區",
+                                    "熱門商品",
+                                    "熱門商品 / 夏季限定"
+                                ],
+                                "sku": "",
+                                "shipment_obj": {
+                                    "type": "volume",
+                                    "value": 600
+                                },
+                                "discount_price": 17.6,
+                                "rebate": 0
+                            }
+                        ],
+                        "times": 1,
+                        "bind_subtotal": 9000,
+                        "discount_total": 0,
+                        "rebate_total": 0,
+                        "select_gif": {
+                            "spec": [
+                                "淺木色",
+                                "4人座"
+                            ],
+                            "id": 737,
+                            "count": 1,
+                            "voucher_id": 738
+                        }
                     }
                 ],
-                "discount": 188,
+                "distribution_info": {
+                    "code": "saasaw",
+                    "link": "tests",
+                    "title": "小明分銷",
+                    "status": true,
+                    "endDate": "2024-11-27",
+                    "endTime": "11:00",
+                    "voucher": 0,
+                    "redirect": "/hidden/1732074471329",
+                    "relative": "all",
+                    "condition": 0,
+                    "startDate": "2024-11-20",
+                    "startTime": "11:00",
+                    "share_type": "percent",
+                    "share_value": 1,
+                    "relative_data": [],
+                    "recommend_user": {
+                        "id": 1,
+                        "name": "王建智",
+                        "email": "sam38124@gmail.com",
+                        "phone": "0978028730"
+                    },
+                    "voucher_status": "no",
+                    "recommend_medium": [
+                        "other"
+                    ],
+                    "recommend_status": "new"
+                },
+                "discount": 88,
                 "payment_setting": {
                     "TYPE": "ecPay"
                 },
@@ -326,9 +960,13 @@ export class CheckoutIndex {
                     "bank_account": "888800004567"
                 }
             }as any,
+            rebateConfig: {
+                title: '購物金'
+            } as any
         };
         const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         const classPrefix = Tool.randomString(6);
+        PdClass.addSpecStyle(gvc);
 
         function spinner(obj?: {
             container?: {
@@ -475,130 +1113,138 @@ export class CheckoutIndex {
                 </div>`;
         }
 
+        function giftBadge() {
+            return html`
+                <div class="${gClass('add-item-badge')}" style="background: #95ffe0;">
+                    <div class="${gClass('add-item-text')}">贈品</div>
+                </div>`;
+        }
+
         function addStyle() {
             gvc.addStyle(css`
-            .${classPrefix}-container {
-                max-width: 70% !important;
-                margin: 2.5rem auto !important;
-            }
+                .${classPrefix}-container {
+                    max-width: 70% !important;
+                    margin: 2.5rem auto !important;
+                }
 
-            .${classPrefix}-null-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                height: 100vh !important;
-            }
+                .${classPrefix}-null-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    height: 100vh !important;
+                }
 
-            .${classPrefix}-header {
-                color: #393939;
-                font-size: 24px;
-                font-weight: 700;
-                letter-spacing: 12px;
-                text-align: center;
-                margin-bottom: 24px;
-            }
+                .${classPrefix}-header {
+                    color: #393939;
+                    font-size: 24px;
+                    font-weight: 700;
+                    letter-spacing: 12px;
+                    text-align: center;
+                    margin-bottom: 24px;
+                }
 
-            .${classPrefix}-banner-bgr {
-                padding: 1rem;
-                border-radius: 10px;
-                background: #f6f6f6;
-            }
+                .${classPrefix}-banner-bgr {
+                    padding: 1rem;
+                    border-radius: 10px;
+                    background: #f6f6f6;
+                }
 
-            .${classPrefix}-banner-text {
-                color: #393939;
-                font-size: 18px;
-                font-weight: 700;
-                letter-spacing: 2px;
-            }
+                .${classPrefix}-banner-text {
+                    color: #393939;
+                    font-size: 18px;
+                    font-weight: 700;
+                    letter-spacing: 2px;
+                }
 
-            .${classPrefix}-text-1 {
-                color: #393939;
-                font-size: 20px;
-            }
+                .${classPrefix}-text-1 {
+                    color: #393939;
+                    font-size: 20px;
+                }
 
-            .${classPrefix}-text-2 {
-                color: #393939;
-                font-size: 16px;
-            }
+                .${classPrefix}-text-2 {
+                    color: #393939;
+                    font-size: 16px;
+                }
 
-            .${classPrefix}-text-3 {
-                color: #393939;
-                font-size: 14px;
-            }
+                .${classPrefix}-text-3 {
+                    color: #393939;
+                    font-size: 14px;
+                }
 
-            .${classPrefix}-label {
-                color: #393939;
-                font-size: 16px;
-                margin-bottom: 8px;
-            }
+                .${classPrefix}-label {
+                    color: #393939;
+                    font-size: 16px;
+                    margin-bottom: 8px;
+                }
 
-            .${classPrefix}-bold {
-                font-weight: 700;
-            }
+                .${classPrefix}-bold {
+                    font-weight: 700;
+                }
 
-            .${classPrefix}-button-bgr {
-                width: 100%;
-                border: 0;
-                border-radius: 0.375rem;
-                height: 40px;
-                background: #393939;
-                padding: 0 24px;
-                margin: 18px 0;
-            }
+                .${classPrefix}-button-bgr {
+                    width: 100%;
+                    border: 0;
+                    border-radius: 0.375rem;
+                    height: 40px;
+                    background: #393939;
+                    padding: 0 24px;
+                    margin: 18px 0;
+                }
 
-            .${classPrefix}-button-bgr-disable {
-                width: 100%;
-                border: 0;
-                border-radius: 0.375rem;
-                height: 40px;
-                background: #DDDDDD;
-                padding: 0 24px;
-                margin: 18px 0;
-            }
+                .${classPrefix}-button-bgr-disable {
+                    width: 100%;
+                    border: 0;
+                    border-radius: 0.375rem;
+                    height: 40px;
+                    background: #DDDDDD;
+                    padding: 0 24px;
+                    margin: 18px 0;
+                }
 
-            .${classPrefix}-button-text {
-                color: #fff;
-                font-size: 16px;
-            }
+                .${classPrefix}-button-text {
+                    color: #fff;
+                    font-size: 16px;
+                }
 
-            .${classPrefix}-input {
-                width: 100%;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                height: 40px;
-                padding: 0px 18px;
-            }
+                .${classPrefix}-input {
+                    width: 100%;
+                    border-radius: 10px;
+                    border: 1px solid #ddd;
+                    height: 40px;
+                    padding: 0px 18px;
+                }
 
-            .${classPrefix}-select {
-                display: flex;
-                padding: 7px 30px 7px 18px;
-                max-height: 40px;
-                align-items: center;
-                gap: 6px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
-                background-position-x: calc(100% - 12px);
-                background-position-y: 16px;
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-            }
+                .${classPrefix}-select {
+                    display: flex;
+                    padding: 7px 30px 7px 18px;
+                    max-height: 40px;
+                    align-items: center;
+                    gap: 6px;
+                    border-radius: 10px;
+                    border: 1px solid #ddd;
+                    background: transparent url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png') no-repeat;
+                    background-position-x: calc(100% - 12px);
+                    background-position-y: 16px;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                }
 
-            .${classPrefix}-select:focus {
-                outline: 0;
-            }
-                
-            .${classPrefix}-group-input {
-                border:none;
-                background:none;
-                text-align: start; 
-                color: #393939; 
-                font-size: 16px; 
-                font-weight: 400; 
-                word-wrap: break-word;
-                padding-left: 12px;
-            }
+                .${classPrefix}-select:focus {
+                    outline: 0;
+                }
+
+                .${classPrefix}-group-input {
+                    border: none;
+                    background: none;
+                    text-align: start;
+                    color: #393939;
+                    font-size: 16px;
+                    font-weight: 400;
+                    word-wrap: break-word;
+                    padding-left: 12px;
+                }
+
                 .${classPrefix}-first-td {
                     display: flex;
                     align-items: center;
@@ -606,82 +1252,82 @@ export class CheckoutIndex {
                     width: 30%;
                 }
 
-            .${classPrefix}-group-input:focus {
-                outline: 0;
-            }
+                .${classPrefix}-group-input:focus {
+                    outline: 0;
+                }
 
-            .${classPrefix}-group-button {
-                padding: 9px 18px;
-                background: #393939;
-                align-items: center;
-                gap: 5px;
-                display: flex;
-                font-size: 16px;
-                justify-content: center;
-                cursor: pointer;
-            }
+                .${classPrefix}-group-button {
+                    padding: 9px 18px;
+                    background: #393939;
+                    align-items: center;
+                    gap: 5px;
+                    display: flex;
+                    font-size: 16px;
+                    justify-content: center;
+                    cursor: pointer;
+                }
 
-            .${classPrefix}-td {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 15%;
-            }
+                .${classPrefix}-td {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 15%;
+                }
 
-            .${classPrefix}-first-td {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 40%;
-            }
+                .${classPrefix}-first-td {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40%;
+                }
 
-            .${classPrefix}-price-container {
-                display: flex;
-                flex-direction: column;
-                width: 400px;
-                align-items: center;
-                padding: 0;
-                gap: 12px;
-                margin: 24px 0;
-            }
+                .${classPrefix}-price-container {
+                    display: flex;
+                    flex-direction: column;
+                    width: 400px;
+                    align-items: center;
+                    padding: 0;
+                    gap: 12px;
+                    margin: 24px 0;
+                }
 
-            .${classPrefix}-price-row {
-                display: flex;
-                width: 100%;
-                align-items: center;
-                justify-content: space-between;
-            }
+                .${classPrefix}-price-row {
+                    display: flex;
+                    width: 100%;
+                    align-items: center;
+                    justify-content: space-between;
+                }
 
-            .${classPrefix}-origin-price {
-                text-align: end;
-                font-weight: 400;
-                word-wrap: break-word;
-                text-decoration: line-through;
-                color: #636363;
-                font-style: italic;
-                margin-top: auto;
-            }
+                .${classPrefix}-origin-price {
+                    text-align: end;
+                    font-weight: 400;
+                    word-wrap: break-word;
+                    text-decoration: line-through;
+                    color: #636363;
+                    font-style: italic;
+                    margin-top: auto;
+                }
 
-            .${classPrefix}-add-item-badge {
-                height: 22px;
-                padding-left: 6px;
-                padding-right: 6px;
-                padding-top: 4px;
-                padding-bottom: 4px;
-                background: #ffe9b2;
-                border-radius: 7px;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-                display: inline-flex;
-            }
+                .${classPrefix}-add-item-badge {
+                    height: 22px;
+                    padding-left: 6px;
+                    padding-right: 6px;
+                    padding-top: 4px;
+                    padding-bottom: 4px;
+                    background: #ffe9b2;
+                    border-radius: 7px;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 10px;
+                    display: inline-flex;
+                }
 
-            .${classPrefix}-add-item-text {
-                color: #393939;
-                font-size: 14px;
-                font-weight: 400;
-                word-wrap: break-word;
-            }
+                .${classPrefix}-add-item-text {
+                    color: #393939;
+                    font-size: 14px;
+                    font-weight: 400;
+                    word-wrap: break-word;
+                }
             `);
             gvc.addStyle(css`
                 @media (max-width: 768px) {
@@ -689,12 +1335,14 @@ export class CheckoutIndex {
                         max-width: 100% !important;
                         margin: 2.5rem auto !important;
                     }
+
                     .${classPrefix}-td {
                         display: flex;
                         align-items: center;
                         justify-content: start;
                         width: 100%;
                     }
+
                     .${classPrefix}-price-container {
                         display: flex;
                         flex-direction: column;
@@ -709,10 +1357,11 @@ export class CheckoutIndex {
 
 
         function refreshCartData() {
-            const dialog=new ShareDialog(gvc.glitter)
-            dialog.dataLoading({visible:true})
-            const beta=false;
-            if(!beta){
+
+            const dialog = new ShareDialog(gvc.glitter)
+            dialog.dataLoading({visible: true})
+            const beta = false
+            if (!beta) {
                 new Promise(async (resolve, reject) => {
                     new Promise((resolve, reject) => {
                         setTimeout(() => {
@@ -792,19 +1441,27 @@ export class CheckoutIndex {
                     });
                 }).then((data) => {
                     vm.cartData = data;
-                    gvc.addMtScript(
-                        [
-                            {
-                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                    ApiWallet.getRebateConfig({ type: 'me' }).then(async (res) => {
+                        if (res.result && res.response.data) {
+                            vm.rebateConfig = res.response.data;
+                        }
+                        vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                        gvc.addMtScript(
+                            [
+                                {
+                                    src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                                },
+                            ],
+                            () => {
+                                loadings.page = false;
+                                dialog.dataLoading({visible:false})
+                                gvc.notifyDataChange(['js-cart-count', ids.page])
                             },
-                        ],
-                        () => {
-                            loadings.page = false;
-                            dialog.dataLoading({visible:false})
-                            gvc.notifyDataChange(['js-cart-count',ids.page])
-                        },
-                        () => {}
-                    );
+                            () => {
+                            }
+                        );
+                    })
+                    
                 });
             }else{
                 gvc.addMtScript(
@@ -815,7 +1472,7 @@ export class CheckoutIndex {
                     ],
                     () => {
                         loadings.page = false;
-                        dialog.dataLoading({visible:false})
+                        dialog.dataLoading({visible: false})
                         gvc.notifyDataChange(ids.page);
                     },
                     () => {
@@ -824,6 +1481,7 @@ export class CheckoutIndex {
             }
             gvc.glitter.recreateView('.js-cart-count')
         }
+
         refreshCartData()
         return gvc.bindView(
             (() => {
@@ -866,7 +1524,9 @@ export class CheckoutIndex {
                                                                     <span class="${gClass('banner-text')}">購物車</span>
                                                                 </div>
                                                                 <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
-                                                                    <div class="${gClass('first-td')} justify-content-start">商品名稱</div>
+                                                                    <div class="${gClass('first-td')} justify-content-start">
+                                                                        商品名稱
+                                                                    </div>
                                                                     <div class="${gClass('td')}">規格</div>
                                                                     <div class="${gClass('td')}">單價</div>
                                                                     <div class="${gClass('td')}">數量</div>
@@ -876,7 +1536,7 @@ export class CheckoutIndex {
                                                                     bind: glitter.getUUID(),
                                                                     view: () => {
                                                                         return vm.cartData.lineItems
-                                                                                .map((item: any,index:number) => {
+                                                                                .map((item: any, index: number) => {
                                                                                     function financial(x: number) {
                                                                                         const parsed = Number.parseFloat(`${x}`);
 
@@ -901,507 +1561,848 @@ export class CheckoutIndex {
                                                                                             });
                                                                                         }
                                                                                     }
+function getBadgeClass(){
+                                                                                        if(item.is_add_on_items){
+                                                                                            return  addItemBadge()
+                                                                                        }else if(item.is_gift){
+                                                                                            return  giftBadge()
+                                                                                        }else{
+                                                                                            return ``
+                                                                                        }                                                                 
+}
                                                                                     return html`
-                                                                                        <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3"  >
-                                                                                              <div class="d-flex w-100   position-relative" style="gap:20px;">
-                                                                                         <div class="${gClass('first-td')} justify-content-start  d-sm-none">
-                                                                                             <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
-                                                                                             <span class="ms-2 d-none">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
-                                                                                         </div>
-                                                                                           <div class="d-flex flex-sm-row    flex-column w-100 position-relative"
-                                                                                             style="gap: 10px; position: relative;">
-                                                                                            <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex">
-                                                                                                <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
-                                                                                                <span class="ms-2 ">${item.title}${item.is_add_on_items ? addItemBadge() : ''}</span>
-                                                                                            </div>
-                                                                                            <div class="${gClass('td')}">
-                                                                                                ${item.spec ? item.spec.join(' / ') : ''}
-                                                                                            </div>
-                                                                                            <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center" style="gap:10px;">
-                                                                                                <div class="">
-                                                                                                    ${(() => {
-                                                                                        return `NT.${parseInt(item.sale_price,10).toLocaleString()}`;
-                                                                                    })()}
+                                                                                        <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3">
+                                                                                            <div class="d-flex w-100   position-relative"
+                                                                                                 style="gap:20px;">
+                                                                                                <div class="${gClass('first-td')} justify-content-start  d-sm-none">
+                                                                                                    <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
+                                                                                                    <span class="ms-2 d-none">${getBadgeClass()}${item.title}</span>
+                                                                                                </div>
+                                                                                                <div class="d-flex flex-sm-row    flex-column w-100 position-relative"
+                                                                                                     style="gap: 8px; position: relative;">
+                                                                                                    <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex"
+                                                                                                         style="">
+                                                                                                        <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
+                                                                                                        <span class="ms-2 d-flex align-items-start flex-column "
+                                                                                                              style="gap:5px;">${getBadgeClass()}${item.title}</span>
+                                                                                                    </div>
+                                                                                                    <span class="d-flex align-items-start flex-column d-lg-none fw-bold"
+                                                                                                          style="gap:5px;font-size:17px;">${getBadgeClass()}${item.title}</span>
+                                                                                                    <div class="${gClass('td')}">
+                                                                                                        ${item.spec ? item.spec.join(' / ') : ''}
+                                                                                                    </div>
+                                                                                                    <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center"
+                                                                                                         style="gap:10px;">
+                                                                                                        <div class="">
+                                                                                                            ${(() => {
+                                                                                                                if(item.is_gift){
+                                                                                                                    return  `NT.0`
+                                                                                                                }
+                                                                                                                return `NT.${parseInt(item.sale_price, 10).toLocaleString()}`;
+                                                                                                            })()}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div class="${gClass('td')}">
+                                                                                                        <select
+                                                                                                                class="${gClass('select')}"
+                                                                                                                style="width: 100px;"
+                                                                                                                onchange="${gvc.event((e) => {
+                                                                                                                    ApiCart.setCart((cartItem) => {
+                                                                                                                        cartItem.line_items.find((dd) => {
+                                                                                                                            return dd.id === item.id && (item.spec.join('')) === dd.spec.join('')
+                                                                                                                        })!.count = parseInt(e.value, 10)
+                                                                                                                        refreshCartData()
+                                                                                                                    })
+
+                                                                                                                })}"
+                                                                                                                ${item.is_gift ? `disabled`:``}
+                                                                                                                
+                                                                                                        >
+                                                                                                            ${[...new Array(99)].map((_, index) => {
+                                                                                                                return html`
+                                                                                                                    <option value="${index + 1}"
+                                                                                                                            ${(index + 1 === item.count) ? `selected` : ``}>
+                                                                                                                        ${index + 1}
+                                                                                                                    </option>`;
+                                                                                                            }).join('')}
+                                                                                                        </select>
+                                                                                                    </div>
+                                                                                                    <div class="d-block d-md-none"
+                                                                                                         style="position: absolute; right: 0px; top:0px;">
+                                                                                                        <i class="fa-solid fa-xmark-large"
+                                                                                                           style="cursor: pointer;"
+                                                                                                           onclick="${gvc.event(() => {
+                                                                                                               ApiCart.setCart((cartItem) => {
+                                                                                                                   cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                       return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''))
+                                                                                                                   })
+                                                                                                                   refreshCartData()
+                                                                                                               })
+                                                                                                           })}"></i>
+                                                                                                    </div>
+                                                                                                    <span class="d-block d-md-none"
+                                                                                                          style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? (((item.sale_price - item.discount_price) as any) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
+                                                                                                    <div class="${gClass('td')}  d-none d-md-flex"
+                                                                                                         style="bottom:0px;right:10px;">
+                                                                                                        <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
+                                                                                                        <div class="d-none d-md-block"
+                                                                                                             style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;">
+                                                                                                            <i class="fa-solid fa-xmark-large"
+                                                                                                               style="cursor: pointer;"
+                                                                                                               onclick="${gvc.event(() => {
+                                                                                                                   ApiCart.setCart((cartItem) => {
+                                                                                                                       cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                           return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''))
+                                                                                                                       })
+                                                                                                                       refreshCartData()
+                                                                                                                   })
+                                                                                                               })}"></i>
+                                                                                                        </div>
+                                                                                                    </div>
                                                                                                 </div>
                                                                                             </div>
-                                                                                            <div class="${gClass('td')}">
-                                                                                                <select
-                                                                                                        class="${gClass('select')}"
-                                                                                                        style="width: 100px;"
-                                                                                                        onchange="${gvc.event((e) => {
-                                                                                        ApiCart.setCart((cartItem)=>{
-                                                                                            cartItem.line_items.find((dd)=>{
-                                                                                                return dd.id===item.id && (item.spec.join(''))===dd.spec.join('')
-                                                                                            })!.count=parseInt(e.value, 10)
-                                                                                            refreshCartData()
-                                                                                        })
-                                                                                
-                                                                                    })}"
-                                                                                                >
-                                                                                                    ${[...new Array(99)].map((_, index) => {
-                                                                                        return html`
-                                                                                                            <option value="${index + 1}" ${(index + 1 === item.count) ? `selected`:``}>
-                                                                                                                ${index + 1}
-                                                                                                            </option>`;
-                                                                                    })}
-                                                                                                </select>
+                                                                                            <div>
+                                                                                                ${vm.cartData.voucherList.filter((dd: any) => {
+                                                                                                    return dd.bind.find((d2: any) => {
+                                                                                                        return d2.id === item.id 
+                                                                                                    }) && (dd.reBackType!=='giveaway') && (dd.reBackType!=='add_on_items')
+                                                                                                }).map((dd: any) => {
+                                                                                                    return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`
+                                                                                                }).join('<div class="my-1"></div>')}
                                                                                             </div>
-                                                                                               <div class="d-block d-md-none" style="position: absolute; right: 0px; top:0px;">
-                                                                                                   <i class="fa-solid fa-xmark-large"
-                                                                                                      style="cursor: pointer;" onclick="${gvc.event(()=>{
-                                                                                                       ApiCart.setCart((cartItem)=>{
-                                                                                                           cartItem.line_items=cartItem.line_items.filter((dd)=>{
-                                                                                                               return !(dd.id===item.id && (item.spec.join(''))===dd.spec.join(''))
-                                                                                                           })
-                                                                                                           refreshCartData()
-                                                                                                       })
-                                                                                    })}"></i>
-                                                                                               </div>
-                                                                                               <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? (((item.sale_price - item.discount_price)  as any)* item.count):(item.sale_price * item.count)).toLocaleString()}</span>
-                                                                                            <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
-                                                                                                <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
-                                                                                                <div class="d-none d-md-block" style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;">
-                                                                                                    <i class="fa-solid fa-xmark-large"
-                                                                                                       style="cursor: pointer;" onclick="${gvc.event(()=>{
-                                                                                                        ApiCart.setCart((cartItem)=>{
-                                                                                                            cartItem.line_items=cartItem.line_items.filter((dd)=>{
-                                                                                                                return !(dd.id===item.id && (item.spec.join(''))===dd.spec.join(''))
-                                                                                                            })
-                                                                                                            refreshCartData()
-                                                                                                        })
-                                                                                    })}"></i>
-                                                                                                </div>
-                                                                                            </div>
+
                                                                                         </div>
-                                                                                     </div>
-                                                                                          <div>
-                                                                                              ${vm.cartData.voucherList.filter((dd:any)=>{
-                                                                                                  return dd.bind.find((d2:any)=>{return d2.id===item.id})
-                                                                                              }).map((dd:any)=>{
-                                                                                                  return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`
-                                                                                              }).join('<div class="my-1"></div>')}
-                                                                                          </div>
-                                                                                          
-                                                                                        </div>
-                                                                                   
-                                                                                      `;
+
+                                                                                    `;
                                                                                 })
                                                                                 .join('');
                                                                     },
                                                                 })}
                                                             </section>
                                                             <section class="d-flex">
-                                                            <div class="flex-fill"></div>
-                                                            <div class="${gClass('price-container')}">
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>商品總計</div>
-                                                                    <div>NT. ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}</div>
-                                                                </div>
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>運費</div>
-                                                                    <div>NT. ${vm.cartData.shipment_fee.toLocaleString()}</div>
-                                                                </div>
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>優惠券折抵</div>
-                                                                    <div>- NT. ${vm.cartData.discount.toLocaleString()}</div>
-                                                                </div>
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>優惠代碼</div>
-                                                                    <div style="cursor: pointer; color: #3564c0;" onclick="${gvc.event(()=>{
-this.viewDialog({
-    gvc: gvc,
-    title: '可使用的優惠券',
-    tag: '',
-    innerHTML: (gvc: GVC) => {
-        return gvc.bindView(
-            (() => {
-                const id = glitter.getUUID();
-                const vmi = {
-                    dataList: [] as Voucher[],
-                }
-                const isWebsite = document.body.clientWidth > 768;
-                let loading = true;
-                return {
-                    bind: id,
-                    view: () => {
-                        if (loading) {
-                            return html`<div style="height: 400px">${spinner()}</div>`;
-                        } else {
-                            // if (vmi.dataList.length === 0) {
-                            //     return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                            //         <lottie-player
-                            //             style="max-width: 100%;width: 300px;"
-                            //             src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                            //             speed="1"
-                            //             loop="true"
-                            //             background="transparent"
-                            //         ></lottie-player>
-                            //         <span class="mb-5 fs-5">目前沒有任何優惠券呦</span>
-                            //     </div>`;
-                            // }
+                                                                <div class="flex-fill"></div>
+                                                                <div class="${gClass('price-container')}">
+                                                                    <div class="${gClass(['price-row', 'text-2'])}">
+                                                                        <div>商品總計</div>
+                                                                        <div>NT.
+                                                                            ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="${gClass(['price-row', 'text-2'])}">
+                                                                        <div>運費</div>
+                                                                        <div>NT.
+                                                                            ${vm.cartData.shipment_fee.toLocaleString()}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="${gClass(['price-row', 'text-2'])}">
+                                                                        <div>優惠券折抵</div>
+                                                                        <div>- NT.
+                                                                            ${vm.cartData.discount.toLocaleString()}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="${gClass(['price-row', 'text-2'])}">
+                                                                        <div>優惠代碼</div>
+                                                                        <div style="cursor: pointer; color: #3564c0;"
+                                                                             onclick="${gvc.event(() => {
+                                                                                 this.viewDialog({
+                                                                                             gvc: gvc,
+                                                                                             title: '可使用的優惠券',
+                                                                                             tag: '',
+                                                                                             innerHTML: (gvc: GVC) => {
+                                                                                                 return gvc.bindView(
+                                                                                                         (() => {
+                                                                                                             const id = glitter.getUUID();
+                                                                                                             const vmi = {
+                                                                                                                 dataList: [] as Voucher[],
+                                                                                                             }
+                                                                                                             const isWebsite = document.body.clientWidth > 768;
+                                                                                                             let loading = true;
+                                                                                                             return {
+                                                                                                                 bind: id,
+                                                                                                                 view: () => {
+                                                                                                                     if (loading) {
+                                                                                                                         return html`
+                                                                                                                             <div style="height: 400px">
+                                                                                                                                 ${spinner()}
+                                                                                                                             </div>`;
+                                                                                                                     } else {
+                                                                                                                         // if (vmi.dataList.length === 0) {
+                                                                                                                         //     return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
+                                                                                                                         //         <lottie-player
+                                                                                                                         //             style="max-width: 100%;width: 300px;"
+                                                                                                                         //             src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                                                                         //             speed="1"
+                                                                                                                         //             loop="true"
+                                                                                                                         //             background="transparent"
+                                                                                                                         //         ></lottie-player>
+                                                                                                                         //         <span class="mb-5 fs-5">目前沒有任何優惠券呦</span>
+                                                                                                                         //     </div>`;
+                                                                                                                         // }
 
-                            const header = [
-                                {
-                                    title: '優惠券名稱',
-                                },
-                                {
-                                    title: '優惠券代碼',
-                                },
-                                {
-                                    title: '使用期限',
-                                },
-                                {
-                                    title: '',
-                                },
-                            ];
+                                                                                                                         const header = [
+                                                                                                                             {
+                                                                                                                                 title: '優惠券名稱',
+                                                                                                                             },
+                                                                                                                             {
+                                                                                                                                 title: '優惠券代碼',
+                                                                                                                             },
+                                                                                                                             {
+                                                                                                                                 title: '使用期限',
+                                                                                                                             },
+                                                                                                                             {
+                                                                                                                                 title: '',
+                                                                                                                             },
+                                                                                                                         ];
 
-                        
-                            function formatText(item: UserVoucher) {
-                                return [
-                                    item.title,
-                                    item.code,
-                                    (() => {
-                                        const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : '無使用期限';
-                                        return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
-                                    })(),
-                                    item.usePass ? html`<button
-                                        class="${gClass('button-bgr')} my-2"
-                                        style="max-width: 150px;"
-                                        onclick="${gvc.event(() => {
-                                            console.log(JSON.stringify(item))
-                                            ApiCart.setCart((cartItem)=>{
-                                                cartItem.code=item.code;
-                                                refreshCartData();
-                                                gvc.closeDialog();
-                                            })
-                                        })}"
-                                    >
-                                        <span 
-                                        class="${gClass('button-text')}">選擇使用</span>
-                                    </button>` :
-                                     html`<button
-                                        class="${gClass('button-bgr-disable')} my-2"
-                                        style="max-width: 150px; cursor: not-allowed"
-                                    >
-                                        <span 
-                                        class="${gClass('button-text')}">未達使用標準</span>
-                                    </button>` ,
-                                ];
-                            }
 
-                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                         function formatText(item: UserVoucher) {
+                                                                                                                             return [
+                                                                                                                                 item.title,
+                                                                                                                                 item.code,
+                                                                                                                                 (() => {
+                                                                                                                                     const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : '無使用期限';
+                                                                                                                                     return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
+                                                                                                                                 })(),
+                                                                                                                                 item.usePass ? html`
+                                                                                                                                             <button
+                                                                                                                                                     class="${gClass('button-bgr')} my-2"
+                                                                                                                                                     style="max-width: 150px;"
+                                                                                                                                                     onclick="${gvc.event(() => {
+                                                                                                                                                         console.log(JSON.stringify(item))
+                                                                                                                                                         ApiCart.setCart((cartItem) => {
+                                                                                                                                                             cartItem.code = item.code;
+                                                                                                                                                             refreshCartData();
+                                                                                                                                                             gvc.closeDialog();
+                                                                                                                                                         })
+                                                                                                                                                     })}"
+                                                                                                                                             >
+                                        <span
+                                                class="${gClass('button-text')}">選擇使用</span>
+                                                                                                                                             </button>` :
+                                                                                                                                         html`
+                                                                                                                                             <button
+                                                                                                                                                     class="${gClass('button-bgr-disable')} my-2"
+                                                                                                                                                     style="max-width: 150px; cursor: not-allowed"
+                                                                                                                                             >
+                                        <span
+                                                class="${gClass('button-text')}">未達使用標準</span>
+                                                                                                                                             </button>`,
+                                                                                                                             ];
+                                                                                                                         }
 
-                            const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
+                                                                                                                         const dialog = new ShareDialog(gvc.glitter);
 
-                            function checkCodeValue(code:string){
-                                cloneCart.code = code
-                                     cloneCart.line_items = cloneCart.lineItems 
-                                     dialog.dataLoading({visible: true});
-                                     ApiShop.getCheckout(cloneCart).then((r) => {
-                                        dialog.dataLoading({visible: false});
-                                        if(r.result && r.response.data && r.response.data.voucherList.some((dd:any)=>{
-                                            return dd.code===code
-                                        })){
-                                            ApiCart.setCart((cartItem)=>{
-                                                cartItem.code=code
-                                                refreshCartData();
-                                                gvc.closeDialog();
-                                            })
-                                          
-                                        }else{
-                                            dialog.errorMessage({
-                                                text: '此代碼無法使用'
-                                            });
-                                        }
-                                         
-                                     });
-                            }
+                                                                                                                         const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
 
-                            if (isWebsite) {
-                                const flexList = [1.2, 1, 1.5, 1.5];
+                                                                                                                         function checkCodeValue(code: string) {
+                                                                                                                             cloneCart.code = code
+                                                                                                                             cloneCart.line_items = cloneCart.lineItems
+                                                                                                                             dialog.dataLoading({visible: true});
+                                                                                                                             ApiShop.getCheckout(cloneCart).then((r) => {
+                                                                                                                                 dialog.dataLoading({visible: false});
+                                                                                                                                 if (r.result && r.response.data && r.response.data.voucherList.some((dd: any) => {
+                                                                                                                                     return dd.code === code
+                                                                                                                                 })) {
+                                                                                                                                     ApiCart.setCart((cartItem) => {
+                                                                                                                                         cartItem.code = code
+                                                                                                                                         refreshCartData();
+                                                                                                                                         gvc.closeDialog();
+                                                                                                                                     })
 
-                                return html`
-                                <div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <label class="${gClass('label')} mb-0" style="min-width: 80px;">輸入代碼</label>
-                                    <input class="${gClass('input')}" type="text" onchange="${gvc.event((e)=>{
-                                         checkCodeValue(e.value)
-                                    })}"/>
-                                </div>
-                                </div>
-                                    <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                        ${header
-                                            .map((item, index) => {
-                                                return html`<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
-                                            })
-                                            .join('')}
-                                    </div>
-                                    ${vmi.dataList
-                                        .map((item, t1) => {
-                                            const fText = formatText(item.content)
-                                            return html`<div class="w-100 d-sm-flex py-1 align-items-center">
-                                                ${fText
-                                                    .map((dd, t2) => {
-                                                        return html`<div class="um-td ${t2 === fText.length - 1 ? 'text-center':''}" style="flex: ${flexList[t2]}">${dd}</div>`;
-                                                    })
-                                                    .join('')}
-                                            </div>`;
-                                        })
-                                        .join('')}
-                                `;
-                            }
+                                                                                                                                 } else {
+                                                                                                                                     dialog.errorMessage({
+                                                                                                                                         text: '此代碼無法使用'
+                                                                                                                                     });
+                                                                                                                                 }
 
-                            return html`
-                                <div>
-                                    <div class="d-flex flex-column flex-sm-row align-items-center ">
-                                        <div class="d-flex align-items-center">
-                                            <input class="${gClass('input')}" type="text"
-                                                   style="border-top-right-radius: 0;border-bottom-right-radius: 0px;" placeholder="請輸入優惠代碼"/>
-                                            <button class="${gClass('button-bgr')}" style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
-                                                    onclick="${gvc.event((e) => {
-                                                        checkCodeValue(e.value)
-                                                    })}">
-                                                <span class="${gClass('button-text')}" style="">確認</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="w-100 d-sm-none mb-3 s162413">
-                                        ${vmi.dataList
-                                                .map((item) => {
-                                                    return html`
-                                                        <div class="um-mobile-area">
-                                                            ${formatText(item.content)
-                                                                    .map((dd, index) => {
-                                                                        if (header[index].title === '') {
-                                                                            return dd;
-                                                                        }
-                                                                        return html`
-                                                                            <div class="um-mobile-text">
-                                                                                ${header[index].title}: ${dd}
-                                                                            </div>`;
-                                                                    })
-                                                                    .join('')}
-                                                        </div>`;
-                                                })
-                                                .join('')}
-                                    </div>
-                                </div>`;
-                        }
-                    },
-                    divCreate: {},
-                    onCreate: () => {
-                        if (loading) {
-                            function isNowBetweenDates(startIso: string, endIso: string): boolean {
-                                const now = new Date();
-                                const startDate = new Date(startIso);
-                                const endDate = new Date(endIso);
-                            
-                                // 確保 `startIso` 和 `endIso` 是有效的日期
-                                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                                    return true
-                                }
-                            
-                                // 判斷現在時間是否在範圍內
-                                return now >= startDate && now <= endDate;
-                            }
+                                                                                                                             });
+                                                                                                                         }
 
-                            gvc.addMtScript(
-                                [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
-                                () => {
-                                    ApiShop.getVoucher({
-                                        page: 0,
-                                        limit: 10000,
-                                        data_from: 'user',
-                                    }).then(async (res) => {
-                                        if (res.result && res.response.data) {
-                                            vmi.dataList = res.response.data.filter((item: Voucher) => {
-                                                return item.content.trigger === 'code' && isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date)
-                                            });
-                                        } else {
-                                            vmi.dataList = [];
-                                        }
-                                        const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
-                                        Promise.all(vmi.dataList.map((voucher,index) => {
-                                            return new Promise<{ code:string, response:any }>((resolve) => {
-                                                const code = voucher.content.code
-                                                cloneCart.code = code
-                                                cloneCart.line_items = cloneCart.lineItems 
-                                                ApiShop.getCheckout(cloneCart).then((response) => {
-                                                    resolve({
-                                                        code,
-                                                        response
-                                                    });
-                                                });
-                                            })
-                                        })).then( (resolveArray: { code:string, response:any }[]) =>{
-                                            vmi.dataList = vmi.dataList.map((item) => {
-                                                const f = resolveArray.find(res => {
-                                                    return item.content.code === res.code;
-                                                })
-                                                if(f){
-                                                   const r = f.response
-                                                   if(r.result && r.response.data){
-                                                        item.content.usePass = r.response.data.voucherList.some((dd:any)=>{
-                                                            return dd.code===f.code
-                                                        })
-                                                   }
-                                                }
-                                                return item
-                                            })
-                                            loading = false;
-                                            gvc.notifyDataChange(id);
-                                        })
-                                    });
-                                },
-                                () => {}
-                            );
-                        }
-                    },
-                };
-            })()
-        )
-    }
-}
-)
-                                                                    })}">${vm.cartData.code ? `${vm.cartData.code}<i class="fa-solid fa-xmark-large ms-2"
-                                                                                                      style="cursor: pointer;" onclick="${gvc.event((e,event)=>{
-                                                                                                          event.stopPropagation();
-                                                                       ApiCart.setCart((cartItem)=>{
-                                                                           cartItem.code=''
-                                                                           refreshCartData()
-                                                                       })
-                                                                    })}"></i>`:'新增'}</div>
-                                                                </div>
-                                                                ${(()=>{
-                                                                    if(!GlobalUser.token){
-                                                                        return ``
-                                                                    }else{
-                                                                        return  ` ${(()=>{
-                                                                            let tempRebate:number = 0;
-                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                            return `<div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>購物金折抵</div>
+                                                                                                                         if (isWebsite) {
+                                                                                                                             const flexList = [1.2, 1, 1.5, 1.5];
+
+                                                                                                                             return html`
+                                                                                                                                 <div>
+                                                                                                                                     <div class="d-flex align-items-center mb-2">
+                                                                                                                                         <label class="${gClass('label')} mb-0"
+                                                                                                                                                style="min-width: 80px;">輸入代碼</label>
+                                                                                                                                         <input class="${gClass('input')}"
+                                                                                                                                                type="text"
+                                                                                                                                                onchange="${gvc.event((e) => {
+                                                                                                                                                    checkCodeValue(e.value)
+                                                                                                                                                })}"/>
+                                                                                                                                     </div>
+                                                                                                                                 </div>
+                                                                                                                                 <div class="w-100 d-sm-flex py-4 um-th-bar">
+                                                                                                                                     ${header
+                                                                                                                                             .map((item, index) => {
+                                                                                                                                                 return html`
+                                                                                                                                                     <div class="um-th"
+                                                                                                                                                          style="flex: ${flexList[index]};">
+                                                                                                                                                         ${item.title}
+                                                                                                                                                     </div>`;
+                                                                                                                                             })
+                                                                                                                                             .join('')}
+                                                                                                                                 </div>
+                                                                                                                                 ${vmi.dataList
+                                                                                                                                         .map((item, t1) => {
+                                                                                                                                             const fText = formatText(item.content)
+                                                                                                                                             return html`
+                                                                                                                                                 <div class="w-100 d-sm-flex py-1 align-items-center">
+                                                                                                                                                     ${fText
+                                                                                                                                                             .map((dd, t2) => {
+                                                                                                                                                                 return html`
+                                                                                                                                                                     <div class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
+                                                                                                                                                                          style="flex: ${flexList[t2]}">
+                                                                                                                                                                         ${dd}
+                                                                                                                                                                     </div>`;
+                                                                                                                                                             })
+                                                                                                                                                             .join('')}
+                                                                                                                                                 </div>`;
+                                                                                                                                         })
+                                                                                                                                         .join('')}
+                                                                                                                             `;
+                                                                                                                         }
+
+                                                                                                                         return html`
+                                                                                                                             <div>
+                                                                                                                                 <div class="d-flex flex-column flex-sm-row align-items-center ">
+                                                                                                                                     <div class="d-flex align-items-center">
+                                                                                                                                         <input class="${gClass('input')}"
+                                                                                                                                                type="text"
+                                                                                                                                                style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                                                                                                                placeholder="請輸入優惠代碼"/>
+                                                                                                                                         <button class="${gClass('button-bgr')}"
+                                                                                                                                                 style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
+                                                                                                                                                 onclick="${gvc.event((e) => {
+                                                                                                                                                     checkCodeValue(e.value)
+                                                                                                                                                 })}">
+                                                                                                                                             <span class="${gClass('button-text')}"
+                                                                                                                                                   style="">確認</span>
+                                                                                                                                         </button>
+                                                                                                                                     </div>
+                                                                                                                                 </div>
+                                                                                                                                 <div class="w-100 d-sm-none mb-3 s162413">
+                                                                                                                                     ${vmi.dataList
+                                                                                                                                             .map((item) => {
+                                                                                                                                                 return html`
+                                                                                                                                                     <div class="um-mobile-area">
+                                                                                                                                                         ${formatText(item.content)
+                                                                                                                                                                 .map((dd, index) => {
+                                                                                                                                                                     if (header[index].title === '') {
+                                                                                                                                                                         return dd;
+                                                                                                                                                                     }
+                                                                                                                                                                     return html`
+                                                                                                                                                                         <div class="um-mobile-text">
+                                                                                                                                                                             ${header[index].title}
+                                                                                                                                                                             :
+                                                                                                                                                                             ${dd}
+                                                                                                                                                                         </div>`;
+                                                                                                                                                                 })
+                                                                                                                                                                 .join('')}
+                                                                                                                                                     </div>`;
+                                                                                                                                             })
+                                                                                                                                             .join('')}
+                                                                                                                                 </div>
+                                                                                                                             </div>`;
+                                                                                                                     }
+                                                                                                                 },
+                                                                                                                 divCreate: {},
+                                                                                                                 onCreate: () => {
+                                                                                                                     if (loading) {
+                                                                                                                         function isNowBetweenDates(startIso: string, endIso: string): boolean {
+                                                                                                                             const now = new Date();
+                                                                                                                             const startDate = new Date(startIso);
+                                                                                                                             const endDate = new Date(endIso);
+
+                                                                                                                             // 確保 `startIso` 和 `endIso` 是有效的日期
+                                                                                                                             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                                                                                                                                 return true
+                                                                                                                             }
+
+                                                                                                                             // 判斷現在時間是否在範圍內
+                                                                                                                             return now >= startDate && now <= endDate;
+                                                                                                                         }
+
+                                                                                                                         gvc.addMtScript(
+                                                                                                                                 [{src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`}],
+                                                                                                                                 () => {
+                                                                                                                                     ApiShop.getVoucher({
+                                                                                                                                         page: 0,
+                                                                                                                                         limit: 10000,
+                                                                                                                                         data_from: 'user',
+                                                                                                                                     }).then(async (res) => {
+                                                                                                                                         if (res.result && res.response.data) {
+                                                                                                                                             vmi.dataList = res.response.data.filter((item: Voucher) => {
+                                                                                                                                                 return item.content.trigger === 'code' && isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date)
+                                                                                                                                             });
+                                                                                                                                         } else {
+                                                                                                                                             vmi.dataList = [];
+                                                                                                                                         }
+                                                                                                                                         const cloneCart = JSON.parse(JSON.stringify(vm.cartData))
+                                                                                                                                         Promise.all(vmi.dataList.map((voucher, index) => {
+                                                                                                                                             return new Promise<{
+                                                                                                                                                 code: string,
+                                                                                                                                                 response: any
+                                                                                                                                             }>((resolve) => {
+                                                                                                                                                 const code = voucher.content.code
+                                                                                                                                                 cloneCart.code = code
+                                                                                                                                                 cloneCart.line_items = cloneCart.lineItems
+                                                                                                                                                 ApiShop.getCheckout(cloneCart).then((response) => {
+                                                                                                                                                     resolve({
+                                                                                                                                                         code,
+                                                                                                                                                         response
+                                                                                                                                                     });
+                                                                                                                                                 });
+                                                                                                                                             })
+                                                                                                                                         })).then((resolveArray: {
+                                                                                                                                             code: string,
+                                                                                                                                             response: any
+                                                                                                                                         }[]) => {
+                                                                                                                                             vmi.dataList = vmi.dataList.map((item) => {
+                                                                                                                                                 const f = resolveArray.find(res => {
+                                                                                                                                                     return item.content.code === res.code;
+                                                                                                                                                 })
+                                                                                                                                                 if (f) {
+                                                                                                                                                     const r = f.response
+                                                                                                                                                     if (r.result && r.response.data) {
+                                                                                                                                                         item.content.usePass = r.response.data.voucherList.some((dd: any) => {
+                                                                                                                                                             return dd.code === f.code
+                                                                                                                                                         })
+                                                                                                                                                     }
+                                                                                                                                                 }
+                                                                                                                                                 return item
+                                                                                                                                             })
+                                                                                                                                             loading = false;
+                                                                                                                                             gvc.notifyDataChange(id);
+                                                                                                                                         })
+                                                                                                                                     });
+                                                                                                                                 },
+                                                                                                                                 () => {
+                                                                                                                                 }
+                                                                                                                         );
+                                                                                                                     }
+                                                                                                                 },
+                                                                                                             };
+                                                                                                         })()
+                                                                                                 )
+                                                                                             }
+                                                                                         }
+                                                                                 )
+                                                                             })}">
+                                                                            ${vm.cartData.code ? `${vm.cartData.code}<i class="fa-solid fa-xmark-large ms-2"
+                                                                                                      style="cursor: pointer;" onclick="${gvc.event((e, event) => {
+                                                                                event.stopPropagation();
+                                                                                ApiCart.setCart((cartItem) => {
+                                                                                    cartItem.code = ''
+                                                                                    refreshCartData()
+                                                                                })
+                                                                            })}"></i>` : '新增'}
+                                                                        </div>
+                                                                    </div>
+                                                                    ${(() => {
+                                                                        if (!GlobalUser.token) {
+                                                                            return ``
+                                                                        } else {
+                                                                            return ` ${(() => {
+                                                                                let tempRebate: number = 0;
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                return `<div class="${gClass(['price-row', 'text-2'])}">
+                                                                                <div>${vm.rebateConfig.title}折抵</div>
                                                                     <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                 </div>
                                                               
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
                                                                     <div
                                                                         style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
-                                                                                    .body.clientWidth > 768
-                                                                                    ? 'gap: 18px; '
-                                                                                    : ' gap: 0px; '}"
+                                                                                        .body.clientWidth > 768
+                                                                                        ? 'gap: 18px; '
+                                                                                        : ' gap: 0px; '}"
                                                                         class="w-100"
                                                                     >
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
-                                                                                    placeholder="請輸入購物金"
+                                                                                    placeholder="請輸入${vm.rebateConfig.title}"
                                                                                     style="${document.body.clientWidth<800 ? `width:calc(100% - 150px) !important;`:``}"
                                                                                     value="${vm.cartData.use_rebate || ''}"
-                                                                                    onchange="${gvc.event((e,event)=>{
-                                                                                if(CheckInput.isNumberString(e.value)){
-                                                                                    tempRebate=parseInt(e.value,10)
-                                                                                }else{
-                                                                                    dialog.errorMessage({text:  `請輸入數值` })
-                                                                                    gvc.notifyDataChange(ids.page)
-                                                                                }
-                                                                            })}"
+                                                                                    onchange="${gvc.event((e, event) => {
+                                                                                    if (CheckInput.isNumberString(e.value)) {
+                                                                                        tempRebate = parseInt(e.value, 10)
+                                                                                    } else {
+                                                                                        dialog.errorMessage({text: `請輸入數值`})
+                                                                                        gvc.notifyDataChange(ids.page)
+                                                                                    }
+                                                                                })}"
                                                                         />
                                                                         <div class="${gClass('group-button')}" >
                                                                             <div class="${gClass('button-text')}" 
                                                                                 onclick="${gvc.event(async (e) => {
-                                                                                const sum:number=await new Promise((resolve, reject)=>{
-                                                                                    ApiShop.getRebate({}).then(async (res) => {
-                                                                                        if (res.result && res.response.sum) {
-                                                                                            resolve(res.response.sum);
-                                                                                        } else {
-                                                                                            resolve(0);
-                                                                                        }
-                                                                                    })
-                                                                                });
-                                                                                const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-
-                                                                                // const subtotal = data.total - data.shipment_fee + data.use_rebate;
-                                                                                //
-                                                                                // if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-
-                                                                                console.log({
-                                                                                    total: vm.cartData.total,
-                                                                                    use_rebate: vm.cartData.use_rebate,
-                                                                                    shipment_fee: vm.cartData.shipment_fee,
-                                                                                })
-                                                                                if(tempRebate > Math.min(sum, limit) ){
-                                                                                    dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(sum, limit) } 的數值` })
-                                                                                } else {
+                                                                                    const sum: number = await new Promise((resolve, reject) => {
+                                                                                        ApiShop.getRebate({}).then(async (res) => {
+                                                                                            if (res.result && res.response.sum) {
+                                                                                                resolve(res.response.sum);
+                                                                                            } else {
+                                                                                                resolve(0);
+                                                                                            }
+                                                                                        })
+                                                                                    });
+                                                                                    const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                                                                    if(sum === 0){
+                                                                                        dialog.errorMessage({text:  `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵` })
+                                                                                        return;
+                                                                                    }
+                                                                                    if(tempRebate > Math.min(sum, limit) ){
+                                                                                        dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(sum, limit) } 的數值` })
+                                                                                        return;
+                                                                                    }
+                                                                                    
                                                                                     ApiCart.setCart((cartItem)=>{
                                                                                         cartItem.use_rebate=tempRebate
                                                                                         refreshCartData()
                                                                                     })
-                                                                                }
-                                                                            })}">
+                                                                                })}">
                                                                                 套用
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>`
-                                                                        })()}
+                                                                            })()}
                                                                 <div class="${gClass(['price-row', 'text-2'])}">
 
-    ${(()=>{
-                                                                            return gvc.bindView(()=>{
-                                                                                return {
-                                                                                    bind:gvc.glitter.getUUID(),
-                                                                                    view:async ()=>{
-                                                                                        const sum=(await new Promise((resolve, reject)=>{
-                                                                                            ApiShop.getRebate({}).then(async (res) => {
-                                                                                                if (res.result && res.response.sum) {
-                                                                                                    resolve(res.response.sum);
-                                                                                                } else {
-                                                                                                    resolve(0);
-                                                                                                }
-                                                                                            })
-                                                                                        }));
-                                                                                        if(!vm.cartData.useRebateInfo){
-                                                                                            return '';
-                                                                                        }
+    ${(() => {
+                                                                                return gvc.bindView(() => {
+                                                                                    return {
+                                                                                        bind: gvc.glitter.getUUID(),
+                                                                                        view: async () => {
+                                                                                            const sum = (await new Promise((resolve, reject) => {
+                                                                                                ApiShop.getRebate({}).then(async (res) => {
+                                                                                                    if (res.result && res.response.sum) {
+                                                                                                        resolve(res.response.sum);
+                                                                                                    } else {
+                                                                                                        resolve(0);
+                                                                                                    }
+                                                                                                })
+                                                                                            }));
+                                                                                            if (!vm.cartData.useRebateInfo) {
+                                                                                                return '';
+                                                                                            }
 
                                                                                         const info = vm.cartData.useRebateInfo;
                                                                                         if(info.condition){
-                                                                                            return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`
+                                                                                            return `還差$ ${info.condition.toLocaleString()} 即可使用 ${vm.rebateConfig.title} 折抵`
                                                                                         }
                                                                                         if(info.limit){
-                                                                                            return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`
+                                                                                            return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點 ${vm.rebateConfig.title}`
                                                                                         }else{
-                                                                                            return `您目前剩餘 ${sum || 0} 點購物金`
+                                                                                            return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}`
                                                                                         }
-                                                                                    }
-                                                                                }
-                                                                            })
-                                                                        })()}
+                                                                                    }}
+                                                                                })
+                                                                            })()}
                                                                 </div>`
-                                                                    }
-                                                                })()}
-                                                               
-                                                            </div>
-                                                        </section>`;
+                                                                        }
+                                                                    })()}
+
+                                                                </div>
+                                                            </section>
+                                                        `;
                                                     },
                                                 };
                                             })()
                                     )}
-                                   <section class="border-bottom"></section>
-                                <section class="d-flex">
-                                    <div class="flex-fill"></div>
-                                    <div class="${gClass('price-container')}">
-                                        <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                            <div>總金額</div>
-                                            <div>NT. ${vm.cartData.total.toLocaleString()}</div>
+                                    <section class="border-bottom"></section>
+                                    <section class="d-flex">
+                                        <div class="flex-fill"></div>
+                                        <div class="${gClass('price-container')}">
+                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                                <div>總金額</div>
+                                                <div>NT. ${vm.cartData.total.toLocaleString()}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </section>
+                                    </section>
+                                    <!--加購品-->
+                                    ${(() => {
+                                        let add_on: any[] = []
+                                        vm.cartData.voucherList.filter((dd: any) => {
+                                            if (dd.reBackType === 'add_on_items') {
+                                                add_on = add_on.concat(dd.add_on_products)
+                                            }
+                                        });
+                                        if (add_on.length) {
+                                            return gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID()
+                                                return {
+                                                    bind: id,
+                                                    view: async () => {
+                                                        const add_products = (await ApiShop.getProduct({
+                                                            page: 0,
+                                                            limit: 100,
+                                                            productType: 'addProduct',
+                                                            id_list: add_on.join(',')
+                                                        }));
+                                                        if (!add_products.response.data.length) {
+                                                            return ``
+                                                        }
+                                                        return html`
+                                                                                    <div class="${gClass('banner-bgr')}">
+                                                                                        <span class="${gClass('banner-text')}">可加購商品</span>
+                                                                                    </div>
+                                                                                    <div class="d-flex align-items-center w-100"
+                                                                                         style="overflow-x:auto;gap:10px;">
+                                                                                        ${add_products.response.data.map((dd: any) => {
+                                                            return html`
+                                                                                                <div class="d-flex py-3 align-items-center"
+                                                                                                     style="gap:10px;">
+                                                                                                    <div class="img-fluid "
+                                                                                                         style="width: 106px;
+    min-width: 106px;
+    height: 106px;
+    border-radius: 3px;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: url('${dd.content.preview_image[0]}');"></div>
+                                                                                                    <div class="d-flex flex-column"
+                                                                                                         style="gap:5px;">
+                                                                                                        <div class="${gClass('banner-text')}"
+                                                                                                             style="font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 130px;
+    text-overflow: ellipsis;">${dd.content.title}
+                                                                                                        </div>
+                                                                                                        <div class=""
+                                                                                                             style="font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 140%;">NT.${dd.content.min_price.toLocaleString()}
+                                                                                                        </div>
+                                                                                                        <button class="${gClass('button-bgr')} mb-0 mt-2"
+                                                                                                                onclick="${gvc.event(() => {
+                                                                return gvc.glitter.innerDialog((gvc: GVC) => {
+                                                                    return html`
+                                                                                                                            <div
+                                                                                                                                    class="bg-white shadow rounded-3"
+                                                                                                                                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                                                                                                                            >
+                                                                                                                                <div class="bg-white shadow rounded-3"
+                                                                                                                                     style="width: 100%; overflow-y: auto; position: relative;">
+                                                                                                                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                                                         style="position: sticky; top: 0; background: #fff;">
+                                                                                                                                        <div class="flex-fill"></div>
+                                                                                                                                        <i
+                                                                                                                                                class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                                                                style="cursor: pointer"
+                                                                                                                                                onclick="${gvc.event(() => {
+                                                                        gvc.closeDialog();
+                                                                    })}"
+                                                                                                                                        ></i>
+                                                                                                                                    </div>
+                                                                                                                                    <div class="c_dialog">
+                                                                                                                                        <div class="c_dialog_body">
+                                                                                                                                            <div class="c_dialog_main"
+                                                                                                                                                 style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                                                                                                                                ${PdClass.selectSpec({
+                                                                        gvc,
+                                                                        titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
+                                                                        prod: dd.content,
+                                                                        vm: {
+                                                                            specs: dd.content.specs.map((spec: {
+                                                                                option: {
+                                                                                    title: string
+                                                                                }[]
+                                                                            }) => {
+                                                                                return spec.option[0].title;
+                                                                            }),
+                                                                            quantity: '1',
+                                                                            wishStatus: (glitter.share.wishList ?? []).some((item: {
+                                                                                id: number
+                                                                            }) => {
+                                                                                return item.id === dd.id;
+                                                                            })
+                                                                        },
+                                                                        callback: () => {
+                                                                            gvc.closeDialog();
+                                                                            refreshCartData()
+                                                                        }
+                                                                    })}
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            </div>`;
+                                                                }, Tool.randomString(7));
+                                                            })}">
+                                                                                                            <span class="${gClass('button-text')}">加入購物車</span>
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>`
+                                                        }).join('')}
+                                                                                    </div>
+                                                                                `
+                                                    }
+                                                }
+                                            })
+                                        } else {
+                                            return ``
+                                        }
+                                        return ``
+                                    })()}
+                                    <!--贈品-->
+                                    ${(() => {
+                                        let already_add: any[] = vm.cartData.lineItems.filter((dd:any)=>{
+                                            return dd.is_gift
+                                        });
+                                        return vm.cartData.voucherList.filter((d1: any) => {
+                                            return d1.reBackType === 'giveaway'
+                                        }).map((dd: any) => {
+                                            let isSelected=already_add.find((d2)=>{
+                                                return dd.add_on_products.find((d1:any)=>{
+                                                    return d1.id===d2.id
+                                                })
+                                            });
+                                            already_add=already_add.filter((dd)=>{
+                                                return !dd===isSelected
+                                            })
+                                            return html`
+                                                                                    <div class="${gClass('banner-bgr')}">
+                                                                                        <span class="${gClass('banner-text')}">${dd.title}</span>
+                                                                                    </div>
+                                                                                    <div class="d-flex align-items-center w-100"
+                                                                                         style="overflow-x:auto;gap:10px;">
+                                                                                        ${dd.add_on_products.map((pd: any) => {
+                                                try {
+                                                    return html`
+                                                                                                <div class="d-flex py-3 align-items-center"
+                                                                                                     style="gap:10px;">
+                                                                                                    <div class="img-fluid "
+                                                                                                         style="width: 106px;
+    min-width: 106px;
+    height: 106px;
+    border-radius: 3px;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: url('${pd.preview_image[0]}');"></div>
+                                                                                                    <div class="d-flex flex-column"
+                                                                                                         style="gap:5px;">
+                                                                                                        <div class="${gClass('banner-text')}"
+                                                                                                             style="font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 130px;
+    text-overflow: ellipsis;">${pd.title}
+                                                                                                        </div>
+                                                                                                        <div class="text-decoration-line-through text-danger"
+                                                                                                             style="font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 140%;">NT.${pd.min_price.toLocaleString()}
+                                                                                                        </div>
+                                                                                                        <button class="${gClass('button-bgr')} mb-0 mt-2"
+                                                                                                                style="${(isSelected ? ((isSelected.id === pd.id) ? `background: gray !important;`:``):``) }"
+                                                                                                                onclick="${gvc.event(() => {
+                                                        if(isSelected && (isSelected.id === pd.id) ){
+                                                            return
+                                                        }
+                                                        return gvc.glitter.innerDialog((gvc: GVC) => {
+                                                            return html`
+                                                                                                                            <div
+                                                                                                                                    class="bg-white shadow rounded-3"
+                                                                                                                                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                                                                                                                            >
+                                                                                                                                <div class="bg-white shadow rounded-3"
+                                                                                                                                     style="width: 100%; overflow-y: auto; position: relative;">
+                                                                                                                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                                                         style="position: sticky; top: 0; background: #fff;">
+                                                                                                                                        <div class="flex-fill"></div>
+                                                                                                                                        <i
+                                                                                                                                                class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                                                                style="cursor: pointer"
+                                                                                                                                                onclick="${gvc.event(() => {
+                                                                gvc.closeDialog();
+                                                            })}"
+                                                                                                                                        ></i>
+                                                                                                                                    </div>
+                                                                                                                                    <div class="c_dialog">
+                                                                                                                                        <div class="c_dialog_body">
+                                                                                                                                            <div class="c_dialog_main"
+                                                                                                                                                 style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                                                                                                                                ${PdClass.selectSpec({
+                                                                gvc,
+                                                                titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
+                                                                prod: pd,
+                                                                vm: {
+                                                                    specs: pd.specs.map((spec: {
+                                                                        option: {
+                                                                            title: string
+                                                                        }[]
+                                                                    }) => {
+                                                                        return spec.option[0].title;
+                                                                    }),
+                                                                    quantity: '1',
+                                                                    wishStatus: (glitter.share.wishList ?? []).some((item: {
+                                                                        id: number
+                                                                    }) => {
+                                                                        return item.id === dd.id;
+                                                                    })
+                                                                },
+                                                                with_qty:false,
+                                                                callback: () => {
+                                                                    let find=vm.cartData.lineItems.find((d1:any)=>{
+                                                                        return dd.add_on_products.find((d2:any)=>{
+                                                                            return d2.id===d1.id
+                                                                        })
+                                                                    });
+                                                                    if(find){
+                                                                        ApiCart.setCart((cartItem) => {
+                                                                            cartItem.line_items.map((dd) => {
+                                                                                if(dd.id===find.id){
+                                                                                    dd.count--
+                                                                                } 
+                                                                            })
+                                                                            cartItem.line_items=cartItem.line_items.filter((dd)=>{
+                                                                                return dd.count>0
+                                                                            })
+                                                                            refreshCartData()
+                                                                            gvc.closeDialog()
+                                                                        })
+                                                                    }else{
+                                                                        refreshCartData()
+                                                                        gvc.closeDialog()
+                                                                    }
+                                                                }
+                                                            })}
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            </div>`;
+                                                        }, Tool.randomString(7));
+                                                    })}">
+                                                                                                            
+                                                                                                            <span class="${gClass('button-text')}">${isSelected ? ((isSelected.id === pd.id) ? `已選擇`:`更換贈品`):`選擇贈品`}</span>
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>`
+                                                }catch (e) {
+                                                    console.log(e)
+                                                }
+
+                                            }).join('')}
+                                                                                    </div>
+                                                                                `
+                                        }).join('')
+                                    })()}
                                     <section>
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">付款及配送方式</span>
                                         </div>
-                                        ${vm.cartData.shipment_info ? `<div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>`:''}
+                                        ${vm.cartData.shipment_info ? `<div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
                                         <div class="row m-0 my-md-3">
                                             <div class="col-12 col-md-6 mb-2 mb-sm-0">
                                                 <label class="${gClass('label')}">付款方式</label>
@@ -1428,7 +2429,7 @@ this.viewDialog({
                                                 <div>
                                                     <select class="w-100 ${gClass('select')}"
                                                             onchange="${gvc.event((e, event) => {
-                                                                ['CVSStoreName','MerchantTradeNo','LogisticsSubType','CVSStoreID','CVSStoreName','CVSTelephone','CVSOutSide','ExtraData','CVSAddress'].map((dd)=>{
+                                                                ['CVSStoreName', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
                                                                     gvc.glitter.setUrlParameter(dd)
                                                                 });
                                                                 vm.cartData.user_info.shipment = e.value;
@@ -1446,13 +2447,13 @@ this.viewDialog({
                                                     </select>
                                                 </div>
                                             </div>
-                                            ${(vm.cartData.user_info.shipment==='normal') ? `<div class="col-12 col-md-6 mb-2">
+                                            ${(vm.cartData.user_info.shipment === 'normal') ? `<div class="col-12 col-md-6 mb-2">
                                                         <label class="${gClass('label')}">配送地址</label>
-                                                        <input class="${gClass('input')}" type="address" placeholder="請輸入配送地址" value="${vm.cartData.user_info.address || ''}" onchange="${gvc.event((e,event)=>{
-                                                vm.cartData.user_info.address=e.value;
+                                                        <input class="${gClass('input')}" type="address" placeholder="請輸入配送地址" value="${vm.cartData.user_info.address || ''}" onchange="${gvc.event((e, event) => {
+                                                vm.cartData.user_info.address = e.value;
                                                 this.storeLocalData(vm.cartData)
                                             })}">
-                                                    </div>`:``}
+                                                    </div>` : ``}
                                             <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
                                                 <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
                                                     ApiDelivery.storeMaps({
@@ -1531,13 +2532,14 @@ this.viewDialog({
                                                      })
                                                  ].join('');
                                              }catch (e) {
-                                                 console.log(e)
+                                                 console.error(e)
                                                  return ``
                                              }
                                             })()}
                                         </div>
                                     </section>
-                                    <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
+                                    <section
+                                            class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">顧客資料</span>
                                         </div>
@@ -1648,7 +2650,7 @@ this.viewDialog({
                                         <div class="${gClass('banner-bgr')}">
                                             <span class="${gClass('banner-text')}">收件人資料</span>
                                         </div>
-                                       
+
                                         ${
                                                 gvc.bindView(() => {
                                                     const id = 'invoice_place';
@@ -1668,14 +2670,14 @@ this.viewDialog({
                                                         vm_info.loading = false;
                                                         gvc.notifyDataChange(id)
                                                     }));
-                                                    const checkbox=this.getCheckedClass(gvc,'#393939')
+                                                    const checkbox = this.getCheckedClass(gvc, '#393939')
                                                     return {
                                                         bind: id,
                                                         view: () => {
                                                             if (vm_info.loading) {
                                                                 return ``
                                                             }
-                                                            vm_info.list=[
+                                                            vm_info.list = [
                                                                 {
                                                                     col: '3',
                                                                     key: 'name',
@@ -1841,7 +2843,11 @@ this.viewDialog({
                                                                         option: [
                                                                             {name: '個人', index: 0, value: 'me'},
                                                                             {name: '公司', index: 1, value: 'company'},
-                                                                            {name: '捐贈發票', index: 2, value: 'donate'},
+                                                                            {
+                                                                                name: '捐贈發票',
+                                                                                index: 2,
+                                                                                value: 'donate'
+                                                                            },
                                                                         ],
                                                                         input_style: {list: [], version: 'v2'},
                                                                         title_style: {list: [], version: 'v2'},
@@ -2122,15 +3128,15 @@ this.viewDialog({
                                                             vm.cartData.user_info.invoice_type = vm.cartData.user_info.invoice_type || 'me'
                                                             vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email'
                                                             const form_array = JSON.parse(JSON.stringify(vm_info.list));
-                                                            
+
                                                             form_array.map((dd: any) => {
-                                                                if(dd.key==='send_type' &&   vm.cartData.user_info.send_type==='carrier'){
-                                                                  dd.col=3
+                                                                if (dd.key === 'send_type' && vm.cartData.user_info.send_type === 'carrier') {
+                                                                    dd.col = 3
                                                                 }
                                                                 dd.form_config.title_style = {
                                                                     list: [
                                                                         {
-                                                                            class: (['company','gui_number','carrier_num'].includes(dd.key)) ? (gClass('label') + ' mt-2') :(gClass('label') + ' mb-2'),
+                                                                            class: (['company', 'gui_number', 'carrier_num'].includes(dd.key)) ? (gClass('label') + ' mt-2') : (gClass('label') + ' mb-2'),
                                                                             style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
                                                                             stylist: [],
                                                                             dataType: 'code',
@@ -2165,22 +3171,22 @@ this.viewDialog({
                                                                     style_from: 'code',
                                                                     classDataType: 'static',
                                                                 };
-                                                            }).filter((dd:any)=>{
+                                                            }).filter((dd: any) => {
                                                                 return !(method === 'nouse' && ['invoice_type', 'send_type', 'carrier_num', 'company', 'gui_number', 'love_code'].includes(dd.key));
                                                             });
                                                             return [
                                                                 ` <div class="d-flex ms-2 my-3" style="gap:10px;cursor:pointer;" onclick="${
-                                                                        gvc.event(()=>{
-                                                                            vm.cartData.user_info_same=!vm.cartData.user_info_same
-                                                                            if(vm.cartData.user_info_same){
-                                                                                vm.cartData.user_info.name=vm.cartData.customer_info.name
-                                                                                vm.cartData.user_info.phone=vm.cartData.customer_info.phone
-                                                                                vm.cartData.user_info.email=vm.cartData.customer_info.email
+                                                                        gvc.event(() => {
+                                                                            vm.cartData.user_info_same = !vm.cartData.user_info_same
+                                                                            if (vm.cartData.user_info_same) {
+                                                                                vm.cartData.user_info.name = vm.cartData.customer_info.name
+                                                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone
+                                                                                vm.cartData.user_info.email = vm.cartData.customer_info.email
                                                                             }
                                                                             gvc.notifyDataChange(id)
                                                                         })
                                                                 }">
-                                            <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(vm.cartData.user_info_same) ? `checked`:''}>
+                                            <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(vm.cartData.user_info_same) ? `checked` : ''}>
                                             收件人同購買人資料
                                         </div>`,
                                                                 FormWidget.editorView({
@@ -2200,9 +3206,9 @@ this.viewDialog({
                                                     };
                                                 })
                                         }
-                                        <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3" >
+                                        <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3">
                                             <button class="${gClass('button-bgr')}" onclick="${gvc.event(async () => {
-                                                if(!await this.checkFormData(vm.cartData,widget)){
+                                                if (!await this.checkFormData(vm.cartData, widget)) {
                                                     return
                                                 }
                                                 ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
@@ -2210,36 +3216,10 @@ this.viewDialog({
                                                         vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
                                                     }
                                                 });
-                                                const dialog=new ShareDialog(gvc.glitter)
-
-                                                console.log({
-                                                    line_items: vm.cartData.lineItems.map((dd:any) => {
-                                                        return {
-                                                            id: dd.id,
-                                                            spec: dd.spec,
-                                                            count: dd.count,
-                                                        };
-                                                    }),
-                                                    customer_info: vm.cartData.customer_info,
-                                                    return_url: (()=>{
-                                                        const originalUrl = glitter.root_path + 'order_detail' + location.search;
-                                                        const urlObject = new URL(originalUrl);
-                                                        urlObject.searchParams.set('EndCheckout', '1');
-                                                        const newUrl = urlObject.toString();
-
-                                                        return newUrl
-                                                    })(),
-                                                    user_info: vm.cartData.user_info,
-                                                    code: ApiCart.cart.code,
-                                                    use_rebate: ApiCart.cart.use_rebate,
-                                                    custom_form_format: vm.cartData.custom_form_format,
-                                                    custom_form_data: vm.cartData.custom_form_data,
-                                                    distribution_code: ApiCart.cart.distribution_code,
-                                                    give_away:ApiCart.cart.give_away
-                                                })
-                                                dialog.dataLoading({visible:true})
+                                                const dialog = new ShareDialog(gvc.glitter)
+                                                dialog.dataLoading({visible: true})
                                                 ApiShop.toCheckout({
-                                                    line_items: vm.cartData.lineItems.map((dd:any) => {
+                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
                                                         return {
                                                             id: dd.id,
                                                             spec: dd.spec,
@@ -2247,7 +3227,7 @@ this.viewDialog({
                                                         };
                                                     }),
                                                     customer_info: vm.cartData.customer_info,
-                                                    return_url: (()=>{
+                                                    return_url: (() => {
                                                         const originalUrl = glitter.root_path + 'order_detail' + location.search;
                                                         const urlObject = new URL(originalUrl);
                                                         urlObject.searchParams.set('EndCheckout', '1');
@@ -2261,32 +3241,33 @@ this.viewDialog({
                                                     custom_form_format: vm.cartData.custom_form_format,
                                                     custom_form_data: vm.cartData.custom_form_data,
                                                     distribution_code: ApiCart.cart.distribution_code,
-                                                    give_away:ApiCart.cart.give_away
+                                                    give_away: ApiCart.cart.give_away
                                                 }).then((res) => {
                                                     dialog.dataLoading({visible:false})
-                                                    console.log("res -- " , res)
-                                                    // if (res.response.off_line || res.response.is_free) {
-                                                    //     ApiCart.clearCart()
-                                                    //     location.href = res.response.return_url;
-                                                    // } else {
-                                                    //     // todo if 他是paypal的key值 上面應該有select之類的
-                                                    //     if (res.response.form.approveLink){
-                                                    //         location.href = res.response.form.approveLink;
-                                                    //     }else{
-                                                    //         const id = gvc.glitter.getUUID();
-                                                    //         $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                                    //         (document.querySelector(`#${id} #submit`) as any).click();
-                                                    //     }
-                                                    //    
-                                                    //     ApiCart.clearCart()
-                                                    // }
-                                                })                                        
-                                            })}" style="width:200px;" >
-                                                <span class="${gClass('button-text')}">下一步(next)</span>
+
+                                                    
+                                                    if (res.response.off_line || res.response.is_free) {
+                                                        ApiCart.clearCart()
+                                                        location.href = res.response.return_url;
+                                                    } else {
+                                                        // todo if 他是paypal的key值 上面應該有select之類的
+                                                        if (res.response.form.approveLink){
+                                                            location.href = res.response.form.approveLink;
+                                                        }else{
+                                                            const id = gvc.glitter.getUUID();
+                                                            $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                                            (document.querySelector(`#${id} #submit`) as any).click();
+                                                        }
+                                                        
+                                                        ApiCart.clearCart()
+                                                    }
+                                                })
+                                            })}" style="width:200px;">
+                                                <span class="${gClass('button-text')}">下一步</span>
                                             </button>
                                         </div>
                                     </section>
-                                    
+
                                 </div>`;
                         } catch (e) {
                             console.log(e)
@@ -2295,102 +3276,10 @@ this.viewDialog({
                     },
                     divCreate: {},
                     onCreate: () => {
-                    },
-                };
-            })()
-        );
-    }
-    //檢查資料
-    public static checkFormData(cartData:any,widget:any){
-
-
-        function checkEmailPattern(input:any) {
-            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return emailPattern.test(input);
-        }
-
-        function checkPhonePattern(input:any) {
-            const phonePattern = /^09\d{8}$/;
-            return phonePattern.test(input);
-        }
-
-        function checkReceiverPattern(input:any) {
-            const receiverPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
-            return receiverPattern.test(input);
-        }
-
-        function checkAddressPattern(input:any) {
-            const addressPattern = /^.{6,60}$/;
-            return addressPattern.test(input);
-        }
-
-        return new Promise((resolve) => {
-            let pass = true;
-            const userData = cartData.customer_info;
-            const subData=cartData.user_info;
-            function checkString(text:any, errorMessage:any, type = '') {
-                if ((pass && !text) || text === '') {
-                    pass = false;
-                    widget.event('error', { title: `請輸入「${errorMessage}」` });
-                }
-                if (pass && type === 'email' && !checkEmailPattern(text)) {
-                    pass = false;
-                    widget.event('error', { title: `「${errorMessage}」格式錯誤` });
-                }
-                if (pass && type === 'phone' && !checkPhonePattern(text)) {
-                    pass = false;
-                    widget.event('error', { title: `<div class="text-center">「${errorMessage}」格式錯誤<br/>請輸入 09 開頭的手機格式</div>` });
-                }
-                if (pass && type === 'name' && !checkReceiverPattern(text)) {
-                    pass = false;
-                    widget.event('error', { title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)' });
-                }
-            }
-
-            if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
-                widget.event('error', { title: '請輸入「配送地址」' });
-            } else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
-                widget.event('error', { title: '地址長度需大於6個字元，且不可超過60個字元' });
-            } else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'] || subData['CVSStoreName'] === '')) {
-                widget.event('error', { title: '請選擇「配送門市」' });
-            } else if ((()=>{
-                const form= this.getShipmentMethod(cartData).find((dd:any)=>{
-                        return dd.value===subData['shipment']
-                    }).form;
-                return  FormWidget.checkLeakData(form,subData.custom_form_delivery);
-            })()) {
-                const form= this.getShipmentMethod(cartData).find((dd:any)=>{
-                    return dd.value===subData['shipment']
-                }).form;
-                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(form,subData)}」` });
-            } else if ((()=>{
-                return  FormWidget.checkLeakData(cartData.custom_form_format,cartData.custom_form_data);
-            })()){
-                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(cartData.custom_form_format,cartData.custom_form_data)}」` });
-            }else if(
-                cartData.voucherList
-                    .filter((dd:any) => {
-                        return dd.reBackType === 'giveaway';
-                    })
-                    .find((dd:any) => {
-                        return !dd.select_gif.id;
-                    })
-            ) {
-                widget.event('error', { title: '請選擇「贈品」' });
-            } else {
-                checkString(userData.name, '顧客姓名', 'name');
-                checkString(userData.phone, '顧客電話', 'phone');
-                checkString(userData.email, '顧客信箱', 'email');
-                checkString(subData.name, '收件人姓名', 'name');
-                checkString(subData.phone, '收件人電話', 'phone');
-                checkString(subData.email, '收件人信箱', 'email');
-                if (pass) {
-                    if ((window as any).gtag) {
-                        (window as any).gtag('event', 'begin_checkout', {
+                        Ad.gtagEvent('view_cart', {
                             currency: 'TWD',
-                            value: cartData.total,
-                            coupon: cartData.code ?? '',
-                            items: cartData.lineItems.map((item:any) => {
+                            value: vm.cartData.total,
+                            items: vm.cartData.lineItems.map((item: any) => {
                                 return {
                                     item_id: item.id,
                                     item_name: item.title,
@@ -2401,38 +3290,178 @@ this.viewDialog({
                                 };
                             }),
                         });
-                    }
+                        Ad.fbqEvent('AddPaymentInfo', {
+                            value: vm.cartData.total,
+                            currency: 'TWD',
+                            contents: vm.cartData.lineItems.map((item: any) => {
+                                return {
+                                    id: item.id,
+                                    quantity: item.count,
+                                };
+                            }),
+                            content_ids: vm.cartData.lineItems.map((item: any) => item.id),
+                        });
+                    },
+                };
+            })()
+        );
+    }
+
+    //檢查資料
+    public static checkFormData(cartData: any, widget: any) {
+
+
+        function checkEmailPattern(input: any) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(input);
+        }
+
+        function checkPhonePattern(input: any) {
+            const phonePattern = /^09\d{8}$/;
+            return phonePattern.test(input);
+        }
+
+        function checkReceiverPattern(input: any) {
+            const receiverPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
+            return receiverPattern.test(input);
+        }
+
+        function checkAddressPattern(input: any) {
+            const addressPattern = /^.{6,60}$/;
+            return addressPattern.test(input);
+        }
+
+        return new Promise((resolve) => {
+            let pass = true;
+            const userData = cartData.customer_info;
+            const subData = cartData.user_info;
+
+            function checkString(text: any, errorMessage: any, type = '') {
+                if ((pass && !text) || text === '') {
+                    pass = false;
+                    widget.event('error', {title: `請輸入「${errorMessage}」`});
+                }
+                if (pass && type === 'email' && !checkEmailPattern(text)) {
+                    pass = false;
+                    widget.event('error', {title: `「${errorMessage}」格式錯誤`});
+                }
+                if (pass && type === 'phone' && !checkPhonePattern(text)) {
+                    pass = false;
+                    widget.event('error', {title: `<div class="text-center">「${errorMessage}」格式錯誤<br/>請輸入 09 開頭的手機格式</div>`});
+                }
+                if (pass && type === 'name' && !checkReceiverPattern(text)) {
+                    pass = false;
+                    widget.event('error', {title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)'});
+                }
+            }
+
+            if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
+                widget.event('error', {title: '請輸入「配送地址」'});
+            } else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
+                widget.event('error', {title: '地址長度需大於6個字元，且不可超過60個字元'});
+            } else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'] || subData['CVSStoreName'] === '')) {
+                widget.event('error', {title: '請選擇「配送門市」'});
+            } else if ((() => {
+                const form = this.getShipmentMethod(cartData).find((dd: any) => {
+                    return dd.value === subData['shipment']
+                }).form;
+                return FormWidget.checkLeakData(form, subData.custom_form_delivery);
+            })()) {
+                const form = this.getShipmentMethod(cartData).find((dd: any) => {
+                    return dd.value === subData['shipment']
+                }).form;
+                widget.event('error', {title: `請輸入「${FormWidget.checkLeakData(form, subData)}」`});
+            } else if ((() => {
+                return FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data);
+            })()) {
+                widget.event('error', {title: `請輸入「${FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data)}」`});
+            } else if (
+                (()=>{
+                    let gift_need= cartData.voucherList
+                        .filter((dd: any) => {
+                            return dd.reBackType === 'giveaway';
+                        }).length;
+                    let gift=0
+                    cartData.lineItems.filter((dd:any)=>{
+                        return dd.is_gift
+                    }).map((dd:any)=>{
+                        gift+=dd.count
+                    })
+                    return gift<gift_need
+                })()
+            ) {
+                widget.event('error', {title: '請選擇「贈品」'});
+            } else {
+                checkString(userData.name, '顧客姓名', 'name');
+                checkString(userData.phone, '顧客電話', 'phone');
+                checkString(userData.email, '顧客信箱', 'email');
+                checkString(subData.name, '收件人姓名', 'name');
+                checkString(subData.phone, '收件人電話', 'phone');
+                checkString(subData.email, '收件人信箱', 'email');
+                if (pass) {
+                    Ad.gtagEvent('begin_checkout', {
+                        currency: 'TWD',
+                        value: cartData.total,
+                        coupon: cartData.code ?? '',
+                        items: cartData.lineItems.map((item: any) => {
+                            return {
+                                item_id: item.id,
+                                item_name: item.title,
+                                item_variant: item.spec.join('-'),
+                                price: item.sale_price,
+                                quantity: item.count,
+                                discount: item.discount_price,
+                            };
+                        }),
+                    });
+                    Ad.fbqEvent('Purchase', {
+                        value: cartData.total,
+                        currency: 'TWD',
+                        contents: cartData.lineItems.map((item: any) => {
+                            return {
+                                id: item.id,
+                                quantity: item.count,
+                            };
+                        }),
+                        content_type: 'product',
+                    });
                     resolve(subData);
                 }
             }
         });
     }
+
     //彈出視窗
     public static viewDialog(obj: { gvc: GVC; tag: string; title?: string; innerHTML: (gvc: GVC) => string }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
-            return html` <div
-                class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 600px; width: 700px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-            >
-                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
-                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${obj.title ?? ''}</div>
-                        <div class="flex-fill"></div>
-                        <i
-                            class="fa-regular fa-circle-xmark fs-5 text-dark"
-                            style="cursor: pointer"
-                            onclick="${gvc.event(() => {
-                                gvc.closeDialog();
-                            })}"
-                        ></i>
-                    </div>
-                    <div class="c_dialog">
-                        <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
+            return html`
+                <div
+                        class="bg-white shadow rounded-3"
+                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 600px; width: 700px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                >
+                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                             style="position: sticky; top: 0; background: #fff;">
+                            <div style="font-size: 16px; font-weight: 700; color: #292218;">${obj.title ?? ''}</div>
+                            <div class="flex-fill"></div>
+                            <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                    style="cursor: pointer"
+                                    onclick="${gvc.event(() => {
+                                        gvc.closeDialog();
+                                    })}"
+                            ></i>
+                        </div>
+                        <div class="c_dialog">
+                            <div class="c_dialog_body">
+                                <div class="c_dialog_main"
+                                     style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                    ${obj.innerHTML(gvc)}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
         }, obj.tag);
     }
 
@@ -2506,6 +3535,8 @@ this.viewDialog({
         localStorage.setItem('custom_form_data', JSON.stringify(cartData.custom_form_data))
         //設定配送資訊
         localStorage.setItem('custom_user_info', JSON.stringify(cartData.user_info))
+        //贈品功能
+        localStorage.setItem('give_away', JSON.stringify(cartData.give_away))
     }
 
 
@@ -2513,10 +3544,11 @@ this.viewDialog({
         cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || "{}")
         cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || "{}")
         cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || "{}")
-
+        cartData.give_away = JSON.parse(localStorage.getItem('give_away') || "[]")
         this.getPaymentMethod(cartData)
         this.getShipmentMethod(cartData)
     }
+
     static getCheckedClass(gvc: GVC, color?: string) {
         const className = Tool.randomString(6);
         gvc.addStyle(`
@@ -2533,6 +3565,7 @@ this.viewDialog({
         `);
         return className;
     }
+
     static checkedDataImage(color: string): string {
         color = color.replace('#', '%23');
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
