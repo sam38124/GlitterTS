@@ -211,7 +211,8 @@ class EcInvoice {
                             create_date: resp.IA_Date,
                         }
                     ]);
-                    resolve(response.data);
+                    resolve(resp);
+                    return resp;
                 }
             })
                 .catch((error) => {

@@ -1105,7 +1105,6 @@ export class ShoppingInvoiceManager {
                                     }))}
                                                     -->
                                                     ${(() => {
-                                        console.log(" invoiceData.status -- ", invoiceData.status);
                                         if (invoiceData.status == 2) {
                                             return ``;
                                         }

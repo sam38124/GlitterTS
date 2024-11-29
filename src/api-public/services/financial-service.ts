@@ -72,6 +72,7 @@ export default class FinancialService {
     }) {
         orderData.method = orderData.method || 'ALL';
         //todo 修改付款方式 to paypal
+        return await new LinePay(this.appName,this.keyData).createOrder(orderData);
         return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
@@ -776,11 +777,85 @@ export class LinePay {
         this.appName = appName;
         this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
         this.LinePay_SECRET = "05231f46428525ee68c2816f16635145"; // 替換為您的 Secret Key
-        this.LinePay_BASE_URL = "https://api-m.sandbox.paypal.com"; // 沙箱環境
+        this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me"; // 沙箱環境
         this.LinePay_RETURN_HOST = '';
-        this.LinePay_RETURN_CANCEL_URL = '';
-        this.LinePay_RETURN_CONFIRM_URL = '';
-        // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
+        this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
+        this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
+        // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
+    async createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }) {
+        const body = {
+            "amount": orderData.total,
+            "currency": "TWD",
+            "orderId": orderData.orderID,
+            "options":{
+                "shipping":{
+                    "feeAmount":orderData.shipment_fee
+                }
+            },
+            "packages": orderData.lineItems.map((data) => {
+                return {
+                    "id": data.id,
+                    "amount": data.count * data.sale_price,
+                    "products": [
+                        {
+                            "id": data.spec.join(','),
+                            "name": data.title,
+                            "imageUrl": "",
+                            "quantity": data.count,
+                            "price": data.sale_price
+                        }
+                    ]
+                }
+            }),
+            "redirectUrls": {
+                "confirmUrl": this.LinePay_RETURN_CONFIRM_URL,
+                "cancelUrl": this.LinePay_RETURN_CANCEL_URL
+            }
+        };
+        const uri = "/payments/request";
+        const nonce = new Date().getTime() / 1000;
 
+        const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
+        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+
+        console.log("order -- " , orderData);
+
+        const config: AxiosRequestConfig = {
+            method: "POST",
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                "X-LINE-ChannelId" : this.LinePay_CLIENT_ID,
+                "X-LINE-Authorization-Nonce" : nonce,
+                "X-LINE-Authorization" : signature
+            },
+            data: body
+        };
+        try {
+            console.log("into linepay OK --------")
+            const response = await axios.request(config);
+            console.log("response -- " , response.data)
+            return response.data;
+        } catch (error:any) {
+            console.error("Error linePay:", error.response?.data || error.message);
+            throw error;
+        }
+    }
 }

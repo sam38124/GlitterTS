@@ -682,7 +682,7 @@ export class CheckoutIndex {
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
-            const beta = true;
+            const beta = false;
             if (!beta) {
                 new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                     new Promise((resolve, reject) => {
@@ -2100,8 +2100,30 @@ export class CheckoutIndex {
                                 }
                             });
                             const dialog = new ShareDialog(gvc.glitter);
-                            console.log("vm.cartData.customer_info.payment_select -- ", vm.cartData.customer_info.payment_select);
-                            return;
+                            console.log({
+                                line_items: vm.cartData.lineItems.map((dd) => {
+                                    return {
+                                        id: dd.id,
+                                        spec: dd.spec,
+                                        count: dd.count,
+                                    };
+                                }),
+                                customer_info: vm.cartData.customer_info,
+                                return_url: (() => {
+                                    const originalUrl = glitter.root_path + 'order_detail' + location.search;
+                                    const urlObject = new URL(originalUrl);
+                                    urlObject.searchParams.set('EndCheckout', '1');
+                                    const newUrl = urlObject.toString();
+                                    return newUrl;
+                                })(),
+                                user_info: vm.cartData.user_info,
+                                code: ApiCart.cart.code,
+                                use_rebate: ApiCart.cart.use_rebate,
+                                custom_form_format: vm.cartData.custom_form_format,
+                                custom_form_data: vm.cartData.custom_form_data,
+                                distribution_code: ApiCart.cart.distribution_code,
+                                give_away: ApiCart.cart.give_away
+                            });
                             dialog.dataLoading({ visible: true });
                             ApiShop.toCheckout({
                                 line_items: vm.cartData.lineItems.map((dd) => {
@@ -2128,24 +2150,10 @@ export class CheckoutIndex {
                                 give_away: ApiCart.cart.give_away
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
-                                if (res.response.off_line || res.response.is_free) {
-                                    ApiCart.clearCart();
-                                    location.href = res.response.return_url;
-                                }
-                                else {
-                                    if (res.response.form.approveLink) {
-                                        location.href = res.response.form.approveLink;
-                                    }
-                                    else {
-                                        const id = gvc.glitter.getUUID();
-                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                        document.querySelector(`#${id} #submit`).click();
-                                    }
-                                    ApiCart.clearCart();
-                                }
+                                console.log("res -- ", res);
                             });
                         }))}" style="width:200px;" >
-                                                <span class="${gClass('button-text')}">下一步</span>
+                                                <span class="${gClass('button-text')}">下一步(next)</span>
                                             </button>
                                         </div>
                                     </section>

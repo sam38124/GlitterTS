@@ -152,6 +152,25 @@ export declare class LinePay {
     LinePay_CLIENT_ID: string;
     LinePay_SECRET: string;
     LinePay_BASE_URL: string;
+    LinePay_RETURN_HOST: string;
+    LinePay_RETURN_CONFIRM_URL: string;
+    LinePay_RETURN_CANCEL_URL: string;
     constructor(appName: string, keyData: KeyData);
+    createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }): Promise<any>;
 }
 export {};

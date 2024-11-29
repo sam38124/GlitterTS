@@ -243,7 +243,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<"" | {
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;
         result?: undefined;
         message?: undefined;
