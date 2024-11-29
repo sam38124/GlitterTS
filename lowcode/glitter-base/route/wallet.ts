@@ -28,14 +28,14 @@ export class ApiWallet {
         });
     }
 
-    public static getWallet(token?:string) {
+    public static getWallet(token?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/wallet/sum`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization:  token || getConfig().config.token,
+                Authorization: token || getConfig().config.token,
             },
         });
     }
@@ -141,6 +141,18 @@ export class ApiWallet {
                 'g-app': getConfig().config.appName,
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
+            },
+        });
+    }
+
+    public static getRebateConfig(json: { type?: 'me' | 'all' }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/rebate/config`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: json.type === 'me' ? GlobalUser.token : getConfig().config.token,
             },
         });
     }

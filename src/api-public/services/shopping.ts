@@ -348,8 +348,6 @@ export class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            console.log(querySql);
-            console.log(query);
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
@@ -476,7 +474,6 @@ export class Shopping {
             }
             return products;
         } catch (e) {
-            console.log(e);
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
@@ -4038,7 +4035,6 @@ export class Shopping {
             SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
         `,[])
         invoiceData = invoiceData[0]
-        // console.log("obj.allowanceData -- " , invoiceData.invoice_data.original_data.Items);
         const passData = {
             "MerchantID": config.merchNO,
             "InvoiceNo": obj.invoiceID,

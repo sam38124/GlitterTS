@@ -8,6 +8,7 @@ const html = String.raw;
 
 interface RebateSetting {
     main: boolean;
+    title: string;
     register: {
         switch: boolean;
         value: number;
@@ -46,6 +47,7 @@ export class ShoppingRebateSetting {
             type: 'list',
             data: {
                 main: false,
+                title: '',
                 register: {
                     switch: false,
                     value: 100,
@@ -158,18 +160,32 @@ export class ShoppingRebateSetting {
                                     BgWidget.container1x2(
                                         {
                                             html: [
-                                                BgWidget.mainCard(html`<div>
-                                                    <div style="margin-bottom: 18px;">
+                                                BgWidget.mainCard(html`<div style="display: flex; flex-direction: column; gap: 16px;">
+                                                    <div>
                                                         <span class="tx_700">購物金功能</span>
                                                     </div>
-                                                    <div style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                                        <div class="tx_normal">購物金功能開啟</div>
-                                                        ${BgWidget.switchButton(gvc, vm.data.main, (bool) => {
-                                                            vm.data.main = bool;
-                                                            gvc.notifyDataChange(vm.settingId);
-                                                        })}
+                                                    <div class="gray-bottom-line-18">
+                                                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                                            <div class="tx_normal">購物金功能開啟</div>
+                                                            ${BgWidget.switchButton(gvc, vm.data.main, (bool) => {
+                                                                vm.data.main = bool;
+                                                                gvc.notifyDataChange(vm.settingId);
+                                                            })}
+                                                        </div>
+                                                        ${BgWidget.grayNote('一鍵開啟或關閉整個平台的購物金功能，停用後顧客將無法獲取或使用購物金來折抵消費金額。')}
                                                     </div>
-                                                    ${BgWidget.grayNote('一鍵開啟或關閉整個平台的購物金功能，停用後顧客將無法獲取或使用購物金來折抵消費金額。')}
+                                                    <div>
+                                                        ${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '購物金前台名稱',
+                                                            default: vm.data.title,
+                                                            callback: (text) => {
+                                                                vm.data.title = text;
+                                                            },
+                                                            placeHolder: '請輸入購物金前台名稱',
+                                                        })}
+                                                        ${BgWidget.grayNote('消費者在前台商店看到的購物金名稱，如「Lucky Point」、「樂購點」，無填寫則顯示「購物金」')}
+                                                    </div>
                                                 </div>`),
                                                 gvc.bindView({
                                                     bind: vm.settingId,

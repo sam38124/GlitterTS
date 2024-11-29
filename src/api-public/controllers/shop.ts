@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import {EcPay, EzPay, PayPal} from '../services/financial-service.js';
+import { EcPay, EzPay, PayPal } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -65,6 +65,16 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
             return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
         }
         return response.fail(resp, '使用者不存在');
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.get('/rebate/config', async (req: express.Request, resp: express.Response) => {
+    try {
+        const app = req.get('g-app') as string;
+        const rebateClass = new Rebate(app);
+        const config = await rebateClass.getConfig();
+        return response.succ(resp, { data: config });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -555,27 +565,23 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         // console.log(`req.query=>` , req.query )
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
-        if (req.query.payment && req.query.payment=="true") {
-            const check_id=(await redis.getValue(`paypal`+req.query.orderID))
+        if (req.query.payment && req.query.payment == 'true') {
+            const check_id = await redis.getValue(`paypal` + req.query.orderID);
 
-            const paypal = new PayPal(req.query.appName as string,{
-                ActionURL: "",
-                HASH_IV: "",
-                HASH_KEY: "",
-                MERCHANT_ID: "",
-                NotifyURL: "",
-                ReturnURL: "",
-                TYPE: "PayPal"
-            })
+            const paypal = new PayPal(req.query.appName as string, {
+                ActionURL: '',
+                HASH_IV: '',
+                HASH_KEY: '',
+                MERCHANT_ID: '',
+                NotifyURL: '',
+                ReturnURL: '',
+                TYPE: 'PayPal',
+            });
             const data = await paypal.confirmAndCaptureOrder(check_id as string);
             if (data.status === 'COMPLETED') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
-
-
-
-
 
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
@@ -1052,11 +1058,11 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         const receipt: any = await new Promise((resolve, reject) => {
             axios
                 .request(config)
-                .then((response:any) => {
+                .then((response: any) => {
                     console.log(JSON.stringify(response.data));
                     resolve(response.data);
                 })
-                .catch((error:any) => {
+                .catch((error: any) => {
                     console.log(error);
                     resolve(false);
                 });
@@ -1235,9 +1241,9 @@ router.post('/customer_invoice', async (req: express.Request, resp: express.Resp
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).postCustomerInvoice({
-                orderID:req.body.orderID,
-                invoice_data:req.body.invoiceData,
-                orderData:req.body.orderData
+                orderID: req.body.orderID,
+                invoice_data: req.body.invoiceData,
+                orderData: req.body.orderData,
             })
         );
     } catch (err) {
@@ -1250,9 +1256,9 @@ router.post('/void_invoice', async (req: express.Request, resp: express.Response
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).voidInvoice({
-                invoice_no:req.body.invoiceNo,
-                reason:req.body.voidReason,
-                createDate:req.body.createDate
+                invoice_no: req.body.invoiceNo,
+                reason: req.body.voidReason,
+                createDate: req.body.createDate,
             })
         );
     } catch (err) {
@@ -1264,12 +1270,9 @@ router.post('/void_allowance', async (req: express.Request, resp: express.Respon
         let passData = {
             invoiceNo: req.body.invoiceNo,
             allowanceNo: req.body.allowanceNo,
-            voidReason:req.body.voidReason
-        }
-        return response.succ(
-            resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).voidAllowance(passData)
-        );
+            voidReason: req.body.voidReason,
+        };
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).voidAllowance(passData));
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -1282,14 +1285,11 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
             allowanceData: req.body.allowanceData,
             orderID: req.body.orderID,
             orderData: req.body.orderData,
-            allowanceInvoiceTotalAmount:req.body.allowanceInvoiceTotalAmount,
+            allowanceInvoiceTotalAmount: req.body.allowanceInvoiceTotalAmount,
             itemList: req.body.itemList,
             invoiceDate: req.body.invoiceDate,
-        }
-        return response.succ(
-            resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).allowanceInvoice(passData)
-        );
+        };
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).allowanceInvoice(passData));
     } catch (err) {
         return response.fail(resp, err);
     }

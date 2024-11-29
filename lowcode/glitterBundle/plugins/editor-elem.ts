@@ -2059,7 +2059,12 @@ ${obj.gvc.bindView(() => {
         readonly?: boolean;
     }) {
         const viewId = obj.gvc.glitter.getUUID();
-        const def = () => ({ num: obj.default, min: obj.min, max: obj.max });
+        const def = () => ({
+            gvc: obj.gvc,
+            num: obj.default,
+            min: obj.min,
+            max: obj.max,
+        });
         return html`${obj.title ? EditorElem.h3(obj.title) : ``}
             <div class="d-flex align-items-center">
                 ${obj.gvc.bindView({
@@ -2071,7 +2076,7 @@ ${obj.gvc.bindView(() => {
                             type="number"
                             placeholder="${obj.placeHolder}"
                             onchange="${obj.gvc.event((e) => {
-                                const n = this.numberInterval({
+                                const n = this.floatInterval({
                                     ...def(),
                                     num: e.value,
                                 });
@@ -2079,14 +2084,14 @@ ${obj.gvc.bindView(() => {
                                 obj.callback(n);
                                 obj.gvc.notifyDataChange(viewId);
                             })}"
-                            value="${obj.default !== undefined ? this.numberInterval(def()) : ''}"
+                            value="${obj.default !== undefined ? this.floatInterval(def()) : ''}"
                             ${obj.readonly ? `readonly` : ``}
                         />`;
                     },
                     divCreate: { class: 'w-100' },
                     onCreate: () => {
                         if (!this.checkNumberMinMax(def())) {
-                            obj.callback(this.numberInterval(def()));
+                            obj.callback(this.floatInterval(def()));
                         }
                     },
                 })}
@@ -2094,8 +2099,38 @@ ${obj.gvc.bindView(() => {
             </div> `;
     }
 
-    public static numberInterval(obj: { num: number | string; min?: number; max?: number }): number {
+    public static floatInterval(obj: { gvc: GVC; num: number | string; min?: number; max?: number; precision?: number }): number {
+        const dialog = new ShareDialog(obj.gvc.glitter);
+        let n = parseFloat(`${obj.num}`);
+
+        // 驗證是否為有效數字
+        if (isNaN(n)) {
+            dialog.errorMessage({ text: '請輸入數字' });
+        }
+
+        // 限制小數位數（如果指定了 precision）
+        if (obj.precision !== undefined && obj.precision >= 0) {
+            n = parseFloat(n.toFixed(obj.precision));
+        }
+
+        // 檢查範圍
+        if (obj.max !== undefined && n > obj.max) {
+            return obj.max;
+        }
+        if (obj.min !== undefined && n < obj.min) {
+            return obj.min;
+        }
+
+        return n;
+    }
+
+    public static numberInterval(obj: { gvc: GVC; num: number | string; min?: number; max?: number }): number {
+        const dialog = new ShareDialog(obj.gvc.glitter);
         const n = parseInt(`${obj.num}`, 10);
+
+        if (isNaN(n)) {
+            dialog.errorMessage({ text: '請輸入數字' });
+        }
         if (obj.max !== undefined && n > obj.max) {
             return obj.max;
         }
@@ -2453,17 +2488,12 @@ ${obj.gvc.bindView(() => {
     public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string; callback?: () => void }) {
         return html` <button
             type="button"
-            class="btn btn-primary-c  w-100"
-            style=""
+            class="btn btn-primary-c w-100"
             onclick="${par.gvc.event(() => {
                 const gvc = par.gvc;
                 NormalPageEditor.toggle({
                     visible: true,
-                    view: `
-                    <div class="p-2"
-                             style="overflow-y:auto;">
-                            ${par.dialog(gvc)}
-                        </div>`,
+                    view: html` <div class="p-2" style="overflow-y:auto;">${par.dialog(gvc)}</div>`,
                     title: par.editTitle || '',
                 });
                 par.callback && (NormalPageEditor.closeEvent = par.callback);

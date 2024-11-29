@@ -14,6 +14,7 @@ import {Voucher as OriginVoucher, VoucherContent} from '../user-manager/um-vouch
 import {PdClass} from "../product/pd-class.js";
 import * as vm from "node:vm";
 import {Ad} from "../public/ad.js";
+import { ApiWallet } from '../../glitter-base/route/wallet.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -958,7 +959,8 @@ export class CheckoutIndex {
                     "bank_user": "陳女士",
                     "bank_account": "888800004567"
                 }
-            }
+            }as any,
+            rebateConfig: {} as any
         };
         const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         const classPrefix = Tool.randomString(6);
@@ -1451,21 +1453,27 @@ export class CheckoutIndex {
                         }
                     );
                 });
-            } else {
-                gvc.addMtScript(
-                    [
-                        {
-                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                        },
-                    ],
-                    () => {
-                        loadings.page = false;
-                        dialog.dataLoading({visible: false})
-                        gvc.notifyDataChange(ids.page);
-                    },
-                    () => {
+            }else{
+                ApiWallet.getRebateConfig({ type: 'me' }).then(async (res) => {
+                    if (res.result && res.response.data) {
+                        vm.rebateConfig = res.response.data;
                     }
-                );
+                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                    gvc.addMtScript(
+                        [
+                            {
+                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            },
+                        ],
+                        () => {
+                            loadings.page = false;
+                            dialog.dataLoading({visible:false})
+                            gvc.notifyDataChange(ids.page);
+                        },
+                        () => {
+                        }
+                    );
+                })
             }
             gvc.glitter.recreateView('.js-cart-count')
         }
@@ -1996,7 +2004,7 @@ function getBadgeClass(){
                                                                                 let tempRebate: number = 0;
                                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                                 return `<div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>購物金折抵</div>
+                                                                                <div>${vm.rebateConfig.title}折抵</div>
                                                                     <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                 </div>
                                                               
@@ -2010,8 +2018,8 @@ function getBadgeClass(){
                                                                     >
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
-                                                                                    placeholder="請輸入購物金"
-                                                                                    style="${document.body.clientWidth < 800 ? `width:calc(100% - 150px) !important;` : ``}"
+                                                                                    placeholder="請輸入${vm.rebateConfig.title}"
+                                                                                    style="${document.body.clientWidth<800 ? `width:calc(100% - 150px) !important;`:``}"
                                                                                     value="${vm.cartData.use_rebate || ''}"
                                                                                     onchange="${gvc.event((e, event) => {
                                                                                     if (CheckInput.isNumberString(e.value)) {
@@ -2035,24 +2043,19 @@ function getBadgeClass(){
                                                                                         })
                                                                                     });
                                                                                     const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-
-                                                                                    // const subtotal = data.total - data.shipment_fee + data.use_rebate;
-                                                                                    //
-                                                                                    // if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-
-                                                                                    console.log({
-                                                                                        total: vm.cartData.total,
-                                                                                        use_rebate: vm.cartData.use_rebate,
-                                                                                        shipment_fee: vm.cartData.shipment_fee,
-                                                                                    })
-                                                                                    if (tempRebate > Math.min(sum, limit)) {
-                                                                                        dialog.errorMessage({text: `請輸入 0 到 ${Math.min(sum, limit)} 的數值`})
-                                                                                    } else {
-                                                                                        ApiCart.setCart((cartItem) => {
-                                                                                            cartItem.use_rebate = tempRebate
-                                                                                            refreshCartData()
-                                                                                        })
+                                                                                    if(sum === 0){
+                                                                                        dialog.errorMessage({text:  `您的${vm.rebateConfig.title}為 0 點，無法折抵` })
+                                                                                        return;
                                                                                     }
+                                                                                    if(tempRebate > Math.min(sum, limit) ){
+                                                                                        dialog.errorMessage({text:  `請輸入 0 到 ${ Math.min(sum, limit) } 的數值` })
+                                                                                        return;
+                                                                                    }
+                                                                                    
+                                                                                    ApiCart.setCart((cartItem)=>{
+                                                                                        cartItem.use_rebate=tempRebate
+                                                                                        refreshCartData()
+                                                                                    })
                                                                                 })}">
                                                                                 套用
                                                                             </div>
@@ -2080,17 +2083,16 @@ function getBadgeClass(){
                                                                                                 return '';
                                                                                             }
 
-                                                                                            const info = vm.cartData.useRebateInfo;
-                                                                                            if (info.condition) {
-                                                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`
-                                                                                            }
-                                                                                            if (info.limit) {
-                                                                                                return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`
-                                                                                            } else {
-                                                                                                return `您目前剩餘 ${sum || 0} 點購物金`
-                                                                                            }
+                                                                                        const info = vm.cartData.useRebateInfo;
+                                                                                        if(info.condition){
+                                                                                            return `還差$ ${info.condition.toLocaleString()} 即可使用${vm.rebateConfig.title}折抵`
                                                                                         }
-                                                                                    }
+                                                                                        if(info.limit){
+                                                                                            return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點${vm.rebateConfig.title}`
+                                                                                        }else{
+                                                                                            return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}`
+                                                                                        }
+                                                                                    }}
                                                                                 })
                                                                             })()}
                                                                 </div>`
@@ -2468,67 +2470,67 @@ function getBadgeClass(){
                                                     })()}</span>
                                                 </button>
                                             </div>
-                                            ${(() => {
-                                                try {
-                                                    vm.cartData.user_info.custom_form_delivery = vm.cartData.user_info.custom_form_delivery ?? {};
-                                                    const form_array = JSON.parse(JSON.stringify(this.getShipmentMethod(vm.cartData).find((dd: any) => {
-                                                        return vm.cartData.user_info.shipment === dd.value
-                                                    }).form));
-                                                    form_array.map((dd: any) => {
-                                                        dd.col = '4';
-                                                        dd.form_config.title_style = {
-                                                            list: [
-                                                                {
-                                                                    class: gClass('label') + ' mb-2',
-                                                                    style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
-                                                                    stylist: [],
-                                                                    dataType: 'code',
-                                                                    style_from: 'code',
-                                                                    classDataType: 'static',
-                                                                },
-                                                            ],
-                                                            class: 'form-label',
-                                                            style: 'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
-                                                            stylist: [],
-                                                            version: 'v2',
-                                                            dataType: 'static',
-                                                            style_from: 'code',
-                                                            classDataType: 'static',
-                                                        };
-                                                        dd.form_config.input_style = {
-                                                            list: [
-                                                                {
-                                                                    class: gClass('input'),
-                                                                    style: 'return `border-radius: ${widget.formData.radius}px !important;`',
-                                                                    stylist: [],
-                                                                    dataType: 'code',
-                                                                    style_from: 'code',
-                                                                    classDataType: 'static',
-                                                                },
-                                                            ],
-                                                            class: ' mb-3',
-                                                            style: 'background: #FFF;',
-                                                            stylist: [],
-                                                            version: 'v2',
-                                                            dataType: 'static',
-                                                            style_from: 'code',
-                                                            classDataType: 'static',
-                                                        };
-                                                    });
-                                                    return [
-                                                        FormWidget.editorView({
-                                                            gvc: gvc,
-                                                            array: form_array,
-                                                            refresh: () => {
-                                                                this.storeLocalData(vm.cartData)
-                                                            },
-                                                            formData: vm.cartData.user_info.custom_form_delivery,
-                                                        })
-                                                    ].join('');
-                                                } catch (e) {
-                                                    console.log(e)
-                                                    return ``
-                                                }
+                                            ${(()=>{
+                                             try {
+                                                 vm.cartData.user_info.custom_form_delivery=vm.cartData.user_info.custom_form_delivery??{};
+                                                 const form_array = JSON.parse(JSON.stringify(this.getShipmentMethod(vm.cartData).find((dd:any)=>{
+                                                     return vm.cartData.user_info.shipment === dd.value
+                                                 }).form));
+                                                 form_array.map((dd: any) => {
+                                                     dd.col = '4';
+                                                     dd.form_config.title_style = {
+                                                         list: [
+                                                             {
+                                                                 class: gClass('label') + ' mb-2',
+                                                                 style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                                                                 stylist: [],
+                                                                 dataType: 'code',
+                                                                 style_from: 'code',
+                                                                 classDataType: 'static',
+                                                             },
+                                                         ],
+                                                         class: 'form-label',
+                                                         style: 'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                                                         stylist: [],
+                                                         version: 'v2',
+                                                         dataType: 'static',
+                                                         style_from: 'code',
+                                                         classDataType: 'static',
+                                                     };
+                                                     dd.form_config.input_style = {
+                                                         list: [
+                                                             {
+                                                                 class: gClass('input'),
+                                                                 style: 'return `border-radius: ${widget.formData.radius}px !important;`',
+                                                                 stylist: [],
+                                                                 dataType: 'code',
+                                                                 style_from: 'code',
+                                                                 classDataType: 'static',
+                                                             },
+                                                         ],
+                                                         class: ' mb-3',
+                                                         style: 'background: #FFF;',
+                                                         stylist: [],
+                                                         version: 'v2',
+                                                         dataType: 'static',
+                                                         style_from: 'code',
+                                                         classDataType: 'static',
+                                                     };
+                                                 });
+                                                 return [
+                                                     FormWidget.editorView({
+                                                         gvc: gvc,
+                                                         array: form_array,
+                                                         refresh: () => {
+                                                             this.storeLocalData(vm.cartData)
+                                                         },
+                                                         formData: vm.cartData.user_info.custom_form_delivery,
+                                                     })
+                                                 ].join('');
+                                             }catch (e) {
+                                                 console.error(e)
+                                                 return ``
+                                             }
                                             })()}
                                         </div>
                                     </section>

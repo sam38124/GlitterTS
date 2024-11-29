@@ -65,6 +65,17 @@ router.get('/rebate', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/rebate/config', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        const rebateClass = new rebate_1.Rebate(app);
+        const config = await rebateClass.getConfig();
+        return response_1.default.succ(resp, { data: config });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/rebate/sum', async (req, resp) => {
     try {
         const app = req.get('g-app');
@@ -494,16 +505,16 @@ router.delete('/voucher', async (req, resp) => {
 async function redirect_link(req, resp) {
     try {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
-        if (req.query.payment && req.query.payment == "true") {
-            const check_id = (await redis_js_1.default.getValue(`paypal` + req.query.orderID));
+        if (req.query.payment && req.query.payment == 'true') {
+            const check_id = await redis_js_1.default.getValue(`paypal` + req.query.orderID);
             const paypal = new financial_service_js_1.PayPal(req.query.appName, {
-                ActionURL: "",
-                HASH_IV: "",
-                HASH_KEY: "",
-                MERCHANT_ID: "",
-                NotifyURL: "",
-                ReturnURL: "",
-                TYPE: "PayPal"
+                ActionURL: '',
+                HASH_IV: '',
+                HASH_KEY: '',
+                MERCHANT_ID: '',
+                NotifyURL: '',
+                ReturnURL: '',
+                TYPE: 'PayPal',
             });
             const data = await paypal.confirmAndCaptureOrder(check_id);
             if (data.status === 'COMPLETED') {
@@ -1112,7 +1123,7 @@ router.post('/customer_invoice', async (req, resp) => {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).postCustomerInvoice({
             orderID: req.body.orderID,
             invoice_data: req.body.invoiceData,
-            orderData: req.body.orderData
+            orderData: req.body.orderData,
         }));
     }
     catch (err) {
@@ -1124,7 +1135,7 @@ router.post('/void_invoice', async (req, resp) => {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).voidInvoice({
             invoice_no: req.body.invoiceNo,
             reason: req.body.voidReason,
-            createDate: req.body.createDate
+            createDate: req.body.createDate,
         }));
     }
     catch (err) {
@@ -1136,7 +1147,7 @@ router.post('/void_allowance', async (req, resp) => {
         let passData = {
             invoiceNo: req.body.invoiceNo,
             allowanceNo: req.body.allowanceNo,
-            voidReason: req.body.voidReason
+            voidReason: req.body.voidReason,
         };
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).voidAllowance(passData));
     }

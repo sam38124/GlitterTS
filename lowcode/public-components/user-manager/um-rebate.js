@@ -10,7 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { UmClass } from './um-class.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { UMVoucher } from "./um-voucher.js";
+import { UMVoucher } from './um-voucher.js';
+import { CheckInput } from '../../modules/checkInput.js';
 const html = String.raw;
 export class UMRebate {
     static main(gvc, widget, subData) {
@@ -22,6 +23,7 @@ export class UMRebate {
             dataList: [],
             amount: 0,
             oldestText: '',
+            rebateConfig: {},
         };
         const ids = {
             view: glitter.getUUID(),
@@ -37,6 +39,7 @@ export class UMRebate {
                 }
                 else {
                     const isWebsite = document.body.clientWidth > 768;
+                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
                     return html `
                         <div class="um-container row">
                             <div class="col-12">${UmClass.nav(gvc)}</div>
@@ -44,7 +47,7 @@ export class UMRebate {
                                 <div class="d-flex ${isWebsite ? 'gap-4' : 'gap-3'}">
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>
                                     <div class="${isWebsite ? '' : 'd-flex align-items-center gap-2'}">
-                                        <div class="fw-500 fs-6">現有購物金</div>
+                                        <div class="fw-500 fs-6">現有${vm.rebateConfig.title}</div>
                                         <div class="fw-bold mt-0 mt-md-1 mb-1 um-rb-amount">${vm.amount}</div>
                                     </div>
                                 </div>
@@ -64,7 +67,7 @@ export class UMRebate {
                                                     loop="true"
                                                     background="transparent"
                                                 ></lottie-player>
-                                                <span class="mb-5 fs-5">目前沒有取得購物金呦</span>
+                                                <span class="mb-5 fs-5">目前沒有取得${vm.rebateConfig.title}呦</span>
                                             </div>`;
                         }
                         const header = [
@@ -75,7 +78,7 @@ export class UMRebate {
                                 title: '到期日期',
                             },
                             {
-                                title: '購物金項目',
+                                title: `${vm.rebateConfig.title}來源`,
                             },
                             {
                                 title: '獲得款項',
@@ -109,14 +112,14 @@ export class UMRebate {
                                 (() => {
                                     if (item.orderID) {
                                         if (item.money > 0) {
-                                            return `訂單『 ${item.orderID} 』獲得購物金`;
+                                            return `訂單『 ${item.orderID} 』獲得${vm.rebateConfig.title}`;
                                         }
                                         else {
-                                            return `訂單『 ${item.orderID} 』使用購物金`;
+                                            return `訂單『 ${item.orderID} 』使用${vm.rebateConfig.title}`;
                                         }
                                     }
                                     else {
-                                        return item.note || `手動增減購物金`;
+                                        return item.note || `手動增減${vm.rebateConfig.title}`;
                                     }
                                 })(),
                                 item.money.toLocaleString(),
@@ -196,7 +199,7 @@ export class UMRebate {
                                     if (!(oldest.remain && oldest.deadline)) {
                                         resolve('');
                                     }
-                                    resolve(html `您尚有 ${oldest.remain} 元購物金<br />將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
+                                    resolve(html `您尚有 ${oldest.remain} 元${vm.rebateConfig.title}<br />將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
                                 }));
                             }),
                             new Promise((resolve) => {
@@ -213,10 +216,12 @@ export class UMRebate {
                                     }
                                 }));
                             }),
+                            UmClass.getRebateInfo(),
                         ]).then((dataList) => {
                             vm.amount = dataList[0];
                             vm.oldestText = dataList[1];
                             vm.dataList = dataList[2];
+                            vm.rebateConfig = dataList[3];
                             loadings.view = false;
                             gvc.notifyDataChange(ids.view);
                         });

@@ -18,6 +18,7 @@ import { FormWidget } from "../../official_view_component/official/form.js";
 import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 import { PdClass } from "../product/pd-class.js";
 import { Ad } from "../public/ad.js";
+import { ApiWallet } from '../../glitter-base/route/wallet.js';
 const html = String.raw;
 const css = String.raw;
 export class CheckoutIndex {
@@ -952,7 +953,8 @@ export class CheckoutIndex {
                     "bank_user": "陳女士",
                     "bank_account": "888800004567"
                 }
-            }
+            },
+            rebateConfig: {}
         };
         const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         const classPrefix = Tool.randomString(6);
@@ -1405,16 +1407,22 @@ export class CheckoutIndex {
                 });
             }
             else {
-                gvc.addMtScript([
-                    {
-                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                    },
-                ], () => {
-                    loadings.page = false;
-                    dialog.dataLoading({ visible: false });
-                    gvc.notifyDataChange(ids.page);
-                }, () => {
-                });
+                ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                    if (res.result && res.response.data) {
+                        vm.rebateConfig = res.response.data;
+                    }
+                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                    gvc.addMtScript([
+                        {
+                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                        },
+                    ], () => {
+                        loadings.page = false;
+                        dialog.dataLoading({ visible: false });
+                        gvc.notifyDataChange(ids.page);
+                    }, () => {
+                    });
+                }));
             }
             gvc.glitter.recreateView('.js-cart-count');
         }
@@ -1900,7 +1908,7 @@ export class CheckoutIndex {
                                                 let tempRebate = 0;
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 return `<div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div>購物金折抵</div>
+                                                                                <div>${vm.rebateConfig.title}折抵</div>
                                                                     <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                 </div>
                                                               
@@ -1914,7 +1922,7 @@ export class CheckoutIndex {
                                                                     >
                                                                         <input
                                                                                     class="flex-fill ${gClass('group-input')}"
-                                                                                    placeholder="請輸入購物金"
+                                                                                    placeholder="請輸入${vm.rebateConfig.title}"
                                                                                     style="${document.body.clientWidth < 800 ? `width:calc(100% - 150px) !important;` : ``}"
                                                                                     value="${vm.cartData.use_rebate || ''}"
                                                                                     onchange="${gvc.event((e, event) => {
@@ -1941,20 +1949,18 @@ export class CheckoutIndex {
                                                         }));
                                                     });
                                                     const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-                                                    console.log({
-                                                        total: vm.cartData.total,
-                                                        use_rebate: vm.cartData.use_rebate,
-                                                        shipment_fee: vm.cartData.shipment_fee,
-                                                    });
+                                                    if (sum === 0) {
+                                                        dialog.errorMessage({ text: `您的${vm.rebateConfig.title}為 0 點，無法折抵` });
+                                                        return;
+                                                    }
                                                     if (tempRebate > Math.min(sum, limit)) {
                                                         dialog.errorMessage({ text: `請輸入 0 到 ${Math.min(sum, limit)} 的數值` });
+                                                        return;
                                                     }
-                                                    else {
-                                                        ApiCart.setCart((cartItem) => {
-                                                            cartItem.use_rebate = tempRebate;
-                                                            refreshCartData();
-                                                        });
-                                                    }
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.use_rebate = tempRebate;
+                                                        refreshCartData();
+                                                    });
                                                 }))}">
                                                                                 套用
                                                                             </div>
@@ -1984,13 +1990,13 @@ export class CheckoutIndex {
                                                             }
                                                             const info = vm.cartData.useRebateInfo;
                                                             if (info.condition) {
-                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用購物金折抵`;
+                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用${vm.rebateConfig.title}折抵`;
                                                             }
                                                             if (info.limit) {
-                                                                return `您目前剩餘 ${sum || 0} 點購物金<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點購物金`;
+                                                                return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點${vm.rebateConfig.title}`;
                                                             }
                                                             else {
-                                                                return `您目前剩餘 ${sum || 0} 點購物金`;
+                                                                return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}`;
                                                             }
                                                         })
                                                     };
@@ -2417,7 +2423,7 @@ export class CheckoutIndex {
                                 ].join('');
                             }
                             catch (e) {
-                                console.log(e);
+                                console.error(e);
                                 return ``;
                             }
                         })()}

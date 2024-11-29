@@ -98,7 +98,9 @@ export class UMVoucher {
                                 `折扣優惠：${(() => {
                                     switch (voucherData.reBackType) {
                                         case 'rebate':
-                                            return voucherData.method === 'fixed' ? `${voucherData.value} 點購物金` : `符合條件商品總額的 ${voucherData.value} ％作為購物金`;
+                                            return voucherData.method === 'fixed'
+                                                ? `${voucherData.value} 點 ${glitter.share.rebateConfig.title}`
+                                                : `符合條件商品總額的 ${voucherData.value} ％作為 ${glitter.share.rebateConfig.title}`;
                                         case 'discount':
                                             return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `符合條件商品折扣 ${voucherData.value} ％`;
                                         case 'shipment_free':
@@ -167,7 +169,6 @@ export class UMVoucher {
                                         tag: 'user-qr-code',
                                         title: '優惠券 QR code',
                                         innerHTML: (gvc) => {
-                                            console.log('innerHTML');
                                             return gvc.bindView((() => {
                                                 const id = glitter.getUUID();
                                                 let loading = true;
@@ -282,7 +283,6 @@ export class UMVoucher {
                             data_from: 'user',
                         }).then((res) => __awaiter(this, void 0, void 0, function* () {
                             if (res.result && res.response.data) {
-                                console.log(res.response.data);
                                 vm.dataList = res.response.data.filter((item) => item.content.trigger === 'code');
                             }
                             else {
