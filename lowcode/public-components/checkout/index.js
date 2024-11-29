@@ -954,7 +954,9 @@ export class CheckoutIndex {
                     "bank_account": "888800004567"
                 }
             },
-            rebateConfig: {}
+            rebateConfig: {
+                title: '購物金'
+            }
         };
         const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         const classPrefix = Tool.randomString(6);
@@ -1394,35 +1396,35 @@ export class CheckoutIndex {
                     }));
                 })).then((data) => {
                     vm.cartData = data;
-                    gvc.addMtScript([
-                        {
-                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                        },
-                    ], () => {
-                        loadings.page = false;
-                        dialog.dataLoading({ visible: false });
-                        gvc.notifyDataChange(['js-cart-count', ids.page]);
-                    }, () => {
-                    });
+                    ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                        if (res.result && res.response.data) {
+                            vm.rebateConfig = res.response.data;
+                        }
+                        vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                        gvc.addMtScript([
+                            {
+                                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                            },
+                        ], () => {
+                            loadings.page = false;
+                            dialog.dataLoading({ visible: false });
+                            gvc.notifyDataChange(['js-cart-count', ids.page]);
+                        }, () => {
+                        });
+                    }));
                 });
             }
             else {
-                ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                    if (res.result && res.response.data) {
-                        vm.rebateConfig = res.response.data;
-                    }
-                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
-                    gvc.addMtScript([
-                        {
-                            src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
-                        },
-                    ], () => {
-                        loadings.page = false;
-                        dialog.dataLoading({ visible: false });
-                        gvc.notifyDataChange(ids.page);
-                    }, () => {
-                    });
-                }));
+                gvc.addMtScript([
+                    {
+                        src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+                    },
+                ], () => {
+                    loadings.page = false;
+                    dialog.dataLoading({ visible: false });
+                    gvc.notifyDataChange(ids.page);
+                }, () => {
+                });
             }
             gvc.glitter.recreateView('.js-cart-count');
         }
@@ -1950,7 +1952,7 @@ export class CheckoutIndex {
                                                     });
                                                     const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
                                                     if (sum === 0) {
-                                                        dialog.errorMessage({ text: `您的${vm.rebateConfig.title}為 0 點，無法折抵` });
+                                                        dialog.errorMessage({ text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵` });
                                                         return;
                                                     }
                                                     if (tempRebate > Math.min(sum, limit)) {
@@ -1990,13 +1992,13 @@ export class CheckoutIndex {
                                                             }
                                                             const info = vm.cartData.useRebateInfo;
                                                             if (info.condition) {
-                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用${vm.rebateConfig.title}折抵`;
+                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用 ${vm.rebateConfig.title} 折抵`;
                                                             }
                                                             if (info.limit) {
-                                                                return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點${vm.rebateConfig.title}`;
+                                                                return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點 ${vm.rebateConfig.title}`;
                                                             }
                                                             else {
-                                                                return `您目前剩餘 ${sum || 0} 點${vm.rebateConfig.title}`;
+                                                                return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}`;
                                                             }
                                                         })
                                                     };
