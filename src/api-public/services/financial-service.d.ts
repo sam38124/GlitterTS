@@ -151,6 +151,9 @@ export declare class LinePay {
     LinePay_CLIENT_ID: string;
     LinePay_SECRET: string;
     LinePay_BASE_URL: string;
+    LinePay_RETURN_HOST: string;
+    LinePay_RETURN_CONFIRM_URL: string;
+    LinePay_RETURN_CANCEL_URL: string;
     constructor(appName: string, keyData: KeyData);
 }
 export {};

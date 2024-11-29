@@ -591,6 +591,9 @@ class LinePay {
         this.LinePay_CLIENT_ID = "2006615995";
         this.LinePay_SECRET = "05231f46428525ee68c2816f16635145";
         this.LinePay_BASE_URL = "https://api-m.sandbox.paypal.com";
+        this.LinePay_RETURN_HOST = '';
+        this.LinePay_RETURN_CANCEL_URL = '';
+        this.LinePay_RETURN_CONFIRM_URL = '';
     }
 }
 exports.LinePay = LinePay;
