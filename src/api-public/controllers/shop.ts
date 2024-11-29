@@ -897,6 +897,18 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.get('/product/domain', async (req: express.Request, resp: express.Response) => {
+    try {
+        const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getDomain({
+            id: req.query.id as string,
+            search: req.query.search as string,
+            domain: req.query.domain as string,
+        });
+        return response.succ(resp, shopping);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.get('/product/variants', async (req: express.Request, resp: express.Response) => {
     try {
         const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getVariants({

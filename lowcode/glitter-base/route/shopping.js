@@ -323,6 +323,24 @@ export class ApiShop {
             },
         });
     }
+    static getProductDomain(json) {
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/ec/product/domain?${(() => {
+                    let par = [];
+                    json.id && par.push(`id=${json.id}`);
+                    json.search && par.push(`search=${json.search}`);
+                    json.domain && par.push(`domain=${json.domain}`);
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': json.app_name || (window.glitter.getUrlParameter('type') === 'find_idea' ? window.appName : encodeURIComponent(getConfig().config.appName)),
+                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+            },
+        });
+    }
     static orderListFilterString(obj) {
         if (!obj)
             return [];
@@ -564,7 +582,7 @@ export class ApiShop {
         });
     }
     static getInvoice(json) {
-        console.log("json.filter -- ", json);
+        console.log('json.filter -- ', json);
         let filterString = this.invoiceListFilterString(json.filter);
         return BaseApi.create({
             url: getBaseUrl() +
@@ -776,8 +794,8 @@ export class ApiShop {
             data: JSON.stringify({
                 base64: {
                     app_name: app_name,
-                    "receipt-data": receipt
-                }
+                    'receipt-data': receipt,
+                },
             }),
         });
     }
@@ -884,7 +902,7 @@ export class ApiShop {
         const passData = {
             invoiceNo: invoiceNo,
             voidReason: voidReason,
-            createDate: createDate
+            createDate: createDate,
         };
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_invoice`,

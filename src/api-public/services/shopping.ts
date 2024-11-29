@@ -520,6 +520,44 @@ export class Shopping {
         }
     }
 
+    public async querySqlBySEO(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
+        let sql = `SELECT id, content->>'$.title' as title, content->>'$.seo' as seo
+                   FROM \`${this.app}\`.t_manager_post
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        if (query.id) {
+            const data = (
+                await db.query(
+                    `SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`,
+                    []
+                )
+            )[0];
+            return {data: data, result: !!data};
+        } else {
+            return {
+                data: (
+                    await db.query(
+                        `SELECT *
+                         FROM (${sql}) as subqyery
+                             limit ${query.page * query.limit}
+                            , ${query.limit}`,
+                        []
+                    )
+                ),
+                total: (
+                    await db.query(
+                        `SELECT count(1)
+                         FROM (${sql}) as subqyery`,
+                        []
+                    )
+                )[0]['count(1)'],
+            };
+        }
+    }
+
     public async querySqlByVariants(
         querySql: string[],
         query: {
@@ -3942,6 +3980,47 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
         }
     }
+
+    async getDomain(query: {
+        id?: string;
+        search?: string;
+        domain?: string;
+    }) {
+        try {
+            let querySql = [`(content->>'$.type'='product')`];
+            
+            if (query.search) {
+                querySql.push(
+                    `(${[
+                        `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                        `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
+                        `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
+                    ].join(' or ')})`
+                );
+            }
+            if (query.domain) {
+                querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+            }
+            if (`${query.id || ''}`) {
+                if (`${query.id}`.includes(',')) {
+                    querySql.push(`id in (${query.id})`);
+                } else {
+                    querySql.push(`id = ${query.id}`);
+                }
+            }
+            
+
+            const data = await this.querySqlBySEO(querySql, {
+                limit: 10000,
+                page: 0,
+                ...query
+            });
+            return data;
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
+        }
+    }
+
 
     async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
         try {

@@ -318,6 +318,29 @@ class Shopping {
             };
         }
     }
+    async querySqlBySEO(querySql, query) {
+        let sql = `SELECT id, content->>'$.title' as title, content->>'$.seo' as seo
+                   FROM \`${this.app}\`.t_manager_post
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        if (query.id) {
+            const data = (await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`, []))[0];
+            return { data: data, result: !!data };
+        }
+        else {
+            return {
+                data: (await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery
+                             limit ${query.page * query.limit}
+                            , ${query.limit}`, [])),
+                total: (await database_js_1.default.query(`SELECT count(1)
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            };
+        }
+    }
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
@@ -3107,6 +3130,34 @@ class Shopping {
                 }
             })();
             const data = await this.querySqlByVariants(querySql, query);
+            return data;
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
+        }
+    }
+    async getDomain(query) {
+        try {
+            let querySql = [`(content->>'$.type'='product')`];
+            if (query.search) {
+                querySql.push(`(${[
+                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                    `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
+                    `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
+                ].join(' or ')})`);
+            }
+            if (query.domain) {
+                querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+            }
+            if (`${query.id || ''}`) {
+                if (`${query.id}`.includes(',')) {
+                    querySql.push(`id in (${query.id})`);
+                }
+                else {
+                    querySql.push(`id = ${query.id}`);
+                }
+            }
+            const data = await this.querySqlBySEO(querySql, Object.assign({ limit: 10000, page: 0 }, query));
             return data;
         }
         catch (e) {

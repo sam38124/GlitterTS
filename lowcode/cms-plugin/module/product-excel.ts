@@ -153,7 +153,7 @@ export class ProductExcel {
             const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
             const blobData: Blob = new Blob([buffer], { type: EXCEL_TYPE });
             const data1 = data.response;
-            dialog.dataLoading({ visible: true });
+            dialog.dataLoading({ visible: true, text: '資料處理中' });
             $.ajax({
                 url: data1.url,
                 type: 'put',
@@ -172,7 +172,7 @@ export class ProductExcel {
                 },
                 error: () => {
                     dialog.dataLoading({ visible: false });
-                    dialog.errorMessage({ text: '上傳失敗' });
+                    dialog.errorMessage({ text: '發生錯誤' });
                 },
             });
         });
@@ -218,10 +218,27 @@ export class ProductExcel {
 
     // 匯入excel
     async importData(notifyId: string, file: any) {
-        await this.loadScript();
-        const reader = new FileReader();
         const dialog = new ShareDialog(this.gvc.glitter);
         dialog.dataLoading({ visible: true, text: '資料處理中' });
+
+        await this.loadScript();
+        const reader = new FileReader();
+        const allProductDomain: string[] = await new Promise<string[]>((resolve, reject) => {
+            ApiShop.getProductDomain({}).then((data) => {
+                if (data.result && data.response.data) {
+                    const list = data.response.data.map((item: any) => {
+                        if (item.seo) {
+                            const seo = JSON.parse(item.seo);
+                            return seo.domain ? `${seo.domain}` : '';
+                        }
+                        return '';
+                    });
+                    resolve(list.filter((domain: string) => domain.length > 0));
+                } else {
+                    resolve([]);
+                }
+            });
+        });
 
         reader.onload = async (e) => {
             const arrayBuffer = e.target!.result;
@@ -284,17 +301,26 @@ export class ProductExcel {
                     weight: 0,
                 };
             };
-
-            const domainList = data.map((item: string[]) => item[5]);
-            function hasDuplicates(arr: string[]) {
-                const filteredArr = arr.filter((item) => item.trim() !== ''); // 過濾掉空白字串
-                return new Set(filteredArr).size !== filteredArr.length;
-            }
-            if (hasDuplicates(domainList)) {
+            function errorCallback(text: string) {
                 error = true;
                 dialog.dataLoading({ visible: false });
-                dialog.infoMessage({ text: '「商品連結」的值不可重複' });
-                return;
+                dialog.infoMessage({ text });
+            }
+
+            const domainList = data.map((item: string[]) => item[5]);
+
+            // 判斷excel中是否有重複的domain
+            const filteredArr = domainList.filter((item: string) => item.trim() !== ''); // 過濾掉空白字串
+            const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+            if (hasDuplicates) {
+                errorCallback('「商品連結」的值不可重複');
+            }
+
+            // 判斷已建立產品中是否有重複存在的domain
+            const productDomainSet = new Set(allProductDomain);
+            const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
+            if (duplicateDomain) {
+                errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
             }
 
             data.forEach((row: any, index: number) => {
@@ -338,8 +364,7 @@ export class ProductExcel {
                         productData.collection.forEach((row: any) => {
                             let collection = row.replace(/\s+/g, '');
                             if (regex.test(collection)) {
-                                error = true;
-                                dialog.infoMessage({ text: `第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別` });
+                                errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
                                 return;
                             }
 

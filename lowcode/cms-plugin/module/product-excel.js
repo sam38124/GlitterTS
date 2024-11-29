@@ -85,7 +85,7 @@ export class ProductExcel {
             const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
             const blobData = new Blob([buffer], { type: EXCEL_TYPE });
             const data1 = data.response;
-            dialog.dataLoading({ visible: true });
+            dialog.dataLoading({ visible: true, text: '資料處理中' });
             $.ajax({
                 url: data1.url,
                 type: 'put',
@@ -104,7 +104,7 @@ export class ProductExcel {
                 },
                 error: () => {
                     dialog.dataLoading({ visible: false });
-                    dialog.errorMessage({ text: '上傳失敗' });
+                    dialog.errorMessage({ text: '發生錯誤' });
                 },
             });
         });
@@ -144,10 +144,27 @@ export class ProductExcel {
     }
     importData(notifyId, file) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.loadScript();
-            const reader = new FileReader();
             const dialog = new ShareDialog(this.gvc.glitter);
             dialog.dataLoading({ visible: true, text: '資料處理中' });
+            yield this.loadScript();
+            const reader = new FileReader();
+            const allProductDomain = yield new Promise((resolve, reject) => {
+                ApiShop.getProductDomain({}).then((data) => {
+                    if (data.result && data.response.data) {
+                        const list = data.response.data.map((item) => {
+                            if (item.seo) {
+                                const seo = JSON.parse(item.seo);
+                                return seo.domain ? `${seo.domain}` : '';
+                            }
+                            return '';
+                        });
+                        resolve(list.filter((domain) => domain.length > 0));
+                    }
+                    else {
+                        resolve([]);
+                    }
+                });
+            });
             reader.onload = (e) => __awaiter(this, void 0, void 0, function* () {
                 const arrayBuffer = e.target.result;
                 const workbook = new this.ExcelJS.Workbook();
@@ -188,16 +205,21 @@ export class ProductExcel {
                         weight: 0,
                     };
                 };
-                const domainList = data.map((item) => item[5]);
-                function hasDuplicates(arr) {
-                    const filteredArr = arr.filter((item) => item.trim() !== '');
-                    return new Set(filteredArr).size !== filteredArr.length;
-                }
-                if (hasDuplicates(domainList)) {
+                function errorCallback(text) {
                     error = true;
                     dialog.dataLoading({ visible: false });
-                    dialog.infoMessage({ text: '「商品連結」的值不可重複' });
-                    return;
+                    dialog.infoMessage({ text });
+                }
+                const domainList = data.map((item) => item[5]);
+                const filteredArr = domainList.filter((item) => item.trim() !== '');
+                const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+                if (hasDuplicates) {
+                    errorCallback('「商品連結」的值不可重複');
+                }
+                const productDomainSet = new Set(allProductDomain);
+                const duplicateDomain = domainList.find((domain) => domain.length > 0 && productDomainSet.has(domain));
+                if (duplicateDomain) {
+                    errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
                 }
                 data.forEach((row, index) => {
                     var _a;
@@ -239,8 +261,7 @@ export class ProductExcel {
                             productData.collection.forEach((row) => {
                                 let collection = row.replace(/\s+/g, '');
                                 if (regex.test(collection)) {
-                                    error = true;
-                                    dialog.infoMessage({ text: `第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別` });
+                                    errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
                                     return;
                                 }
                                 function splitStringIncrementally(input) {

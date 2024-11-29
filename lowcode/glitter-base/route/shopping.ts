@@ -317,7 +317,7 @@ export class ApiShop {
         productType?: string;
         filter_visible?: string;
         app_name?: string;
-        show_hidden?:boolean
+        show_hidden?: boolean;
     }) {
         return BaseApi.create({
             url:
@@ -340,11 +340,31 @@ export class ApiShop {
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
                     json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
-                    if(location.pathname.includes('/hidden/')) {
+                    if (location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
-                    }else if ( (window as any).glitter.getUrlParameter('function')==='user-editor') {
+                    } else if ((window as any).glitter.getUrlParameter('function') === 'user-editor') {
                         par.push(`filter_visible=true`);
                     }
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': json.app_name || ((window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName)),
+                Authorization: ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
+            },
+        });
+    }
+
+    static getProductDomain(json: { id?: string; search?: string; domain?: string; app_name?: string }) {
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/ec/product/domain?${(() => {
+                    let par = [];
+                    json.id && par.push(`id=${json.id}`);
+                    json.search && par.push(`search=${json.search}`);
+                    json.domain && par.push(`domain=${json.domain}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -644,16 +664,9 @@ export class ApiShop {
             });
         });
     }
-    static getInvoice(json: {
-        limit: number;
-        page: number;
-        search?: string;
-        searchType?: string;
-        orderString?: string;
-        filter?: any;
-    }) {
-        console.log("json.filter -- " , json)
-        let filterString = this.invoiceListFilterString(json.filter)
+    static getInvoice(json: { limit: number; page: number; search?: string; searchType?: string; orderString?: string; filter?: any }) {
+        console.log('json.filter -- ', json);
+        let filterString = this.invoiceListFilterString(json.filter);
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));
         return BaseApi.create({
@@ -676,16 +689,8 @@ export class ApiShop {
             },
         });
     }
-    static getAllowance(json: {
-        limit: number;
-        page: number;
-        search?: string;
-        searchType?: string;
-        orderString?: string;
-        filter?: any;
-    }) {
-
-        let filterString = this.allowanceListFilterString(json.filter)
+    static getAllowance(json: { limit: number; page: number; search?: string; searchType?: string; orderString?: string; filter?: any }) {
+        let filterString = this.allowanceListFilterString(json.filter);
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));
         return BaseApi.create({
@@ -924,7 +929,7 @@ export class ApiShop {
         });
     }
 
-    public static app_subscription(receipt:string,app_name:string){
+    public static app_subscription(receipt: string, app_name: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
             type: 'POST',
@@ -934,9 +939,10 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                base64:{
-                    app_name:app_name,
-                    "receipt-data": receipt }
+                base64: {
+                    app_name: app_name,
+                    'receipt-data': receipt,
+                },
             }),
         });
     }
@@ -1045,7 +1051,7 @@ export class ApiShop {
         orderBy?: string;
         status?: string;
         stockCount?: { key: string; value: string };
-        productType?:'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all'
+        productType?: 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all';
     }) {
         return BaseApi.create({
             url:
@@ -1118,25 +1124,24 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization:  getConfig().config.token,
+                Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
         });
     }
-    static voidInvoice(invoiceNo:string , voidReason:string ,createDate:string
-    ) {
+    static voidInvoice(invoiceNo: string, voidReason: string, createDate: string) {
         const passData = {
-            invoiceNo:invoiceNo,
-            voidReason:voidReason,
-            createDate:createDate
-        }
+            invoiceNo: invoiceNo,
+            voidReason: voidReason,
+            createDate: createDate,
+        };
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_invoice`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization:  getConfig().config.token,
+                Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
         });
@@ -1148,25 +1153,24 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization:  getConfig().config.token,
+                Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
         });
     }
-    static voidAllowance(invoiceNo:string , allowanceNo:string , voidReason:string
-    ) {
+    static voidAllowance(invoiceNo: string, allowanceNo: string, voidReason: string) {
         const passData = {
-            invoiceNo:invoiceNo,
-            allowanceNo:allowanceNo,
-            voidReason:voidReason,
-        }
+            invoiceNo: invoiceNo,
+            allowanceNo: allowanceNo,
+            voidReason: voidReason,
+        };
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/void_allowance`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization:  getConfig().config.token,
+                Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
         });

@@ -181,6 +181,20 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    querySqlBySEO(querySql: string[], query: {
+        page: number;
+        limit: number;
+        id?: string;
+        order_by?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
     querySqlByVariants(querySql: string[], query: {
         page: number;
         limit: number;
@@ -463,6 +477,19 @@ export declare class Shopping {
         max_price?: string;
         stockCount?: string;
         productType?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
+    getDomain(query: {
+        id?: string;
+        search?: string;
+        domain?: string;
     }): Promise<{
         data: any;
         result: boolean;
