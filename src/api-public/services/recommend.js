@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Recommend = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
+const shopping_js_1 = require("./shopping.js");
 class Recommend {
     constructor(app, token) {
         this.app = app;
@@ -31,6 +32,19 @@ class Recommend {
             `, []);
             const total = await database_1.default.query(`SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
             `, []);
+            for (const link of links) {
+                link.total_price = 0;
+                const orders = await new shopping_js_1.Shopping(this.app, this.token).getCheckOut({
+                    page: 0,
+                    limit: 5000,
+                    distribution_code: link.code
+                });
+                link.orders = orders.data.length;
+                orders.data.map((order) => {
+                    link.total_price += order.orderData.total - order.orderData.shipment_fee;
+                });
+                link.sharing_bonus = parseInt(`${link.total_price * parseFloat(`${link.content.share_value}`) / 100}`, 10);
+            }
             return { data: links, total: total[0].c };
         }
         catch (error) {

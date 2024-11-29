@@ -130,7 +130,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -374,6 +374,7 @@ export declare class Shopping {
         orderString?: string;
         archived?: string;
         returnSearch?: string;
+        distribution_code?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;

@@ -2199,6 +2199,7 @@ export class Shopping {
         orderString?: string;
         archived?: string;
         returnSearch?: string;
+        distribution_code?: string;
     }) {
         try {
             let querySql = ['1=1'];
@@ -2239,6 +2240,13 @@ export class Shopping {
                     temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
                 }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
+
+            if (query.distribution_code) {
+                let codes = query.distribution_code.split(',');
+                let temp = '';
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
 

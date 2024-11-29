@@ -1660,6 +1660,12 @@ class Shopping {
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
+            if (query.distribution_code) {
+                let codes = query.distribution_code.split(',');
+                let temp = '';
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
             if (query.is_pos === 'true') {
                 querySql.push(`orderData->>'$.orderSource'='POS'`);
             }
