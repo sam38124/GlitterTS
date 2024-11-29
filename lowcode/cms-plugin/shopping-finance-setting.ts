@@ -1149,13 +1149,13 @@ export class ShoppingFinanceSetting {
                                                                         <div class="d-flex flex-column" style="gap:18px;">
                                                                             <div class="tx_normal fw-bold">服務商選擇</div>
                                                                             ${[
-                                                                                {
-                                                                                    title: html` <div class="d-flex flex-column">
-                                                                                        藍新發票
-                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                    </div>`,
-                                                                                    value: 'ezpay',
-                                                                                },
+                                                                                // {
+                                                                                //     title: html` <div class="d-flex flex-column">
+                                                                                //         藍新發票
+                                                                                //         <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                //     </div>`,
+                                                                                //     value: 'ezpay',
+                                                                                // },
                                                                                 {
                                                                                     title: html` <div class="d-flex flex-column">
                                                                                         綠界發票

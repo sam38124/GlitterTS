@@ -251,7 +251,7 @@ export class PdClass {
                         <div class="mt-3"></div>`;
         }))}
             <div class="d-flex gap-3" style="${document.body.clientWidth > 768 ? 'height: 46px;' : 'flex-direction: column;'} ">
-                <div class="d-flex gap-2 align-items-center">
+                <div class=" gap-2 align-items-center ${(obj.with_qty === false) ? `d-none` : `d-flex`}">
                     <span>數量</span>
                     <select
                         class="form-select custom-select"
@@ -304,40 +304,22 @@ export class PdClass {
                 return html `<button
                             class="add-cart-btn"
                             onclick="${gvc.event(() => {
-                    ApiCart.addToCart(`${prod.id}`, vm.specs, vm.quantity);
-                    Ad.gtagEvent('add_to_cart', {
-                        currency: 'TWD',
-                        value: parseInt(`${variant.sale_price}`, 10) * parseInt(`${vm.quantity}`, 10),
-                        items: [
-                            {
-                                item_id: prod.id,
-                                item_name: prod.title,
-                                item_variant: variant.spec.length > 0 ? variant.spec.join('-') : '',
-                                price: variant.sale_price,
-                                quantity: parseInt(`${vm.quantity}`, 10),
-                            },
-                        ],
-                    });
-                    Ad.fbqEvent('AddToCart', {
-                        contents: [
-                            {
-                                id: prod.id,
-                                quantity: parseInt(`${vm.quantity}`, 10),
-                            },
-                        ],
-                        content_type: 'product',
-                        value: parseInt(`${variant.sale_price}`, 10) * parseInt(`${vm.quantity}`, 10),
-                        currency: 'TWD',
-                    });
-                    gvc.glitter.recreateView('.js-cart-count');
-                    gvc.glitter.recreateView('.shopping-cart');
-                    PdClass.jumpAlert({
-                        gvc,
-                        text: html `${prod.title} ${vm.specs.length > 0 ? `(${vm.specs.join('/')})` : ''}<br />加入成功`,
-                        justify: 'top',
-                        align: 'center',
-                        width: 300,
-                    });
+                    if (obj.only_select) {
+                        obj.only_select({ id: prod.id, specs: vm.specs });
+                    }
+                    else {
+                        ApiCart.addToCart(`${prod.id}`, vm.specs, vm.quantity);
+                        gvc.glitter.recreateView('.js-cart-count');
+                        gvc.glitter.recreateView('.shopping-cart');
+                        PdClass.jumpAlert({
+                            gvc,
+                            text: html `${prod.title} ${vm.specs.length > 0 ? `(${vm.specs.join('/')})` : ''}<br />加入成功`,
+                            justify: 'top',
+                            align: 'center',
+                            width: 300,
+                        });
+                        obj.callback && obj.callback();
+                    }
                 })}"
                         >
                             加入購物車

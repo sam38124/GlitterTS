@@ -252,7 +252,7 @@ export class BgProduct {
         }, 'productsDialog');
     }
 
-    static getProductOpts = (def: (number | string)[]) => {
+    static getProductOpts = (def: (number | string)[],product_type?: 'product' | 'addProduct' | 'giveaway' ) => {
         return new Promise<OptionsItem[]>((resolve) => {
             if (!def || def.length === 0) {
                 resolve([]);
@@ -261,6 +261,7 @@ export class BgProduct {
             ApiShop.getProduct({
                 page: 0,
                 limit: 99999,
+                productType:product_type,
                 id_list: def.map((d) => `${d}`).join(','),
             }).then((data) => {
                 resolve(

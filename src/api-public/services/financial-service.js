@@ -41,7 +41,6 @@ class FinancialService {
     }
     async createOrderPage(orderData) {
         orderData.method = orderData.method || 'ALL';
-        return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         }

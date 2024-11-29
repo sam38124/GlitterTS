@@ -71,6 +71,7 @@ type CartItem = {
     spec: string[];
     count: number;
     sale_price: number;
+    is_gift?: boolean;
     collection: string[];
     title: string;
     preview_image: string;
@@ -220,6 +221,7 @@ export declare class Shopping {
                 type: string;
                 value: number;
             };
+            is_gift?: boolean;
         }[];
         customer_info?: any;
         email?: string;
@@ -243,7 +245,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<"" | {
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;
         result?: undefined;
         message?: undefined;

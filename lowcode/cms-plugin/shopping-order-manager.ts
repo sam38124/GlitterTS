@@ -984,6 +984,7 @@ export class ShoppingOrderManager {
                                                                                             style: '',
                                                                                         })}
                                                                                         ${dd.is_add_on_items ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``}
+                                                                                        ${dd.is_gift ? `<div class="">${BgWidget.successInsignia('贈品')}</div>` : ``}
                                                                                     </div>
                                                                                     <div class="d-flex flex-column"
                                                                                          style="gap:2px;">
@@ -1055,6 +1056,20 @@ export class ShoppingOrderManager {
                                                                     }
                                                                 })(),
                                                                 ...orderData.orderData.voucherList.map((dd: any) => {
+                                                                    if(dd.reBackType === 'add_on_items'){
+                                                                        return {
+                                                                            title: '加購優惠',
+                                                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
+                                                                            total: `--`,
+                                                                        }
+                                                                    }
+                                                                    if(dd.reBackType === 'giveaway'){
+                                                                        return {
+                                                                            title: '滿額贈送',
+                                                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
+                                                                            total: `--`,
+                                                                        }
+                                                                    }
                                                                     return {
                                                                         title: '折扣',
                                                                         description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
@@ -1071,7 +1086,7 @@ export class ShoppingOrderManager {
                                                                     .map((dd) => {
                                                                         return html`
                                                                             <div class="d-flex align-items-center justify-content-end">
-                                                                                <div class="tx_normal_14">${dd.title}
+                                                                                <div class="tx_normal_14 " style="text-align: end;">${dd.title}
                                                                                     ${dd.description ?? ''}
                                                                                 </div>
                                                                                 <div class="tx_normal"

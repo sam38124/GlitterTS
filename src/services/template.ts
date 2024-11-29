@@ -9,13 +9,17 @@ export class Template {
     public token?: IToken;
 
     public async verifyPermission(appName: string) {
-        const count = await db.execute(
-            `
-            select count(1)
-            from \`${saasConfig.SAAS_NAME}\`.app_config
-            where (user = ${this.token!.userID} and appName = ${db.escape(appName)})
-        `,
-            []
+        const count = await db.query(
+            `SELECT count(1) 
+                    FROM ${saasConfig.SAAS_NAME}.app_config
+                    WHERE 
+                        (user = ? and appName = ?)
+                        OR appName in (
+                            (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
+                    `,
+            [this.token!.userID, appName, this.token!.userID, appName]
         );
         return count[0]['count(1)'] === 1;
     }

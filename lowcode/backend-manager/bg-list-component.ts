@@ -108,7 +108,7 @@ export class BgListComponent {
 
     showRightMenu(items: FilterItem[]) {
         const glitter = (window.parent as any).glitter;
-        const gvc: GVC = glitter.pageConfig[0].gvc;
+        const gvc: GVC = glitter.pageConfig[glitter.pageConfig.length-1].gvc;
         const menu = glitter.share.NormalPageEditor;
         const vmShow = { id: gvc.glitter.getUUID() };
         menu.closeEvent = () => gvc.notifyDataChange(this.vm.id);

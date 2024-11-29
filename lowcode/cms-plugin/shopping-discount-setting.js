@@ -976,7 +976,7 @@ export class ShoppingDiscountSetting {
                                                                                 loading: true,
                                                                                 data: [],
                                                                             };
-                                                                            BgProduct.getProductOpts(voucherData.add_on_products).then((res) => {
+                                                                            BgProduct.getProductOpts(voucherData.add_on_products, voucherData.reBackType === 'add_on_items' ? 'addProduct' : 'giveaway').then((res) => {
                                                                                 vm.data = res;
                                                                                 vm.loading = false;
                                                                                 gvc.notifyDataChange(vm.id);
