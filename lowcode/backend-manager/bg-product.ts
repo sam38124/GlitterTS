@@ -3,7 +3,7 @@ import { BgWidget } from './bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { StockList } from '../cms-plugin/shopping-product-stock.js';
-import {ProductConfig} from "../cms-plugin/product-config.js";
+import { ProductConfig } from '../cms-plugin/product-config.js';
 
 const html = String.raw;
 
@@ -56,8 +56,18 @@ export class BgProduct {
         }, 'variantsSelector');
     }
 
-    static productsDialog(obj: { gvc:GVC, title?: string; default: (number | string)[]; callback: (value: any) => void; filter?: (data: any) => boolean; productType?: string; single?: boolean;filter_visible?:string,show_product_type?:boolean }) {
-       const glitter=(window.parent as any).glitter
+    static productsDialog(obj: {
+        gvc: GVC;
+        title?: string;
+        default: (number | string)[];
+        callback: (value: any) => void;
+        filter?: (data: any) => boolean;
+        productType?: string;
+        single?: boolean;
+        filter_visible?: string;
+        show_product_type?: boolean;
+    }) {
+        const glitter = (window.parent as any).glitter;
         return (window.parent as any).glitter.innerDialog((gvc: GVC) => {
             const vm = {
                 id: glitter.getUUID(),
@@ -113,77 +123,80 @@ export class BgProduct {
                                                 options: FilterOptions.productOrderBy,
                                             })}
                                         </div>
-                                        ${(gvc.map(
+                                        ${gvc
+                                            .map(
                                                 vm.options
-                                                        .filter((dd) => {
-                                                            return !obj.filter || obj.filter(dd);
-                                                        })
-                                                        .map((opt, index) => {
-                                                            const id = gvc.glitter.getUUID();
-                                                            vm.ids.push({
-                                                                key: opt.key,
-                                                                id: id,
-                                                            });
+                                                    .filter((dd) => {
+                                                        return !obj.filter || obj.filter(dd);
+                                                    })
+                                                    .map((opt, index) => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        vm.ids.push({
+                                                            key: opt.key,
+                                                            id: id,
+                                                        });
 
-                                                            function call() {
-                                                                if (obj.single) {
-                                                                    const tempArray = JSON.parse(JSON.stringify(obj.default));
-                                                                    const tempKey = tempArray[0];
-                                                                    obj.default = [];
-                                                                    vm.ids
-                                                                            .filter((item) => {
-                                                                                return tempArray.includes(item.key);
-                                                                            })
-                                                                            .map((item) => {
-                                                                                gvc.notifyDataChange(item.id);
-                                                                            });
-                                                                    if (tempKey !== opt.key) {
-                                                                        obj.default = [opt.key];
-                                                                    }
-                                                                } else {
-                                                                    if (obj.default.includes(opt.key)) {
-                                                                        obj.default = obj.default.filter((item) => item !== opt.key);
-                                                                    } else {
-                                                                        obj.default.push(opt.key);
-                                                                    }
+                                                        function call() {
+                                                            if (obj.single) {
+                                                                const tempArray = JSON.parse(JSON.stringify(obj.default));
+                                                                const tempKey = tempArray[0];
+                                                                obj.default = [];
+                                                                vm.ids
+                                                                    .filter((item) => {
+                                                                        return tempArray.includes(item.key);
+                                                                    })
+                                                                    .map((item) => {
+                                                                        gvc.notifyDataChange(item.id);
+                                                                    });
+                                                                if (tempKey !== opt.key) {
+                                                                    obj.default = [opt.key];
                                                                 }
-                                                                gvc.notifyDataChange(id);
+                                                            } else {
+                                                                if (obj.default.includes(opt.key)) {
+                                                                    obj.default = obj.default.filter((item) => item !== opt.key);
+                                                                } else {
+                                                                    obj.default.push(opt.key);
+                                                                }
                                                             }
+                                                            gvc.notifyDataChange(id);
+                                                        }
 
-                                                            return gvc.bindView(() => {
-                                                                return {
-                                                                    bind: id,
-                                                                    view: () => {
-                                                                        return html`<input
-                                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                                        type="checkbox"
-                                                                        id="${opt.key}"
-                                                                        name="radio_${vm.id}_${index}"
-                                                                        onclick="${gvc.event(() => call())}"
-                                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                                    />
-                                                                    <div
-                                                                        class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
-                                                                        onclick="${gvc.event(() => call())}"
-                                                                    >
-                                                                        ${BgWidget.validImageBox({
-                                                                            gvc: gvc,
-                                                                            image: opt.image,
-                                                                            width: 40,
-                                                                        })}
-                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column" style="gap:5px;">
-                                                                            ${(obj.show_product_type) ? BgWidget.infoInsignia(`來源:${ProductConfig.getName((opt as any).content as any)}`):''}${opt.value}</div>
-                                                                        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                    </div>`;
-                                                                    },
-                                                                    divCreate: {
-                                                                        class: `d-flex align-items-center`,
-                                                                        style: `gap: 24px`,
-                                                                    },
-                                                                };
-                                                            });
-                                                        })
-                                        ) ).trim() || `<div class="w-100 d-flex align-items-center justify-content-center">尚未加入任何商品，請前往管理中心加入商品。</div>`}
+                                                        return gvc.bindView(() => {
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return html`<input
+                                                                            class="form-check-input mt-0 ${vm.checkClass}"
+                                                                            type="checkbox"
+                                                                            id="${opt.key}"
+                                                                            name="radio_${vm.id}_${index}"
+                                                                            onclick="${gvc.event(() => call())}"
+                                                                            ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                        />
+                                                                        <div
+                                                                            class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
+                                                                            onclick="${gvc.event(() => call())}"
+                                                                        >
+                                                                            ${BgWidget.validImageBox({
+                                                                                gvc: gvc,
+                                                                                image: opt.image,
+                                                                                width: 40,
+                                                                            })}
+                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2">
+                                                                                ${obj.show_product_type ? BgWidget.infoInsignia(ProductConfig.getName((opt as any).content as any)) : ''}${opt.value}
+                                                                            </div>
+                                                                            ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                        </div>`;
+                                                                },
+                                                                divCreate: {
+                                                                    class: `d-flex align-items-center`,
+                                                                    style: `gap: 24px`,
+                                                                },
+                                                            };
+                                                        });
+                                                    })
+                                            )
+                                            .trim() || `<div class="w-100 d-flex align-items-center justify-content-center">尚未加入任何商品，請前往管理中心加入商品。</div>`}
                                     </div>
                                     <div class="c_dialog_bar">
                                         ${BgWidget.cancel(
@@ -231,14 +244,13 @@ export class BgProduct {
                                     }
                                 })(),
                                 productType: obj.productType,
-                                filter_visible:obj.filter_visible,
+                                filter_visible: obj.filter_visible,
                             }).then((data) => {
                                 vm.options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => {
-                                    console.log(product.content);
                                     return {
                                         key: product.content.id,
                                         value: product.content.title,
-                                        content:product.content,
+                                        content: product.content,
                                         image: product.content.preview_image[0] ?? BgWidget.noImageURL,
                                     };
                                 });
@@ -252,7 +264,7 @@ export class BgProduct {
         }, 'productsDialog');
     }
 
-    static getProductOpts = (def: (number | string)[],product_type?: 'product' | 'addProduct' | 'giveaway' ) => {
+    static getProductOpts = (def: (number | string)[], product_type?: 'product' | 'addProduct' | 'giveaway') => {
         return new Promise<OptionsItem[]>((resolve) => {
             if (!def || def.length === 0) {
                 resolve([]);
@@ -261,7 +273,7 @@ export class BgProduct {
             ApiShop.getProduct({
                 page: 0,
                 limit: 99999,
-                productType:product_type,
+                productType: product_type,
                 id_list: def.map((d) => `${d}`).join(','),
             }).then((data) => {
                 resolve(

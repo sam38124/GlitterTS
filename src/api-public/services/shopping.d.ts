@@ -130,7 +130,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -151,6 +151,7 @@ export declare class Shopping {
         min_price?: string;
         max_price?: string;
         status?: string;
+        schedule?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -462,6 +463,12 @@ export declare class Shopping {
         result: boolean;
     }>;
     containsTagSQL(name: string): string;
+    checkDuring(jsonData: {
+        startDate: string;
+        startTime: string;
+        endDate?: string;
+        endTime?: string;
+    }): boolean;
     updateProductCollection(content: string[], id: number): Promise<void>;
     getVariants(query: {
         page: number;

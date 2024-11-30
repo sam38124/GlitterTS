@@ -182,12 +182,36 @@ class Shopping {
             if (query.id_list) {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
+            if (query.status) {
+                let statusTemp = '';
+                let scheduleTemp = '';
+                if (query.schedule === 'true' || query.schedule === 'false') {
+                    scheduleTemp = ` OR (JSON_EXTRACT(content, '$.status') = 'schedule')`;
+                }
+                if (query.status.includes(',')) {
+                    const statusJoin = query.status.split(',').map(status => `"${status.trim()}"`).join(',');
+                    statusTemp = `(JSON_EXTRACT(content, '$.status') IN (${statusJoin}))`;
+                }
+                else {
+                    statusTemp = `(JSON_EXTRACT(content, '$.status') = '${query.status}')`;
+                }
+                querySql.push(`(${statusTemp} ${scheduleTemp})`);
+            }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
-            query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+            console.log(querySql.join(' AND '));
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
+            if (query.schedule === 'true' || query.schedule === 'false') {
+                products.data = products.data.filter((item) => {
+                    const content = item.content;
+                    if (content.status !== 'schedule') {
+                        return true;
+                    }
+                    return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
+                });
+            }
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
@@ -632,6 +656,7 @@ class Shopping {
                         limit: 50,
                         id: b.id,
                         status: 'active',
+                        schedule: 'true',
                     })).data;
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
@@ -731,13 +756,6 @@ class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
-            function checkDuring(jsonData) {
-                const now = new Date();
-                const currentDateTime = now.getTime();
-                const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
-                const endDateTime = jsonData.endDate === undefined ? true : new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
-                return currentDateTime >= startDateTime && (endDateTime || currentDateTime <= endDateTime);
-            }
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -747,7 +765,7 @@ class Shopping {
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
-                    if (checkDuring(content)) {
+                    if (this.checkDuring(content)) {
                         carData.distribution_info = content;
                     }
                 }
@@ -813,6 +831,7 @@ class Shopping {
                             limit: 50,
                             id: `${b}`,
                             status: 'active',
+                            schedule: 'true',
                         })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
@@ -832,7 +851,6 @@ class Shopping {
             let subtotal = 0;
             carData.lineItems.map((item) => {
                 var _a;
-                console.log(`item==>`, item);
                 if (item.is_gift) {
                     item.sale_price = 0;
                 }
@@ -3036,6 +3054,18 @@ class Shopping {
         return `SELECT *
                 FROM \`${this.app}\`.t_manager_post
                 WHERE JSON_CONTAINS(content ->> '$.collection', '"${name}"');`;
+    }
+    checkDuring(jsonData) {
+        const now = new Date().getTime();
+        const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
+        if (isNaN(startDateTime))
+            return false;
+        if (!jsonData.endDate || !jsonData.endTime)
+            return true;
+        const endDateTime = new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
+        if (isNaN(endDateTime))
+            return false;
+        return now >= startDateTime && now <= endDateTime;
     }
     async updateProductCollection(content, id) {
         try {

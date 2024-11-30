@@ -214,6 +214,7 @@ export class Shopping {
         min_price?: string;
         max_price?: string;
         status?: string;
+        schedule?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -343,14 +344,39 @@ export class Shopping {
             if (query.id_list) {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
+            if (query.status) {
+                let statusTemp = '';
+                let scheduleTemp = '';
+                if (query.schedule === 'true' || query.schedule === 'false') {
+                    scheduleTemp = ` OR (JSON_EXTRACT(content, '$.status') = 'schedule')`;
+                }
+                if (query.status.includes(',')){
+                    const statusJoin = query.status.split(',').map(status => `"${status.trim()}"`).join(',');
+                    statusTemp = `(JSON_EXTRACT(content, '$.status') IN (${statusJoin}))`;
+                } else {
+                    statusTemp = `(JSON_EXTRACT(content, '$.status') = '${query.status}')`;
+                }
+                querySql.push(`(${statusTemp} ${scheduleTemp})`);
+            }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
-            query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+            console.log(querySql.join(' AND '));
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
+
+            // 若需要期間限定的判斷
+            if(query.schedule === 'true' || query.schedule === 'false'){
+                products.data = products.data.filter((item:any) => {
+                    const content = item.content
+                    if(content.status !== 'schedule'){
+                        return true
+                    }
+                    return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
+                })
+            }
 
             // 許願清單判斷
             if (this.token && this.token.userID) {
@@ -959,6 +985,7 @@ export class Shopping {
                             limit: 50,
                             id: b.id,
                             status: 'active',
+                            schedule: 'true',
                         })
                     ).data;
 
@@ -1071,24 +1098,6 @@ export class Shopping {
                 carData.user_rebate_sum = data?.point || 0;
             }
 
-            function checkDuring(jsonData: {
-                startDate: string;
-                startTime: string;
-                endDate: string | undefined;
-                endTime: string | undefined
-            }) {
-                // 獲取當前時間
-                const now = new Date();
-                const currentDateTime = now.getTime();
-
-                // 設置開始時間與結束時間
-                const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
-                const endDateTime = jsonData.endDate === undefined ? true : new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
-
-                // 判斷當前時間是否介於開始和結束時間之間
-                return currentDateTime >= startDateTime && (endDateTime || currentDateTime <= endDateTime);
-            }
-
             // 判斷是否有分銷連結
             if (data.distribution_code) {
                 const linkList = await new Recommend(this.app, this.token).getLinkList({
@@ -1099,7 +1108,7 @@ export class Shopping {
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
-                    if (checkDuring(content)) {
+                    if (this.checkDuring(content)) {
                         carData.distribution_info = content;
                     }
                 }
@@ -1177,6 +1186,7 @@ export class Shopping {
                                     limit: 50,
                                     id: `${b}`,
                                     status: 'active',
+                                    schedule: 'true',
                                 })
                             ).data ?? {content: {}}
                         ).content;
@@ -1203,7 +1213,6 @@ export class Shopping {
             // 防止帶入購物金時，總計小於0
             let subtotal = 0;
             carData.lineItems.map((item) => {
-                console.log(`item==>`,item)
                 if(item.is_gift){
                     item.sale_price=0
                 }
@@ -3864,6 +3873,26 @@ export class Shopping {
                 WHERE JSON_CONTAINS(content ->> '$.collection', '"${name}"');`;
     }
 
+    checkDuring(jsonData: {
+        startDate: string;
+        startTime: string;
+        endDate?: string;
+        endTime?: string;
+    }): boolean {
+        const now = new Date().getTime();
+        const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
+        if (isNaN(startDateTime)) return false;
+    
+        if (!jsonData.endDate || !jsonData.endTime) return true;
+    
+        const endDateTime = new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
+        if (isNaN(endDateTime)) return false;
+    
+        return now >= startDateTime && now <= endDateTime;
+    }
+    
+    
+
     async updateProductCollection(content: string[], id: number) {
         try {
             const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
@@ -4029,7 +4058,6 @@ export class Shopping {
         }
     }
 
-
     async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
         try {
             for (const data of query) {
@@ -4144,6 +4172,7 @@ export class Shopping {
             order_id: obj.orderID,
         })
     }
+
     async voidAllowance(obj: {
         invoiceNo: string,
         allowanceNo: string,

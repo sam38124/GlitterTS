@@ -1165,7 +1165,7 @@ export class ShoppingDiscountSetting {
                                         bind: id,
                                         view: () => {
                                             var _a, _b;
-                                            const inputStyle = 'display: block; width:200px;';
+                                            const inputStyle = 'display: block; width: 200px;';
                                             return [
                                                 html ` <div class="tx_700">全館總使用次數</div>
                                                                 ${BgWidget.mbContainer(18)}

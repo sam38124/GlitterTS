@@ -34,15 +34,15 @@ export class StockList {
         option: {
             title: string;
             select_mode: boolean;
-            select_data: { variant:any,product_id:string }[];
+            select_data: { variant: any; product_id: string }[];
             filter_variants: string[];
         } = {
             title: '庫存管理',
             select_data: [],
             select_mode: false,
-            filter_variants: []
+            filter_variants: [],
         },
-        productType:'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all' ='all'
+        productType: 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all' = 'all'
     ) {
         const glitter = gvc.glitter;
 
@@ -274,24 +274,19 @@ export class StockList {
                                                                     searchType: vm.queryType || 'title',
                                                                     orderBy: vm.orderString || undefined,
                                                                     status: (() => {
-                                                                        if (vm.filter.status && vm.filter.status.length === 1) {
-                                                                            switch (vm.filter.status[0]) {
-                                                                                case 'active':
-                                                                                    return 'active';
-                                                                                case 'draft':
-                                                                                    return 'draft';
-                                                                            }
+                                                                        if (vm.filter.status && vm.filter.status.length > 0) {
+                                                                            return vm.filter.status.join(',');
                                                                         }
                                                                         return undefined;
                                                                     })(),
                                                                     collection: vm.filter.collection,
                                                                     stockCount: vm.filter.count,
                                                                     accurate_search_collection: true,
-                                                                    productType:productType
+                                                                    productType: productType,
                                                                 }).then((data) => {
-                                                                    data.response.data=data.response.data.filter((dd:any)=>{
-                                                                        return  !option.filter_variants.includes([dd.product_id].concat(dd.variant_content.spec).join('-'))
-                                                                    })
+                                                                    data.response.data = data.response.data.filter((dd: any) => {
+                                                                        return !option.filter_variants.includes([dd.product_id].concat(dd.variant_content.spec).join('-'));
+                                                                    });
                                                                     vm.dataList = data.response.data;
                                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                                     vmi.originalData = vm.dataList;
@@ -302,17 +297,17 @@ export class StockList {
                                                                     vmi.callback();
                                                                 });
                                                             },
-                                                            item_select:()=>{
-                                                                console.log(vm.dataList)
+                                                            item_select: () => {
+                                                                console.log(vm.dataList);
                                                                 while (option.select_data.length > 0) {
                                                                     option.select_data.shift();
                                                                 }
-                                                                for (const  b of  vm.dataList){
-                                                                    if(b.checked){
+                                                                for (const b of vm.dataList) {
+                                                                    if (b.checked) {
                                                                         option.select_data.push({
-                                                                            variant:b.variant_content,
-                                                                            product_id:b.product_id
-                                                                        })
+                                                                            variant: b.variant_content,
+                                                                            product_id: b.product_id,
+                                                                        });
                                                                     }
                                                                 }
                                                                 // if(vm.dataList[index].checked){
@@ -327,8 +322,8 @@ export class StockList {
                                                                 // gvc.notifyDataChange(vm.filterId);
                                                             },
                                                             rowClick: (data, index) => {
-                                                                if(option.select_mode){
-                                                                    return
+                                                                if (option.select_mode) {
+                                                                    return;
                                                                 }
                                                                 const product = vm.dataList[index].product_content;
                                                                 const variant = vm.dataList[index].variant_content;
@@ -338,20 +333,19 @@ export class StockList {
                                                                 vm.replaceData = product;
                                                                 vm.type = 'editSpec';
                                                             },
-                                                            filter:(option.select_mode)  ? [
-                                                                {
-                                                                    name: '選擇項目',
-                                                                    event: (checkedData) => {
-                                                                     
-                                                                    },
-                                                                },
-                                                            ]:[],
+                                                            filter: option.select_mode
+                                                                ? [
+                                                                      {
+                                                                          name: '選擇項目',
+                                                                          event: (checkedData) => {},
+                                                                      },
+                                                                  ]
+                                                                : [],
                                                         });
-                                                    }catch (e) {
-                                                        console.log(e)
-                                                        return  `${e}`
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                        return `${e}`;
                                                     }
-                                                  
                                                 },
                                             }),
                                         ].join('')

@@ -2,7 +2,7 @@ import { BgWidget } from './bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { StockList } from '../cms-plugin/shopping-product-stock.js';
-import { ProductConfig } from "../cms-plugin/product-config.js";
+import { ProductConfig } from '../cms-plugin/product-config.js';
 const html = String.raw;
 export class BgProduct {
     static variantsSelector(obj) {
@@ -84,7 +84,8 @@ export class BgProduct {
                         options: FilterOptions.productOrderBy,
                     })}
                                         </div>
-                                        ${(gvc.map(vm.options
+                                        ${gvc
+                        .map(vm.options
                         .filter((dd) => {
                         return !obj.filter || obj.filter(dd);
                     })
@@ -125,26 +126,27 @@ export class BgProduct {
                                 bind: id,
                                 view: () => {
                                     return html `<input
-                                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                                        type="checkbox"
-                                                                        id="${opt.key}"
-                                                                        name="radio_${vm.id}_${index}"
-                                                                        onclick="${gvc.event(() => call())}"
-                                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                                    />
-                                                                    <div
-                                                                        class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
-                                                                        onclick="${gvc.event(() => call())}"
-                                                                    >
-                                                                        ${BgWidget.validImageBox({
+                                                                            class="form-check-input mt-0 ${vm.checkClass}"
+                                                                            type="checkbox"
+                                                                            id="${opt.key}"
+                                                                            name="radio_${vm.id}_${index}"
+                                                                            onclick="${gvc.event(() => call())}"
+                                                                            ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                        />
+                                                                        <div
+                                                                            class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
+                                                                            onclick="${gvc.event(() => call())}"
+                                                                        >
+                                                                            ${BgWidget.validImageBox({
                                         gvc: gvc,
                                         image: opt.image,
                                         width: 40,
                                     })}
-                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column" style="gap:5px;">
-                                                                            ${(obj.show_product_type) ? BgWidget.infoInsignia(`來源:${ProductConfig.getName(opt.content)}`) : ''}${opt.value}</div>
-                                                                        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                    </div>`;
+                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2">
+                                                                                ${obj.show_product_type ? BgWidget.infoInsignia(ProductConfig.getName(opt.content)) : ''}${opt.value}
+                                                                            </div>
+                                                                            ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                        </div>`;
                                 },
                                 divCreate: {
                                     class: `d-flex align-items-center`,
@@ -152,7 +154,8 @@ export class BgProduct {
                                 },
                             };
                         });
-                    }))).trim() || `<div class="w-100 d-flex align-items-center justify-content-center">尚未加入任何商品，請前往管理中心加入商品。</div>`}
+                    }))
+                        .trim() || `<div class="w-100 d-flex align-items-center justify-content-center">尚未加入任何商品，請前往管理中心加入商品。</div>`}
                                     </div>
                                     <div class="c_dialog_bar">
                                         ${BgWidget.cancel(gvc.event(() => {
@@ -194,7 +197,6 @@ export class BgProduct {
                         }).then((data) => {
                             vm.options = data.response.data.map((product) => {
                                 var _a;
-                                console.log(product.content);
                                 return {
                                     key: product.content.id,
                                     value: product.content.title,

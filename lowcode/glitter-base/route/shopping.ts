@@ -311,6 +311,7 @@ export class ApiShop {
         maxPrice?: string;
         minPrice?: string;
         status?: string;
+        schedule?: boolean;
         orderBy?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -333,6 +334,9 @@ export class ApiShop {
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);
                     json.minPrice && par.push(`min_price=${json.minPrice}`);
                     json.status && par.push(`status=${json.status}`);
+                    if(json.schedule === true || json.schedule === false){
+                        par.push(`schedule=${json.schedule}`)
+                    }
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.productType && par.push(`productType=${json.productType}`);
