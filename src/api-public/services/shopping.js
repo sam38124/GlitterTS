@@ -832,7 +832,6 @@ class Shopping {
             let subtotal = 0;
             carData.lineItems.map((item) => {
                 var _a;
-                console.log(`item==>`, item);
                 if (item.is_gift) {
                     item.sale_price = 0;
                 }

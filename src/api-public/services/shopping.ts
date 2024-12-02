@@ -1203,7 +1203,6 @@ export class Shopping {
             // 防止帶入購物金時，總計小於0
             let subtotal = 0;
             carData.lineItems.map((item) => {
-                console.log(`item==>`,item)
                 if(item.is_gift){
                     item.sale_price=0
                 }

@@ -69,7 +69,7 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
-//todo 修改付款方式 to paypal
+//todo 修改付款方式 to paypal and to LinePay
 //         return await new LinePay(this.appName,this.keyData).createOrder(orderData);
 //         return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
@@ -800,15 +800,13 @@ export class LinePay {
         user_email: string;
         method: string;
     }) {
+        this.LinePay_RETURN_CONFIRM_URL = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`
+        this.LinePay_RETURN_CANCEL_URL = `${this.keyData.ReturnURL}&payment=false`
         const body = {
             "amount": orderData.total,
             "currency": "TWD",
             "orderId": orderData.orderID,
-            "options":{
-                "shipping":{
-                    "feeAmount":orderData.shipment_fee
-                }
-            },
+            "shippingFee":orderData.shipment_fee,
             "packages": orderData.lineItems.map((data) => {
                 return {
                     "id": data.id,
@@ -821,7 +819,7 @@ export class LinePay {
                             "quantity": data.count,
                             "price": data.sale_price
                         }
-                    ]
+                    ],
                 }
             }),
             "redirectUrls": {
@@ -829,6 +827,19 @@ export class LinePay {
                 "cancelUrl": this.LinePay_RETURN_CANCEL_URL
             }
         };
+        body.packages.push({
+            "id": "shipping",
+            "amount": orderData.shipment_fee,
+            "products": [
+                {
+                    "id": "shipping",
+                    "name": "shipping",
+                    "imageUrl": "",
+                    "quantity": 1,
+                    "price": orderData.shipment_fee
+                }
+            ],
+        })
         const uri = "/payments/request";
         const nonce = new Date().getTime() / 1000;
 
@@ -836,7 +847,6 @@ export class LinePay {
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
 
-        console.log("order -- " , orderData);
 
         const config: AxiosRequestConfig = {
             method: "POST",
@@ -850,9 +860,7 @@ export class LinePay {
             data: body
         };
         try {
-            console.log("into linepay OK --------")
             const response = await axios.request(config);
-            console.log("response -- " , response.data)
             return response.data;
         } catch (error:any) {
             console.error("Error linePay:", error.response?.data || error.message);

@@ -504,7 +504,11 @@ router.delete('/voucher', async (req, resp) => {
 });
 async function redirect_link(req, resp) {
     try {
+        console.log(`req.query=>`, req.query);
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
+        if (req.query.LinePay && req.query.LinePay === 'true') {
+            await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+        }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis_js_1.default.getValue(`paypal` + req.query.orderID);
             const paypal = new financial_service_js_1.PayPal(req.query.appName, {

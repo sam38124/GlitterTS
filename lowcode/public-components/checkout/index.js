@@ -3118,18 +3118,15 @@ export class CheckoutIndex {
                                 give_away: ApiCart.cart.give_away
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
+                                console.log("res -- ", res);
                                 if (res.response.off_line || res.response.is_free) {
                                     ApiCart.clearCart();
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    if (res.response.form.approveLink) {
-                                        location.href = res.response.form.approveLink;
-                                    }
-                                    else {
-                                        const id = gvc.glitter.getUUID();
-                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                        document.querySelector(`#${id} #submit`).click();
+                                    if (res.response.form.returnCode == "0000") {
+                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.form.info.paymentUrl.web);
+                                        location.href = res.response.form.info.paymentUrl.web;
                                     }
                                     ApiCart.clearCart();
                                 }
@@ -3254,7 +3251,7 @@ export class CheckoutIndex {
                 }).map((dd) => {
                     gift += dd.count;
                 });
-                return gift < gift_need;
+                return false && gift < gift_need;
             })()) {
                 widget.event('error', { title: '請選擇「贈品」' });
             }
