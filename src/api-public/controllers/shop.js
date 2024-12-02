@@ -511,15 +511,11 @@ async function redirect_link(req, resp) {
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis_js_1.default.getValue(`paypal` + req.query.orderID);
-            const paypal = new financial_service_js_1.PayPal(req.query.appName, {
-                ActionURL: '',
-                HASH_IV: '',
-                HASH_KEY: '',
-                MERCHANT_ID: '',
-                NotifyURL: '',
-                ReturnURL: '',
-                TYPE: 'PayPal',
-            });
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: req.query.appName,
+                key: 'glitter_finance',
+            }))[0].value.paypal;
+            const paypal = new financial_service_js_1.PayPal(req.query.appName, keyData);
             const data = await paypal.confirmAndCaptureOrder(check_id);
             if (data.status === 'COMPLETED') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
@@ -575,11 +571,12 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
         let decodeData = undefined;
         const appName = req.query['g-app'];
+        const type = req.query['type'];
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: appName,
             key: 'glitter_finance',
-        }))[0].value;
-        if (keyData.TYPE === 'ecPay') {
+        }))[0].value[type];
+        if (type === 'ecPay') {
             const responseCheckMacValue = `${req.body.CheckMacValue}`;
             delete req.body.CheckMacValue;
             const chkSum = financial_service_js_1.EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
@@ -591,7 +588,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                 },
             };
         }
-        if (keyData.TYPE === 'newWebPay') {
+        if (type === 'newWebPay') {
             decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
                 HASH_IV: keyData.HASH_IV,
                 HASH_KEY: keyData.HASH_KEY,

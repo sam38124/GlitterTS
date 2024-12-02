@@ -375,9 +375,9 @@ class PayPal {
     constructor(appName, keyData) {
         this.keyData = keyData;
         this.appName = appName;
-        this.PAYPAL_CLIENT_ID = "AfxmQilUtZiATwO5vEZH_RPRJWBTiEGhUm27Wu5LyElZ7_OlXGwkc2vDlpUPsJHjoA8rVARy7i8A6VbY";
-        this.PAYPAL_SECRET = "EKSx6S6nnjPgrjcEPLFytJGqwakuZ5vUcTv-kF-eKkprd7Ci22P7UV93-85b0Xupa9ggULebx9Rvsx7e";
-        this.PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";
+        this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID;
+        this.PAYPAL_SECRET = keyData.PAYPAL_SECRET;
+        this.PAYPAL_BASE_URL = (keyData.BETA) ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com";
     }
     async getAccessToken() {
         var _a;
@@ -546,41 +546,6 @@ class PayPal {
             console.error("Error during order confirmation or payment capture:", error.message);
             throw error;
         }
-    }
-    async saveMoney(orderData) {
-        const params = {
-            MerchantID: this.keyData.MERCHANT_ID,
-            RespondType: 'JSON',
-            TimeStamp: Math.floor(Date.now() / 1000),
-            Version: '2.0',
-            MerchantOrderNo: new Date().getTime(),
-            Amt: orderData.total,
-            ItemDesc: orderData.title,
-            NotifyURL: this.keyData.NotifyURL,
-            ReturnURL: this.keyData.ReturnURL,
-        };
-        const appName = this.appName;
-        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
-            `, [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]);
-        const qs = FinancialService.JsonToQueryString(params);
-        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-        const tradeSha = crypto_1.default.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
-        const subMitData = {
-            actionURL: this.keyData.ActionURL,
-            MerchantOrderNo: params.MerchantOrderNo,
-            MerchantID: this.keyData.MERCHANT_ID,
-            TradeInfo: tradeInfo,
-            TradeSha: tradeSha,
-            Version: params.Version,
-        };
-        return html `<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
-            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
-            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
-            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
-            <input type="hidden" name="Version" value="${subMitData.Version}" />
-            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
-            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-        </form>`;
     }
 }
 exports.PayPal = PayPal;

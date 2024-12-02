@@ -244,8 +244,8 @@ class SharePermission {
             }
             const userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `, [email]))[0] || { userID: -999 };
-            await database_1.default.query(`DELETE FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
-                `, [userData.userID, email, base.app]);
+            await database_1.default.query(`DELETE FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE  appName = ? and (user = ? or config->>'$.verifyEmail' = ? or user = ?);
+                `, [base.app, userData.userID, email, email]);
             return Object.assign(Object.assign({ result: true }, base), { email });
         }
         catch (e) {

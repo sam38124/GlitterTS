@@ -199,14 +199,15 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
     try {
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
+        const type=req.query['type'] as string;
         const keyData = (
             await Private_config.getConfig({
                 appName: appName,
                 key: 'glitter_finance',
             })
-        )[0].value;
+        )[0].value[type];
 
-        if (keyData.TYPE === 'ecPay') {
+        if (type === 'ecPay') {
             const responseCheckMacValue = `${req.body.CheckMacValue}`;
             delete req.body.CheckMacValue;
             const chkSum = EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
@@ -218,7 +219,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                 },
             };
         }
-        if (keyData.TYPE === 'newWebPay') {
+        if (type === 'newWebPay') {
             decodeData = JSON.parse(
                 new EzPay(appName, {
                     HASH_IV: keyData.HASH_IV,
@@ -227,7 +228,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                     NotifyURL: '',
                     ReturnURL: '',
                     MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
+                    TYPE: type,
                 }).decode(req.body.TradeInfo)
             );
         }

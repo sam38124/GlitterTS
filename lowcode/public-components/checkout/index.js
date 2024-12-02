@@ -3124,10 +3124,15 @@ export class CheckoutIndex {
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    const id = gvc.glitter.getUUID();
-                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                    document.querySelector(`#${id} #submit`).click();
                                     ApiCart.clearCart();
+                                    if (res.response.approveLink) {
+                                        location.href = res.response.approveLink;
+                                    }
+                                    else {
+                                        const id = gvc.glitter.getUUID();
+                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                        document.querySelector(`#${id} #submit`).click();
+                                    }
                                 }
                             });
                         }))}" style="width:200px;">
@@ -3213,6 +3218,14 @@ export class CheckoutIndex {
                     pass = false;
                     widget.event('error', { title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)' });
                 }
+            }
+            if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])) {
+                ['MerchantID', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSAddress', 'CVSTelephone', 'CVSOutSide', 'CVSStoreName'].map((dd) => {
+                    const value = decodeURIComponent(window.glitter.getUrlParameter(dd));
+                    if (value) {
+                        subData[dd] = value;
+                    }
+                });
             }
             if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
                 widget.event('error', { title: '請輸入「配送地址」' });
@@ -3329,20 +3342,28 @@ export class CheckoutIndex {
     static getPaymentMethod(cartData) {
         var _a;
         let array = [];
-        switch (cartData.payment_setting.TYPE) {
-            case 'newWebPay':
-                array.push({
-                    name: '藍新金流',
-                    value: 'newWebPay',
-                });
-                break;
-            case 'ecPay':
-                array.push({
-                    name: '綠界金流',
-                    value: 'ecPay',
-                });
-                break;
-        }
+        cartData.payment_setting.map((dd) => {
+            switch (dd.key) {
+                case 'newWebPay':
+                    array.push({
+                        name: '藍新金流',
+                        value: 'newWebPay',
+                    });
+                    break;
+                case 'ecPay':
+                    array.push({
+                        name: '綠界金流',
+                        value: 'ecPay',
+                    });
+                    break;
+                case 'paypal':
+                    array.push({
+                        name: 'PayPal',
+                        value: 'paypal',
+                    });
+                    break;
+            }
+        });
         cartData.off_line_support = (_a = cartData.off_line_support) !== null && _a !== void 0 ? _a : {};
         cartData.off_line_support.atm &&
             array.push({
@@ -3402,7 +3423,7 @@ export class CheckoutIndex {
             .${className}:checked[type='checkbox'] {
                 border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
                 background-color: #fff;
-                background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')});
+                background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')}) !important;
                 background-position: center center;
             }
         `);

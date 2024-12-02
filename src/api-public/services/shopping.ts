@@ -1,7 +1,7 @@
 import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService from './financial-service.js';
+import FinancialService, {PayPal} from './financial-service.js';
 import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import {User} from './user.js';
@@ -22,6 +22,7 @@ import {SMS} from './sms.js';
 import {LineMessage} from './line-message';
 import {EcInvoice} from "./EcInvoice";
 import app from "../../app";
+import {onlinePayArray, paymentInterface} from "../models/glitter-finance.js";
 
 type BindItem = {
     id: string;
@@ -104,7 +105,7 @@ type CartItem = {
     spec: string[];
     count: number;
     sale_price: number;
-    is_gift?:boolean;
+    is_gift?: boolean;
     collection: string[];
     title: string;
     preview_image: string;
@@ -365,7 +366,9 @@ export class Shopping {
             console.log(querySql.join(' AND '));
 
             // 產品清單
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
+                return product
+            });
 
             // 若需要期間限定的判斷
             if(query.schedule === 'true' || query.schedule === 'false'){
@@ -595,8 +598,8 @@ export class Shopping {
     ) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -685,10 +688,10 @@ export class Shopping {
             };
             axios
                 .request(config)
-                .then((response:any) => {
+                .then((response: any) => {
                     resolve(response.data.returnCode === '0000');
                 })
-                .catch((error:any) => {
+                .catch((error: any) => {
                     resolve(false);
                 });
         });
@@ -709,7 +712,7 @@ export class Shopping {
                     type: string;
                     value: number;
                 };
-                is_gift?:boolean
+                is_gift?: boolean
             }[];
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
@@ -976,7 +979,7 @@ export class Shopping {
             }
 
             const add_on_items: any[] = [];
-            let gift_product: any[] =[]
+            let gift_product: any[] = []
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -1025,8 +1028,8 @@ export class Shopping {
                                 if (type !== 'manual' && (!pd.productType.giveaway)) {
                                     carData.total += variant.sale_price * b.count;
                                 }
-                                if(pd.productType.giveaway){
-                                    b.sale_price=0
+                                if (pd.productType.giveaway) {
+                                    b.sale_price = 0
                                 }
                             }
                             // 當為結帳時則更改商品庫存數量
@@ -1066,7 +1069,7 @@ export class Shopping {
                         }
                         if (pd.productType.giveaway) {
                             (b as any).is_gift = true;
-                            b.sale_price=0;
+                            b.sale_price = 0;
                             gift_product.push(b);
                         }
                     }
@@ -1125,7 +1128,7 @@ export class Shopping {
                     return !gift_product.includes(dd);
                 });
                 // 濾出可用的加購商品，避免折扣被double所以要stringify
-                const c_carData=await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
+                const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
                 add_on_items.map((dd) => {
                     try {
                         if (
@@ -1151,22 +1154,22 @@ export class Shopping {
 
                 carData.voucherList.filter((dd) => {
                     return dd.reBackType === 'giveaway';
-                }).map((dd)=>{
+                }).map((dd) => {
                     can_add_gift.push(dd.add_on_products)
                 });
-                gift_product.map((dd)=>{
-                    let max_count=can_add_gift.filter((d1)=>{
+                gift_product.map((dd) => {
+                    let max_count = can_add_gift.filter((d1) => {
                         return d1.includes(dd.id)
                     }).length;
-                    if(dd.count<=max_count){
-                        for (let a=0 ; a<dd.count;a++){
-                            let find=false
-                            can_add_gift=can_add_gift.filter((d1)=>{
-                                if((d1.includes(dd.id)) || find){
-                                    find=true
+                    if (dd.count <= max_count) {
+                        for (let a = 0; a < dd.count; a++) {
+                            let find = false
+                            can_add_gift = can_add_gift.filter((d1) => {
+                                if ((d1.includes(dd.id)) || find) {
+                                    find = true
                                     return false;
-                                }else{
-                                    return  true
+                                } else {
+                                    return true
                                 }
                             })
                         }
@@ -1197,15 +1200,15 @@ export class Shopping {
             }
 
             // 付款資訊設定
-            const keyData = (
+            const keyData: paymentInterface = (
                 await Private_config.getConfig({
                     appName: this.app,
                     key: 'glitter_finance',
                 })
             )[0].value;
-            (carData as any).payment_setting = {
-                TYPE: keyData.TYPE,
-            };
+            (carData as any).payment_setting = onlinePayArray.filter((dd) => {
+                return ((keyData as any)[dd.key]) && ((keyData as any)[dd.key]).toggle
+            });
             (carData as any).off_line_support = keyData.off_line_support;
             (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
             (carData as any).payment_info_atm = keyData.payment_info_atm;
@@ -1213,10 +1216,10 @@ export class Shopping {
             // 防止帶入購物金時，總計小於0
             let subtotal = 0;
             carData.lineItems.map((item) => {
-                if(item.is_gift){
-                    item.sale_price=0
+                if (item.is_gift) {
+                    item.sale_price = 0
                 }
-                if(!item.is_gift){
+                if (!item.is_gift) {
                     subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
                 }
             });
@@ -1224,7 +1227,6 @@ export class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
-
             carData.code_array = (carData.code_array || []).filter((code) => {
                 return (carData.voucherList || []).find((dd) => {
                     return dd.code === code;
@@ -1427,77 +1429,68 @@ export class Shopping {
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             } else {
-                const keyData = (
-                    await Private_config.getConfig({
-                        appName: this.app,
-                        key: 'glitter_finance',
-                    })
-                )[0].value;
+                const keyData = (await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_finance',
+                }))[0].value;
                 // 線下付款
-                if (!['ecPay', 'newWebPay'].includes(carData.customer_info.payment_select)) {
-                    carData.method = 'off_line';
-                    // 訂單成立信件通知
-                    new ManagerNotify(this.app).checkout({
-                        orderData: carData,
-                        status: 0,
-                    });
-                    if (carData.customer_info.phone) {
-                        let sns = new SMS(this.app);
-                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
-                        console.log('訂單簡訊寄送成功');
-                    }
+                switch (carData.customer_info.payment_select) {
+                    case 'ecPay':
+                    case 'newWebPay':
+                        let kd=keyData[carData.customer_info.payment_select]
+                        const subMitData = await new FinancialService(this.app, {
+                            HASH_IV: kd.HASH_IV,
+                            HASH_KEY: kd.HASH_KEY,
+                            ActionURL: kd.ActionURL,
+                            NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`,
+                            ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                            MERCHANT_ID: kd.MERCHANT_ID,
+                            TYPE: carData.customer_info.payment_select,
+                        }).createOrderPage(carData);
+                        return {
+                            form: subMitData,
+                        };
+                    case 'paypal':
+                        let kid:any=keyData[carData.customer_info.payment_select];
+                        kid.ReturnURL=`${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kid.NotifyURL=`${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`
+                        return   await new PayPal(this.app, kid).checkout(carData);
+                    default:
+                        carData.method = 'off_line';
+                        // 訂單成立信件通知
+                        new ManagerNotify(this.app).checkout({
+                            orderData: carData,
+                            status: 0,
+                        });
+                        if (carData.customer_info.phone) {
+                            let sns = new SMS(this.app);
+                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
+                            console.log('訂單簡訊寄送成功');
+                        }
+                        if (carData.customer_info.lineID) {
+                            let line = new LineMessage(this.app);
+                            await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
+                            console.log('訂單line訊息寄送成功');
+                        }
+                        // if (carData.customer_info.fb_id) {
+                        //     let fb = new FbMessage(this.app)
+                        //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
+                        //     console.log('訂單FB訊息寄送成功');
+                        // }
+                        await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
-                    if (carData.customer_info.lineID) {
-                        let line = new LineMessage(this.app);
-                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-                        console.log('訂單line訊息寄送成功');
-                    }
-                    // if (carData.customer_info.fb_id) {
-                    //     let fb = new FbMessage(this.app)
-                    //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
-                    //     console.log('訂單FB訊息寄送成功');
-                    // }
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
-
-                    await db.execute(
-                        `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                         values (?, ?, ?, ?)`,
-                        [carData.orderID, 0, carData.email, carData]
-                    );
-                    return {
-                        off_line: true,
-                        return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    };
-                }else{
-                    const subMitData = await new FinancialService(this.app, {
-                        HASH_IV: keyData.HASH_IV,
-                        HASH_KEY: keyData.HASH_KEY,
-                        ActionURL: keyData.ActionURL,
-                        NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                        ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                        MERCHANT_ID: keyData.MERCHANT_ID,
-                        TYPE: keyData.TYPE,
-                    }).createOrderPage(carData);
-                    return {
-                        form: subMitData,
-                    };
+                        await db.execute(
+                            `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                             values (?, ?, ?, ?)`,
+                            [carData.orderID, 0, carData.email, carData]
+                        );
+                        return {
+                            off_line: true,
+                            return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                        };
                 }
 
-                // {
-                //     //paypal 付款
-                //     const subMitData = await new FinancialService(this.app, {
-                //         HASH_IV: keyData.HASH_IV,
-                //         HASH_KEY: keyData.HASH_KEY,
-                //         ActionURL: keyData.ActionURL,
-                //         NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                //         ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                //         MERCHANT_ID: keyData.MERCHANT_ID,
-                //         TYPE: keyData.TYPE,
-                //     }).createOrderPage(carData);
-                //     return {
-                //         form: subMitData,
-                //     };
-                // }
+                // await new PayPal(this.app, keyData).checkout(orderData);
             }
         } catch (e) {
             console.error(e);
@@ -2664,8 +2657,8 @@ export class Shopping {
                 let pass = 0;
                 await new Promise(async (resolve, reject) => {
                     for (const tag of tags) {
-                         new Promise(async (resolve, reject) => {
-                            let start=new Date()
+                        new Promise(async (resolve, reject) => {
+                            let start = new Date()
                             console.log(`${tag}_start`)
                             try {
                                 switch (tag) {
@@ -2745,25 +2738,27 @@ export class Shopping {
             const countArray = [];
 
             for (let index = 0; index < 12; index++) {
-                const start_date=this.getTaiwanTimeZero();
-                start_date.setMonth(start_date.getMonth() -(index+1));
-                const end_date=this.getTaiwanTimeZero();
+                const start_date = this.getTaiwanTimeZero();
+                start_date.setMonth(start_date.getMonth() - (index + 1));
+                const end_date = this.getTaiwanTimeZero();
                 end_date.setMonth(start_date.getMonth());
-                const sql=`SELECT  mac_address,created_time
-                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
-               `
-                const data=(await db.query(sql, []));
-                let cp_date=new Date()
-                let mac_address:string[]=[]
-                cp_date.setDate(cp_date.getDate()-index)
-                countArray.unshift(data.filter((dd:any)=>{
-                    if(!mac_address.includes(dd.mac_address)){
+                const sql = `SELECT mac_address, created_time
+                             from \`${saasConfig.SAAS_NAME}\`.t_monitor
+                             WHERE app_name = ${db.escape(this.app)}
+                               and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
+                             group by id, mac_address
+                `
+                const data = (await db.query(sql, []));
+                let cp_date = new Date()
+                let mac_address: string[] = []
+                cp_date.setDate(cp_date.getDate() - index)
+                countArray.unshift(data.filter((dd: any) => {
+                    if (!mac_address.includes(dd.mac_address)) {
                         mac_address.push(dd.mac_address)
-                        return (new Date(dd.created_time).getDate())==cp_date.getDate()
-                    }else{
-                        return  false
+                        return (new Date(dd.created_time).getDate()) == cp_date.getDate()
+                    } else {
+                        return false
                     }
                 }).length);
             }
@@ -2805,37 +2800,40 @@ export class Shopping {
         }
     }
 
-     getTaiwanTimeZero(){
-        const date=(new Date(moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')));
-         date.setTime(date.getTime() + (8 * 1000 * 3600))
-         date.setHours(0,0,0,0)
+    getTaiwanTimeZero() {
+        const date = (new Date(moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')));
+        date.setTime(date.getTime() + (8 * 1000 * 3600))
+        date.setHours(0, 0, 0, 0)
         return date
     }
+
     async getActiveRecent2Weak() {
         try {
 
             const countArray = [];
 
             for (let index = 0; index < 14; index++) {
-                const end_date=this.getTaiwanTimeZero();
+                const end_date = this.getTaiwanTimeZero();
                 end_date.setTime(end_date.getTime() - (24 * 1000 * 3600 * index));
-                const start_date=this.getTaiwanTimeZero();
+                const start_date = this.getTaiwanTimeZero();
                 start_date.setTime(start_date.getTime() - (24 * 1000 * 3600 * (index + 1)));
-                const sql=`SELECT  mac_address,created_time
-                    from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
-               `
-                const data=(await db.query(sql, []));
-                let cp_date=new Date()
-                let mac_address:string[]=[]
-                cp_date.setDate(cp_date.getDate()-index)
-                countArray.unshift(data.filter((dd:any)=>{
-                    if(!mac_address.includes(dd.mac_address)){
+                const sql = `SELECT mac_address, created_time
+                             from \`${saasConfig.SAAS_NAME}\`.t_monitor
+                             WHERE app_name = ${db.escape(this.app)}
+                               and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
+                             group by id, mac_address
+                `
+                const data = (await db.query(sql, []));
+                let cp_date = new Date()
+                let mac_address: string[] = []
+                cp_date.setDate(cp_date.getDate() - index)
+                countArray.unshift(data.filter((dd: any) => {
+                    if (!mac_address.includes(dd.mac_address)) {
                         mac_address.push(dd.mac_address)
-                        return (new Date(dd.created_time).getDate())==cp_date.getDate()
-                    }else{
-                        return  false
+                        return (new Date(dd.created_time).getDate()) == cp_date.getDate()
+                    } else {
+                        return false
                     }
                 }).length);
             }
@@ -3882,16 +3880,16 @@ export class Shopping {
         const now = new Date().getTime();
         const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
         if (isNaN(startDateTime)) return false;
-    
+
         if (!jsonData.endDate || !jsonData.endTime) return true;
-    
+
         const endDateTime = new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
         if (isNaN(endDateTime)) return false;
-    
+
         return now >= startDateTime && now <= endDateTime;
     }
-    
-    
+
+
 
     async updateProductCollection(content: string[], id: number) {
         try {
@@ -4025,7 +4023,7 @@ export class Shopping {
     }) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
-            
+
             if (query.search) {
                 querySql.push(
                     `(${[
@@ -4045,7 +4043,7 @@ export class Shopping {
                     querySql.push(`id = ${query.id}`);
                 }
             }
-            
+
 
             const data = await this.querySqlBySEO(querySql, {
                 limit: 10000,
@@ -4113,12 +4111,13 @@ export class Shopping {
             "Reason": obj.reason
         }
         let dbData = await db.query(
-            `SELECT * FROM \`${this.app}\`.t_invoice_memory
+            `SELECT *
+             FROM \`${this.app}\`.t_invoice_memory
              WHERE invoice_no = ?`,
             [obj.invoice_no]
         );
         dbData = dbData[0]
-        dbData.invoice_data.remark = dbData.invoice_data?.remark??{};
+        dbData.invoice_data.remark = dbData.invoice_data?.remark ?? {};
         dbData.invoice_data.remark.voidReason = obj.reason;
         await EcInvoice.voidInvoice({
             hashKey: config.hashkey,
@@ -4132,7 +4131,7 @@ export class Shopping {
             `UPDATE \`${this.app}\`.t_invoice_memory
              SET ?
              WHERE invoice_no = ?`,
-            [{status: 2 , invoice_data:JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
+            [{status: 2, invoice_data: JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
         );
     }
 
@@ -4147,8 +4146,10 @@ export class Shopping {
     }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await db.query(`
-            SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
-        `,[])
+            SELECT *
+            FROM \`${this.app}\`.t_invoice_memory
+            WHERE invoice_no = "${obj.invoiceID}"
+        `, [])
         invoiceData = invoiceData[0]
         const passData = {
             "MerchantID": config.merchNO,
@@ -4157,7 +4158,7 @@ export class Shopping {
             "AllowanceNotify": "E",
             "CustomerName": invoiceData.invoice_data.original_data.CustomerName,
             "NotifyPhone": invoiceData.invoice_data.original_data.CustomerPhone,
-            "NotifyMail":invoiceData.invoice_data.original_data.CustomerEmail,
+            "NotifyMail": invoiceData.invoice_data.original_data.CustomerEmail,
             "AllowanceAmount": obj.allowanceInvoiceTotalAmount,
             "Items": obj.allowanceData.invoiceArray
         }
@@ -4165,7 +4166,7 @@ export class Shopping {
             hashKey: config.hashkey,
             hash_IV: config.hashiv,
             merchNO: config.merchNO,
-            app_name:this.app,
+            app_name: this.app,
             allowance_data: passData,
             beta: config.point === 'beta',
             db_data: obj.allowanceData,

@@ -88,7 +88,7 @@ class Invoice {
                 RespondType: 'JSON',
                 Version: '1.5',
                 TimeStamp: timeStamp.substring(0, timeStamp.length - 3),
-                MerchantOrderNo: orderID,
+                MerchantOrderNo: (typeof orderID === 'string') ? orderID : order.orderID,
                 Status: 1,
                 Category: order.user_info.invoice_type === 'company' ? 'B2B' : 'B2C',
                 BuyerUBN: order.user_info.invoice_type === 'company' ? order.user_info.gui_number : undefined,

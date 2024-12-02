@@ -41,8 +41,8 @@ export class UMRebate {
                     const isWebsite = document.body.clientWidth > 768;
                     vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
                     return html `
-                        <div class="um-container row ">
-                            <div class="col-12 ">${UmClass.nav(gvc)}</div>
+                        <div class="um-container row mx-auto">
+                            <div class="col-12">${UmClass.nav(gvc)}</div>
                             <div class="col-12 mt-3 mt-lg-5 p-4 px-lg-5 mx-auto d-flex um-rb-bgr ${isWebsite ? '' : 'flex-column'}">
                                 <div class="d-flex ${isWebsite ? 'gap-4' : 'gap-3'}">
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>

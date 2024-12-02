@@ -1461,7 +1461,6 @@ export class CheckoutIndex {
                             }
                         );
                     })
-                    
                 });
             }else{
                 gvc.addMtScript(
@@ -3261,12 +3260,15 @@ function getBadgeClass(){
                                                     //     if (res.response.form.approveLink || 付款方式是PayPal){
                                                     //         location.href = res.response.form.approveLink;
                                                     //     }else{
+                                                        ApiCart.clearCart()
+                                                        // todo if 他是paypal的key值 上面應該有select之類的
+                                                        if (res.response.approveLink){
+                                                            location.href = res.response.approveLink;
+                                                        }else{
                                                             const id = gvc.glitter.getUUID();
                                                             $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                                             (document.querySelector(`#${id} #submit`) as any).click();
-                                                    //     }
-                                                    //    
-                                                        ApiCart.clearCart()
+                                                        }
                                                     }
                                                 })
                                             })}" style="width:200px;">
@@ -3361,7 +3363,14 @@ function getBadgeClass(){
                     widget.event('error', {title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)'});
                 }
             }
-
+            if(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])){
+                ['MerchantID','MerchantTradeNo','LogisticsSubType','CVSStoreID','CVSAddress','CVSTelephone','CVSOutSide','CVSStoreName'].map((dd)=>{
+                   const value=decodeURIComponent((window as any).glitter.getUrlParameter(dd))
+                    if(value){
+                        subData[dd]=value
+                    }
+                })
+            }
             if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
                 widget.event('error', {title: '請輸入「配送地址」'});
             } else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
@@ -3477,20 +3486,30 @@ function getBadgeClass(){
     //取得付款方式
     public static getPaymentMethod(cartData: any) {
         let array = [];
-        switch (cartData.payment_setting.TYPE) {
-            case 'newWebPay':
-                array.push({
-                    name: '藍新金流',
-                    value: 'newWebPay',
-                });
-                break;
-            case 'ecPay':
-                array.push({
-                    name: '綠界金流',
-                    value: 'ecPay',
-                });
-                break;
-        }
+        cartData.payment_setting.map((dd:any)=>{
+            switch (dd.key) {
+                case 'newWebPay':
+                    array.push({
+                        name: '藍新金流',
+                        value: 'newWebPay',
+                    });
+                    break;
+                case 'ecPay':
+                    array.push({
+                        name: '綠界金流',
+                        value: 'ecPay',
+                    });
+                    break;
+                case 'paypal':
+                    array.push({
+                        name: 'PayPal',
+                        value: 'paypal',
+                    });
+                    break;
+
+            }
+        })
+
         cartData.off_line_support = cartData.off_line_support ?? {};
         cartData.off_line_support.atm &&
         array.push({
@@ -3567,7 +3586,7 @@ function getBadgeClass(){
             .${className}:checked[type='checkbox'] {
                 border: 2px solid ${color ?? '#000'};
                 background-color: #fff;
-                background-image: url(${this.checkedDataImage(color ?? '#000')});
+                background-image: url(${this.checkedDataImage(color ?? '#000')}) !important;
                 background-position: center center;
             }
         `);

@@ -106,12 +106,24 @@ export declare class EcPay {
     }): Promise<string>;
 }
 export declare class PayPal {
-    keyData: KeyData;
+    keyData: {
+        ReturnURL?: string;
+        NotifyURL?: string;
+        PAYPAL_CLIENT_ID: string;
+        PAYPAL_SECRET: string;
+        BETA: boolean;
+    };
     appName: string;
     PAYPAL_CLIENT_ID: string;
     PAYPAL_SECRET: string;
     PAYPAL_BASE_URL: string;
-    constructor(appName: string, keyData: KeyData);
+    constructor(appName: string, keyData: {
+        ReturnURL?: string;
+        NotifyURL?: string;
+        PAYPAL_CLIENT_ID: string;
+        PAYPAL_SECRET: string;
+        BETA: boolean;
+    });
     getAccessToken(): Promise<string>;
     checkout(orderData: any): Promise<{
         orderId: any;
@@ -136,14 +148,6 @@ export declare class PayPal {
     getOrderDetails(orderId: string, accessToken: string): Promise<any>;
     capturePayment(orderId: string, accessToken: string): Promise<any>;
     confirmAndCaptureOrder(orderId: string): Promise<any>;
-    saveMoney(orderData: {
-        total: number;
-        userID: number;
-        note: string;
-        table: string;
-        title: string;
-        ratio: number;
-    }): Promise<string>;
 }
 export declare class LinePay {
     keyData: KeyData;

@@ -507,18 +507,30 @@ export class EcPay {
 
 // PayPal金流
 export class PayPal {
-    keyData: KeyData;
+    keyData: {
+        ReturnURL?:string,
+        NotifyURL?:string,
+        PAYPAL_CLIENT_ID:string,
+        PAYPAL_SECRET:string,
+        BETA:boolean
+    };
     appName: string;
     PAYPAL_CLIENT_ID:string;
     PAYPAL_SECRET:string;
     PAYPAL_BASE_URL:string
     //todo PAYPAL_CLIENT_ID PAYPAL_SECRET 會是動態的 還有 PAYPAL_BASE_URL的沙箱環境
-    constructor(appName: string, keyData: KeyData) {
+    constructor(appName: string, keyData:  {
+        ReturnURL?:string,
+        NotifyURL?:string,
+        PAYPAL_CLIENT_ID:string,
+        PAYPAL_SECRET:string,
+        BETA:boolean
+    }) {
         this.keyData = keyData;
         this.appName = appName;
-        this.PAYPAL_CLIENT_ID = "AfxmQilUtZiATwO5vEZH_RPRJWBTiEGhUm27Wu5LyElZ7_OlXGwkc2vDlpUPsJHjoA8rVARy7i8A6VbY"; // 替換為您的 Client ID
-        this.PAYPAL_SECRET = "EKSx6S6nnjPgrjcEPLFytJGqwakuZ5vUcTv-kF-eKkprd7Ci22P7UV93-85b0Xupa9ggULebx9Rvsx7e"; // 替換為您的 Secret Key
-        this.PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com"; // 沙箱環境
+        this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
+        this.PAYPAL_SECRET = keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
+        this.PAYPAL_BASE_URL = (keyData.BETA) ? "https://api-m.sandbox.paypal.com":"https://api-m.paypal.com"; // 沙箱環境
         // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
     }
 
@@ -711,55 +723,6 @@ export class PayPal {
     }
 
 
-    async saveMoney(orderData: { total: number; userID: number; note: string,table:string,title:string,ratio:number }) {
-        // 1. 建立請求的參數
-        const params = {
-            MerchantID: this.keyData.MERCHANT_ID,
-            RespondType: 'JSON',
-            TimeStamp: Math.floor(Date.now() / 1000),
-            Version: '2.0',
-            MerchantOrderNo: new Date().getTime(),
-            Amt: orderData.total,
-            ItemDesc: orderData.title,
-            NotifyURL: this.keyData.NotifyURL,
-            ReturnURL: this.keyData.ReturnURL,
-        };
-
-        const appName = this.appName;
-        await db.execute(
-            `INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
-            `,
-            [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
-        );
-
-        // 2. 產生 Query String
-        const qs = FinancialService.JsonToQueryString(params);
-        // 3. 開始加密
-        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
-        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
-        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-
-        // 4. 產生檢查碼
-        const tradeSha = crypto.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
-        const subMitData = {
-            actionURL: this.keyData.ActionURL,
-            MerchantOrderNo: params.MerchantOrderNo,
-            MerchantID: this.keyData.MERCHANT_ID,
-            TradeInfo: tradeInfo,
-            TradeSha: tradeSha,
-            Version: params.Version,
-        };
-
-        // 5. 回傳物件
-        return html`<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
-            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
-            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
-            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
-            <input type="hidden" name="Version" value="${subMitData.Version}" />
-            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
-            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-        </form>`;
-    }
 }
 
 // LinePay金流

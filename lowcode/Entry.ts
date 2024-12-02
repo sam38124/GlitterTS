@@ -10,6 +10,7 @@ import {EditorElem} from "./glitterBundle/plugins/editor-elem.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         glitter.share.reload = (page: string, app_name: string) => {
             (window as any).appName = app_name || (window as any).appName;
             (window as any).glitter_page = page;
@@ -72,7 +73,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_14.2.9';
+        glitter.share.editerVersion = 'V_14.4.0';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;

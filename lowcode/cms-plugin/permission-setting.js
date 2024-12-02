@@ -275,7 +275,7 @@ export class PermissionSetting {
                                                                 return dd.checked;
                                                             })
                                                                 .map((dd) => {
-                                                                return dd.email || dd.config.verifyEmail;
+                                                                return dd.user;
                                                             });
                                                             dialog.dataLoading({ visible: true });
                                                             new Promise((resolve, reject) => {
@@ -446,7 +446,7 @@ export class PermissionSetting {
                                     callback: (bool) => {
                                         if (bool) {
                                             dialog.dataLoading({ visible: true });
-                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail || '').then((res) => {
+                                            ApiUser.deletePermission(vm.data.email || vm.data.config.verifyEmail || vm.data.user).then((res) => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (res.result && res.response.result) {
                                                     dialog.successMessage({ text: '刪除成功' });

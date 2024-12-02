@@ -223,7 +223,7 @@ export class UmClass {
                               </div>`
                         : html ` <div class="account-navigation w-100">
                                   <nav class="nav-links mb-3 mb-md-0">
-                                      <div class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container ">${buttonHTML}</div>
+                                      <div class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container px-0">${buttonHTML}</div>
                                   </nav>
                               </div>`}
                     </div>`;

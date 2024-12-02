@@ -21,14 +21,15 @@ class Wallet {
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.app, key: 'glitter_finance'
         }))[0].value;
+        const kd = keyData[keyData.TYPE];
         return {
             form: (await (new financial_service_js_1.default(this.app, {
-                "HASH_IV": keyData.HASH_IV,
-                "HASH_KEY": keyData.HASH_KEY,
-                "ActionURL": keyData.ActionURL,
-                "NotifyURL": `${process.env.DOMAIN}/api-public/v1/wallet/notify?g-app=${this.app}`,
-                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                "MERCHANT_ID": keyData.MERCHANT_ID,
+                "HASH_IV": kd.HASH_IV,
+                "HASH_KEY": kd.HASH_KEY,
+                "ActionURL": kd.ActionURL,
+                "NotifyURL": `${process.env.DOMAIN}/api-public/v1/wallet/notify?g-app=${this.app}&type=${keyData.TYPE}`,
+                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${keyData.TYPE}`,
+                "MERCHANT_ID": kd.MERCHANT_ID,
                 TYPE: keyData.TYPE
             }).saveWallet({
                 total: cf.total,
