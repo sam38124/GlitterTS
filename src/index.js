@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -116,7 +118,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -205,6 +206,10 @@ async function createAPP(dd) {
                     console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
+                    const login_config = await (new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                        key: 'login_config',
+                        user_id: 'manager',
+                    }));
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -406,7 +411,8 @@ async function createAPP(dd) {
                                 `;
                         })()}
                         <script>
-                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''}
+                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''};
+                            window.login_config= ${JSON.stringify(login_config)};
                             window.appName = '${appName}';
                             window.glitterBase = '${brandAndMemberType.brand}';
                             window.memberType = '${brandAndMemberType.memberType}';
@@ -697,7 +703,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

@@ -216,14 +216,14 @@ export class UmClass {
                     })
                         .join('');
                     return html ` <div class="account-section">
-                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title">我的帳號</div>
+                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">我的帳號</div>
                         ${document.body.clientWidth > 768
                         ? html ` <div class="mx-auto mt-3 um-nav-container">
                                   <div class="account-options d-flex gap-3">${buttonHTML}</div>
                               </div>`
                         : html ` <div class="account-navigation w-100">
                                   <nav class="nav-links mb-3 mb-md-0">
-                                      <div class="nav-options d-flex flex-wrap justify-content-between um-nav-mobile-tags-container px-2">${buttonHTML}</div>
+                                      <div class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container ">${buttonHTML}</div>
                                   </nav>
                               </div>`}
                     </div>`;

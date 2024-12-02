@@ -201,6 +201,11 @@ export async function createAPP(dd: any) {
                         //確認SAAS用戶資訊
                         const brandAndMemberType = await App.checkBrandAndMemberType(appName);
                         console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
+                        //取得Login config
+                        const login_config=   await (new User(req.get('g-app') as string, req.body.token).getConfigV2({
+                            key: 'login_config',
+                            user_id: 'manager',
+                        }))
                         //取得頁面資訊
                         let data = await Seo.getPageInfo(appName, req.query.page as string);
                         //首頁SEO
@@ -407,7 +412,8 @@ export async function createAPP(dd: any) {
                                 `;
                             })()}
                         <script>
-                            ${d.custom_script ?? ''}
+                            ${d.custom_script ?? ''};
+                            window.login_config= ${JSON.stringify(login_config)};
                             window.appName = '${appName}';
                             window.glitterBase = '${brandAndMemberType.brand}';
                             window.memberType = '${brandAndMemberType.memberType}';

@@ -88,7 +88,7 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                             html` <div class="w-100 border-top my-3"></div>`,
                                             html` <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">結帳設定</div>`,
                                             html` <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
-                                                <div class="tx_normal fw-bolder d-flex flex-column">允許訪客結帳</div>
+                                                <div class="tx_normal  d-flex flex-column">允許訪客結帳</div>
                                                 <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `關閉` : `開啟`}</div>
                                                 <div class="cursor_pointer form-check form-switch m-0">
                                                     <input
@@ -104,6 +104,39 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                                 </div>
                                                 <div class="flex-fill"></div>
                                             </div>`,
+                                            html`
+                                                <div class="w-100 border-top my-3"></div>
+                                                <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">商店顯示</div>
+                                                <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
+                                                <div class="tx_normal  d-flex flex-column">設定商店密碼</div>
+                                                <div class="tx_normal ms-2">${!vm.data.password_to_see ? `關閉` : `開啟`}</div>
+                                                <div class="cursor_pointer form-check form-switch m-0">
+                                                    <input
+                                                        class="form-check-input"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                                                vm.data.password_to_see = !vm.data.password_to_see;
+                                                saveEvent();
+                                                gvc.notifyDataChange(vm.id);
+                                            })}"
+                                                        ${vm.data.password_to_see ? `checked` : ``}
+                                                    />
+                                                </div>
+                                                <div class="flex-fill"></div>
+                                            </div>
+                                            ${(vm.data.password_to_see) ? `
+                                                 ${BgWidget.grayNote(`需輸入密碼才可查看商店內容`)}
+                                                ${BgWidget.editeInput({
+                                                gvc:gvc,
+                                                title:'',
+                                                default:vm.data.shop_pwd ?? '',
+                                                placeHolder:'請輸入商店密碼',
+                                                callback:(text)=>{
+                                                    vm.data.shop_pwd=text
+                                                }
+                                            })}
+                                            `:``}
+                                            `,
                                         ].join('')
                                     ),
                                     ...(() => {
@@ -141,8 +174,10 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                                     gvc.event(async () => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.dataLoading({ visible: true });
+                                                        saveEvent();
                                                         await form.save();
                                                         dialog.dataLoading({ visible: false });
+                                                      
                                                         dialog.successMessage({ text: '設定成功' });
                                                     })
                                                 )}

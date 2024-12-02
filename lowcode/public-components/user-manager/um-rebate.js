@@ -41,18 +41,18 @@ export class UMRebate {
                     const isWebsite = document.body.clientWidth > 768;
                     vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
                     return html `
-                        <div class="um-container row">
-                            <div class="col-12">${UmClass.nav(gvc)}</div>
+                        <div class="um-container row ">
+                            <div class="col-12 ">${UmClass.nav(gvc)}</div>
                             <div class="col-12 mt-3 mt-lg-5 p-4 px-lg-5 mx-auto d-flex um-rb-bgr ${isWebsite ? '' : 'flex-column'}">
                                 <div class="d-flex ${isWebsite ? 'gap-4' : 'gap-3'}">
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>
                                     <div class="${isWebsite ? '' : 'd-flex align-items-center gap-2'}">
                                         <div class="fw-500 fs-6">現有${vm.rebateConfig.title}</div>
-                                        <div class="fw-bold mt-0 mt-md-1 mb-1 um-rb-amount">${vm.amount}</div>
+                                        <div class="fw-bold mt-0 mt-md-1 mb-1 um-rb-amount">${vm.amount.toLocaleString()}</div>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <div class="d-flex align-items-center gap-3">${vm.oldestText}</div>
+                                    <div class="d-flex align-items-center gap-3">${vm.oldestText.replace(`@{{rebate_title}}`, vm.rebateConfig.title)}</div>
                                 </div>
                             </div>
                             <div class="col-12 mt-2" style="min-height: 500px;">
@@ -61,11 +61,11 @@ export class UMRebate {
                         if (vm.dataList.length === 0) {
                             return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
                                                 <lottie-player
-                                                    style="max-width: 100%;width: 300px;"
-                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                    speed="1"
-                                                    loop="true"
-                                                    background="transparent"
+                                                        style="max-width: 100%;width: 300px;"
+                                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                        speed="1"
+                                                        loop="true"
+                                                        background="transparent"
                                                 ></lottie-player>
                                                 <span class="mb-5 fs-5">目前沒有取得${vm.rebateConfig.title}呦</span>
                                             </div>`;
@@ -139,12 +139,12 @@ export class UMRebate {
                                                 ${vm.dataList
                                 .map((item) => {
                                 return html `<div class="w-100 d-sm-flex py-5 um-td-bar">
-                                                            ${formatText(item)
+                                                                ${formatText(item)
                                     .map((dd, index) => {
                                     return html `<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
                                 })
                                     .join('')}
-                                                        </div>`;
+                                                            </div>`;
                             })
                                 .join('')}
                                             `;
@@ -153,12 +153,12 @@ export class UMRebate {
                                             ${vm.dataList
                             .map((item) => {
                             return html `<div class="um-mobile-area">
-                                                        ${formatText(item)
+                                                            ${formatText(item)
                                 .map((dd, index) => {
                                 return html `<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
                             })
                                 .join('')}
-                                                    </div>`;
+                                                        </div>`;
                         })
                             .join('')}
                                         </div> `;
@@ -176,6 +176,7 @@ export class UMRebate {
                 if (loadings.view) {
                     gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => {
                         Promise.all([
+                            UmClass.getRebateInfo(),
                             new Promise((resolve) => {
                                 ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                     if (res.result && res.response.sum) {
@@ -199,7 +200,7 @@ export class UMRebate {
                                     if (!(oldest.remain && oldest.deadline)) {
                                         resolve('');
                                     }
-                                    resolve(html `您尚有 ${oldest.remain} 元${vm.rebateConfig.title}<br />將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
+                                    resolve(html `您尚有 ${oldest.remain.toLocaleString('')} @{{rebate_title}}<br/>將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
                                 }));
                             }),
                             new Promise((resolve) => {
@@ -215,13 +216,12 @@ export class UMRebate {
                                         resolve([]);
                                     }
                                 }));
-                            }),
-                            UmClass.getRebateInfo(),
+                            })
                         ]).then((dataList) => {
-                            vm.amount = dataList[0];
-                            vm.oldestText = dataList[1];
-                            vm.dataList = dataList[2];
-                            vm.rebateConfig = dataList[3];
+                            vm.rebateConfig = dataList[0];
+                            vm.amount = dataList[1];
+                            vm.oldestText = dataList[2];
+                            vm.dataList = dataList[3];
                             loadings.view = false;
                             gvc.notifyDataChange(ids.view);
                         });

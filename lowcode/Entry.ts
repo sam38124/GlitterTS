@@ -72,7 +72,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_14.2.7';
+        glitter.share.editerVersion = 'V_14.2.9';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -502,14 +502,33 @@ export class Entry {
             );
 
             function authPass() {
-                glitter.htmlGenerate.setHome({
-                    app_config: vm.appConfig,
-                    page_config: data.response.result[0].page_config,
-                    config: data.response.result[0].config,
-                    data: {},
-                    tag: glitter.getUrlParameter('page'),
-                });
-                callback();
+                function next(){
+                    glitter.htmlGenerate.setHome({
+                        app_config: vm.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: {},
+                        tag: glitter.getUrlParameter('page'),
+                    });
+                    callback();
+                }
+                const login_config=((window as any).login_config)
+                if(login_config.password_to_see && (localStorage.getItem('password_to_see') !== login_config.shop_pwd)){
+                    const pwd = window.prompt('請輸入網站密碼', '');
+                    localStorage.setItem('password_to_see',pwd ?? '');
+                    if(login_config.shop_pwd===pwd){
+                        next()
+                    }else{
+                        glitter.closeDiaLog()
+                        const dialog=new ShareDialog(glitter)
+                        dialog.checkYesOrNot({text:'網站密碼輸入錯誤',callback:()=>{
+                                authPass()
+                            }})
+                    }
+                }else{
+                    next()
+                }
+
             }
 
             function authError(message: string) {
