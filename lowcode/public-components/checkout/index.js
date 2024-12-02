@@ -3124,10 +3124,9 @@ export class CheckoutIndex {
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    if (res.response.form.returnCode == "0000") {
-                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.form.info.paymentUrl.web);
-                                        location.href = res.response.form.info.paymentUrl.web;
-                                    }
+                                    const id = gvc.glitter.getUUID();
+                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    document.querySelector(`#${id} #submit`).click();
                                     ApiCart.clearCart();
                                 }
                             });
