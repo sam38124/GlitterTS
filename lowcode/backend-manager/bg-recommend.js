@@ -153,16 +153,16 @@ export class BgRecommend {
                         })()),
                     },
                     {
+                        key: '下單數',
+                        value: `<span class="fs-7">${dd.orders ? dd.orders.toLocaleString() : 0}</span>`,
+                    },
+                    {
                         key: '總金額',
                         value: `<span class="fs-7">${dd.total_price ? dd.total_price.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '曝光量',
                         value: `<span class="fs-7">${dd.exposure ? dd.exposure.toLocaleString() : 0}</span>`,
-                    },
-                    {
-                        key: '下單數',
-                        value: `<span class="fs-7">${dd.orders ? dd.orders.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '轉換率',
@@ -178,7 +178,9 @@ export class BgRecommend {
                     },
                     {
                         key: '期限',
-                        value: `<div class="fs-7">${dd.content.startDate} ~ ${(_c = dd.content.endDate) !== null && _c !== void 0 ? _c : '永不過期'}</div>`,
+                        value: html `<div class="me-2">
+                            <span class="fs-7">${dd.content.startDate} ~ ${(_c = dd.content.endDate) !== null && _c !== void 0 ? _c : '永不過期'}</span>
+                        </div>`,
                     },
                     {
                         key: '狀態',
@@ -531,13 +533,13 @@ export class BgRecommend {
                                     bind: id,
                                     view: () => {
                                         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-                                        const inputStyle = 'font-size: 16px; height:40px; width:200px;';
+                                        const inputStyle = 'font-size: 16px; height:40px;';
                                         let map = [
                                             BgWidget.mainCard([
-                                                html ` <div class="tx_700">連結網址</div>`,
-                                                html ` <div class="tx_normal">分銷代碼</div>
+                                                html ` <div class="tx_700 mb-2">連結網址</div>
+                                                                <div class="tx_normal">分銷代碼</div>
                                                                 <div style="margin: 4px 0 8px;">${BgWidget.grayNote('是一段唯一的識別碼，用於系統追蹤和記錄通過該代碼完成的銷售')}</div>
-                                                                ${EditorElem.editeInput({
+                                                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_a = vm.data.code) !== null && _a !== void 0 ? _a : '',
@@ -611,10 +613,10 @@ export class BgRecommend {
                                                         ].join('');
                                                     },
                                                 }),
-                                                html ` <div class="tx_700">基本設定</div>`,
-                                                html ` <div class="tx_normal">分銷連結名稱</div>
+                                                html ` <div class="tx_700 mb-2">基本設定</div>
+                                                                <div class="tx_normal">分銷連結名稱</div>
                                                                 ${BgWidget.mbContainer(8)}
-                                                                ${EditorElem.editeInput({
+                                                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_c = vm.data.title) !== null && _c !== void 0 ? _c : '',
@@ -1032,7 +1034,7 @@ export class BgRecommend {
                                                                         ? [
                                                                             '',
                                                                             html `<div class="tx_normal">名字</div>`,
-                                                                            EditorElem.editeInput({
+                                                                            BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
                                                                                 default: user.content.name,
@@ -1042,7 +1044,7 @@ export class BgRecommend {
                                                                             }),
                                                                             html ` <div class="tx_normal">電子信箱</div>
                                                                                                           ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
-                                                                            EditorElem.editeInput({
+                                                                            BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
                                                                                 default: user.email,
@@ -1051,7 +1053,7 @@ export class BgRecommend {
                                                                                 readonly: true,
                                                                             }),
                                                                             html `<div class="tx_normal">電話</div>`,
-                                                                            EditorElem.editeInput({
+                                                                            BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
                                                                                 default: user.content.phone,
@@ -1075,7 +1077,7 @@ export class BgRecommend {
                                                             return html `<div>
                                                                                     ${[
                                                                 html `<div class="tx_normal">名字</div>`,
-                                                                EditorElem.editeInput({
+                                                                BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
                                                                     default: user ? user.content.name : (_a = vm.data.recommend_user.name) !== null && _a !== void 0 ? _a : '',
@@ -1094,7 +1096,7 @@ export class BgRecommend {
                                                                         bind: id,
                                                                         view: () => {
                                                                             var _a;
-                                                                            return EditorElem.editeInput({
+                                                                            return BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
                                                                                 default: user ? user.content.email : (_a = vm.data.recommend_user.email) !== null && _a !== void 0 ? _a : '',
@@ -1114,7 +1116,7 @@ export class BgRecommend {
                                                                     };
                                                                 })()),
                                                                 html `<div class="tx_normal">電話</div>`,
-                                                                EditorElem.editeInput({
+                                                                BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
                                                                     default: user ? user.content.phone : (_b = vm.data.recommend_user.phone) !== null && _b !== void 0 ? _b : '',
@@ -1153,9 +1155,10 @@ export class BgRecommend {
                                             ].join(BgWidget.mbContainer(18))),
                                             BgWidget.mainCard([
                                                 html ` <div class="tx_700">活動時間</div>`,
+                                                BgWidget.mbContainer(18),
                                                 html `<div class="tx_normal">開始時間</div>`,
-                                                html ` <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                ${EditorElem.editeInput({
+                                                html ` <div class="d-flex mb-2 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     type: 'date',
@@ -1166,7 +1169,7 @@ export class BgRecommend {
                                                         vm.data.startDate = text;
                                                     },
                                                 })}
-                                                                ${EditorElem.editeInput({
+                                                                ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     type: 'time',
@@ -1182,8 +1185,8 @@ export class BgRecommend {
                                                     {
                                                         key: 'withEnd',
                                                         name: '設定結束時間',
-                                                        innerHtml: html `<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                            ${EditorElem.editeInput({
+                                                        innerHtml: html `<div class="d-flex mt-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                            ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             type: 'date',
@@ -1194,7 +1197,7 @@ export class BgRecommend {
                                                                 vm.data.endDate = text;
                                                             },
                                                         })}
-                                                                            ${EditorElem.editeInput({
+                                                                            ${BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
                                                             type: 'time',
@@ -1218,7 +1221,7 @@ export class BgRecommend {
                                                         vm.data.endTime = undefined;
                                                     }
                                                 }, { single: false }),
-                                            ].join(BgWidget.mbContainer(18))),
+                                            ].join('')),
                                         ];
                                         return map.join(BgWidget.mbContainer(24));
                                     },
@@ -1484,7 +1487,7 @@ export class BgRecommend {
                                                                     <div class="col-12 col-md-6">
                                                                         <div class="tx_normal">姓名</div>
                                                                         ${BgWidget.mbContainer(8)}
-                                                                        ${EditorElem.editeInput({
+                                                                        ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_a = vm.data.name) !== null && _a !== void 0 ? _a : '',
@@ -1498,7 +1501,7 @@ export class BgRecommend {
                                                                     <div class="col-12 col-md-6">
                                                                         <div class="tx_normal">電子信箱</div>
                                                                         ${BgWidget.mbContainer(8)}
-                                                                        ${EditorElem.editeInput({
+                                                                        ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_b = vm.data.email) !== null && _b !== void 0 ? _b : '',
@@ -1511,7 +1514,7 @@ export class BgRecommend {
                                                                 </div>`,
                                                 html `<div class="tx_normal">電話</div>
                                                                     ${BgWidget.mbContainer(8)}
-                                                                    ${EditorElem.editeInput({
+                                                                    ${BgWidget.editeInput({
                                                     gvc: gvc,
                                                     title: '',
                                                     default: (_c = vm.data.phone) !== null && _c !== void 0 ? _c : '',

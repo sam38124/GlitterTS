@@ -1,6 +1,7 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
 import { IToken } from '../models/Auth.js';
+import { Shopping } from './shopping.js';
 
 export class Recommend {
     public app: string;
@@ -40,6 +41,20 @@ export class Recommend {
             `,
                 []
             );
+
+            for (const link of links) {
+                link.total_price = 0;
+                const orders = await new Shopping(this.app, this.token).getCheckOut({
+                    page: 0,
+                    limit: 5000,
+                    distribution_code: link.code,
+                });
+                link.orders = orders.data.length;
+                orders.data.map((order: any) => {
+                    link.total_price += order.orderData.total - order.orderData.shipment_fee;
+                });
+                link.sharing_bonus = parseInt(`${(link.total_price * parseFloat(`${link.content.share_value}`)) / 100}`, 10);
+            }
 
             return { data: links, total: total[0].c };
         } catch (error) {

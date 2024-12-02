@@ -12,7 +12,7 @@ export class StockList {
         title: '庫存管理',
         select_data: [],
         select_mode: false,
-        filter_variants: []
+        filter_variants: [],
     }, productType = 'all') {
         const glitter = gvc.glitter;
         const vm = {
@@ -219,20 +219,15 @@ export class StockList {
                                                     searchType: vm.queryType || 'title',
                                                     orderBy: vm.orderString || undefined,
                                                     status: (() => {
-                                                        if (vm.filter.status && vm.filter.status.length === 1) {
-                                                            switch (vm.filter.status[0]) {
-                                                                case 'active':
-                                                                    return 'active';
-                                                                case 'draft':
-                                                                    return 'draft';
-                                                            }
+                                                        if (vm.filter.status && vm.filter.status.length > 0) {
+                                                            return vm.filter.status.join(',');
                                                         }
                                                         return undefined;
                                                     })(),
                                                     collection: vm.filter.collection,
                                                     stockCount: vm.filter.count,
                                                     accurate_search_collection: true,
-                                                    productType: productType
+                                                    productType: productType,
                                                 }).then((data) => {
                                                     data.response.data = data.response.data.filter((dd) => {
                                                         return !option.filter_variants.includes([dd.product_id].concat(dd.variant_content.spec).join('-'));
@@ -256,7 +251,7 @@ export class StockList {
                                                     if (b.checked) {
                                                         option.select_data.push({
                                                             variant: b.variant_content,
-                                                            product_id: b.product_id
+                                                            product_id: b.product_id,
                                                         });
                                                     }
                                                 }
@@ -273,13 +268,14 @@ export class StockList {
                                                 vm.replaceData = product;
                                                 vm.type = 'editSpec';
                                             },
-                                            filter: (option.select_mode) ? [
-                                                {
-                                                    name: '選擇項目',
-                                                    event: (checkedData) => {
+                                            filter: option.select_mode
+                                                ? [
+                                                    {
+                                                        name: '選擇項目',
+                                                        event: (checkedData) => { },
                                                     },
-                                                },
-                                            ] : [],
+                                                ]
+                                                : [],
                                         });
                                     }
                                     catch (e) {

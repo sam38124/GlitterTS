@@ -320,8 +320,9 @@ FilterOptions.productFunnel = [
         type: 'multi_checkbox',
         name: '商品狀態',
         data: [
-            { key: 'active', name: '已上架' },
-            { key: 'draft', name: '已下架' },
+            { key: 'active', name: '啟用' },
+            { key: 'draft', name: '草稿' },
+            { key: 'schedule', name: '期間限定' },
         ],
     },
 ];
@@ -365,8 +366,9 @@ FilterOptions.stockFunnel = [
         type: 'multi_checkbox',
         name: '商品狀態',
         data: [
-            { key: 'active', name: '已上架' },
-            { key: 'draft', name: '已下架' },
+            { key: 'active', name: '啟用' },
+            { key: 'draft', name: '草稿' },
+            { key: 'schedule', name: '期間限定' },
         ],
     },
     {

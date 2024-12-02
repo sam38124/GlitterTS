@@ -862,6 +862,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
             status: req.query.status as string,
+            schedule: req.query.schedule as string,
             id_list: req.query.id_list as string,
             order_by: (() => {
                 switch (req.query.order_by) {

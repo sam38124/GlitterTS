@@ -340,6 +340,7 @@ export class ProductDetail {
                             minPrice: '',
                             domain: decodeURIComponent(title),
                             status: 'active',
+                            schedule: true,
                             orderBy: '',
                             with_hide_index: 'true',
                             show_hidden: true,
