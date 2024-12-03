@@ -504,7 +504,7 @@ router.delete('/voucher', async (req, resp) => {
 });
 async function redirect_link(req, resp) {
     try {
-        console.log(`redirect_link query=>`, req.query);
+        console.log(`req.query=>`, req.query);
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         if (req.query.LinePay && req.query.LinePay === 'true') {
             await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);

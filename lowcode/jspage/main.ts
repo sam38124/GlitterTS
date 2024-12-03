@@ -38,7 +38,6 @@ const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.loading_dialog = (new ShareDialog(gvc.glitter))
-
     const css = String.raw;
     gvc.addStyle(css`
 
@@ -242,7 +241,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             tag: glitter.getUrlParameter('page'),
                             appName: gBundle.appName
                         }, (d2: any) => {
-                            if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('shop') || glitter.getUrlParameter('page').startsWith('hidden')) {
+                            if (glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('shop/') || glitter.getUrlParameter('page').startsWith('hidden/')) {
                                 Article.get({
                                     page: 0,
                                     limit: 1,
@@ -255,7 +254,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 resolve(d2.response.result[0])
                             }
                         })
-                    })
+                    });
+
                     if (!glitter.share.editor_vm) {
                         if (glitter.getUrlParameter('function') === 'backend-manger') {
                             resolve(true)
@@ -449,7 +449,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         } else {
                             return new Promise(async (resolve) => {
                                 let result = true;
-                                if (glitter.getUrlParameter('page').startsWith('pages') || glitter.getUrlParameter('page').startsWith('hidden') || glitter.getUrlParameter('page').startsWith('shop')) {
+                                if (glitter.getUrlParameter('page').startsWith('/pages') || glitter.getUrlParameter('page').startsWith('/hidden') || glitter.getUrlParameter('page').startsWith('/shop')) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
