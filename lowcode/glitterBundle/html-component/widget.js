@@ -383,8 +383,6 @@ export const widgetComponent = {
                                                                 resolve(true);
                                                             }
                                                         });
-                                                        console.log(`widget.data.key=>`, widget.data.key);
-                                                        console.log(oWidget);
                                                         if (widget.data.selectType === 'api') {
                                                             resolve(vm.data.map((dd) => {
                                                                 var _a;
@@ -445,7 +443,6 @@ export const widgetComponent = {
                                                     view.push(innerText);
                                                     break;
                                             }
-                                            console.log(`htmlGenerate.root`, htmlGenerate.root);
                                             return view.join('');
                                         },
                                         divCreate: getCreateOption,

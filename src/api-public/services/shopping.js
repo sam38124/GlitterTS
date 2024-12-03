@@ -226,11 +226,12 @@ class Shopping {
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
             console.log(querySql.join(' AND '));
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
+            let productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
                 return product;
             });
+            console.log(`productList==>`, productList);
             if (query.schedule === 'true' || query.schedule === 'false') {
-                products.data = products.data.filter((item) => {
+                productList = productList.filter((item) => {
                     const content = item.content;
                     if (content.status !== 'schedule') {
                         return true;

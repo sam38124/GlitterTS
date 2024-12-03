@@ -200,7 +200,7 @@ export class UMRebate {
                                     if (!(oldest.remain && oldest.deadline)) {
                                         resolve('');
                                     }
-                                    resolve(html `您尚有 ${oldest.remain.toLocaleString('')} @{{rebate_title}}<br/>將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
+                                    resolve(html `您尚有 ${oldest.remain.toLocaleString()} @{{rebate_title}}<br/>將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
                                 }));
                             }),
                             new Promise((resolve) => {

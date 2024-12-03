@@ -3365,9 +3365,10 @@ function getBadgeClass(){
             }
             if(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])){
                 ['MerchantID','MerchantTradeNo','LogisticsSubType','CVSStoreID','CVSAddress','CVSTelephone','CVSOutSide','CVSStoreName'].map((dd)=>{
-                   const value=decodeURIComponent((window as any).glitter.getUrlParameter(dd))
-                    if(value){
-                        subData[dd]=value
+                    if((window as any).glitter.getUrlParameter(dd)){
+                        subData[dd]=decodeURIComponent((window as any).glitter.getUrlParameter(dd))
+                    }else {
+                        subData[dd]=undefined
                     }
                 })
             }
@@ -3375,7 +3376,7 @@ function getBadgeClass(){
                 widget.event('error', {title: '請輸入「配送地址」'});
             } else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
                 widget.event('error', {title: '地址長度需大於6個字元，且不可超過60個字元'});
-            } else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'] || subData['CVSStoreName'] === '')) {
+            } else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'])) {
                 widget.event('error', {title: '請選擇「配送門市」'});
             } else if ((() => {
                 const form = this.getShipmentMethod(cartData).find((dd: any) => {

@@ -516,13 +516,20 @@ export class BgBlog {
                                                                                                                 style="height: 28px;width: 75px;gap:5px;"
                                                                                                                 onclick="${gvc.event(() => {
                                                                                                                     if (dd.tag === 'empty') {
-                                                                                                                        const a: any = [
-                                                                                                                            Template_refer.bigTitle(page_tab==='hidden' ? `隱形賣場`:`一頁商店`),
-                                                                                                                            Template_refer.productList(),
-                                                                                                                            Template_refer.checkoutPage()
-                                                                                                                        ];
-                                                                                                                        (a as any).name = page_tab==='hidden' ? `隱形賣場`:`一頁商店`;
-                                                                                                                        callback(a);
+                                                                                                                        if(['hidden','shopping'].includes(page_tab)){
+                                                                                                                            const a: any = [
+                                                                                                                                Template_refer.bigTitle(page_tab==='hidden' ? `隱形賣場`:`一頁商店`),
+                                                                                                                                Template_refer.productList(),
+                                                                                                                                Template_refer.checkoutPage()
+                                                                                                                            ];
+                                                                                                                            (a as any).name = page_tab==='hidden' ? `隱形賣場`:`一頁商店`;
+                                                                                                                            callback(a);   
+                                                                                                                        }else{
+                                                                                                                            const a:any=[];
+                                                                                                                            (a as any).name = `空白內容`;
+                                                                                                                            callback(a);
+                                                                                                                        }
+                                                                                                                       
                                                                                                                     } else {
                                                                                                                         if (dd._config) {
                                                                                                                             dd._config.name = dd.template_config.name;

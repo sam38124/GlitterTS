@@ -3221,9 +3221,11 @@ export class CheckoutIndex {
             }
             if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])) {
                 ['MerchantID', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSAddress', 'CVSTelephone', 'CVSOutSide', 'CVSStoreName'].map((dd) => {
-                    const value = decodeURIComponent(window.glitter.getUrlParameter(dd));
-                    if (value) {
-                        subData[dd] = value;
+                    if (window.glitter.getUrlParameter(dd)) {
+                        subData[dd] = decodeURIComponent(window.glitter.getUrlParameter(dd));
+                    }
+                    else {
+                        subData[dd] = undefined;
                     }
                 });
             }
@@ -3233,7 +3235,7 @@ export class CheckoutIndex {
             else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
                 widget.event('error', { title: '地址長度需大於6個字元，且不可超過60個字元' });
             }
-            else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'] || subData['CVSStoreName'] === '')) {
+            else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'])) {
                 widget.event('error', { title: '請選擇「配送門市」' });
             }
             else if ((() => {

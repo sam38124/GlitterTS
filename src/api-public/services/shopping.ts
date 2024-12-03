@@ -366,13 +366,12 @@ export class Shopping {
             console.log(querySql.join(' AND '));
 
             // 產品清單
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
+            let productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
                 return product
             });
-
             // 若需要期間限定的判斷
             if(query.schedule === 'true' || query.schedule === 'false'){
-                products.data = products.data.filter((item:any) => {
+                productList= productList.filter((item:any) => {
                     const content = item.content
                     if(content.status !== 'schedule'){
                         return true

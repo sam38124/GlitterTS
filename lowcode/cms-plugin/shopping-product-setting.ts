@@ -1823,10 +1823,6 @@ export class ShoppingProductSetting {
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="d-flex align-items-center gap-2">
                                                                             <div style="color: #393939; font-weight: 700;">商品描述</div>
-                                                                            ${BgWidget.aiChatButton({
-                                                                                gvc,
-                                                                                select: 'writer',
-                                                                            })}
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <div
@@ -1970,7 +1966,19 @@ export class ShoppingProductSetting {
                                                                                                 const originContent = `${postMD.content}`;
                                                                                                 BgWidget.fullDialog({
                                                                                                     gvc: gvc,
-                                                                                                    title: '商品描述',
+                                                                                                    title: (gvc2)=>{
+                                                                                                        return `<div class="d-flex align-items-center me-2" style="gap:10px;">商品描述${BgWidget.aiChatButton({
+                                                                                                            gvc:gvc2,
+                                                                                                            select: 'writer',
+                                                                                                            click:()=>{
+                                                                                                                ProductAi.generateRichText(gvc,(text)=>{
+                                                                                                                    postMD.content+=text;
+                                                                                                                    gvc.notifyDataChange(vm.id)
+                                                                                                                    gvc2.recreateView()
+                                                                                                                })
+                                                                                                            }
+                                                                                                        })}</div>`
+                                                                                                    },
                                                                                                     innerHTML: (gvc2) => {
                                                                                                         return html` <div>
                                                                                                             ${EditorElem.richText({
@@ -3928,19 +3936,6 @@ ${postMD.seo.content ?? ''}</textarea
                                                                 bind: id,
                                                                 view: () => {
                                                                     return [
-                                                                        BgWidget.select({
-                                                                            gvc: obj.gvc,
-                                                                            default: postMD.status,
-                                                                            options: [
-                                                                                { key: 'active', value: '啟用' },
-                                                                                { key: 'draft', value: '草稿' },
-                                                                                { key: 'schedule', value: '期間限定' },
-                                                                            ],
-                                                                            callback: (text: any) => {
-                                                                                postMD.status = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            },
-                                                                        }),
                                                                         postMD.status === 'schedule'
                                                                             ? html` <div class="tx_700">啟用期間</div>
                                                                                   <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
@@ -4048,6 +4043,18 @@ ${postMD.seo.content ?? ''}</textarea
                                                         <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
                                                     `
                                                 ),
+                                                BgWidget.mainCard(`<div style="font-weight: 700;" class="mb-2">商品狀態</div>`+BgWidget.select({
+                                                    gvc: obj.gvc,
+                                                    default: postMD.status,
+                                                    options: [
+                                                        { key: 'active', value: '啟用' },
+                                                        { key: 'draft', value: '草稿' },
+                                                        // { key: 'schedule', value: '期間限定' },
+                                                    ],
+                                                    callback: (text: any) => {
+                                                        postMD.status = text;
+                                                    },
+                                                })),
                                                 BgWidget.mainCard(
                                                     obj.gvc.bindView(() => {
                                                         const id = obj.gvc.glitter.getUUID();
