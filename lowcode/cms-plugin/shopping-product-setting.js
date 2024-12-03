@@ -3543,18 +3543,6 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                         <div style="font-weight: 700;" class="mb-2">商品類型</div>
                                                         <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
                                                     `),
-                                    BgWidget.mainCard(`<div style="font-weight: 700;" class="mb-2">商品狀態</div>` +
-                                        BgWidget.select({
-                                            gvc: obj.gvc,
-                                            default: postMD.status,
-                                            options: [
-                                                { key: 'active', value: '啟用' },
-                                                { key: 'draft', value: '草稿' },
-                                            ],
-                                            callback: (text) => {
-                                                postMD.status = text;
-                                            },
-                                        })),
                                     BgWidget.mainCard(html ` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
                                                         ${gvc.bindView((() => {
                                         const id = gvc.glitter.getUUID();
