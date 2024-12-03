@@ -4,6 +4,7 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
+import {ApiUser} from "../../glitter-base/route/user.js";
 
 const html = String.raw;
 
@@ -14,6 +15,8 @@ export class ProductCard02 {
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
         const prod = subData.content;
+        let label: any = {}
+        let loading = false;
         const titleFontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
         const borderButtonBgr = glitter.share.globalValue['theme_color.0.border-button-bg'] ?? '#fff';
         const borderButtonText = glitter.share.globalValue['theme_color.0.border-button-text'] ?? '#333333';
@@ -103,6 +106,7 @@ export class ProductCard02 {
                 justify-content: center;
                 background: white;
                 border-radius: 50%;
+                z-index: 2;
             }
             .card-tag {
                 left: -3px;
@@ -146,7 +150,7 @@ export class ProductCard02 {
                 letter-spacing: -0.98px;
             }
         `);
-
+        const labelID = glitter.getUUID()
         return html`<div
             class="card mb-7 card-border"
             style="cursor: pointer"
@@ -162,7 +166,44 @@ export class ProductCard02 {
                 changePage(path, 'page', {});
             })}"
         >
-            <div class="card-img-top parent card-image">
+            <div class="card-img-top parent card-image position-relative">
+                ${gvc.bindView({
+                    bind: labelID,
+                    view: () => {
+                        if (prod.label && !loading) {
+                            ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
+                                label = data.response.value.find((item: { id: number }) => {
+                                    return item.id == prod.label
+                                })
+                                // loading = true;
+                                loading = true;
+                                gvc.notifyDataChange(labelID)
+                            });
+                        }
+                        if (Object.entries(label).length > 0){
+                            console.log(label.data)
+                            function showPosition(){
+                                switch (label.data.position){
+                                    case "左上":
+                                        return `left:0;top:0;`
+                                    case "右上":
+                                        return `right:0;top:0;`
+                                    case "左下":
+                                        return `left:0;bottom:0;`
+                                    default:
+                                        return `right:0;bottom:0;`
+                                }
+                            }
+                            return html`
+                                    <div style="position: absolute;${showPosition()};z-index:2;">
+                                        ${label.data.content}
+                                    </div>
+                                    
+                                `
+                        }
+                        return ``
+                    }, divCreate: {class:`probLabel w-100 h-100` , style:`position: absolute;left: 0;top: 0;`}
+                })}
                 <img
                     class="card-image-fit-center"
                     src="${(() => {

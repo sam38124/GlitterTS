@@ -1058,12 +1058,12 @@ export class ProductText {
                                                     return html`
                                                         <div style="display: inline-block;position: relative;min-height:79px;">
                                                             <div
-                                                                style="position: absolute;left: 5px;bottom: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data
+                                                                style="position: absolute;left: 12px;bottom: 23px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data
                                                                     .text_color};transform: rotate(45deg);"
                                                             >
                                                                 ${text}
                                                             </div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 58 58" fill="none">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="79" height="79" viewBox="0 0 58 58" fill="none">
                                                                 <g filter="url(#filter0_d_14378_119252)">
                                                                     <path d="M26.8823 58H58L0 0V31.1177L26.8823 58Z" fill="${color}" />
                                                                 </g>
@@ -1132,12 +1132,12 @@ export class ProductText {
                                                     return html`
                                                         <div style="display: inline-block;position: relative;min-height:79px;">
                                                             <div
-                                                                style="position: absolute;right: 5px;bottom: 13.5px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data
+                                                                style="position: absolute;right: 13px;bottom: 16px;font-size: 10px;font-weight: 400;letter-spacing: 0.4px;color: ${vm.data.data
                                                                     .text_color};transform: rotate(-45deg);"
                                                             >
                                                                 ${text}
                                                             </div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 58 58" fill="none">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="79" height="79" viewBox="0 0 58 58" fill="none">
                                                                 <g filter="url(#filter0_d_14378_119257)">
                                                                     <path d="M35.1177 58H4L62 0V31.1177L35.1177 58Z" fill="${color}" />
                                                                 </g>

@@ -597,15 +597,13 @@ class LinePay {
     }
     async createOrder(orderData) {
         var _a;
+        this.LinePay_RETURN_CONFIRM_URL = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
+        this.LinePay_RETURN_CANCEL_URL = `${this.keyData.ReturnURL}&payment=false`;
         const body = {
             "amount": orderData.total,
             "currency": "TWD",
             "orderId": orderData.orderID,
-            "options": {
-                "shipping": {
-                    "feeAmount": orderData.shipment_fee
-                }
-            },
+            "shippingFee": orderData.shipment_fee,
             "packages": orderData.lineItems.map((data) => {
                 return {
                     "id": data.id,
@@ -618,7 +616,7 @@ class LinePay {
                             "quantity": data.count,
                             "price": data.sale_price
                         }
-                    ]
+                    ],
                 };
             }),
             "redirectUrls": {
@@ -626,12 +624,24 @@ class LinePay {
                 "cancelUrl": this.LinePay_RETURN_CANCEL_URL
             }
         };
+        body.packages.push({
+            "id": "shipping",
+            "amount": orderData.shipment_fee,
+            "products": [
+                {
+                    "id": "shipping",
+                    "name": "shipping",
+                    "imageUrl": "",
+                    "quantity": 1,
+                    "price": orderData.shipment_fee
+                }
+            ],
+        });
         const uri = "/payments/request";
         const nonce = new Date().getTime() / 1000;
         const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
         const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-        console.log("order -- ", orderData);
         const config = {
             method: "POST",
             url: url,
@@ -644,9 +654,7 @@ class LinePay {
             data: body
         };
         try {
-            console.log("into linepay OK --------");
             const response = await axios_1.default.request(config);
-            console.log("response -- ", response.data);
             return response.data;
         }
         catch (error) {

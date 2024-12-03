@@ -2330,7 +2330,7 @@ export class ShoppingOrderManager {
         return BgWidget.container(
             html`
                 <!-- 標頭 --- 新增訂單標題和返回 -->
-                <div class="title-container">
+                <div class="title-container mb-4">
                     ${BgWidget.goBack(
                             gvc.event(() => {
                                 vm.type = 'list';

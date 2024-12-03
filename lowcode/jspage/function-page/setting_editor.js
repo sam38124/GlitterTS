@@ -715,7 +715,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'shop_information',
+            page: 'shop_informationV2',
             group: '商店設定',
             title: '商店訊息',
             appName: 'cms_system',
