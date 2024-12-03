@@ -70,7 +70,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_14.2.7';
+        glitter.share.editerVersion = 'V_14.4.4';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -450,14 +450,34 @@ export class Entry {
                 };
             }));
             function authPass() {
-                glitter.htmlGenerate.setHome({
-                    app_config: vm.appConfig,
-                    page_config: data.response.result[0].page_config,
-                    config: data.response.result[0].config,
-                    data: {},
-                    tag: glitter.getUrlParameter('page'),
-                });
-                callback();
+                function next() {
+                    glitter.htmlGenerate.setHome({
+                        app_config: vm.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: {},
+                        tag: glitter.getUrlParameter('page'),
+                    });
+                    callback();
+                }
+                const login_config = (window.login_config);
+                if (login_config.password_to_see && (localStorage.getItem('password_to_see') !== login_config.shop_pwd)) {
+                    const pwd = window.prompt('請輸入網站密碼', '');
+                    localStorage.setItem('password_to_see', pwd !== null && pwd !== void 0 ? pwd : '');
+                    if (login_config.shop_pwd === pwd) {
+                        next();
+                    }
+                    else {
+                        glitter.closeDiaLog();
+                        const dialog = new ShareDialog(glitter);
+                        dialog.checkYesOrNot({ text: '網站密碼輸入錯誤', callback: () => {
+                                authPass();
+                            } });
+                    }
+                }
+                else {
+                    next();
+                }
             }
             function authError(message) {
                 glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css']);

@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,7 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Shopping = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const financial_service_js_1 = __importDefault(require("./financial-service.js"));
+const financial_service_js_1 = __importStar(require("./financial-service.js"));
 const private_config_js_1 = require("../../services/private_config.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const user_js_1 = require("./user.js");
@@ -27,6 +50,7 @@ const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
 const EcInvoice_1 = require("./EcInvoice");
 const app_1 = __importDefault(require("../../app"));
+const glitter_finance_js_1 = require("../models/glitter-finance.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -183,35 +207,52 @@ class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
             if (query.status) {
-                let statusTemp = '';
-                let scheduleTemp = '';
-                if (query.schedule === 'true' || query.schedule === 'false') {
-                    scheduleTemp = ` OR (JSON_EXTRACT(content, '$.status') = 'schedule')`;
-                }
-                if (query.status.includes(',')) {
-                    const statusJoin = query.status.split(',').map(status => `"${status.trim()}"`).join(',');
-                    statusTemp = `(JSON_EXTRACT(content, '$.status') IN (${statusJoin}))`;
-                }
-                else {
-                    statusTemp = `(JSON_EXTRACT(content, '$.status') = '${query.status}')`;
-                }
-                querySql.push(`(${statusTemp} ${scheduleTemp})`);
+                const statusSplit = query.status.split(',').map(status => status.trim());
+                const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
+                const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
+                const scheduleConditions = statusSplit.map(status => {
+                    switch (status) {
+                        case 'inRange':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND (
+                                        content->>'$.active_schedule' IS NULL OR (
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            AND (
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                            )
+                                        )
+                                    )
+                                )
+                            `;
+                        case 'beforeStart':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                )
+                            `;
+                        case 'afterEnd':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                )
+                            `;
+                        default:
+                            return '';
+                    }
+                }).join('');
+                querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
             console.log(querySql.join(' AND '));
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
-            if (query.schedule === 'true' || query.schedule === 'false') {
-                products.data = products.data.filter((item) => {
-                    const content = item.content;
-                    if (content.status !== 'schedule') {
-                        return true;
-                    }
-                    return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
-                });
-            }
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
@@ -368,8 +409,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -655,8 +696,7 @@ class Shopping {
                         page: 0,
                         limit: 50,
                         id: b.id,
-                        status: 'active',
-                        schedule: 'true',
+                        status: 'inRange',
                     })).data;
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
@@ -830,8 +870,7 @@ class Shopping {
                             page: 0,
                             limit: 50,
                             id: `${b}`,
-                            status: 'active',
-                            schedule: 'true',
+                            status: 'inRange',
                         })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
@@ -842,9 +881,9 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_finance',
             }))[0].value;
-            carData.payment_setting = {
-                TYPE: keyData.TYPE,
-            };
+            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
+                return (keyData[dd.key]) && (keyData[dd.key]).toggle;
+            });
             carData.off_line_support = keyData.off_line_support;
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
@@ -1027,43 +1066,50 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                if (!['ecPay', 'newWebPay'].includes(carData.customer_info.payment_select)) {
-                    carData.method = 'off_line';
-                    new notify_js_1.ManagerNotify(this.app).checkout({
-                        orderData: carData,
-                        status: 0,
-                    });
-                    if (carData.customer_info.phone) {
-                        let sns = new sms_js_1.SMS(this.app);
-                        await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
-                        console.log('訂單簡訊寄送成功');
-                    }
-                    if (carData.customer_info.lineID) {
-                        let line = new line_message_1.LineMessage(this.app);
-                        await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
-                        console.log('訂單line訊息寄送成功');
-                    }
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
-                    await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                         values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
-                    return {
-                        off_line: true,
-                        return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    };
-                }
-                else {
-                    const subMitData = await new financial_service_js_1.default(this.app, {
-                        HASH_IV: keyData.HASH_IV,
-                        HASH_KEY: keyData.HASH_KEY,
-                        ActionURL: keyData.ActionURL,
-                        NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                        ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                        MERCHANT_ID: keyData.MERCHANT_ID,
-                        TYPE: keyData.TYPE,
-                    }).createOrderPage(carData);
-                    return {
-                        form: subMitData,
-                    };
+                switch (carData.customer_info.payment_select) {
+                    case 'ecPay':
+                    case 'newWebPay':
+                        let kd = keyData[carData.customer_info.payment_select];
+                        const subMitData = await new financial_service_js_1.default(this.app, {
+                            HASH_IV: kd.HASH_IV,
+                            HASH_KEY: kd.HASH_KEY,
+                            ActionURL: kd.ActionURL,
+                            NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`,
+                            ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                            MERCHANT_ID: kd.MERCHANT_ID,
+                            TYPE: carData.customer_info.payment_select,
+                        }).createOrderPage(carData);
+                        return {
+                            form: subMitData,
+                        };
+                    case 'paypal':
+                        let kid = keyData[carData.customer_info.payment_select];
+                        kid.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kid.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        return await new financial_service_js_1.PayPal(this.app, kid).checkout(carData);
+                    default:
+                        carData.method = 'off_line';
+                        new notify_js_1.ManagerNotify(this.app).checkout({
+                            orderData: carData,
+                            status: 0,
+                        });
+                        if (carData.customer_info.phone) {
+                            let sns = new sms_js_1.SMS(this.app);
+                            await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, carData.customer_info.phone);
+                            console.log('訂單簡訊寄送成功');
+                        }
+                        if (carData.customer_info.lineID) {
+                            let line = new line_message_1.LineMessage(this.app);
+                            await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
+                            console.log('訂單line訊息寄送成功');
+                        }
+                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
+                        await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                             values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
+                        return {
+                            off_line: true,
+                            return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                        };
                 }
             }
         }
@@ -2096,11 +2142,13 @@ class Shopping {
                 start_date.setMonth(start_date.getMonth() - (index + 1));
                 const end_date = this.getTaiwanTimeZero();
                 end_date.setMonth(start_date.getMonth());
-                const sql = `SELECT  mac_address,created_time
-                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
-               `;
+                const sql = `SELECT mac_address, created_time
+                             from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                             WHERE app_name = ${database_js_1.default.escape(this.app)}
+                               and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
+                             group by id, mac_address
+                `;
                 const data = (await database_js_1.default.query(sql, []));
                 let cp_date = new Date();
                 let mac_address = [];
@@ -2138,11 +2186,13 @@ class Shopping {
                 end_date.setTime(end_date.getTime() - (24 * 1000 * 3600 * index));
                 const start_date = this.getTaiwanTimeZero();
                 start_date.setTime(start_date.getTime() - (24 * 1000 * 3600 * (index + 1)));
-                const sql = `SELECT  mac_address,created_time
-                    from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)} and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}' group by id,mac_address
-               `;
+                const sql = `SELECT mac_address, created_time
+                             from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                             WHERE app_name = ${database_js_1.default.escape(this.app)}
+                               and ip != 'ffff:127.0.0.1'
+                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
+                             group by id, mac_address
+                `;
                 const data = (await database_js_1.default.query(sql, []));
                 let cp_date = new Date();
                 let mac_address = [];
@@ -3240,7 +3290,8 @@ class Shopping {
             "InvoiceDate": obj.createDate,
             "Reason": obj.reason
         };
-        let dbData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_invoice_memory
+        let dbData = await database_js_1.default.query(`SELECT *
+             FROM \`${this.app}\`.t_invoice_memory
              WHERE invoice_no = ?`, [obj.invoice_no]);
         dbData = dbData[0];
         dbData.invoice_data.remark = (_b = (_a = dbData.invoice_data) === null || _a === void 0 ? void 0 : _a.remark) !== null && _b !== void 0 ? _b : {};
@@ -3260,7 +3311,9 @@ class Shopping {
     async allowanceInvoice(obj) {
         const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await database_js_1.default.query(`
-            SELECT * FROM \`${this.app}\`.t_invoice_memory WHERE invoice_no = "${obj.invoiceID}"
+            SELECT *
+            FROM \`${this.app}\`.t_invoice_memory
+            WHERE invoice_no = "${obj.invoiceID}"
         `, []);
         invoiceData = invoiceData[0];
         const passData = {

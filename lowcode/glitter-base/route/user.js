@@ -728,7 +728,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-            data: JSON.stringify({ email: email }),
+            data: JSON.stringify({ email: email || '' }),
         });
     }
     static togglePermissionStatus(email) {

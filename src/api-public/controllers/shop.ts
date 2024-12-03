@@ -562,7 +562,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
-        console.log(`req.query=>` , req.query )
+        console.log(`req.query=>`, req.query);
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
@@ -570,15 +570,11 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis.getValue(`paypal` + req.query.orderID);
-            const paypal = new PayPal(req.query.appName as string, {
-                ActionURL: '',
-                HASH_IV: '',
-                HASH_KEY: '',
-                MERCHANT_ID: '',
-                NotifyURL: '',
-                ReturnURL: '',
-                TYPE: 'PayPal',
-            });
+            const keyData = (await Private_config.getConfig({
+                appName: req.query.appName as string,
+                key: 'glitter_finance',
+            }))[0].value.paypal;
+            const paypal = new PayPal(req.query.appName as string, keyData);
             const data = await paypal.confirmAndCaptureOrder(check_id as string);
             if (data.status === 'COMPLETED') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
@@ -636,14 +632,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
     try {
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
+        const type=req.query['type'] as string;
         const keyData = (
             await Private_config.getConfig({
                 appName: appName,
                 key: 'glitter_finance',
             })
-        )[0].value;
-
-        if (keyData.TYPE === 'ecPay') {
+        )[0].value[type];
+        if (type === 'ecPay') {
             const responseCheckMacValue = `${req.body.CheckMacValue}`;
             delete req.body.CheckMacValue;
             const chkSum = EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
@@ -655,7 +651,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                 },
             };
         }
-        if (keyData.TYPE === 'newWebPay') {
+        if (type === 'newWebPay') {
             decodeData = JSON.parse(
                 new EzPay(appName, {
                     HASH_IV: keyData.HASH_IV,
@@ -862,7 +858,6 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
             status: req.query.status as string,
-            schedule: req.query.schedule as string,
             id_list: req.query.id_list as string,
             order_by: (() => {
                 switch (req.query.order_by) {

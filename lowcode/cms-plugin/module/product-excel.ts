@@ -270,7 +270,7 @@ export class ProductExcel {
                 preview_image: string;
                 hideIndex: string;
                 collection: string[];
-                status: 'active' | 'draft' | 'schedule';
+                status: 'active' | 'draft';
                 specs: { title: string; option: any }[];
                 variants: Variant[];
                 seo: {

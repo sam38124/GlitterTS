@@ -476,13 +476,20 @@ export class BgBlog {
                                                                                                                 style="height: 28px;width: 75px;gap:5px;"
                                                                                                                 onclick="${gvc.event(() => {
                                                         if (dd.tag === 'empty') {
-                                                            const a = [
-                                                                Template_refer.bigTitle(page_tab === 'hidden' ? `隱形賣場` : `一頁商店`),
-                                                                Template_refer.productList(),
-                                                                Template_refer.checkoutPage()
-                                                            ];
-                                                            a.name = page_tab === 'hidden' ? `隱形賣場` : `一頁商店`;
-                                                            callback(a);
+                                                            if (['hidden', 'shopping'].includes(page_tab)) {
+                                                                const a = [
+                                                                    Template_refer.bigTitle(page_tab === 'hidden' ? `隱形賣場` : `一頁商店`),
+                                                                    Template_refer.productList(),
+                                                                    Template_refer.checkoutPage()
+                                                                ];
+                                                                a.name = page_tab === 'hidden' ? `隱形賣場` : `一頁商店`;
+                                                                callback(a);
+                                                            }
+                                                            else {
+                                                                const a = [];
+                                                                a.name = `空白內容`;
+                                                                callback(a);
+                                                            }
                                                         }
                                                         else {
                                                             if (dd._config) {

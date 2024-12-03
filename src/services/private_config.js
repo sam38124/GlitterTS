@@ -33,9 +33,13 @@ class Private_config {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            return await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
+            const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
                                              \`key\`=${database_js_1.default.escape(config.key)}
-            `, []);
+            `, []));
+            if (data[0] && data[0].value) {
+                Private_config.checkConfigUpdate(data[0].value, config.key);
+            }
+            return data;
         }
         catch (e) {
             console.log(e);
@@ -44,9 +48,13 @@ class Private_config {
     }
     static async getConfig(config) {
         try {
-            return await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
+            const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
                                              \`key\`=${database_js_1.default.escape(config.key)}
-            `, []);
+            `, []));
+            if (data[0] && data[0].value) {
+                this.checkConfigUpdate(data[0].value, config.key);
+            }
+            return data;
         }
         catch (e) {
             console.log(e);
@@ -67,6 +75,61 @@ class Private_config {
     }
     constructor(token) {
         this.token = token;
+    }
+    static checkConfigUpdate(keyData, key) {
+        switch (key) {
+            case 'glitter_finance':
+                if (!(keyData).ecPay) {
+                    const og = keyData;
+                    for (const b of ['newWebPay', 'ecPay']) {
+                        if (keyData.TYPE === b) {
+                            keyData[b] = {
+                                MERCHANT_ID: og.MERCHANT_ID,
+                                HASH_IV: og.HASH_IV,
+                                HASH_KEY: og.HASH_KEY,
+                                ActionURL: og.ActionURL,
+                                atm: og.atm,
+                                c_bar_code: og.c_bar_code,
+                                c_code: og.c_code,
+                                credit: og.credit,
+                                web_atm: og.web_atm,
+                                toggle: true
+                            };
+                        }
+                        else {
+                            keyData[b] = {
+                                MERCHANT_ID: '',
+                                HASH_IV: '',
+                                HASH_KEY: '',
+                                ActionURL: '',
+                                atm: true,
+                                c_bar_code: true,
+                                c_code: true,
+                                credit: true,
+                                web_atm: true,
+                                toggle: false
+                            };
+                        }
+                    }
+                }
+                if (!keyData.paypal) {
+                    keyData.paypal = {
+                        PAYPAL_CLIENT_ID: '',
+                        PAYPAL_SECRET: '',
+                        BETA: false,
+                        toggle: false
+                    };
+                }
+                ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
+                    if (keyData[dd].toggle) {
+                        keyData.TYPE = dd;
+                    }
+                });
+                ['MERCHANT_ID', 'HASH_IV', 'HASH_KEY', 'ActionURL', 'atm', 'c_bar_code', 'c_code', 'credit', 'web_atm'].map((dd) => {
+                    keyData[dd] = undefined;
+                });
+                break;
+        }
     }
 }
 exports.Private_config = Private_config;

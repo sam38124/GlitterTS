@@ -205,6 +205,10 @@ async function createAPP(dd) {
                     console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
+                    const login_config = await (new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                        key: 'login_config',
+                        user_id: 'manager',
+                    }));
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -292,6 +296,14 @@ async function createAPP(dd) {
                         }
                         let distribution_code = '';
                         req.query.page = req.query.page || 'index';
+                        console.log(req.query.page.split('/')[0] === 'order_detail');
+                        console.log(req.query.EndCheckout === '1');
+                        if (req.query.page.split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
+                            console.log('in');
+                            distribution_code = `
+                                    localStorage.setItem('distributionCode','');
+                                `;
+                        }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
                             const page = (await database_2.default.query(`SELECT *
@@ -406,7 +418,8 @@ async function createAPP(dd) {
                                 `;
                         })()}
                         <script>
-                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''}
+                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''};
+                            window.login_config= ${JSON.stringify(login_config)};
                             window.appName = '${appName}';
                             window.glitterBase = '${brandAndMemberType.brand}';
                             window.memberType = '${brandAndMemberType.memberType}';

@@ -35,7 +35,7 @@ export class UMVoucher {
                 else {
                     const isWebsite = document.body.clientWidth > 768;
                     return html `
-                        <div class="um-container row">
+                        <div class="um-container row mx-auto">
                             <div class="col-12">${UmClass.nav(gvc)}</div>
                             <div class="col-12 mt-2" style="min-height: 500px;">
                                 <div class="mx-auto orderList pt-3 mb-4 row">

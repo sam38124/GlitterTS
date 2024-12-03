@@ -388,8 +388,8 @@ export const widgetComponent = {
                                                                 resolve(true)
                                                             }
                                                         })
-                                                        console.log(`widget.data.key=>`,widget.data.key)
-                                                        console.log(oWidget)
+                                                        // console.log(`widget.data.key=>`,widget.data.key)
+                                                        // console.log(oWidget)
                                                         if (widget.data.selectType === 'api') {
                                                             resolve(vm.data.map((dd: any) => {
                                                                 formData[widget.data.key] = formData[widget.data.key] ?? dd.value
@@ -448,7 +448,7 @@ export const widgetComponent = {
                                                     break
 
                                             }
-                                            console.log(`htmlGenerate.root`, htmlGenerate.root)
+                                            // console.log(`htmlGenerate.root`, htmlGenerate.root)
                                             // if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
                                             //     view.push(glitter.htmlGenerate.getEditorSelectSection({
                                             //         id: widget.id,

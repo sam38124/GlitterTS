@@ -20,7 +20,7 @@
     --main-gray-1: #dddddd;
     --main-gray-2: #aeaeae;
     --main-gray-3: #8d8d8d;
-    --main-gray-4: #B0B0B0;
+    --main-gray-4: #b0b0b0;
 
     --main-white: #fff;
     --main-white-hover: #d5d5d5;
@@ -987,7 +987,7 @@ h6 {
     padding: 6px 8px;
     font-size: 14px;
     display: inline-block;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
@@ -1025,8 +1025,8 @@ h6 {
 }
 
 .insignia-secondary {
-    background: var(--main-gray-4);
-    color: var(--main-white);
+    background: var(--main-gray-1);
+    color: var(--main-black);
 }
 
 /* 行動端頁面 */
@@ -1090,7 +1090,17 @@ h6 {
     background-color: #393939 !important;
     border-color: #393939 !important;
 }
-h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
-
+h6,
+.h6,
+h5,
+.h5,
+h4,
+.h4,
+h3,
+.h3,
+h2,
+.h2,
+h1,
+.h1 {
     color: #393939;
 }

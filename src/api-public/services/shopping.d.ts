@@ -151,7 +151,6 @@ export declare class Shopping {
         min_price?: string;
         max_price?: string;
         status?: string;
-        schedule?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -261,37 +260,32 @@ export declare class Shopping {
             voucher_id: string;
         }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
+        orderId: any;
+        approveLink: any;
+    } | {
         data: Cart;
         result?: undefined;
         message?: undefined;
         is_free?: undefined;
         return_url?: undefined;
-        off_line?: undefined;
         form?: undefined;
+        off_line?: undefined;
     } | {
         result: string;
         message: string;
         data: Cart;
         is_free?: undefined;
         return_url?: undefined;
-        off_line?: undefined;
         form?: undefined;
+        off_line?: undefined;
     } | {
         is_free: boolean;
         return_url: string;
         data?: undefined;
         result?: undefined;
         message?: undefined;
+        form?: undefined;
         off_line?: undefined;
-        form?: undefined;
-    } | {
-        off_line: boolean;
-        return_url: string;
-        data?: undefined;
-        result?: undefined;
-        message?: undefined;
-        is_free?: undefined;
-        form?: undefined;
     } | {
         form: any;
         data?: undefined;
@@ -300,6 +294,14 @@ export declare class Shopping {
         is_free?: undefined;
         return_url?: undefined;
         off_line?: undefined;
+    } | {
+        off_line: boolean;
+        return_url: string;
+        data?: undefined;
+        result?: undefined;
+        message?: undefined;
+        is_free?: undefined;
+        form?: undefined;
     }>;
     getReturnOrder(query: {
         page: number;

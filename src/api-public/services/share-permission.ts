@@ -342,9 +342,9 @@ export class SharePermission {
             )[0] || {userID:-999};
 
             await db.query(
-                `DELETE FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
+                `DELETE FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE  appName = ? and (user = ? or config->>'$.verifyEmail' = ? or user = ?);
                 `,
-                [userData.userID,email, base.app]
+                [base.app,userData.userID,email,email]
             );
             return {
                 result: true,

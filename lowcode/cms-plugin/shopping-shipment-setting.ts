@@ -263,7 +263,7 @@ export class ShoppingShipmentSetting {
                                                                                                                 style="cursor: pointer; width: auto;"
                                                                                                                 class="guide4-6"
                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                    if (data.value || data.key){
+                                                                                                                    if (data.value || data.key) {
                                                                                                                         dialog.checkYesOrNot({
                                                                                                                             text: '是否要刪除',
                                                                                                                             callback: (response) => {
@@ -273,11 +273,10 @@ export class ShoppingShipmentSetting {
                                                                                                                                 }
                                                                                                                             },
                                                                                                                         });
-                                                                                                                    }else{
+                                                                                                                    } else {
                                                                                                                         shipmentArray.volume.splice(index, 1);
                                                                                                                         gvc.notifyDataChange(page_id);
                                                                                                                     }
-                                                                                                                    
                                                                                                                 })}"
                                                                                                             >
                                                                                                                 <i class="fa-duotone fa-xmark"></i>

@@ -313,7 +313,8 @@ ${BgWidget.save(gvc.event(() => {
                                                     }
 
                                                 })
-                                            })
+                                            });
+                                        
                                             // const dialog = new ShareDialog(gvc.glitter)
                                             // dialog.dataLoading({visible: true})
                                             // AiChat.generateHtml({
