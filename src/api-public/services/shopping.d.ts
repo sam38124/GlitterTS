@@ -151,7 +151,6 @@ export declare class Shopping {
         min_price?: string;
         max_price?: string;
         status?: string;
-        schedule?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;

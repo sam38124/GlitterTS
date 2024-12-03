@@ -207,25 +207,52 @@ class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
             if (query.status) {
-                let statusTemp = '';
-                let scheduleTemp = '';
-                if (query.schedule === 'true' || query.schedule === 'false') {
-                    scheduleTemp = ` OR (JSON_EXTRACT(content, '$.status') = 'schedule')`;
-                }
-                if (query.status.includes(',')) {
-                    const statusJoin = query.status.split(',').map(status => `"${status.trim()}"`).join(',');
-                    statusTemp = `(JSON_EXTRACT(content, '$.status') IN (${statusJoin}))`;
-                }
-                else {
-                    statusTemp = `(JSON_EXTRACT(content, '$.status') = '${query.status}')`;
-                }
-                querySql.push(`(${statusTemp} ${scheduleTemp})`);
+                const statusSplit = query.status.split(',').map(status => status.trim());
+                const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
+                const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
+                const scheduleConditions = statusSplit.map(status => {
+                    switch (status) {
+                        case 'inRange':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND (
+                                        content->>'$.active_schedule' IS NULL OR (
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            AND (
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                            )
+                                        )
+                                    )
+                                )
+                            `;
+                        case 'beforeStart':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                )
+                            `;
+                        case 'afterEnd':
+                            return `
+                                OR (
+                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                )
+                            `;
+                        default:
+                            return '';
+                    }
+                }).join('');
+                querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
             console.log(querySql.join(' AND '));
+<<<<<<< HEAD
             let productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
                 return product;
             });
@@ -239,6 +266,9 @@ class Shopping {
                     return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
                 });
             }
+=======
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
+>>>>>>> 72f82a06 (create: product set range datetime)
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
@@ -682,8 +712,7 @@ class Shopping {
                         page: 0,
                         limit: 50,
                         id: b.id,
-                        status: 'active',
-                        schedule: 'true',
+                        status: 'inRange',
                     })).data;
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
@@ -857,8 +886,7 @@ class Shopping {
                             page: 0,
                             limit: 50,
                             id: `${b}`,
-                            status: 'active',
-                            schedule: 'true',
+                            status: 'inRange',
                         })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;

@@ -562,7 +562,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
-        console.log(`req.query=>` , req.query )
+        console.log(`req.query=>`, req.query);
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
@@ -858,7 +858,6 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
             status: req.query.status as string,
-            schedule: req.query.schedule as string,
             id_list: req.query.id_list as string,
             order_by: (() => {
                 switch (req.query.order_by) {
