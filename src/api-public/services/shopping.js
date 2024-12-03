@@ -252,23 +252,7 @@ class Shopping {
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
             console.log(querySql.join(' AND '));
-<<<<<<< HEAD
-            let productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
-                return product;
-            });
-            console.log(`productList==>`, productList);
-            if (query.schedule === 'true' || query.schedule === 'false') {
-                productList = productList.filter((item) => {
-                    const content = item.content;
-                    if (content.status !== 'schedule') {
-                        return true;
-                    }
-                    return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
-                });
-            }
-=======
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => { return product; });
->>>>>>> 72f82a06 (create: product set range datetime)
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =

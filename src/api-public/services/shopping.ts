@@ -399,23 +399,7 @@ export class Shopping {
             console.log(querySql.join(' AND '));
 
             // 產品清單
-<<<<<<< HEAD
-            let productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {
-                return product
-            });
-            // 若需要期間限定的判斷
-            if(query.schedule === 'true' || query.schedule === 'false'){
-                productList= productList.filter((item:any) => {
-                    const content = item.content
-                    if(content.status !== 'schedule'){
-                        return true
-                    }
-                    return `${this.checkDuring(item.content.active_schedule)}` === query.schedule;
-                })
-            }
-=======
-            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => {return product});
->>>>>>> 72f82a06 (create: product set range datetime)
+            const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
             // 許願清單判斷
             if (this.token && this.token.userID) {
