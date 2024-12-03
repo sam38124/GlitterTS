@@ -293,6 +293,11 @@ export async function createAPP(dd: any) {
                             }
                             let distribution_code = '';
                             req.query.page = req.query.page || 'index';
+                            if ((req.query.page as string).split('/')[0] === 'order_detail' && req.query.EndCheckout === '1'){
+                                distribution_code = `
+                                    localStorage.setItem('distributionCode','');
+                                `;
+                            }
                             if ((req.query.page as string).split('/')[0] === 'distribution' && (req.query.page as string).split('/')[1]) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
                                 const page = (

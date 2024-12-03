@@ -296,6 +296,14 @@ async function createAPP(dd) {
                         }
                         let distribution_code = '';
                         req.query.page = req.query.page || 'index';
+                        console.log(req.query.page.split('/')[0] === 'order_detail');
+                        console.log(req.query.EndCheckout === '1');
+                        if (req.query.page.split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
+                            console.log('in');
+                            distribution_code = `
+                                    localStorage.setItem('distributionCode','');
+                                `;
+                        }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
                             const page = (await database_2.default.query(`SELECT *
