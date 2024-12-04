@@ -4162,7 +4162,15 @@ ${postMD.seo.content ?? ''}</textarea
                                                                 })()
                                                         )}`
                                                 ),  
-                                                BgWidget.mainCard(html` <div class="mb-2" style="font-weight: 700;">商品促銷標籤</div>
+                                                BgWidget.mainCard(html` <div class="mb-2 position-relative" style="font-weight: 700;">商品促銷標籤
+                                                    ${BgWidget.questionButton(gvc.event(()=>{
+                                                        
+                                                    }))}
+<!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
+<!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
+<!--                                                        <img>-->
+<!--                                                    </div>-->
+                                                </div>
                                                 ${gvc.bindView(
                                                         (() => {
                                                             const id = gvc.glitter.getUUID();
@@ -4174,7 +4182,6 @@ ${postMD.seo.content ?? ''}</textarea
                                                                         key: label.id, value: label.title
                                                                     }
                                                                 })
-                                                                console.log("test")
                                                                 gvc.notifyDataChange(id)
                                                             });
                                                             return {

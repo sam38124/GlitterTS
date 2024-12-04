@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a;
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
@@ -301,15 +300,15 @@ export class ShoppingProductSetting {
                                                         }
                                                         dialog.dataLoading({ visible: true });
                                                         const getFormData = (() => {
-                                                            var _b, _c, _d;
+                                                            var _a, _b, _c;
                                                             switch (check.select) {
                                                                 case 'search':
                                                                     return {
                                                                         page: 0,
                                                                         limit: 1000,
-                                                                        search: (_b = vm.query) !== null && _b !== void 0 ? _b : '',
-                                                                        searchType: (_c = vm.queryType) !== null && _c !== void 0 ? _c : '',
-                                                                        orderBy: (_d = vm.orderString) !== null && _d !== void 0 ? _d : '',
+                                                                        search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
+                                                                        searchType: (_b = vm.queryType) !== null && _b !== void 0 ? _b : '',
+                                                                        orderBy: (_c = vm.orderString) !== null && _c !== void 0 ? _c : '',
                                                                         status: (() => {
                                                                             if (vm.filter.status && vm.filter.status.length > 0) {
                                                                                 return vm.filter.status.join(',');
@@ -344,38 +343,50 @@ export class ShoppingProductSetting {
                                                             let exportData = [];
                                                             response.response.data.forEach((productData) => {
                                                                 const baseRowData = (index) => {
-                                                                    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7;
+                                                                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
                                                                     return ({
                                                                         id: index === 0 ? productData.content.id || '' : '',
                                                                         name: index === 0 ? productData.content.title || '未命名商品' : '',
-                                                                        status: index === 0 ? (((_b = productData.content) === null || _b === void 0 ? void 0 : _b.status) === 'draft' ? '草稿' : '啟用') : '',
+                                                                        status: index === 0
+                                                                            ? (() => {
+                                                                                var _a;
+                                                                                switch ((_a = productData.content) === null || _a === void 0 ? void 0 : _a.status) {
+                                                                                    case 'draft':
+                                                                                        return '草稿';
+                                                                                    case 'schedule':
+                                                                                        return '期間限定';
+                                                                                    default:
+                                                                                        return '啟用';
+                                                                                }
+                                                                            })()
+                                                                            : '',
                                                                         category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
                                                                         productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
                                                                         img: index === 0 ? expo.checkString(productData.content.preview_image[0]) : '',
-                                                                        SEO_domain: index === 0 ? expo.checkString((_d = (_c = productData.content) === null || _c === void 0 ? void 0 : _c.seo) === null || _d === void 0 ? void 0 : _d.domain) : '',
-                                                                        SEO_title: index === 0 ? expo.checkString((_f = (_e = productData.content) === null || _e === void 0 ? void 0 : _e.seo) === null || _f === void 0 ? void 0 : _f.title) : '',
-                                                                        SEO_desc: index === 0 ? expo.checkString((_h = (_g = productData.content) === null || _g === void 0 ? void 0 : _g.seo) === null || _h === void 0 ? void 0 : _h.content) : '',
-                                                                        spec1: index === 0 ? expo.checkString((_k = (_j = productData.content) === null || _j === void 0 ? void 0 : _j.specs[0]) === null || _k === void 0 ? void 0 : _k.title) : '',
-                                                                        spec1Value: expo.checkString((_l = productData.content.variants[index]) === null || _l === void 0 ? void 0 : _l.spec[0]),
-                                                                        spec2: index === 0 ? expo.checkString((_o = (_m = productData.content) === null || _m === void 0 ? void 0 : _m.specs[1]) === null || _o === void 0 ? void 0 : _o.title) : '',
-                                                                        spec2Value: expo.checkString((_p = productData.content.variants[index]) === null || _p === void 0 ? void 0 : _p.spec[1]),
-                                                                        spec3: index === 0 ? expo.checkString((_r = (_q = productData.content) === null || _q === void 0 ? void 0 : _q.specs[2]) === null || _r === void 0 ? void 0 : _r.title) : '',
-                                                                        spec3Value: expo.checkString((_s = productData.content.variants[index]) === null || _s === void 0 ? void 0 : _s.spec[2]),
-                                                                        sku: expo.checkString((_t = productData.content.variants[index]) === null || _t === void 0 ? void 0 : _t.sku),
-                                                                        cost: expo.checkNumber((_u = productData.content.variants[index]) === null || _u === void 0 ? void 0 : _u.cost),
-                                                                        sale_price: expo.checkNumber((_v = productData.content.variants[index]) === null || _v === void 0 ? void 0 : _v.sale_price),
-                                                                        compare_price: expo.checkNumber((_w = productData.content.variants[index]) === null || _w === void 0 ? void 0 : _w.compare_price),
-                                                                        benefit: expo.checkNumber((_x = productData.content.variants[index]) === null || _x === void 0 ? void 0 : _x.profit),
-                                                                        shipment_type: getShipmentType((_y = productData.content.variants[index]) === null || _y === void 0 ? void 0 : _y.shipment_type),
-                                                                        length: expo.checkNumber(((_z = productData.content.variants[index]) === null || _z === void 0 ? void 0 : _z.v_length) || 0),
-                                                                        width: expo.checkNumber(((_0 = productData.content.variants[index]) === null || _0 === void 0 ? void 0 : _0.v_width) || 0),
-                                                                        height: expo.checkNumber(((_1 = productData.content.variants[index]) === null || _1 === void 0 ? void 0 : _1.v_height) || 0),
-                                                                        weight: expo.checkNumber(((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.weight) || 0),
-                                                                        weightUnit: expo.checkString(((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.weightUnit) || 'KG'),
-                                                                        stockPolicy: ((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.show_understocking) === 'true' ? '追蹤' : '不追蹤',
-                                                                        stock: expo.checkNumber((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.stock),
-                                                                        save_stock: expo.checkNumber((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.save_stock),
-                                                                        barcode: expo.checkString((_7 = productData.content.variants[index]) === null || _7 === void 0 ? void 0 : _7.barcode),
+                                                                        SEO_domain: index === 0 ? expo.checkString((_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.domain) : '',
+                                                                        SEO_title: index === 0 ? expo.checkString((_d = (_c = productData.content) === null || _c === void 0 ? void 0 : _c.seo) === null || _d === void 0 ? void 0 : _d.title) : '',
+                                                                        SEO_desc: index === 0 ? expo.checkString((_f = (_e = productData.content) === null || _e === void 0 ? void 0 : _e.seo) === null || _f === void 0 ? void 0 : _f.content) : '',
+                                                                        spec1: index === 0 ? expo.checkString((_h = (_g = productData.content) === null || _g === void 0 ? void 0 : _g.specs[0]) === null || _h === void 0 ? void 0 : _h.title) : '',
+                                                                        spec1Value: expo.checkString((_j = productData.content.variants[index]) === null || _j === void 0 ? void 0 : _j.spec[0]),
+                                                                        spec2: index === 0 ? expo.checkString((_l = (_k = productData.content) === null || _k === void 0 ? void 0 : _k.specs[1]) === null || _l === void 0 ? void 0 : _l.title) : '',
+                                                                        spec2Value: expo.checkString((_m = productData.content.variants[index]) === null || _m === void 0 ? void 0 : _m.spec[1]),
+                                                                        spec3: index === 0 ? expo.checkString((_p = (_o = productData.content) === null || _o === void 0 ? void 0 : _o.specs[2]) === null || _p === void 0 ? void 0 : _p.title) : '',
+                                                                        spec3Value: expo.checkString((_q = productData.content.variants[index]) === null || _q === void 0 ? void 0 : _q.spec[2]),
+                                                                        sku: expo.checkString((_r = productData.content.variants[index]) === null || _r === void 0 ? void 0 : _r.sku),
+                                                                        cost: expo.checkNumber((_s = productData.content.variants[index]) === null || _s === void 0 ? void 0 : _s.cost),
+                                                                        sale_price: expo.checkNumber((_t = productData.content.variants[index]) === null || _t === void 0 ? void 0 : _t.sale_price),
+                                                                        compare_price: expo.checkNumber((_u = productData.content.variants[index]) === null || _u === void 0 ? void 0 : _u.compare_price),
+                                                                        benefit: expo.checkNumber((_v = productData.content.variants[index]) === null || _v === void 0 ? void 0 : _v.profit),
+                                                                        shipment_type: getShipmentType((_w = productData.content.variants[index]) === null || _w === void 0 ? void 0 : _w.shipment_type),
+                                                                        length: expo.checkNumber(((_x = productData.content.variants[index]) === null || _x === void 0 ? void 0 : _x.v_length) || 0),
+                                                                        width: expo.checkNumber(((_y = productData.content.variants[index]) === null || _y === void 0 ? void 0 : _y.v_width) || 0),
+                                                                        height: expo.checkNumber(((_z = productData.content.variants[index]) === null || _z === void 0 ? void 0 : _z.v_height) || 0),
+                                                                        weight: expo.checkNumber(((_0 = productData.content.variants[index]) === null || _0 === void 0 ? void 0 : _0.weight) || 0),
+                                                                        weightUnit: expo.checkString(((_1 = productData.content.variants[index]) === null || _1 === void 0 ? void 0 : _1.weightUnit) || 'KG'),
+                                                                        stockPolicy: ((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.show_understocking) === 'true' ? '追蹤' : '不追蹤',
+                                                                        stock: expo.checkNumber((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.stock),
+                                                                        save_stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.save_stock),
+                                                                        barcode: expo.checkString((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.barcode),
                                                                     });
                                                                 };
                                                                 const getShipmentType = (type) => {
@@ -493,7 +504,7 @@ export class ShoppingProductSetting {
                                                             }).then((data) => {
                                                                 function getDatalist() {
                                                                     return data.response.data.map((dd) => {
-                                                                        var _b;
+                                                                        var _a;
                                                                         return [
                                                                             {
                                                                                 key: '商品',
@@ -509,8 +520,8 @@ export class ShoppingProductSetting {
                                                                             {
                                                                                 key: '售價',
                                                                                 value: (() => {
-                                                                                    var _b;
-                                                                                    const numArray = ((_b = dd.content.variants) !== null && _b !== void 0 ? _b : [])
+                                                                                    var _a;
+                                                                                    const numArray = ((_a = dd.content.variants) !== null && _a !== void 0 ? _a : [])
                                                                                         .map((dd) => {
                                                                                         return parseInt(`${dd.sale_price}`, 10);
                                                                                     })
@@ -534,7 +545,7 @@ export class ShoppingProductSetting {
                                                                             },
                                                                             {
                                                                                 key: '已售出',
-                                                                                value: ((_b = dd.total_sales) !== null && _b !== void 0 ? _b : '0').toLocaleString(),
+                                                                                value: ((_a = dd.total_sales) !== null && _a !== void 0 ? _a : '0').toLocaleString(),
                                                                             },
                                                                             {
                                                                                 key: '狀態',
@@ -543,22 +554,13 @@ export class ShoppingProductSetting {
                                                                                     return {
                                                                                         bind: id,
                                                                                         view: () => {
-                                                                                            if (dd.content.status === 'draft') {
-                                                                                                return BgWidget.secondaryInsignia('草稿');
-                                                                                            }
-                                                                                            if (!dd.content.active_schedule) {
-                                                                                                return BgWidget.infoInsignia('上架');
-                                                                                            }
-                                                                                            const state = ShoppingProductSetting.getTimeState(dd.content.active_schedule);
-                                                                                            switch (state) {
-                                                                                                case 'afterEnd':
-                                                                                                    return BgWidget.secondaryInsignia('下架');
-                                                                                                case 'beforeStart':
-                                                                                                    return BgWidget.warningInsignia('待上架');
-                                                                                                case 'inRange':
-                                                                                                    return BgWidget.infoInsignia('上架');
-                                                                                                default:
+                                                                                            switch (dd.content.status) {
+                                                                                                case 'draft':
                                                                                                     return BgWidget.secondaryInsignia('草稿');
+                                                                                                case 'schedule':
+                                                                                                    return BgWidget.notifyInsignia('期間限定');
+                                                                                                default:
+                                                                                                    return BgWidget.successInsignia('啟用');
                                                                                             }
                                                                                         },
                                                                                         divCreate: {
@@ -735,7 +737,7 @@ export class ShoppingProductSetting {
         });
     }
     static editProductSpec(obj) {
-        var _b, _c;
+        var _a, _b;
         const html = String.raw;
         let postMD = obj.defData;
         let variant = {};
@@ -999,7 +1001,7 @@ export class ShoppingProductSetting {
             return {
                 bind: id,
                 view: () => {
-                    var _b, _c;
+                    var _a, _b;
                     return html `
                                                     <div class="d-flex flex-column w-100">
                                                         <div
@@ -1025,7 +1027,7 @@ export class ShoppingProductSetting {
                                                                       <div>庫存數量</div>
                                                                       <input
                                                                           class="w-100"
-                                                                          value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
+                                                                          value="${(_a = variant.stock) !== null && _a !== void 0 ? _a : '0'}"
                                                                           style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                           placeholder="請輸入庫存數量"
                                                                           onchange="${gvc.event((e) => {
@@ -1037,7 +1039,7 @@ export class ShoppingProductSetting {
                                                                       <div>安全庫存</div>
                                                                       <input
                                                                           class="w-100"
-                                                                          value="${(_c = variant.save_stock) !== null && _c !== void 0 ? _c : '0'}"
+                                                                          value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
                                                                           style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                           placeholder="請輸入安全庫存"
                                                                           onchange="${gvc.event((e) => {
@@ -1102,7 +1104,7 @@ export class ShoppingProductSetting {
                                         <input
                                             style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                                             placeholder="請輸入存貨單位"
-                                            value="${(_b = variant.sku) !== null && _b !== void 0 ? _b : ''}"
+                                            value="${(_a = variant.sku) !== null && _a !== void 0 ? _a : ''}"
                                             onchange="${gvc.event((e) => {
             variant.sku = e.value;
         })}"
@@ -1113,7 +1115,7 @@ export class ShoppingProductSetting {
                                         <input
                                             style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                                             placeholder="請輸入商品條碼"
-                                            value="${(_c = variant.barcode) !== null && _c !== void 0 ? _c : ''}"
+                                            value="${(_b = variant.barcode) !== null && _b !== void 0 ? _b : ''}"
                                             onchange="${gvc.event((e) => {
             const regex = /^[a-zA-Z0-9]+$/;
             if (!regex.test(e.value)) {
@@ -1210,7 +1212,7 @@ export class ShoppingProductSetting {
         </div>`;
     }
     static editProduct(obj) {
-        var _b, _c;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let postMD = obj.initial_data || {
                 title: '',
@@ -1222,7 +1224,7 @@ export class ShoppingProductSetting {
                 },
                 content: '',
                 visible: 'true',
-                status: 'draft',
+                status: 'active',
                 collection: [],
                 hideIndex: 'false',
                 preview_image: [],
@@ -1238,7 +1240,12 @@ export class ShoppingProductSetting {
                 template: '',
                 content_array: [],
                 content_json: [],
-                active_schedule: {},
+                active_schedule: {
+                    startDate: this.getDateTime().date,
+                    startTime: this.getDateTime().time,
+                    endDate: this.getDateTime(7).date,
+                    endTime: this.getDateTime(7).time,
+                },
             };
             function setProductType() {
                 switch (obj.product_type) {
@@ -1261,8 +1268,8 @@ export class ShoppingProductSetting {
                 }
             }
             setProductType();
-            postMD.content_array = (_b = postMD.content_array) !== null && _b !== void 0 ? _b : [];
-            postMD.content_json = (_c = postMD.content_json) !== null && _c !== void 0 ? _c : [];
+            postMD.content_array = (_a = postMD.content_array) !== null && _a !== void 0 ? _a : [];
+            postMD.content_json = (_b = postMD.content_json) !== null && _b !== void 0 ? _b : [];
             if (obj.type === 'replace') {
                 postMD = Object.assign(Object.assign({}, postMD), obj.defData);
             }
@@ -1437,7 +1444,7 @@ export class ShoppingProductSetting {
                 return {
                     bind: vm.id,
                     view: () => {
-                        var _b;
+                        var _a;
                         updateVariants();
                         return [
                             BgWidget.container(html `
@@ -1464,13 +1471,10 @@ export class ShoppingProductSetting {
                             }))}
                                         <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
                                         <div class="flex-fill"></div>
-                                    </div>
-                                    <div class="d-flex w-100">
-                                        <div class="flex-fill"></div>
                                         ${[
                                 obj.type === 'replace'
                                     ? ''
-                                    : BgWidget.grayButton('複製現有商品', gvc.event(() => {
+                                    : BgWidget.grayButton('代入現有商品', gvc.event(() => {
                                         BgProduct.productsDialog({
                                             gvc: gvc,
                                             default: [],
@@ -1520,7 +1524,7 @@ export class ShoppingProductSetting {
                                         gvc: gvc,
                                         title: '',
                                         type: 'text',
-                                        default: (_b = postMD.title) !== null && _b !== void 0 ? _b : '',
+                                        default: (_a = postMD.title) !== null && _a !== void 0 ? _a : '',
                                         placeHolder: '請輸入商品名稱',
                                         callback: (text) => {
                                             if (postMD.seo.domain === postMD.title) {
@@ -1534,7 +1538,7 @@ export class ShoppingProductSetting {
                                             `),
                                     BgWidget.mainCard([
                                         obj.gvc.bindView(() => {
-                                            var _b, _c;
+                                            var _a, _b;
                                             const dialog = new ShareDialog(gvc.glitter);
                                             const vm = {
                                                 id: obj.gvc.glitter.getUUID(),
@@ -1542,8 +1546,8 @@ export class ShoppingProductSetting {
                                                 loading: true,
                                                 documents: [],
                                             };
-                                            postMD.content_array = (_b = postMD.content_array) !== null && _b !== void 0 ? _b : [];
-                                            postMD.content_json = (_c = postMD.content_json) !== null && _c !== void 0 ? _c : [];
+                                            postMD.content_array = (_a = postMD.content_array) !== null && _a !== void 0 ? _a : [];
+                                            postMD.content_json = (_b = postMD.content_json) !== null && _b !== void 0 ? _b : [];
                                             return {
                                                 bind: vm.id,
                                                 view: () => __awaiter(this, void 0, void 0, function* () {
@@ -1551,14 +1555,14 @@ export class ShoppingProductSetting {
                                                         return BgWidget.spinner();
                                                     }
                                                     function formatRichtext(text, tags, jsonData) {
-                                                        var _b, _c, _d;
+                                                        var _a, _b, _c;
                                                         let gText = `${text}`;
                                                         if (tags && tags.length > 0) {
                                                             for (const item of tags) {
                                                                 const data = jsonData.find((j) => j.key === item.key);
                                                                 const textImage = data && data.value
                                                                     ? html `<span
-                                                                                          style="font-size: ${(_b = item.font_size) !== null && _b !== void 0 ? _b : '14'}px; color: ${(_c = item.font_color) !== null && _c !== void 0 ? _c : '#393939'}; background: ${(_d = item.font_bgr) !== null && _d !== void 0 ? _d : '#fff'}"
+                                                                                          style="font-size: ${(_a = item.font_size) !== null && _a !== void 0 ? _a : '14'}px; color: ${(_b = item.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = item.font_bgr) !== null && _c !== void 0 ? _c : '#fff'}"
                                                                                           >${data.value}</span
                                                                                       >`
                                                                     : html `#${item.title}#`;
@@ -1571,6 +1575,10 @@ export class ShoppingProductSetting {
                                                     return html ` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="d-flex align-items-center gap-2">
                                                                             <div style="color: #393939; font-weight: 700;">商品描述</div>
+                                                                            ${BgWidget.aiChatButton({
+                                                        gvc,
+                                                        select: 'writer',
+                                                    })}
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <div
@@ -1704,19 +1712,7 @@ export class ShoppingProductSetting {
                                                                     const originContent = `${postMD.content}`;
                                                                     BgWidget.fullDialog({
                                                                         gvc: gvc,
-                                                                        title: (gvc2) => {
-                                                                            return `<div class="d-flex align-items-center me-2" style="gap:10px;">商品描述${BgWidget.aiChatButton({
-                                                                                gvc: gvc2,
-                                                                                select: 'writer',
-                                                                                click: () => {
-                                                                                    ProductAi.generateRichText(gvc, (text) => {
-                                                                                        postMD.content += text;
-                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                        gvc2.recreateView();
-                                                                                    });
-                                                                                },
-                                                                            })}</div>`;
-                                                                        },
+                                                                        title: '商品描述',
                                                                         innerHTML: (gvc2) => {
                                                                             return html ` <div>
                                                                                                             ${EditorElem.richText({
@@ -2215,11 +2211,11 @@ export class ShoppingProductSetting {
                                     postMD.variants.length > 1
                                         ? BgWidget.mainCard(html ` <div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
                                             obj.gvc.bindView(() => {
-                                                var _b;
+                                                var _a;
                                                 function getPreviewImage(img) {
                                                     return img || BgWidget.noImageURL;
                                                 }
-                                                postMD.specs[0].option = (_b = postMD.specs[0].option) !== null && _b !== void 0 ? _b : [];
+                                                postMD.specs[0].option = (_a = postMD.specs[0].option) !== null && _a !== void 0 ? _a : [];
                                                 return {
                                                     bind: variantsViewID,
                                                     view: () => {
@@ -2499,7 +2495,7 @@ export class ShoppingProductSetting {
                                                                                                     let arrayHTML = ``;
                                                                                                     postMD.specs[0].option.map((option) => {
                                                                                                         option.sortQueue.map((data) => {
-                                                                                                            var _b;
+                                                                                                            var _a;
                                                                                                             if (data.select) {
                                                                                                                 let name = data.spec.slice(1).join('/');
                                                                                                                 arrayHTML += html `
@@ -2508,7 +2504,7 @@ export class ShoppingProductSetting {
                                                                                                                                           >
                                                                                                                                               <div style="width: 40%;">${name}</div>
                                                                                                                                               <input
-                                                                                                                                                  value="${(_b = data.sku) !== null && _b !== void 0 ? _b : ''}"
+                                                                                                                                                  value="${(_a = data.sku) !== null && _a !== void 0 ? _a : ''}"
                                                                                                                                                   style="height:22px;border-radius: 10px;border: 1px solid #DDD;width:60%;padding: 18px;"
                                                                                                                                                   placeholder="請輸入存貨單位"
                                                                                                                                                   onchange="${gvc.event((e) => {
@@ -2981,9 +2977,9 @@ export class ShoppingProductSetting {
                                                                                     }
                                                                                     return postMD.specs[0].option
                                                                                         .map((spec) => {
-                                                                                        var _b;
+                                                                                        var _a;
                                                                                         const viewList = [];
-                                                                                        spec.expand = (_b = spec.expand) !== null && _b !== void 0 ? _b : true;
+                                                                                        spec.expand = (_a = spec.expand) !== null && _a !== void 0 ? _a : true;
                                                                                         if (postMD.specs.length > 1) {
                                                                                             let isCheck = !postMD.variants
                                                                                                 .filter((dd) => {
@@ -3183,11 +3179,11 @@ export class ShoppingProductSetting {
                                                                                                     },
                                                                                                 ];
                                                                                                 return data.map((value) => {
-                                                                                                    var _b;
+                                                                                                    var _a;
                                                                                                     return html `
                                                                                                                                       <option
                                                                                                                                           value="${value.value}"
-                                                                                                                                          class="${(_b = value.class) !== null && _b !== void 0 ? _b : ''}"
+                                                                                                                                          class="${(_a = value.class) !== null && _a !== void 0 ? _a : ''}"
                                                                                                                                           ${value.select ? 'selected' : ''}
                                                                                                                                       >
                                                                                                                                           ${value.text}
@@ -3266,7 +3262,7 @@ export class ShoppingProductSetting {
                                                                                                                 document.body.clientWidth > 768);
                                                                                                         })
                                                                                                             .map((dd) => {
-                                                                                                            var _b;
+                                                                                                            var _a;
                                                                                                             return html ` <div
                                                                                                                                                       style="color:#393939;font-size: 16px;font-weight: 400;width:   ${document
                                                                                                                 .body.clientWidth > 800
@@ -3278,7 +3274,7 @@ export class ShoppingProductSetting {
                                                                                                                                                   >
                                                                                                                                                       <input
                                                                                                                                                           style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
-                                                                                                                                                          value="${(_b = data[dd]) !== null && _b !== void 0 ? _b : 0}"
+                                                                                                                                                          value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
                                                                                                                                                           min="0"
                                                                                                                                                           oninput="${gvc.event((e) => {
                                                                                                                 const regex = /^[0-9]*$/;
@@ -3369,8 +3365,8 @@ export class ShoppingProductSetting {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                var _b;
-                                                postMD.relative_product = (_b = postMD.relative_product) !== null && _b !== void 0 ? _b : [];
+                                                var _a;
+                                                postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                                 try {
                                                     return html `
                                                                     <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}</div>
@@ -3443,15 +3439,15 @@ export class ShoppingProductSetting {
                                         };
                                     })),
                                     BgWidget.mainCard(obj.gvc.bindView(() => {
-                                        var _b;
-                                        postMD.seo = (_b = postMD.seo) !== null && _b !== void 0 ? _b : {
+                                        var _a;
+                                        postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
                                             title: '',
                                             content: '',
                                         };
                                         return {
                                             bind: 'seo',
                                             view: () => {
-                                                var _b, _c, _d;
+                                                var _a, _b, _c;
                                                 try {
                                                     postMD.seo.domain = postMD.seo.domain || postMD.title;
                                                     const href = `https://${window.parent.glitter.share.editorViewModel.domain}/products`;
@@ -3505,7 +3501,7 @@ export class ShoppingProductSetting {
                                                     ].join('')}
                                                                     <div class="w-100" style="margin: 18px 0 8px;">SEO標題</div>
                                                                     <input
-                                                                        value="${(_b = postMD.seo.title) !== null && _b !== void 0 ? _b : ''}"
+                                                                        value="${(_a = postMD.seo.title) !== null && _a !== void 0 ? _a : ''}"
                                                                         style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                         onchange="${gvc.event((e) => {
                                                         postMD.seo.title = e.value;
@@ -3515,14 +3511,14 @@ export class ShoppingProductSetting {
                                                                     <div class="w-100" style="margin: 18px 0 8px;">SEO描述</div>
                                                                     <textarea
                                                                         rows="4"
-                                                                        value="${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}"
+                                                                        value="${(_b = postMD.seo.content) !== null && _b !== void 0 ? _b : ''}"
                                                                         style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                         onchange="${gvc.event((e) => {
                                                         postMD.seo.content = e.value;
                                                         obj.gvc.notifyDataChange('seo');
                                                     })}"
                                                                     >
-${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
+${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                     >`;
                                                 }
                                                 catch (e) {
@@ -3532,10 +3528,116 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                             },
                                         };
                                     })),
+                                    BgWidget.mainCard(html ` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
+                                                    ${gvc.bindView((() => {
+                                        const id = gvc.glitter.getUUID();
+                                        const inputStyle = 'display: block; width: 200px;';
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return [
+                                                    BgWidget.select({
+                                                        gvc: obj.gvc,
+                                                        default: postMD.status,
+                                                        options: [
+                                                            { key: 'active', value: '啟用' },
+                                                            { key: 'draft', value: '草稿' },
+                                                            { key: 'schedule', value: '期間限定' },
+                                                        ],
+                                                        callback: (text) => {
+                                                            postMD.status = text;
+                                                            gvc.notifyDataChange(id);
+                                                        },
+                                                    }),
+                                                    postMD.status === 'schedule'
+                                                        ? html ` <div class="tx_700">啟用期間</div>
+                                                                                  <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                                      <div class="d-flex align-items-center">
+                                                                                          <span class="tx_normal me-2">開始日期</span>
+                                                                                          ${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            type: 'date',
+                                                            style: inputStyle,
+                                                            default: `${postMD.active_schedule.startDate}`,
+                                                            placeHolder: '',
+                                                            callback: (text) => {
+                                                                postMD.active_schedule.startDate = text;
+                                                            },
+                                                        })}
+                                                                                      </div>
+                                                                                      <div class="d-flex align-items-center">
+                                                                                          <span class="tx_normal me-2">開始時間</span>
+                                                                                          ${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            type: 'time',
+                                                            style: inputStyle,
+                                                            default: `${postMD.active_schedule.startTime}`,
+                                                            placeHolder: '',
+                                                            callback: (text) => {
+                                                                postMD.active_schedule.startTime = text;
+                                                            },
+                                                        })}
+                                                                                      </div>
+                                                                                  </div>
+                                                                                  ${BgWidget.multiCheckboxContainer(gvc, [
+                                                            {
+                                                                key: 'noEnd',
+                                                                name: '無期限',
+                                                            },
+                                                            {
+                                                                key: 'withEnd',
+                                                                name: '結束時間',
+                                                                innerHtml: html ` <div
+                                                                                                  class="d-flex mt-0 mt-md-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                                                                                  style="gap: 12px"
+                                                                                              >
+                                                                                                  <div class="d-flex align-items-center">
+                                                                                                      <span class="tx_normal me-2">結束日期</span>
+                                                                                                      ${BgWidget.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    type: 'date',
+                                                                    style: inputStyle,
+                                                                    default: `${postMD.active_schedule.endDate}`,
+                                                                    placeHolder: '',
+                                                                    callback: (text) => {
+                                                                        postMD.active_schedule.endDate = text;
+                                                                    },
+                                                                })}
+                                                                                                  </div>
+                                                                                                  <div class="d-flex align-items-center">
+                                                                                                      <span class="tx_normal me-2">結束時間</span>
+                                                                                                      ${BgWidget.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    type: 'time',
+                                                                    style: inputStyle,
+                                                                    default: `${postMD.active_schedule.endTime}`,
+                                                                    placeHolder: '',
+                                                                    callback: (text) => {
+                                                                        postMD.active_schedule.endTime = text;
+                                                                    },
+                                                                })}
+                                                                                                  </div>
+                                                                                              </div>`,
+                                                            },
+                                                        ], [postMD.active_schedule.endDate ? `withEnd` : `noEnd`], (text) => {
+                                                            if (text[0] === 'noEnd') {
+                                                                postMD.active_schedule.endDate = undefined;
+                                                                postMD.active_schedule.endTime = undefined;
+                                                            }
+                                                        }, { single: true })}`
+                                                        : '',
+                                                ].join(BgWidget.mbContainer(12));
+                                            },
+                                        };
+                                    })())}`),
                                 ]
                                     .filter((str) => str.length > 0)
                                     .join(BgWidget.mbContainer(18)),
-                                ratio: 75,
+                                ratio: 77,
                             }, {
                                 html: html ` <div class="summary-card p-0">
                                             ${[
@@ -3547,234 +3649,140 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                         ${gvc.bindView((() => {
                                         const id = gvc.glitter.getUUID();
                                         const inputStyle = 'display: block; width: 200px;';
-                                        function settingSchedule(activeSchedule) {
-                                            const original = JSON.parse(JSON.stringify(activeSchedule));
-                                            const originalState = ShoppingProductSetting.getTimeState(original);
-                                            return BgWidget.settingDialog({
-                                                gvc: gvc,
-                                                title: '設定上下架時間',
-                                                closeCallback: () => {
-                                                    postMD.active_schedule = original;
-                                                },
-                                                innerHTML: (gvc) => {
-                                                    var _b, _c;
-                                                    return html `<div class="d-flex flex-column gap-3">
-                                                                                ${BgWidget.grayNote('若系統時間大於設定的開始時間，商品狀態將會從「待上架」自動變成「上架」')}
-                                                                                <div class="d-flex mb-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <span class="tx_normal me-2">開始日期</span>
-                                                                                        ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        type: 'date',
-                                                        style: inputStyle,
-                                                        default: `${original.startDate}`,
-                                                        placeHolder: '',
-                                                        callback: (text) => {
-                                                            postMD.active_schedule.startDate = text;
-                                                        },
-                                                    })}
-                                                                                    </div>
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <span class="tx_normal me-2">開始時間</span>
-                                                                                        ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        type: 'time',
-                                                        style: inputStyle,
-                                                        default: `${original.startTime}`,
-                                                        placeHolder: '',
-                                                        callback: (text) => {
-                                                            postMD.active_schedule.startTime = text;
-                                                        },
-                                                    })}
-                                                                                    </div>
-                                                                                </div>
-                                                                                ${BgWidget.multiCheckboxContainer(gvc, [
-                                                        {
-                                                            key: 'noEnd',
-                                                            name: '無期限',
-                                                        },
-                                                        {
-                                                            key: 'withEnd',
-                                                            name: '結束時間',
-                                                            innerHtml: html ` <div
-                                                                                                class="d-flex mt-0 mt-md-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                                                                                                style="gap: 12px"
-                                                                                            >
-                                                                                                <div class="d-flex flex-column">
-                                                                                                    <span class="tx_normal me-2">結束日期</span>
-                                                                                                    ${BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '',
-                                                                type: 'date',
-                                                                style: inputStyle,
-                                                                default: `${(_b = original.endDate) !== null && _b !== void 0 ? _b : ''}`,
-                                                                placeHolder: '',
-                                                                callback: (text) => {
-                                                                    postMD.active_schedule.endDate = text;
-                                                                },
-                                                            })}
-                                                                                                </div>
-                                                                                                <div class="d-flex flex-column">
-                                                                                                    <span class="tx_normal me-2">結束時間</span>
-                                                                                                    ${BgWidget.editeInput({
-                                                                gvc: gvc,
-                                                                title: '',
-                                                                type: 'time',
-                                                                style: inputStyle,
-                                                                default: `${(_c = original.endTime) !== null && _c !== void 0 ? _c : ''}`,
-                                                                placeHolder: '',
-                                                                callback: (text) => {
-                                                                    postMD.active_schedule.endTime = text;
-                                                                },
-                                                            })}
-                                                                                                </div>
-                                                                                            </div>`,
-                                                        },
-                                                    ], [original.endDate ? `withEnd` : `noEnd`], (text) => {
-                                                        if (text[0] === 'noEnd') {
-                                                            postMD.active_schedule.endDate = undefined;
-                                                            postMD.active_schedule.endTime = undefined;
-                                                        }
-                                                    }, { single: true })}
-                                                                            </div>`;
-                                                },
-                                                footer_html: (gvc) => {
-                                                    return [
-                                                        BgWidget.save(gvc.event(() => {
-                                                            const realGVC = obj.gvc;
-                                                            const dialog = new ShareDialog(obj.gvc.glitter);
-                                                            const state = ShoppingProductSetting.getTimeState(postMD.active_schedule);
-                                                            function refresh(bool) {
-                                                                if (!postMD.active_schedule.startDate || !postMD.active_schedule.startTime) {
-                                                                    dialog.errorMessage({ text: '請輸入開始日期與時間' });
-                                                                    return;
-                                                                }
-                                                                if ((postMD.active_schedule.endDate && !postMD.active_schedule.endTime) ||
-                                                                    (!postMD.active_schedule.endDate && postMD.active_schedule.endTime)) {
-                                                                    dialog.errorMessage({ text: '請輸入結束日期與時間' });
-                                                                    return;
-                                                                }
-                                                                if (bool) {
-                                                                    gvc.closeDialog();
-                                                                    realGVC.notifyDataChange(id);
-                                                                }
-                                                            }
-                                                            if (originalState !== state) {
-                                                                switch (state) {
-                                                                    case 'afterEnd':
-                                                                        dialog.warningMessage({
-                                                                            text: '您的時間設定將會更改商品狀態為「下架」<br/>是否確定更改嗎？',
-                                                                            callback: (bool) => {
-                                                                                refresh(bool);
-                                                                            },
-                                                                        });
-                                                                        return;
-                                                                    case 'inRange':
-                                                                        dialog.warningMessage({
-                                                                            text: '您的時間設定將會更改商品狀態為「上架」<br/>是否確定更改嗎？',
-                                                                            callback: (bool) => {
-                                                                                refresh(bool);
-                                                                            },
-                                                                        });
-                                                                        return;
-                                                                    case 'beforeStart':
-                                                                        dialog.warningMessage({
-                                                                            text: '您的時間設定將會更改商品狀態為「待上架」<br/>是否確定更改嗎？',
-                                                                            callback: (bool) => {
-                                                                                refresh(bool);
-                                                                            },
-                                                                        });
-                                                                        return;
-                                                                    default:
-                                                                        refresh(true);
-                                                                        return;
-                                                                }
-                                                            }
-                                                            else {
-                                                                refresh(true);
-                                                            }
-                                                        })),
-                                                    ].join('');
-                                                },
-                                            });
-                                        }
                                         return {
                                             bind: id,
                                             view: () => {
-                                                const state = ShoppingProductSetting.getTimeState(postMD.active_schedule);
                                                 return [
                                                     BgWidget.select({
                                                         gvc: obj.gvc,
-                                                        default: (() => {
-                                                            if (postMD.status === 'draft') {
-                                                                return 'draft';
-                                                            }
-                                                            switch (state) {
-                                                                case 'afterEnd':
-                                                                    return 'inactive';
-                                                                case 'beforeStart':
-                                                                    return 'schedule';
-                                                                case 'inRange':
-                                                                default:
-                                                                    return 'active';
-                                                            }
-                                                        })(),
+                                                        default: postMD.status,
                                                         options: [
-                                                            { key: 'active', value: '上架' },
-                                                            { key: 'schedule', value: '待上架' },
-                                                            { key: 'inactive', value: '下架' },
+                                                            { key: 'active', value: '啟用' },
                                                             { key: 'draft', value: '草稿' },
+                                                            { key: 'schedule', value: '期間限定' },
                                                         ],
                                                         callback: (text) => {
-                                                            switch (text) {
-                                                                case 'active':
-                                                                    postMD.active_schedule = this.getActiveDatetime();
-                                                                    postMD.status = 'active';
-                                                                    break;
-                                                                case 'schedule':
-                                                                    settingSchedule(postMD.active_schedule);
-                                                                    postMD.status = 'active';
-                                                                    break;
-                                                                case 'inactive':
-                                                                    postMD.active_schedule = this.getInactiveDatetime();
-                                                                    postMD.status = 'active';
-                                                                    break;
-                                                                default:
-                                                                    postMD.active_schedule = {};
-                                                                    postMD.status = 'draft';
-                                                                    break;
-                                                            }
+                                                            postMD.status = text;
                                                             gvc.notifyDataChange(id);
                                                         },
                                                     }),
-                                                    (() => {
-                                                        const state = ShoppingProductSetting.getTimeState(postMD.active_schedule);
-                                                        const upload = postMD.active_schedule.startDate
-                                                            ? `預計上架時間：${postMD.active_schedule.startDate} ${postMD.active_schedule.startTime}`
-                                                            : '';
-                                                        const remove = postMD.active_schedule.endDate
-                                                            ? `預計下架時間：${postMD.active_schedule.endDate} ${postMD.active_schedule.endTime}`
-                                                            : '';
-                                                        if (state === 'beforeStart') {
-                                                            return BgWidget.grayNote(`${upload} <br /> ${remove}`);
-                                                        }
-                                                        if (state === 'inRange' && remove.length > 0) {
-                                                            return BgWidget.grayNote(remove);
-                                                        }
-                                                        return '';
-                                                    })(),
-                                                    state !== 'draft'
-                                                        ? BgWidget.darkButton('設定上下架時間', gvc.event(() => {
-                                                            settingSchedule(postMD.active_schedule);
-                                                        }), {
-                                                            style: 'width:100%;',
-                                                        })
+                                                    postMD.status === 'schedule'
+                                                        ? html ` <div class="tx_700">啟用期間</div>
+                                                                                  <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                                      <div class="d-flex align-items-center">
+                                                                                          <span class="tx_normal me-2">開始日期</span>
+                                                                                          ${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            type: 'date',
+                                                            style: inputStyle,
+                                                            default: `${postMD.active_schedule.startDate}`,
+                                                            placeHolder: '',
+                                                            callback: (text) => {
+                                                                postMD.active_schedule.startDate = text;
+                                                            },
+                                                        })}
+                                                                                      </div>
+                                                                                      <div class="d-flex align-items-center">
+                                                                                          <span class="tx_normal me-2">開始時間</span>
+                                                                                          ${BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            type: 'time',
+                                                            style: inputStyle,
+                                                            default: `${postMD.active_schedule.startTime}`,
+                                                            placeHolder: '',
+                                                            callback: (text) => {
+                                                                postMD.active_schedule.startTime = text;
+                                                            },
+                                                        })}
+                                                                                      </div>
+                                                                                  </div>
+                                                                                  ${BgWidget.multiCheckboxContainer(gvc, [
+                                                            {
+                                                                key: 'noEnd',
+                                                                name: '無期限',
+                                                            },
+                                                            {
+                                                                key: 'withEnd',
+                                                                name: '結束時間',
+                                                                innerHtml: html ` <div
+                                                                                                  class="d-flex mt-0 mt-md-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                                                                                  style="gap: 12px"
+                                                                                              >
+                                                                                                  <div class="d-flex align-items-center">
+                                                                                                      <span class="tx_normal me-2">結束日期</span>
+                                                                                                      ${BgWidget.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    type: 'date',
+                                                                    style: inputStyle,
+                                                                    default: `${postMD.active_schedule.endDate}`,
+                                                                    placeHolder: '',
+                                                                    callback: (text) => {
+                                                                        postMD.active_schedule.endDate = text;
+                                                                    },
+                                                                })}
+                                                                                                  </div>
+                                                                                                  <div class="d-flex align-items-center">
+                                                                                                      <span class="tx_normal me-2">結束時間</span>
+                                                                                                      ${BgWidget.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    type: 'time',
+                                                                    style: inputStyle,
+                                                                    default: `${postMD.active_schedule.endTime}`,
+                                                                    placeHolder: '',
+                                                                    callback: (text) => {
+                                                                        postMD.active_schedule.endTime = text;
+                                                                    },
+                                                                })}
+                                                                                                  </div>
+                                                                                              </div>`,
+                                                            },
+                                                        ], [postMD.active_schedule.endDate ? `withEnd` : `noEnd`], (text) => {
+                                                            if (text[0] === 'noEnd') {
+                                                                postMD.active_schedule.endDate = undefined;
+                                                                postMD.active_schedule.endTime = undefined;
+                                                            }
+                                                        }, { single: true })}`
                                                         : '',
-                                                ]
-                                                    .filter((str) => str.length > 0)
-                                                    .join(BgWidget.mbContainer(12));
+                                                ].join(BgWidget.mbContainer(12));
+                                            },
+                                        };
+                                    })())}`),
+                                    BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">商品促銷標籤
+                                                    ${BgWidget.questionButton(gvc.event(() => {
+                                    }))}
+<!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
+<!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
+<!--                                                        <img>-->
+<!--                                                    </div>-->
+                                                </div>
+                                                ${gvc.bindView((() => {
+                                        const id = gvc.glitter.getUUID();
+                                        const inputStyle = 'display: block; width: 200px;';
+                                        let options = [];
+                                        ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
+                                            options = data.response.value.map((label) => {
+                                                return {
+                                                    key: label.id, value: label.title
+                                                };
+                                            });
+                                            gvc.notifyDataChange(id);
+                                        });
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return BgWidget.select({
+                                                    gvc: obj.gvc,
+                                                    default: postMD.label,
+                                                    options: options,
+                                                    callback: (text) => {
+                                                        postMD.label = text;
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                });
                                             },
                                         };
                                     })())}`),
@@ -3791,7 +3799,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                     })
                                                         .join(html `<div class="my-1"></div>`),
                                                     html ` <div class="w-100 mt-3">
-                                                                        ${BgWidget.darkButton(`設定商品分類`, gvc.event(() => {
+                                                                        ${BgWidget.grayButton(`設定商品分類`, gvc.event(() => {
                                                         BgProduct.collectionsDialog({
                                                             gvc: gvc,
                                                             default: postMD.collection.map((dd) => {
@@ -3803,7 +3811,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                             }),
                                                         });
                                                     }), {
-                                                        style: 'width:100%;',
+                                                        textStyle: 'width:100%;',
                                                     })}
                                                                     </div>`,
                                                 ].join('');
@@ -3820,7 +3828,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                     html `<div style="font-weight: 700;" class="mb-2">AI 選品</div>`,
                                                     BgWidget.grayNote(postMD.ai_description || '尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。'),
                                                     html `<div class="my-2"></div>`,
-                                                    BgWidget.darkButton(`設定描述語句`, gvc.event(() => {
+                                                    BgWidget.grayButton(`設定描述語句`, gvc.event(() => {
                                                         function refresh() {
                                                             gvc.notifyDataChange(id);
                                                         }
@@ -3851,7 +3859,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                             },
                                                         });
                                                     }), {
-                                                        style: 'width:100%;',
+                                                        textStyle: 'width:100%;',
                                                     }),
                                                 ].join('');
                                             },
@@ -3861,7 +3869,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                     .filter((str) => str.length > 0)
                                     .join(BgWidget.mbContainer(18))}
                                         </div>`,
-                                ratio: 25,
+                                ratio: 23,
                             })}
                             `),
                             html ` <div class="update-bar-container">
@@ -3943,25 +3951,6 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                         }
                                         return true;
                                     }
-                                    if (postMD.id && postMD.status !== 'draft' && Object.keys(postMD.active_schedule).length === 0) {
-                                        postMD.active_schedule = this.getActiveDatetime();
-                                    }
-                                    postMD.active_schedule.start_ISO_Date = (() => {
-                                        try {
-                                            return new Date(`${postMD.active_schedule.startDate} ${postMD.active_schedule.startTime}`).toISOString();
-                                        }
-                                        catch (error) {
-                                            return undefined;
-                                        }
-                                    })();
-                                    postMD.active_schedule.end_ISO_Date = (() => {
-                                        try {
-                                            return new Date(`${postMD.active_schedule.endDate} ${postMD.active_schedule.endTime}`).toISOString();
-                                        }
-                                        catch (error) {
-                                            return undefined;
-                                        }
-                                    })();
                                     if (checkEmpty()) {
                                         if (postMD.id) {
                                             ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
@@ -4000,8 +3989,8 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                         placeholder="例如 : 顏色、大小"
                         value="${temp.title}"
                         onchange="${gvc.event((e) => {
-                var _b;
-                temp.title = (_b = e === null || e === void 0 ? void 0 : e.value) !== null && _b !== void 0 ? _b : '';
+                var _a;
+                temp.title = (_a = e === null || e === void 0 ? void 0 : e.value) !== null && _a !== void 0 ? _a : '';
             })}"
                     />
                 </div>`,
@@ -4063,10 +4052,10 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                     style: 'display: flex;gap: 8px;flex-direction: column;',
                 },
                 onCreate: () => {
-                    var _b;
+                    var _a;
                     let enterPass = true;
                     const inputElement = document.getElementById(vm.enterId);
-                    gvc.glitter.share.keyDownEvent = (_b = gvc.glitter.share.keyDownEvent) !== null && _b !== void 0 ? _b : {};
+                    gvc.glitter.share.keyDownEvent = (_a = gvc.glitter.share.keyDownEvent) !== null && _a !== void 0 ? _a : {};
                     keyboard === 'Enter' && inputElement && inputElement.focus();
                     inputElement.addEventListener('compositionupdate', function () {
                         enterPass = false;
@@ -4151,8 +4140,8 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
         });
     }
     static getProductTypeString(product) {
-        var _b;
-        product.productType = (_b = product.productType) !== null && _b !== void 0 ? _b : {
+        var _a;
+        product.productType = (_a = product.productType) !== null && _a !== void 0 ? _a : {
             product: true,
             addProduct: false,
             giveaway: false,
@@ -4173,50 +4162,7 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
         }
         return '未知';
     }
-    static getTimeState(jsonData) {
-        const now = new Date();
-        const { startDate, startTime, endDate, endTime } = jsonData;
-        const start = startDate && startTime ? new Date(`${startDate}T${startTime}`) : null;
-        const end = endDate && endTime ? new Date(`${endDate}T${endTime}`) : null;
-        if (!start)
-            return 'draft';
-        if (start && now < start) {
-            return 'beforeStart';
-        }
-        if (end && now > end) {
-            return 'afterEnd';
-        }
-        if (start && now >= start && (!end || now <= end)) {
-            return 'inRange';
-        }
-        return 'draft';
-    }
 }
-_a = ShoppingProductSetting;
-ShoppingProductSetting.getActiveDatetime = () => {
-    return {
-        startDate: _a.getDateTime().date,
-        startTime: '00:00',
-        endDate: undefined,
-        endTime: undefined,
-    };
-};
-ShoppingProductSetting.getScheduleDatetime = () => {
-    return {
-        startDate: _a.getDateTime(7).date,
-        startTime: _a.getDateTime(7).time,
-        endDate: _a.getDateTime(14).date,
-        endTime: _a.getDateTime(14).time,
-    };
-};
-ShoppingProductSetting.getInactiveDatetime = () => {
-    return {
-        startDate: _a.getDateTime(-1).date,
-        startTime: '00:00',
-        endDate: _a.getDateTime(-1).date,
-        endTime: '00:00',
-    };
-};
 ShoppingProductSetting.getDateTime = (n = 0) => {
     const now = new Date();
     now.setDate(now.getDate() + n);
