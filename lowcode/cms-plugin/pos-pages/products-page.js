@@ -96,6 +96,8 @@ export class ProductsPage {
                         collection: (category.key == 'all' ? '' : category.key),
                         limit: 50000,
                         search: vm.query,
+                        status: 'inRange',
+                        channel: 'pos',
                         orderBy: 'created_time_desc'
                     }).then(res => {
                         vm.searchable = false;
@@ -525,6 +527,8 @@ export class ProductsPage {
                             limit: 50000,
                             accurate_search_text: true,
                             search: text,
+                            status: 'inRange',
+                            channel: 'pos',
                             orderBy: 'created_time_desc'
                         }).then(res => {
                             dialog.dataLoading({ visible: false });

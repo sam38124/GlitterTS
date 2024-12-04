@@ -3231,7 +3231,6 @@ function getBadgeClass(){
                                                         const urlObject = new URL(originalUrl);
                                                         urlObject.searchParams.set('EndCheckout', '1');
                                                         const newUrl = urlObject.toString();
-
                                                         return newUrl
                                                     })(),
                                                     user_info: vm.cartData.user_info,

@@ -215,6 +215,7 @@ export class Shopping {
         min_price?: string;
         max_price?: string;
         status?: string;
+        channel?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -391,12 +392,19 @@ export class Shopping {
                 // 組合 SQL 條件
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
+            if (query.channel) {
+                const channelSplit = query.channel.split(',').map(channel => channel.trim());
+                const channelJoin = channelSplit.map(channel => {
+                    return `OR JSON_CONTAINS(content->>'$.channel', '"${channel}"')`
+                });
+                querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
+            }
             
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            console.log(querySql.join(' AND '));
+            console.log('product query sql ==>', querySql.join(' AND '));
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
@@ -1007,6 +1015,7 @@ export class Shopping {
                             limit: 50,
                             id: b.id,
                             status: 'inRange',
+                            channel: data.checkOutType === 'POS' ? 'pos' : undefined
                         })
                     ).data;
 
@@ -1207,6 +1216,7 @@ export class Shopping {
                                     limit: 50,
                                     id: `${b}`,
                                     status: 'inRange',
+                                    channel: data.checkOutType === 'POS' ? 'pos' : undefined
                                 })
                             ).data ?? {content: {}}
                         ).content;

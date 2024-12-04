@@ -1293,11 +1293,11 @@ export class ShoppingDiscountSetting {
                                                                     {
                                                                         key: 'false',
                                                                         name: '不可疊加',
+                                                                        innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
                                                                     },
                                                                     {
                                                                         key: 'true',
                                                                         name: '可以疊加',
-                                                                        innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
                                                                     },
                                                                 ],
                                                                 [voucherData.overlay ? 'true' : 'false'],

@@ -312,6 +312,7 @@ FilterOptions.allowanceSelect = [
 ];
 FilterOptions.productFilterFrame = {
     status: [],
+    channel: [],
     collection: [],
 };
 FilterOptions.productFunnel = [
@@ -324,6 +325,15 @@ FilterOptions.productFunnel = [
             { key: 'beforeStart', name: '待上架' },
             { key: 'afterEnd', name: '下架' },
             { key: 'draft', name: '草稿' },
+        ],
+    },
+    {
+        key: 'channel',
+        type: 'multi_checkbox',
+        name: '銷售管道',
+        data: [
+            { key: 'normal', name: 'APP & 官網' },
+            { key: 'pos', name: 'POS' },
         ],
     },
 ];

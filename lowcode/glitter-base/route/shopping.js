@@ -300,6 +300,7 @@ export class ApiShop {
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);
                     json.minPrice && par.push(`min_price=${json.minPrice}`);
                     json.status && par.push(`status=${json.status}`);
+                    json.channel && par.push(`channel=${json.channel}`);
                     if (json.schedule === true || json.schedule === false) {
                         par.push(`schedule=${json.schedule}`);
                     }

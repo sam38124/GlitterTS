@@ -282,6 +282,7 @@ export class ProductList {
                     minPrice: minPrice,
                     search: titleMatch,
                     status: 'inRange',
+                    channel: 'normal',
                     orderBy: orderBy,
                     with_hide_index: 'false',
                     id_list: gvc.glitter.getUrlParameter('ai-search') || undefined,

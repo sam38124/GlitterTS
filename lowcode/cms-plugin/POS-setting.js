@@ -293,6 +293,8 @@ height: 51px;
                     limit: 50000,
                     accurate_search_text: true,
                     search: text,
+                    status: 'inRange',
+                    channel: 'pos',
                     orderBy: 'created_time_desc'
                 }).then(res => {
                     dialog.dataLoading({ visible: false });
