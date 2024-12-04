@@ -327,17 +327,24 @@ export class UmClass {
         });
     }
     static addStyle(gvc) {
+        var _a, _b, _c, _d, _e, _f;
+        const globalValue = gvc.glitter.share.globalValue;
+        const titleFontColor = (_a = globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+        const contentColor = (_b = globalValue['theme_color.0.content']) !== null && _b !== void 0 ? _b : '#333333';
+        const borderButtonBgr = (_c = globalValue['theme_color.0.border-button-bg']) !== null && _c !== void 0 ? _c : '#fff';
+        const borderButtonText = (_d = globalValue['theme_color.0.border-button-text']) !== null && _d !== void 0 ? _d : '#333333';
+        const solidButtonBgr = (_e = globalValue['theme_color.0.solid-button-bg']) !== null && _e !== void 0 ? _e : '#292218';
+        const solidButtonText = (_f = globalValue['theme_color.0.solid-button-text']) !== null && _f !== void 0 ? _f : '#000000';
         gvc.addStyle(`
             .um-nav-title {
                 font-weight: 700;
                 font-size: 36px;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-nav-btn {
                 white-space: nowrap;
                 text-align: center;
-                border: 2px solid #232323;
                 align-items: center;
                 border-radius: 22px;
                 height: 44px;
@@ -345,10 +352,13 @@ export class UmClass {
                 font-size: 16px;
                 min-width: 31%;
                 max-width: 180px;
+                background: #ffffff;
+                border: 2px solid ${borderButtonBgr};
+                color: ${borderButtonText};
             }
 
             .um-nav-btn.um-nav-btn-active {
-                background: #292218;
+                background: ${borderButtonBgr};
                 color: #ffffff;
                 font-weight: 600;
             }
@@ -360,7 +370,7 @@ export class UmClass {
             }
 
             .um-info-title {
-                color: #000000;
+                color: ${titleFontColor};
                 font-size: 28px;
             }
 
@@ -370,7 +380,7 @@ export class UmClass {
                 padding: 8px 16px;
                 font-size: 14px;
                 display: inline-block;
-                font-weight: 500;
+                font-weight: 600;
                 line-height: 1;
                 text-align: center;
                 white-space: nowrap;
@@ -396,7 +406,7 @@ export class UmClass {
                 font-weight: 700;
                 line-height: 25.2px;
                 word-wrap: break-word;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-content {
@@ -405,7 +415,7 @@ export class UmClass {
                 font-weight: 400;
                 line-height: 25.2px;
                 word-wrap: break-word;
-                color: #292218;
+                color: ${contentColor};
             }
 
             .um-linebar-container {
@@ -435,7 +445,7 @@ export class UmClass {
                 width: 100%;
                 height: 100%;
                 opacity: 0.4;
-                background: #292218;
+                background: ${solidButtonBgr};
             }
 
             .um-linebar-fill {
@@ -448,8 +458,8 @@ export class UmClass {
                 flex-grow: 1;
                 padding: 9px 12px;
                 border-radius: 10px;
-                border: 1px solid #393939;
-                background-color: #ffffff;
+                border: 1px solid ${borderButtonBgr};
+                background: #ffffff;
                 appearance: none;
                 width: 100%;
             }
@@ -493,7 +503,7 @@ export class UmClass {
                 font-size: 18px;
                 font-style: normal;
                 font-weight: 700;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-td-bar {
@@ -508,22 +518,21 @@ export class UmClass {
                 font-size: 18px;
                 font-style: normal;
                 font-weight: 400;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-mobile-area {
                 padding: 28px;
                 margin-top: 12px;
-                background: white;
+                background: #ffffff;
                 border-radius: 20px;
                 overflow: hidden;
-                border: 1px solid;
                 justify-content: center;
                 align-items: flex-start;
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
-                border: 1px solid #292218;
+                border: 1px solid ${titleFontColor};
             }
 
             .um-mobile-text {
@@ -533,7 +542,7 @@ export class UmClass {
                 line-height: 22.4px;
                 letter-spacing: 0.64px;
                 word-wrap: break-word;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-img-bgr {
@@ -545,7 +554,7 @@ export class UmClass {
 
             .um-card-title {
                 font-weight: 600;
-                color: #292218;
+                color: ${titleFontColor};
             }
 
             .um-icon-container {
@@ -555,7 +564,7 @@ export class UmClass {
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
-                background-color: white;
+                background: white;
                 color: black;
                 display: flex;
                 align-items: center;

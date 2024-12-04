@@ -2,6 +2,7 @@ import db from '../../modules/database';
 import exception from '../../modules/exception';
 import { IToken } from '../models/Auth.js';
 import { Shopping } from './shopping.js';
+import { saasConfig } from '../../config.js';
 
 export class Recommend {
     public app: string;
@@ -42,18 +43,40 @@ export class Recommend {
                 []
             );
 
-            for (const link of links) {
-                link.total_price = 0;
-                const orders = await new Shopping(this.app, this.token).getCheckOut({
+            function calculatePercentage(numerator: number, denominator: number, decimalPlaces: number = 2): string {
+                if (denominator === 0) {
+                    throw new Error('分母不能為 0');
+                }
+                const percentage = (numerator / denominator) * 100;
+                return `${percentage.toFixed(decimalPlaces)}%`;
+            }
+
+            for (const data of links) {
+                const shopping = new Shopping(this.app, this.token);
+                const orders = await shopping.getCheckOut({
                     page: 0,
                     limit: 5000,
-                    distribution_code: link.code,
+                    distribution_code: data.code,
                 });
-                link.orders = orders.data.length;
-                orders.data.map((order: any) => {
-                    link.total_price += order.orderData.total - order.orderData.shipment_fee;
-                });
-                link.sharing_bonus = parseInt(`${(link.total_price * parseFloat(`${link.content.share_value}`)) / 100}`, 10);
+
+                const monitor = await db.query(
+                    `SELECT id, mac_address 
+                     FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+                     WHERE app_name = ? AND base_url = ?`,
+                    [this.app, `/${this.app}/distribution/${data.content.link}`]
+                );
+
+                const monitorLength = monitor.length;
+                const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
+                const totalOrders = orders.data.length;
+                const totalPrice = orders.data.reduce((sum: number, order: any) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
+
+                data.orders = totalOrders;
+                data.click_times = monitorLength;
+                data.mac_address_count = macAddrSize;
+                data.conversion_rate = calculatePercentage(totalOrders, monitor.length, 1);
+                data.total_price = totalPrice;
+                data.sharing_bonus = Math.floor((totalPrice * parseFloat(data.content.share_value)) / 100);
             }
 
             return { data: links, total: total[0].c };
