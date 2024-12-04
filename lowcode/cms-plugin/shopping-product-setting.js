@@ -561,13 +561,22 @@ export class ShoppingProductSetting {
                                                                                     return {
                                                                                         bind: id,
                                                                                         view: () => {
-                                                                                            switch (dd.content.status) {
-                                                                                                case 'draft':
-                                                                                                    return BgWidget.secondaryInsignia('草稿');
-                                                                                                case 'schedule':
-                                                                                                    return BgWidget.notifyInsignia('期間限定');
+                                                                                            if (dd.content.status === 'draft') {
+                                                                                                return BgWidget.secondaryInsignia('草稿');
+                                                                                            }
+                                                                                            if (!dd.content.active_schedule) {
+                                                                                                return BgWidget.infoInsignia('上架');
+                                                                                            }
+                                                                                            const state = ShoppingProductSetting.getTimeState(dd.content.active_schedule);
+                                                                                            switch (state) {
+                                                                                                case 'afterEnd':
+                                                                                                    return BgWidget.secondaryInsignia('下架');
+                                                                                                case 'beforeStart':
+                                                                                                    return BgWidget.warningInsignia('待上架');
+                                                                                                case 'inRange':
+                                                                                                    return BgWidget.infoInsignia('上架');
                                                                                                 default:
-                                                                                                    return BgWidget.successInsignia('啟用');
+                                                                                                    return BgWidget.secondaryInsignia('草稿');
                                                                                             }
                                                                                         },
                                                                                         divCreate: {
@@ -1497,7 +1506,10 @@ export class ShoppingProductSetting {
                                     obj.vm.type = 'list';
                                 }
                             }))}
-                                        <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                        <div class="d-flex align-items-center">
+                                            <h3 class="mb-0 me-2 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                            <div class="pt-1">${BgWidget.infoInsignia(this.getProductTypeString(postMD))}</div>
+                                        </div>
                                         <div class="flex-fill"></div>
                                         ${[
                                 obj.type === 'replace'
@@ -3556,112 +3568,60 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                             },
                                         };
                                     })),
-                                    BgWidget.mainCard(html ` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
-                                                    ${gvc.bindView((() => {
-                                        const id = gvc.glitter.getUUID();
-                                        const inputStyle = 'display: block; width: 200px;';
+                                    BgWidget.mainCard(obj.gvc.bindView(() => {
+                                        const id = obj.gvc.glitter.getUUID();
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return [
-                                                    BgWidget.select({
-                                                        gvc: obj.gvc,
-                                                        default: postMD.status,
-                                                        options: [
-                                                            { key: 'active', value: '啟用' },
-                                                            { key: 'draft', value: '草稿' },
-                                                            { key: 'schedule', value: '期間限定' },
-                                                        ],
-                                                        callback: (text) => {
-                                                            postMD.status = text;
+                                                    html `<div class="title-container px-0">
+                                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                                                                    <div class="flex-fill"></div>
+                                                                    ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
+                                                        function refresh() {
                                                             gvc.notifyDataChange(id);
-                                                        },
-                                                    }),
-                                                    postMD.status === 'schedule'
-                                                        ? html ` <div class="tx_700">啟用期間</div>
-                                                                                  <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                                      <div class="d-flex align-items-center">
-                                                                                          <span class="tx_normal me-2">開始日期</span>
-                                                                                          ${BgWidget.editeInput({
+                                                        }
+                                                        let description = postMD.ai_description;
+                                                        BgWidget.settingDialog({
                                                             gvc: gvc,
-                                                            title: '',
-                                                            type: 'date',
-                                                            style: inputStyle,
-                                                            default: `${postMD.active_schedule.startDate}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                postMD.active_schedule.startDate = text;
-                                                            },
-                                                        })}
-                                                                                      </div>
-                                                                                      <div class="d-flex align-items-center">
-                                                                                          <span class="tx_normal me-2">開始時間</span>
-                                                                                          ${BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            type: 'time',
-                                                            style: inputStyle,
-                                                            default: `${postMD.active_schedule.startTime}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                postMD.active_schedule.startTime = text;
-                                                            },
-                                                        })}
-                                                                                      </div>
-                                                                                  </div>
-                                                                                  ${BgWidget.multiCheckboxContainer(gvc, [
-                                                            {
-                                                                key: 'noEnd',
-                                                                name: '無期限',
-                                                            },
-                                                            {
-                                                                key: 'withEnd',
-                                                                name: '結束時間',
-                                                                innerHtml: html ` <div
-                                                                                                  class="d-flex mt-0 mt-md-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                                                                                                  style="gap: 12px"
-                                                                                              >
-                                                                                                  <div class="d-flex align-items-center">
-                                                                                                      <span class="tx_normal me-2">結束日期</span>
-                                                                                                      ${BgWidget.editeInput({
+                                                            title: '描述語句',
+                                                            innerHTML: (gvc) => {
+                                                                return BgWidget.textArea({
                                                                     gvc: gvc,
                                                                     title: '',
-                                                                    type: 'date',
-                                                                    style: inputStyle,
-                                                                    default: `${postMD.active_schedule.endDate}`,
-                                                                    placeHolder: '',
+                                                                    default: postMD.ai_description || '',
+                                                                    placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
                                                                     callback: (text) => {
-                                                                        postMD.active_schedule.endDate = text;
+                                                                        description = text;
                                                                     },
-                                                                })}
-                                                                                                  </div>
-                                                                                                  <div class="d-flex align-items-center">
-                                                                                                      <span class="tx_normal me-2">結束時間</span>
-                                                                                                      ${BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: '',
-                                                                    type: 'time',
-                                                                    style: inputStyle,
-                                                                    default: `${postMD.active_schedule.endTime}`,
-                                                                    placeHolder: '',
-                                                                    callback: (text) => {
-                                                                        postMD.active_schedule.endTime = text;
-                                                                    },
-                                                                })}
-                                                                                                  </div>
-                                                                                              </div>`,
+                                                                    style: `min-height:100px;`,
+                                                                });
                                                             },
-                                                        ], [postMD.active_schedule.endDate ? `withEnd` : `noEnd`], (text) => {
-                                                            if (text[0] === 'noEnd') {
-                                                                postMD.active_schedule.endDate = undefined;
-                                                                postMD.active_schedule.endTime = undefined;
-                                                            }
-                                                        }, { single: true })}`
-                                                        : '',
-                                                ].join(BgWidget.mbContainer(12));
+                                                            footer_html: (gvc) => {
+                                                                return [
+                                                                    BgWidget.save(gvc.event(() => {
+                                                                        postMD.ai_description = description;
+                                                                        refresh();
+                                                                        gvc.closeDialog();
+                                                                    })),
+                                                                ].join('');
+                                                            },
+                                                        });
+                                                    }), {
+                                                        textStyle: 'width:100%;',
+                                                    })}
+                                                                </div>`,
+                                                    html `
+                                                                    <div>
+                                                                        ${postMD.ai_description
+                                                        ? `您設定的描述語句：${postMD.ai_description}`
+                                                        : BgWidget.grayNote('尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。')}
+                                                                    </div>
+                                                                `,
+                                                ].join(BgWidget.mbContainer(18));
                                             },
                                         };
-                                    })())}`),
+                                    })),
                                 ]
                                     .filter((str) => str.length > 0)
                                     .join(BgWidget.mbContainer(18)),
@@ -3669,10 +3629,6 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                             }, {
                                 html: html ` <div class="summary-card p-0">
                                             ${[
-                                    BgWidget.mainCard(html `
-                                                        <div style="font-weight: 700;" class="mb-2">商品類型</div>
-                                                        <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
-                                                    `),
                                     BgWidget.mainCard(html ` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
                                                         ${gvc.bindView((() => {
                                         const id = gvc.glitter.getUUID();
@@ -3914,10 +3870,10 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                         }
                                                     })(),
                                                     state === 'beforeStart' || (state === 'inRange' && remove.length > 0)
-                                                        ? BgWidget.darkButton('設定上下架時間', gvc.event(() => {
+                                                        ? BgWidget.grayButton('設定上下架時間', gvc.event(() => {
                                                             settingSchedule(postMD.active_schedule);
                                                         }), {
-                                                            style: 'width: 100%;',
+                                                            textStyle: 'width: 100%;',
                                                         })
                                                         : '',
                                                 ]
@@ -3933,22 +3889,22 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                     ], (_c = postMD.channel) !== null && _c !== void 0 ? _c : [], (text) => {
                                         postMD.channel = text;
                                     }, { single: false })}`),
-                                    BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">商品促銷標籤
-                                                    ${BgWidget.questionButton(gvc.event(() => {
-                                    }))}
-<!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
-<!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
-<!--                                                        <img>-->
-<!--                                                    </div>-->
-                                                </div>
-                                                ${gvc.bindView((() => {
+                                    BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">
+                                                        商品促銷標籤 ${BgWidget.questionButton(gvc.event(() => { }))}
+                                                        <!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
+                                                        <!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
+                                                        <!--                                                        <img>-->
+                                                        <!--                                                    </div>-->
+                                                    </div>
+                                                    ${gvc.bindView((() => {
                                         const id = gvc.glitter.getUUID();
                                         const inputStyle = 'display: block; width: 200px;';
                                         let options = [];
                                         ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
                                             options = data.response.value.map((label) => {
                                                 return {
-                                                    key: label.id, value: label.title
+                                                    key: label.id,
+                                                    value: label.title,
                                                 };
                                             });
                                             gvc.notifyDataChange(id);
@@ -3999,52 +3955,6 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                                 ].join('');
                                             },
                                             divCreate: {},
-                                        };
-                                    })),
-                                    BgWidget.mainCard(obj.gvc.bindView(() => {
-                                        const id = obj.gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return [
-                                                    html `<div style="font-weight: 700;" class="mb-2">AI 選品</div>`,
-                                                    BgWidget.grayNote(postMD.ai_description || '尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。'),
-                                                    html `<div class="my-2"></div>`,
-                                                    BgWidget.grayButton(`設定描述語句`, gvc.event(() => {
-                                                        function refresh() {
-                                                            gvc.notifyDataChange(id);
-                                                        }
-                                                        let description = postMD.ai_description;
-                                                        BgWidget.settingDialog({
-                                                            gvc: gvc,
-                                                            title: '描述語句',
-                                                            innerHTML: (gvc) => {
-                                                                return BgWidget.textArea({
-                                                                    gvc: gvc,
-                                                                    title: '',
-                                                                    default: postMD.ai_description || '',
-                                                                    placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
-                                                                    callback: (text) => {
-                                                                        description = text;
-                                                                    },
-                                                                    style: `min-height:100px;`,
-                                                                });
-                                                            },
-                                                            footer_html: (gvc) => {
-                                                                return [
-                                                                    BgWidget.save(gvc.event(() => {
-                                                                        postMD.ai_description = description;
-                                                                        refresh();
-                                                                        gvc.closeDialog();
-                                                                    })),
-                                                                ].join('');
-                                                            },
-                                                        });
-                                                    }), {
-                                                        textStyle: 'width:100%;',
-                                                    }),
-                                                ].join('');
-                                            },
                                         };
                                     })),
                                 ]
@@ -4133,6 +4043,25 @@ ${(_d = postMD.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
                                         }
                                         return true;
                                     }
+                                    if (postMD.id && postMD.status !== 'draft' && Object.keys(postMD.active_schedule).length === 0) {
+                                        postMD.active_schedule = this.getActiveDatetime();
+                                    }
+                                    postMD.active_schedule.start_ISO_Date = (() => {
+                                        try {
+                                            return new Date(`${postMD.active_schedule.startDate} ${postMD.active_schedule.startTime}`).toISOString();
+                                        }
+                                        catch (error) {
+                                            return undefined;
+                                        }
+                                    })();
+                                    postMD.active_schedule.end_ISO_Date = (() => {
+                                        try {
+                                            return new Date(`${postMD.active_schedule.endDate} ${postMD.active_schedule.endTime}`).toISOString();
+                                        }
+                                        catch (error) {
+                                            return undefined;
+                                        }
+                                    })();
                                     if (checkEmpty()) {
                                         if (postMD.id) {
                                             ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);

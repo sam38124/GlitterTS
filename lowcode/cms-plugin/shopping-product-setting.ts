@@ -626,28 +626,22 @@ export class ShoppingProductSetting {
                                                                                                     return {
                                                                                                         bind: id,
                                                                                                         view: () => {
-                                                                                                            // BgWidget.switchTextButton(
-                                                                                                            //     gvc,
-                                                                                                            //     dd.content.status === 'active',
-                                                                                                            //     { left: dd.content.status === 'active' ? '啟用' : '草稿' },
-                                                                                                            //     (bool) => {
-                                                                                                            //         dd.content.status = bool ? 'active' : 'draft';
-                                                                                                            //         ApiPost.put({
-                                                                                                            //             postData: dd.content,
-                                                                                                            //             token: (window.parent as any).config.token,
-                                                                                                            //             type: 'manager',
-                                                                                                            //         }).then((res) => {
-                                                                                                            //             res.result && gvc.notifyDataChange(id);
-                                                                                                            //         });
-                                                                                                            //     }
-                                                                                                            // );
-                                                                                                            switch (dd.content.status) {
-                                                                                                                case 'draft':
-                                                                                                                    return BgWidget.secondaryInsignia('草稿');
-                                                                                                                case 'schedule':
-                                                                                                                    return BgWidget.notifyInsignia('期間限定');
+                                                                                                            if (dd.content.status === 'draft') {
+                                                                                                                return BgWidget.secondaryInsignia('草稿');
+                                                                                                            }
+                                                                                                            if (!dd.content.active_schedule) {
+                                                                                                                return BgWidget.infoInsignia('上架');
+                                                                                                            }
+                                                                                                            const state = ShoppingProductSetting.getTimeState(dd.content.active_schedule);
+                                                                                                            switch (state) {
+                                                                                                                case 'afterEnd':
+                                                                                                                    return BgWidget.secondaryInsignia('下架');
+                                                                                                                case 'beforeStart':
+                                                                                                                    return BgWidget.warningInsignia('待上架');
+                                                                                                                case 'inRange':
+                                                                                                                    return BgWidget.infoInsignia('上架');
                                                                                                                 default:
-                                                                                                                    return BgWidget.successInsignia('啟用');
+                                                                                                                    return BgWidget.secondaryInsignia('草稿');
                                                                                                             }
                                                                                                         },
                                                                                                         divCreate: {
@@ -1740,65 +1734,68 @@ export class ShoppingProductSetting {
                                                 }
                                             })
                                         )}
-                                        <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                        <div class="d-flex align-items-center">
+                                            <h3 class="mb-0 me-2 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                            <div class="pt-1">${BgWidget.infoInsignia(this.getProductTypeString(postMD))}</div>
+                                        </div>
                                         <div class="flex-fill"></div>
                                         ${[
                                             obj.type === 'replace'
-                                                    ? ''
-                                                    : BgWidget.grayButton(
-                                                            '代入現有商品',
-                                                            gvc.event(() => {
-                                                                BgProduct.productsDialog({
-                                                                    gvc: gvc,
-                                                                    default: [],
-                                                                    single: true,
-                                                                    callback: (value) => {
-                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        ApiShop.getProduct({
-                                                                            page: 0,
-                                                                            limit: 1,
-                                                                            id: value[0],
-                                                                        }).then((data) => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            if (data.result && data.response.data && data.response.data.content) {
-                                                                                postMD = {
-                                                                                    ...postMD,
-                                                                                    ...data.response.data.content,
-                                                                                };
-                                                                                postMD.id = undefined;
-                                                                                setProductType();
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            }
-                                                                        });
-                                                                    },
-                                                                    show_product_type: true,
-                                                                });
-                                                            }),
-                                                            {}
-                                                    ),
+                                                ? ''
+                                                : BgWidget.grayButton(
+                                                      '代入現有商品',
+                                                      gvc.event(() => {
+                                                          BgProduct.productsDialog({
+                                                              gvc: gvc,
+                                                              default: [],
+                                                              single: true,
+                                                              callback: (value) => {
+                                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                                  dialog.dataLoading({ visible: true });
+                                                                  ApiShop.getProduct({
+                                                                      page: 0,
+                                                                      limit: 1,
+                                                                      id: value[0],
+                                                                  }).then((data) => {
+                                                                      dialog.dataLoading({ visible: false });
+                                                                      if (data.result && data.response.data && data.response.data.content) {
+                                                                          postMD = {
+                                                                              ...postMD,
+                                                                              ...data.response.data.content,
+                                                                          };
+                                                                          postMD.id = undefined;
+                                                                          setProductType();
+                                                                          gvc.notifyDataChange(vm.id);
+                                                                      }
+                                                                  });
+                                                              },
+                                                              show_product_type: true,
+                                                          });
+                                                      }),
+                                                      {}
+                                                  ),
                                             BgWidget.grayButton(
-                                                    'AI 生成',
-                                                    gvc.event(() => {
-                                                        ProductAi.setProduct(gvc, postMD, () => {
-                                                            gvc.notifyDataChange(vm.id);
-                                                        });
-                                                    }),
-                                                    {}
+                                                'AI 生成',
+                                                gvc.event(() => {
+                                                    ProductAi.setProduct(gvc, postMD, () => {
+                                                        gvc.notifyDataChange(vm.id);
+                                                    });
+                                                }),
+                                                {}
                                             ),
                                             postMD.id
-                                                    ? BgWidget.grayButton(
-                                                            document.body.clientWidth > 768 ? '預覽商品' : '預覽',
-                                                            gvc.event(() => {
-                                                                const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
-                                                                (window.parent as any).glitter.openNewTab(href);
-                                                            }),
-                                                            { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
-                                                    )
-                                                    : '',
+                                                ? BgWidget.grayButton(
+                                                      document.body.clientWidth > 768 ? '預覽商品' : '預覽',
+                                                      gvc.event(() => {
+                                                          const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products/${postMD.seo.domain}`;
+                                                          (window.parent as any).glitter.openNewTab(href);
+                                                      }),
+                                                      { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
+                                                  )
+                                                : '',
                                         ]
-                                                .filter((str) => str.length > 0)
-                                                .join(html`<div class="mx-1"></div>`)}
+                                            .filter((str) => str.length > 0)
+                                            .join(html`<div class="mx-1"></div>`)}
                                     </div>
                                 </div>
                                 ${BgWidget.container1x2(
@@ -3982,120 +3979,66 @@ ${postMD.seo.content ?? ''}</textarea
                                                 })
                                             ),
                                             BgWidget.mainCard(
-                                                html` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
-                                                    ${gvc.bindView(
-                                                        (() => {
-                                                            const id = gvc.glitter.getUUID();
-                                                            const inputStyle = 'display: block; width: 200px;';
-                                                            return {
-                                                                bind: id,
-                                                                view: () => {
-                                                                    return [
-                                                                        BgWidget.select({
-                                                                            gvc: obj.gvc,
-                                                                            default: postMD.status,
-                                                                            options: [
-                                                                                { key: 'active', value: '啟用' },
-                                                                                { key: 'draft', value: '草稿' },
-                                                                                { key: 'schedule', value: '期間限定' },
-                                                                            ],
-                                                                            callback: (text: any) => {
-                                                                                postMD.status = text;
+                                                obj.gvc.bindView(() => {
+                                                    const id = obj.gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return [
+                                                                html`<div class="title-container px-0">
+                                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                                                                    <div class="flex-fill"></div>
+                                                                    ${BgWidget.grayButton(
+                                                                        '設定描述語句',
+                                                                        gvc.event(() => {
+                                                                            function refresh() {
                                                                                 gvc.notifyDataChange(id);
-                                                                            },
+                                                                            }
+                                                                            let description = postMD.ai_description;
+                                                                            BgWidget.settingDialog({
+                                                                                gvc: gvc,
+                                                                                title: '描述語句',
+                                                                                innerHTML: (gvc) => {
+                                                                                    return BgWidget.textArea({
+                                                                                        gvc: gvc,
+                                                                                        title: '',
+                                                                                        default: postMD.ai_description || '',
+                                                                                        placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
+                                                                                        callback: (text) => {
+                                                                                            description = text;
+                                                                                        },
+                                                                                        style: `min-height:100px;`,
+                                                                                    });
+                                                                                },
+                                                                                footer_html: (gvc) => {
+                                                                                    return [
+                                                                                        BgWidget.save(
+                                                                                            gvc.event(() => {
+                                                                                                postMD.ai_description = description;
+                                                                                                refresh();
+                                                                                                gvc.closeDialog();
+                                                                                            })
+                                                                                        ),
+                                                                                    ].join('');
+                                                                                },
+                                                                            });
                                                                         }),
-                                                                        postMD.status === 'schedule'
-                                                                            ? html` <div class="tx_700">啟用期間</div>
-                                                                                  <div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
-                                                                                      <div class="d-flex align-items-center">
-                                                                                          <span class="tx_normal me-2">開始日期</span>
-                                                                                          ${BgWidget.editeInput({
-                                                                                              gvc: gvc,
-                                                                                              title: '',
-                                                                                              type: 'date',
-                                                                                              style: inputStyle,
-                                                                                              default: `${postMD.active_schedule.startDate}`,
-                                                                                              placeHolder: '',
-                                                                                              callback: (text) => {
-                                                                                                  postMD.active_schedule.startDate = text;
-                                                                                              },
-                                                                                          })}
-                                                                                      </div>
-                                                                                      <div class="d-flex align-items-center">
-                                                                                          <span class="tx_normal me-2">開始時間</span>
-                                                                                          ${BgWidget.editeInput({
-                                                                                              gvc: gvc,
-                                                                                              title: '',
-                                                                                              type: 'time',
-                                                                                              style: inputStyle,
-                                                                                              default: `${postMD.active_schedule.startTime}`,
-                                                                                              placeHolder: '',
-                                                                                              callback: (text) => {
-                                                                                                  postMD.active_schedule.startTime = text;
-                                                                                              },
-                                                                                          })}
-                                                                                      </div>
-                                                                                  </div>
-                                                                                  ${BgWidget.multiCheckboxContainer(
-                                                                                      gvc,
-                                                                                      [
-                                                                                          {
-                                                                                              key: 'noEnd',
-                                                                                              name: '無期限',
-                                                                                          },
-                                                                                          {
-                                                                                              key: 'withEnd',
-                                                                                              name: '結束時間',
-                                                                                              innerHtml: html` <div
-                                                                                                  class="d-flex mt-0 mt-md-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
-                                                                                                  style="gap: 12px"
-                                                                                              >
-                                                                                                  <div class="d-flex align-items-center">
-                                                                                                      <span class="tx_normal me-2">結束日期</span>
-                                                                                                      ${BgWidget.editeInput({
-                                                                                                          gvc: gvc,
-                                                                                                          title: '',
-                                                                                                          type: 'date',
-                                                                                                          style: inputStyle,
-                                                                                                          default: `${postMD.active_schedule.endDate}`,
-                                                                                                          placeHolder: '',
-                                                                                                          callback: (text) => {
-                                                                                                              postMD.active_schedule.endDate = text;
-                                                                                                          },
-                                                                                                      })}
-                                                                                                  </div>
-                                                                                                  <div class="d-flex align-items-center">
-                                                                                                      <span class="tx_normal me-2">結束時間</span>
-                                                                                                      ${BgWidget.editeInput({
-                                                                                                          gvc: gvc,
-                                                                                                          title: '',
-                                                                                                          type: 'time',
-                                                                                                          style: inputStyle,
-                                                                                                          default: `${postMD.active_schedule.endTime}`,
-                                                                                                          placeHolder: '',
-                                                                                                          callback: (text) => {
-                                                                                                              postMD.active_schedule.endTime = text;
-                                                                                                          },
-                                                                                                      })}
-                                                                                                  </div>
-                                                                                              </div>`,
-                                                                                          },
-                                                                                      ],
-                                                                                      [postMD.active_schedule.endDate ? `withEnd` : `noEnd`],
-                                                                                      (text) => {
-                                                                                          if (text[0] === 'noEnd') {
-                                                                                              postMD.active_schedule.endDate = undefined;
-                                                                                              postMD.active_schedule.endTime = undefined;
-                                                                                          }
-                                                                                      },
-                                                                                      { single: true }
-                                                                                  )}`
-                                                                            : '',
-                                                                    ].join(BgWidget.mbContainer(12));
-                                                                },
-                                                            };
-                                                        })()
-                                                    )}`
+                                                                        {
+                                                                            textStyle: 'width:100%;',
+                                                                        }
+                                                                    )}
+                                                                </div>`,
+                                                                html`
+                                                                    <div>
+                                                                        ${postMD.ai_description
+                                                                            ? `您設定的描述語句：${postMD.ai_description}`
+                                                                            : BgWidget.grayNote('尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。')}
+                                                                    </div>
+                                                                `,
+                                                            ].join(BgWidget.mbContainer(18));
+                                                        },
+                                                    };
+                                                })
                                             ),
                                         ]
                                             .filter((str) => str.length > 0)
@@ -4105,12 +4048,6 @@ ${postMD.seo.content ?? ''}</textarea
                                     {
                                         html: html` <div class="summary-card p-0">
                                             ${[
-                                                BgWidget.mainCard(
-                                                    html`
-                                                        <div style="font-weight: 700;" class="mb-2">商品類型</div>
-                                                        <div style="font-weight: 400;" class="mb-2">${this.getProductTypeString(postMD)}</div>
-                                                    `
-                                                ),
                                                 BgWidget.mainCard(
                                                     html` <div class="mb-2" style="font-weight: 700;">商品狀態</div>
                                                         ${gvc.bindView(
@@ -4374,13 +4311,13 @@ ${postMD.seo.content ?? ''}</textarea
                                                                                 }
                                                                             })(),
                                                                             state === 'beforeStart' || (state === 'inRange' && remove.length > 0)
-                                                                                ? BgWidget.darkButton(
+                                                                                ? BgWidget.grayButton(
                                                                                       '設定上下架時間',
                                                                                       gvc.event(() => {
                                                                                           settingSchedule(postMD.active_schedule);
                                                                                       }),
                                                                                       {
-                                                                                          style: 'width: 100%;',
+                                                                                          textStyle: 'width: 100%;',
                                                                                       }
                                                                                   )
                                                                                 : '',
@@ -4407,27 +4344,26 @@ ${postMD.seo.content ?? ''}</textarea
                                                             { single: false }
                                                         )}`
                                                 ),
-                                                BgWidget.mainCard(html` <div class="mb-2 position-relative" style="font-weight: 700;">商品促銷標籤
-                                                    ${BgWidget.questionButton(gvc.event(()=>{
-                                                        
-                                                    }))}
-<!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
-<!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
-<!--                                                        <img>-->
-<!--                                                    </div>-->
-                                                </div>
-                                                ${gvc.bindView(
+                                                BgWidget.mainCard(html` <div class="mb-2 position-relative" style="font-weight: 700;">
+                                                        商品促銷標籤 ${BgWidget.questionButton(gvc.event(() => {}))}
+                                                        <!--                                                    <div style="width:20px;height:20px;border-radius: 10px;background: #393939;position: absolute;top:100%;left: 0;font-size: 16px;font-weight: 400;">-->
+                                                        <!--                                                        <div>用於突出特定商品，例如「熱賣中」、「特價」等，以便消費者快速識別商品狀態。</div>-->
+                                                        <!--                                                        <img>-->
+                                                        <!--                                                    </div>-->
+                                                    </div>
+                                                    ${gvc.bindView(
                                                         (() => {
                                                             const id = gvc.glitter.getUUID();
                                                             const inputStyle = 'display: block; width: 200px;';
-                                                            let options:any[] = []
+                                                            let options: any[] = [];
                                                             ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
-                                                                options = data.response.value.map((label:any)=>{
+                                                                options = data.response.value.map((label: any) => {
                                                                     return {
-                                                                        key: label.id, value: label.title
-                                                                    }
-                                                                })
-                                                                gvc.notifyDataChange(id)
+                                                                        key: label.id,
+                                                                        value: label.title,
+                                                                    };
+                                                                });
+                                                                gvc.notifyDataChange(id);
                                                             });
                                                             return {
                                                                 bind: id,
@@ -4435,16 +4371,16 @@ ${postMD.seo.content ?? ''}</textarea
                                                                     return BgWidget.select({
                                                                         gvc: obj.gvc,
                                                                         default: postMD.label,
-                                                                        options:options,
+                                                                        options: options,
                                                                         callback: (text: any) => {
                                                                             postMD.label = text;
                                                                             gvc.notifyDataChange(id);
                                                                         },
-                                                                    })
+                                                                    });
                                                                 },
                                                             };
                                                         })()
-                                                )}`),
+                                                    )}`),
                                                 BgWidget.mainCard(
                                                     obj.gvc.bindView(() => {
                                                         const id = obj.gvc.glitter.getUUID();
@@ -4481,61 +4417,6 @@ ${postMD.seo.content ?? ''}</textarea
                                                                 ].join('');
                                                             },
                                                             divCreate: {},
-                                                        };
-                                                    })
-                                                ),
-                                                BgWidget.mainCard(
-                                                    obj.gvc.bindView(() => {
-                                                        const id = obj.gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return [
-                                                                    html`<div style="font-weight: 700;" class="mb-2">AI 選品</div>`,
-                                                                    BgWidget.grayNote(postMD.ai_description || '尚未設定描述語句，透過設定描述語句，可以幫助AI更準確的定位產品。'),
-                                                                    html`<div class="my-2"></div>`,
-                                                                    BgWidget.grayButton(
-                                                                        `設定描述語句`,
-                                                                        gvc.event(() => {
-                                                                            function refresh() {
-                                                                                gvc.notifyDataChange(id);
-                                                                            }
-
-                                                                            let description = postMD.ai_description;
-                                                                            BgWidget.settingDialog({
-                                                                                gvc: gvc,
-                                                                                title: '描述語句',
-                                                                                innerHTML: (gvc) => {
-                                                                                    return BgWidget.textArea({
-                                                                                        gvc: gvc,
-                                                                                        title: '',
-                                                                                        default: postMD.ai_description || '',
-                                                                                        placeHolder: `請告訴我這是什麼商品，範例:現代極簡風格的淺灰色布藝沙發，可以同時乘坐3個人，配金屬腳座，採用鈦合金製作十分的堅固。`,
-                                                                                        callback: (text) => {
-                                                                                            description = text;
-                                                                                        },
-                                                                                        style: `min-height:100px;`,
-                                                                                    });
-                                                                                },
-                                                                                footer_html: (gvc) => {
-                                                                                    return [
-                                                                                        BgWidget.save(
-                                                                                            gvc.event(() => {
-                                                                                                postMD.ai_description = description;
-                                                                                                refresh();
-                                                                                                gvc.closeDialog();
-                                                                                            })
-                                                                                        ),
-                                                                                    ].join('');
-                                                                                },
-                                                                            });
-                                                                        }),
-                                                                        {
-                                                                            textStyle: 'width:100%;',
-                                                                        }
-                                                                    ),
-                                                                ].join('');
-                                                            },
                                                         };
                                                     })
                                                 ),
@@ -4637,6 +4518,26 @@ ${postMD.seo.content ?? ''}</textarea
                                             }
                                             return true;
                                         }
+
+                                        if (postMD.id && postMD.status !== 'draft' && Object.keys(postMD.active_schedule).length === 0) {
+                                            postMD.active_schedule = this.getActiveDatetime();
+                                        }
+
+                                        postMD.active_schedule.start_ISO_Date = (() => {
+                                            try {
+                                                return new Date(`${postMD.active_schedule.startDate} ${postMD.active_schedule.startTime}`).toISOString();
+                                            } catch (error) {
+                                                return undefined;
+                                            }
+                                        })();
+
+                                        postMD.active_schedule.end_ISO_Date = (() => {
+                                            try {
+                                                return new Date(`${postMD.active_schedule.endDate} ${postMD.active_schedule.endTime}`).toISOString();
+                                            } catch (error) {
+                                                return undefined;
+                                            }
+                                        })();
 
                                         if (checkEmpty()) {
                                             if (postMD.id) {
