@@ -1,9 +1,9 @@
 import app from '../../app.js';
 import response from '../../modules/response.js';
-import { EzInvoice } from './ezpay/invoice.js';
+import {EzInvoice} from './ezpay/invoice.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import { EcInvoice, EcInvoiceInterface } from './EcInvoice.js';
+import {EcInvoice, EcInvoiceInterface} from './EcInvoice.js';
 import {EcPay} from "./financial-service.js";
 
 export class Invoice {
@@ -14,7 +14,7 @@ export class Invoice {
     }
 
     //判斷發票類型開立
-    public async postInvoice(cf: { invoice_data: any,print:boolean }) {
+    public async postInvoice(cf: { invoice_data: any, print: boolean }) {
         try {
             const config = await app.getAdConfig(this.appName, 'invoice_setting');
             switch (config.fincial) {
@@ -31,10 +31,10 @@ export class Invoice {
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
-                        app_name:this.appName,
+                        app_name: this.appName,
                         invoice_data: cf.invoice_data,
                         beta: config.point === 'beta',
-                        print:cf.print
+                        print: cf.print
                     });
             }
         } catch (e: any) {
@@ -43,7 +43,7 @@ export class Invoice {
     }
 
     //訂單開發票
-    public async postCheckoutInvoice(orderID: string|any ,print:boolean) {
+    public async postCheckoutInvoice(orderID: string | any, print: boolean) {
         const order: {
             user_info: {
                 name: string;
@@ -74,12 +74,12 @@ export class Invoice {
             use_rebate: number;
             shipment_fee: number;
             discount: number;
-            orderID:number;
-        } = (typeof orderID==='string') ? (
+            orderID: number;
+        } = (typeof orderID === 'string') ? (
             await db.query(
                 `SELECT *
-                             FROM \`${this.appName}\`.t_checkout
-                             where cart_token = ?`,
+                 FROM \`${this.appName}\`.t_checkout
+                 where cart_token = ?`,
                 [orderID]
             )
         )[0]['orderData'] : orderID;
@@ -127,13 +127,13 @@ export class Invoice {
                 RespondType: 'JSON',
                 Version: '1.5',
                 TimeStamp: timeStamp.substring(0, timeStamp.length - 3),
-                MerchantOrderNo: (typeof orderID==='string') ? orderID:order.orderID,
+                MerchantOrderNo: (typeof orderID === 'string') ? orderID : order.orderID,
                 Status: 1,
                 Category: order.user_info.invoice_type === 'company' ? 'B2B' : 'B2C',
                 BuyerUBN: order.user_info.invoice_type === 'company' ? order.user_info.gui_number : undefined,
                 BuyerName: order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name,
                 BuyerAddress: order.user_info.address,
-                BuyerEmail: (order.user_info.email==='no-email') ?  'pos@ncdesign.info':order.user_info.email,
+                BuyerEmail: (order.user_info.email === 'no-email') ? 'pos@ncdesign.info' : order.user_info.email,
                 PrintFlag: 'Y',
                 TaxType: '1',
                 TaxRate: '5',
@@ -150,18 +150,18 @@ export class Invoice {
             };
             return await this.postInvoice({
                 invoice_data: json,
-                print:print
+                print: print
             });
         } else if (config.fincial === 'ecpay') {
             const json: EcInvoiceInterface = {
                 MerchantID: config.merchNO as string,
-                RelateNumber: (typeof orderID==='string') ? orderID as string : orderID.orderID,
-                CustomerID:  (typeof orderID==='string') ? orderID as string : orderID.orderID,
+                RelateNumber: (typeof orderID === 'string') ? orderID as string : orderID.orderID,
+                CustomerID: (typeof orderID === 'string') ? orderID as string : orderID.orderID,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined) as string,
                 CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name) as string,
                 CustomerAddr: order.user_info.address as string,
                 CustomerPhone: (order.user_info.phone || undefined) as string,
-                CustomerEmail: (order.user_info.email==='no-email') ?  'pos@ncdesign.info':order.user_info.email,
+                CustomerEmail: (order.user_info.email === 'no-email') ? 'pos@ncdesign.info' : order.user_info.email,
                 Print: '0',
                 CarrierType: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? '3' : '1',
                 CarrierNum: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? order.user_info.carrier_num : undefined,
@@ -183,54 +183,56 @@ export class Invoice {
                     };
                 }),
             };
-
-           if(print){
-               const cover={
-                   "CustomerID": "",
-                   "CustomerName": "無名氏",
-                   "CustomerAddr": "無地址",
-                   "CustomerPhone": "",
-                   "CustomerEmail": (order.user_info.email && order.user_info.email!=='no-email') ?order.user_info.email: "pos@ncdesign.info",
-                   "ClearanceMark": "1",
-                   "Print": "1",
-                   "Donation": "0",
-                   "LoveCode": "",
-                   "CarrierType": "",
-                   "CarrierNum": "",
-                   "TaxType": "1",
-                   "InvType": "07"
-               }
-               console.log(`cover.CustomerEmail==>`,cover.CustomerEmail)
-               if(order.user_info.invoice_type==='company'){
-                   cover.CustomerName=await EcInvoice.getCompanyName({
-                       company_id:order.user_info.gui_number as any,
-                       app_name:this.appName
-                   })
-               }
-               Object.keys(cover).map((dd)=>{
-                   (json as any)[dd]=(cover as any)[dd]
-               })
-           }
+            if (print) {
+                const cover = {
+                    "CustomerID": "",
+                    "CustomerName": "無名氏",
+                    "CustomerAddr": "無地址",
+                    "CustomerPhone": "",
+                    "CustomerEmail": (order.user_info.email && order.user_info.email !== 'no-email') ? order.user_info.email : "pos@ncdesign.info",
+                    "ClearanceMark": "1",
+                    "Print": "1",
+                    "Donation": "0",
+                    "LoveCode": "",
+                    "CarrierType": "",
+                    "CarrierNum": "",
+                    "TaxType": "1",
+                    "InvType": "07"
+                }
+                console.log(`cover.CustomerEmail==>`, cover.CustomerEmail)
+                if (order.user_info.invoice_type === 'company') {
+                    cover.CustomerName = await EcInvoice.getCompanyName({
+                        company_id: order.user_info.gui_number as any,
+                        app_name: this.appName
+                    })
+                }
+                Object.keys(cover).map((dd) => {
+                    (json as any)[dd] = (cover as any)[dd]
+                })
+            }
             return await this.postInvoice({
                 invoice_data: json,
-                print:print
+                print: print
             });
-        }else{
+        } else {
+            console.log("clear here -- ")
             return 'no_need'
         }
     }
 
-    public async updateInvoice(obj: {orderID: string , invoice_data: any}){
+    public async updateInvoice(obj: { orderID: string, invoice_data: any }) {
         let data = await db.query(
             `SELECT *
-                             FROM \`${this.appName}\`.t_invoice_memory
-                             where order_id = ?`,
+             FROM \`${this.appName}\`.t_invoice_memory
+             where order_id = ?`,
             [obj.orderID]
         );
         data = data[0];
         data.invoice_data.remark = obj.invoice_data;
-        await db.query(`UPDATE \`${this.appName}\`.t_invoice_memory set invoice_data = ? WHERE order_id = ?`, [
-            JSON.stringify(data.invoice_data) , obj.orderID
+        await db.query(`UPDATE \`${this.appName}\`.t_invoice_memory
+                        set invoice_data = ?
+                        WHERE order_id = ?`, [
+            JSON.stringify(data.invoice_data), obj.orderID
         ])
         // console.log("data -- " , data.invoice_data)
     }
@@ -464,7 +466,7 @@ export class Invoice {
                 }
             }
 
-            if (query.invoice_type){
+            if (query.invoice_type) {
                 const invoice_type = query.invoice_type;
             }
 
@@ -478,23 +480,23 @@ export class Invoice {
                 }
             }
             // 發票種類 B2B B2C , 發票開立方式 自動 手動
-            if (query.invoice_type){
+            if (query.invoice_type) {
                 const data = query.invoice_type;
-                if (data == "B2B"){
+                if (data == "B2B") {
                     querySql.push(`
                             JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NULL
                             OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) = 0`);
-                }else {
+                } else {
                     querySql.push(`JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier') IS NOT NULL
                               AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.original_data.CustomerIdentifier')) > 0`);
                 }
             }
-            if (query.issue_method){
-                if (query.issue_method == "manual"){
-                    console.log("query.issue_method -- " , query.issue_method)
+            if (query.issue_method) {
+                if (query.issue_method == "manual") {
+                    console.log("query.issue_method -- ", query.issue_method)
                     querySql.push(`JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NOT NULL
                               AND CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) > 0`);
-                }else {
+                } else {
                     querySql.push(`
                             JSON_EXTRACT(invoice_data, '$.remark.issueType') IS NULL
                             OR CHAR_LENGTH(JSON_EXTRACT(invoice_data, '$.remark.issueType')) = 0`);
@@ -519,19 +521,19 @@ export class Invoice {
                 }
             })();
             let sql = `SELECT *
-                   FROM \`${this.appName}\`.t_invoice_memory
-                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-        `;
+                       FROM \`${this.appName}\`.t_invoice_memory
+                       WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            `;
             return {
                 data: await db.query(
                     `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                     FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                     []
                 ),
                 total: (
                     await db.query(
                         `SELECT count(1)
-                             FROM (${sql}) as subqyery`,
+                         FROM (${sql}) as subqyery`,
                         []
                     )
                 )[0]['count(1)'],
@@ -541,6 +543,7 @@ export class Invoice {
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
+
     public async getAllowance(query: {
         page: number;
         limit: number;
@@ -555,7 +558,7 @@ export class Invoice {
     }) {
         try {
             let querySql = [`1=1`];
-            console.log("searchType -- " , query.searchType)
+            console.log("searchType -- ", query.searchType)
             if (query.search) {
                 querySql.push(`${query.searchType} LIKE '%${query.search}%'`);
             }
@@ -587,19 +590,19 @@ export class Invoice {
                 }
             })();
             let sql = `SELECT *
-                   FROM \`${this.appName}\`.t_allowance_memory
-                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-        `;
+                       FROM \`${this.appName}\`.t_allowance_memory
+                       WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            `;
             return {
                 data: await db.query(
                     `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                     FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                     []
                 ),
                 total: (
                     await db.query(
                         `SELECT count(1)
-                             FROM (${sql}) as subqyery`,
+                         FROM (${sql}) as subqyery`,
                         []
                     )
                 )[0]['count(1)'],
@@ -618,7 +621,7 @@ export class Invoice {
 
         try {
             return await db.query(sql, []);
-        }catch (e){
+        } catch (e) {
             console.log("get invoice failed:", e);
         }
 

@@ -1648,6 +1648,12 @@ export class ShoppingOrderManager {
                             )}
                             ${BgWidget.mbContainer(240)}
                             <div class="update-bar-container">
+                                <div class="${(orderData.orderData.method == "off_line" && orderData.status == 1)?'':'d-none'}">
+                                    ${BgWidget.grayButton("開立發票",gvc.event(()=>{
+                                        
+                                        console.log("orderData.orderData -- ",orderData)
+                                    }))}
+                                </div>
                                 ${BgWidget.cancel(
                                         gvc.event(() => {
                                             vm.type = 'list';
@@ -1709,7 +1715,12 @@ export class ShoppingOrderManager {
                                             }).then((response) => {
                                                 dialog.dataLoading({text: '上傳中', visible: false});
                                                 if (response.result) {
-                                                    dialog.successMessage({text: '更新成功!'});
+                                                    
+                                                    if (orderData.orderData.method && origData.status == 0 && orderData.status == 1){
+                                                        dialog.successMessage({text: '訂單付款完成！<br>若需要可透過下方按鈕手動建立發票'});
+                                                    }else {
+                                                        dialog.successMessage({text: '更新成功!'});
+                                                    }
                                                     gvc.notifyDataChange(mainViewID);
                                                 } else {
                                                     dialog.errorMessage({text: '更新異常!'});

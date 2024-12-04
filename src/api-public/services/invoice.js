@@ -82,6 +82,7 @@ class Invoice {
                 ItemAmt: order.shipment_fee,
             });
         }
+        console.log("here -- ", config.fincial);
         if (config.fincial === 'ezpay') {
             const timeStamp = '' + new Date().getTime();
             const json = {
@@ -186,6 +187,7 @@ class Invoice {
                              FROM \`${this.appName}\`.t_invoice_memory
                              where order_id = ?`, [obj.orderID]);
         data = data[0];
+        console.log("data --- ", data);
         data.invoice_data.remark = obj.invoice_data;
         await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory set invoice_data = ? WHERE order_id = ?`, [
             JSON.stringify(data.invoice_data), obj.orderID
