@@ -775,6 +775,7 @@ router.get('/product', async (req, resp) => {
             min_price: req.query.min_price,
             max_price: req.query.max_price,
             status: req.query.status,
+            channel: req.query.channel,
             id_list: req.query.id_list,
             order_by: (() => {
                 switch (req.query.order_by) {

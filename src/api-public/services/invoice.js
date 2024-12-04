@@ -43,8 +43,8 @@ class Invoice {
     }
     async postCheckoutInvoice(orderID, print) {
         const order = (typeof orderID === 'string') ? (await database_js_1.default.query(`SELECT *
-                             FROM \`${this.appName}\`.t_checkout
-                             where cart_token = ?`, [orderID]))[0]['orderData'] : orderID;
+                 FROM \`${this.appName}\`.t_checkout
+                 where cart_token = ?`, [orderID]))[0]['orderData'] : orderID;
         const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         const line_item = order.lineItems.map((dd) => {
             return {
@@ -82,7 +82,6 @@ class Invoice {
                 ItemAmt: order.shipment_fee,
             });
         }
-        console.log("here -- ", config.fincial);
         if (config.fincial === 'ezpay') {
             const timeStamp = '' + new Date().getTime();
             const json = {
@@ -179,17 +178,19 @@ class Invoice {
             });
         }
         else {
+            console.log("clear here -- ");
             return 'no_need';
         }
     }
     async updateInvoice(obj) {
         let data = await database_js_1.default.query(`SELECT *
-                             FROM \`${this.appName}\`.t_invoice_memory
-                             where order_id = ?`, [obj.orderID]);
+             FROM \`${this.appName}\`.t_invoice_memory
+             where order_id = ?`, [obj.orderID]);
         data = data[0];
-        console.log("data --- ", data);
         data.invoice_data.remark = obj.invoice_data;
-        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory set invoice_data = ? WHERE order_id = ?`, [
+        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_invoice_memory
+                        set invoice_data = ?
+                        WHERE order_id = ?`, [
             JSON.stringify(data.invoice_data), obj.orderID
         ]);
     }
@@ -285,14 +286,14 @@ class Invoice {
                 }
             })();
             let sql = `SELECT *
-                   FROM \`${this.appName}\`.t_invoice_memory
-                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-        `;
+                       FROM \`${this.appName}\`.t_invoice_memory
+                       WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            `;
             return {
                 data: await database_js_1.default.query(`SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                     FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
                 total: (await database_js_1.default.query(`SELECT count(1)
-                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
         catch (e) {
@@ -333,14 +334,14 @@ class Invoice {
                 }
             })();
             let sql = `SELECT *
-                   FROM \`${this.appName}\`.t_allowance_memory
-                   WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
-        `;
+                       FROM \`${this.appName}\`.t_allowance_memory
+                       WHERE ${querySql.join(' and ')} ${query.orderString || `order by id desc`}
+            `;
             return {
                 data: await database_js_1.default.query(`SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                     FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
                 total: (await database_js_1.default.query(`SELECT count(1)
-                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
         catch (e) {
