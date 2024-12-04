@@ -10,6 +10,7 @@ import {UserList} from './user-list.js';
 import {CheckInput} from '../modules/checkInput.js';
 import {ApiDelivery} from '../glitter-base/route/delivery.js';
 import {Tool} from '../modules/tool.js';
+import {ShoppingInvoiceManager} from "./shopping-invoice-manager.js";
 
 type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
 
@@ -53,13 +54,14 @@ interface VoucherData {
 interface ViewModel {
     id: string;
     filterId: string;
-    type: 'list' | 'add' | 'replace' | 'select';
+    type: 'list' | 'add' | 'replace' | 'select' | 'createInvoice';
     data: any;
     dataList: any;
     query?: string;
     queryType?: string;
     orderString?: string;
     filter?: any;
+    tempOrder?:string;
     filter_type: 'normal' | 'block' | 'pos';
 }
 
@@ -133,6 +135,7 @@ export class ShoppingOrderManager {
             filter_type: query.isPOS ? 'pos' : 'normal',
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
+        let tempOrder = ""
         vm.filter = ListComp.getFilterObject();
 
         gvc.addMtScript(
@@ -691,6 +694,9 @@ export class ShoppingOrderManager {
                     return this.replaceOrder(gvc, vm);
                 } else if (vm.type == 'add') {
                     return this.createOrder(gvc, vm);
+                } else if(vm.type == 'createInvoice') {
+                    console.log("(vm as any).tempOrder -- " , (vm as any).tempOrder , vm);
+                    return ShoppingInvoiceManager.createOrder(gvc,vm,(vm as any).tempOrder);
                 }
                 return '';
             },
@@ -1651,7 +1657,9 @@ export class ShoppingOrderManager {
                                 <div class="${(orderData.orderData.method == "off_line" && orderData.status == 1)?'':'d-none'}">
                                     ${BgWidget.grayButton("開立發票",gvc.event(()=>{
                                         
-                                        console.log("orderData.orderData -- ",orderData)
+                                        vm.tempOrder = orderData.cart_token
+                                        vm.type = 'createInvoice';
+                                        // (vm as any).tempOrder = orderData.cart_token;
                                     }))}
                                 </div>
                                 ${BgWidget.cancel(
@@ -1715,9 +1723,10 @@ export class ShoppingOrderManager {
                                             }).then((response) => {
                                                 dialog.dataLoading({text: '上傳中', visible: false});
                                                 if (response.result) {
-                                                    
                                                     if (orderData.orderData.method && origData.status == 0 && orderData.status == 1){
-                                                        dialog.successMessage({text: '訂單付款完成！<br>若需要可透過下方按鈕手動建立發票'});
+                                                        dialog.successMessage({text: html`<div class="text-center">
+                                                                訂單付款完成！<br>若需要可透過下方按鈕手動建立發票
+                                                            </div>`});
                                                     }else {
                                                         dialog.successMessage({text: '更新成功!'});
                                                     }

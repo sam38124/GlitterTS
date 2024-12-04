@@ -1282,9 +1282,9 @@ export class ShoppingInvoiceManager {
             },
         });
     }
-    static createOrder(gvc, vm) {
+    static createOrder(gvc, vm, searchOrder) {
         let viewModel = {
-            searchOrder: '',
+            searchOrder: searchOrder !== null && searchOrder !== void 0 ? searchOrder : '',
             searchData: '',
             errorReport: '',
             invoiceData: {
@@ -1296,6 +1296,30 @@ export class ShoppingInvoiceManager {
             customerInfo: {}
         };
         const dialog = new ShareDialog(gvc.glitter);
+        console.log(viewModel.searchOrder);
+        if (viewModel.searchOrder.length > 1) {
+            dialog.dataLoading({
+                visible: true
+            });
+            ApiShop.getOrder({
+                page: 0,
+                limit: 100,
+                search: viewModel.searchOrder,
+                searchType: 'cart_token',
+                archived: `false`,
+                returnSearch: 'true',
+            }).then((response) => {
+                console.log("response", response);
+                viewModel.searchData = response.response;
+                ApiUser.getUsersDataWithEmailOrPhone(response.response.email).then((res) => {
+                    viewModel.customerInfo = res.response;
+                    dialog.dataLoading({
+                        visible: false
+                    });
+                    gvc.notifyDataChange(['notFind', 'invoiceContent']);
+                });
+            });
+        }
         return BgWidget.container(html `
                 <!-- 標頭 --- 新增訂單標題和返回 -->
                 <div class="title-container">
