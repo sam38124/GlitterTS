@@ -392,7 +392,7 @@ export declare class Shopping {
     }>;
     getTaiwanTimeZero(): Date;
     getActiveRecent2Weak(): Promise<{
-        count_array: any[];
+        count_array: number[];
     }>;
     getRegister2weak(): Promise<{
         countArray: any[];
@@ -433,16 +433,16 @@ export declare class Shopping {
         countArray: any[];
     }>;
     getSalesPerMonth1Year(): Promise<{
-        countArray: number[];
+        countArray: any[];
     }>;
     getSalesPerMonth2Weak(): Promise<{
-        countArray: number[];
+        countArray: any[];
     }>;
     getOrderAvgSalePriceYear(): Promise<{
         countArray: number[];
     }>;
     getOrderAvgSalePrice(): Promise<{
-        countArray: number[];
+        countArray: any[];
     }>;
     getCollectionProducts(tag: string): Promise<any>;
     putCollection(replace: Collection, original: Collection): Promise<{

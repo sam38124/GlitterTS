@@ -52,18 +52,18 @@ export class Workers {
 
         const result = new Promise<WorkerResp>((resolve) => {
             let completed = 0;
-            let resultArray: any[] = [];
+            let resultArray: { index: number; data: any }[] = []; // 包含索引的結果
             const chunkSize = Math.ceil(data.queryList.length / divisor);
 
             for (let i = 0; i < data.queryList.length; i += chunkSize) {
                 const chunk = data.queryList.slice(i, i + chunkSize);
 
-                const workerData = chunk.map((record) => {
-                    return {
-                        sql: record.sql,
-                        data: record.data,
-                    };
-                });
+                // 包含索引以追蹤原本的順序
+                const workerData = chunk.map((record, index) => ({
+                    sql: record.sql,
+                    data: record.data,
+                    originalIndex: i + index, // 記錄原始索引
+                }));
 
                 const worker = new Worker(__filename, {
                     workerData: workerData,
@@ -71,12 +71,23 @@ export class Workers {
 
                 worker.on('message', (response) => {
                     completed += 1;
-                    resultArray = resultArray.concat(response.tempArray);
+
+                    // 合併每個線程的結果，並保留索引
+                    resultArray = resultArray.concat(
+                        response.tempArray.map((item: any, idx: number) => ({
+                            index: workerData[idx].originalIndex,
+                            data: item,
+                        }))
+                    );
+
                     if (completed === Math.ceil(data.queryList.length / chunkSize)) {
+                        // 按原始索引排序
+                        resultArray.sort((a, b) => a.index - b.index);
+
                         console.info(response.message);
                         resolve({
                             status: 'success',
-                            resultArray,
+                            resultArray: resultArray.map((item) => item.data), // 去除索引，只保留數據
                         });
                     }
                 });

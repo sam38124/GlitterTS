@@ -685,16 +685,6 @@ router.delete('/wishlist', async (req, resp) => {
 router.get('/dataAnalyze', async (req, resp) => {
     try {
         const tags = `${req.query.tags}`;
-        const fake = {
-            'g-app': 't_1719819344426',
-            Authorization: {
-                account: 'service@ncdesign.info',
-                userID: 252530754,
-                iat: 1714557766,
-                exp: 1746093766,
-                userData: {},
-            },
-        };
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(',')));
         }

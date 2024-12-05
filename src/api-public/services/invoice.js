@@ -178,43 +178,6 @@ class Invoice {
             });
         }
         else {
-            if (obj === null || obj === void 0 ? void 0 : obj.offlineInvoice) {
-                console.log("into here -- ");
-                const json = {
-                    MerchantID: config.merchNO,
-                    RelateNumber: (typeof orderID === 'string') ? orderID : orderID.orderID,
-                    CustomerID: (typeof orderID === 'string') ? orderID : orderID.orderID,
-                    CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined),
-                    CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name),
-                    CustomerAddr: order.user_info.address,
-                    CustomerPhone: (order.user_info.phone || undefined),
-                    CustomerEmail: (order.user_info.email === 'no-email') ? 'pos@ncdesign.info' : order.user_info.email,
-                    Print: '0',
-                    CarrierType: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? '3' : '1',
-                    CarrierNum: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? order.user_info.carrier_num : undefined,
-                    Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
-                    LoveCode: order.user_info.invoice_type === 'donate' ? order.user_info.love_code : undefined,
-                    TaxType: '1',
-                    SalesAmount: order.total,
-                    InvType: '07',
-                    Items: line_item.map((dd, index) => {
-                        return {
-                            ItemSeq: index + 1,
-                            ItemName: dd.ItemName,
-                            ItemCount: dd.ItemCount,
-                            ItemWord: dd.ItemUnit,
-                            ItemPrice: dd.ItemPrice,
-                            ItemTaxType: '1',
-                            ItemAmount: dd.ItemAmt,
-                            ItemRemark: '',
-                        };
-                    }),
-                };
-                return await this.postInvoice({
-                    invoice_data: json,
-                    print: print
-                });
-            }
             return 'no_need';
         }
     }

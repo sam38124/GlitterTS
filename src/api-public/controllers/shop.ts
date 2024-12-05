@@ -570,10 +570,12 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis.getValue(`paypal` + req.query.orderID);
-            const keyData = (await Private_config.getConfig({
-                appName: req.query.appName as string,
-                key: 'glitter_finance',
-            }))[0].value.paypal;
+            const keyData = (
+                await Private_config.getConfig({
+                    appName: req.query.appName as string,
+                    key: 'glitter_finance',
+                })
+            )[0].value.paypal;
             const paypal = new PayPal(req.query.appName as string, keyData);
             const data = await paypal.confirmAndCaptureOrder(check_id as string);
             if (data.status === 'COMPLETED') {
@@ -632,7 +634,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
     try {
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
-        const type=req.query['type'] as string;
+        const type = req.query['type'] as string;
         const keyData = (
             await Private_config.getConfig({
                 appName: appName,
@@ -774,17 +776,6 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
 router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) => {
     try {
         const tags = `${req.query.tags}`;
-        const fake = {
-            'g-app': 't_1719819344426',
-            Authorization: {
-                account: 'service@ncdesign.info',
-                userID: 252530754,
-                iat: 1714557766,
-                exp: 1746093766,
-                userData: {},
-            },
-        };
-
         if (await UtPermission.isManager(req)) {
             return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(',')));
         } else {

@@ -1,14 +1,11 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { CustomerMessageUser } from './customer-message-user.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { AiMessage } from './ai-message.js';
 
 const html = String.raw;
 
 export class DataAnalyze {
     public static main(gvc: GVC) {
-        //ecDataAnalyze
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const vm: {
@@ -28,6 +25,7 @@ export class DataAnalyze {
                 () => {},
                 () => {}
             );
+
             ApiShop.ecDataAnalyze(
                 'active_recent_year,active_recent_2weak,order_today,order_avg_sale_price_year,hot_products_today,recent_register,sales_per_month_2_weak,sales,orders,orders_per_month,recent_active_user,recent_sales,recent_orders,hot_products,order_avg_sale_price,sales_per_month_1_year,orders_per_month_2_weak,orders_per_month_1_year'.split(
                     ','
@@ -37,11 +35,27 @@ export class DataAnalyze {
                 vm.data = res.response;
                 gvc.notifyDataChange(id);
             });
+
+            function cardStructure(text: string, className: string, color: string) {
+                return html` <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-4">${text}</h4>
+                        <div dir="ltr">
+                            <div id="line-chart-zoomable" class="${className}" data-colors="${color}"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
             return {
                 bind: id,
                 view: () => {
                     if (vm.loading) {
-                        return `<div class="w-100 d-flex align-items-center justify-content-center p-3"><div class="spinner-border "></div></div>`;
+                        return BgWidget.spinner({
+                            text: {
+                                value: '正在載入分析資料 ...',
+                            },
+                        });
                     }
                     return html`
                         <div class="row m-0">
@@ -53,26 +67,25 @@ export class DataAnalyze {
                                     class="d-flex flex-column flex-xl-row"
                                     style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
                                 >
-                                    <div class="" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
-                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
-                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">
-                                            查看目前的業務情形
-                                        </div>
+                                    <div style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
+                                        <div style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
+                                        <div style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">查看目前的業務情形</div>
                                         ${BgWidget.aiChatButton({
                                             gvc,
                                             select: 'order_analysis',
                                         })}
                                     </div>
-                                    <div class="row p-0" style="width: 896px;    max-width: 100%; gap:15px 0px; ">
+                                    <div class="row p-0" style="width: 896px; max-width: 100%; gap:15px 0px; ">
                                         ${[
                                             {
                                                 title: '今日瀏覽人數',
-                                                value: `${vm.data.active_recent_2weak.count_array
+                                                value: html`${vm.data.active_recent_2weak.count_array
                                                     .map((dd: any) => {
                                                         return dd;
                                                     })
                                                     .reverse()[0]
-                                                    .toLocaleString()} ${BgWidget.grayNote(
+                                                    .toLocaleString()}
+                                                ${BgWidget.grayNote(
                                                     `(本月:${vm.data.active_recent_year.count_array
                                                         .map((dd: any) => {
                                                             return dd;
@@ -81,11 +94,12 @@ export class DataAnalyze {
                                                         .toLocaleString()})`,
                                                     'font-weight: 500;'
                                                 )}`,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/users-duotone-solid.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/users-duotone-solid.svg',
                                             },
                                             {
                                                 title: '今日會員註冊',
-                                                value: `${vm.data.recent_register['today'].toLocaleString()} ${BgWidget.grayNote(
+                                                value: html`${vm.data.recent_register['today'].toLocaleString()}
+                                                ${BgWidget.grayNote(
                                                     `(本月:${vm.data.recent_register['count_register']
                                                         .map((dd: any) => {
                                                             return dd;
@@ -94,7 +108,7 @@ export class DataAnalyze {
                                                         .toLocaleString()})`,
                                                     'font-weight: 500;'
                                                 )}`,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/user-group-crown-solid.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/user-group-crown-solid.svg',
                                             },
                                             {
                                                 title: '今日成交總額',
@@ -107,78 +121,62 @@ export class DataAnalyze {
                                                         .toLocaleString()})`,
                                                     'font-weight: 500;'
                                                 )}`,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg',
                                             },
                                             {
                                                 title: '今日成交訂單',
                                                 value: vm.data.order_today.total_count,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg',
                                             },
                                             {
                                                 title: '未出貨訂單',
                                                 value: vm.data.order_today.un_shipment,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg',
                                             },
                                             {
                                                 title: '未付款訂單',
                                                 value: vm.data.order_today.un_pay,
-                                                icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg`,
+                                                icon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg',
                                             },
                                         ]
                                             .map((dd) => {
-                                                return `<div class="w-100 px-3 py-3"
-                                             style="align-self: stretch; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
-                                        >
-                                            <div class=""
-                                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex;"
-                                            >
-                                                <div class=""
-                                                     style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex;"
+                                                return html`<div
+                                                    class="w-100 px-3 py-3"
+                                                    style="align-self: stretch; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
                                                 >
-                                                    <div class=""
-                                                         style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
-                                                    >${dd.value}
+                                                    <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex;">
+                                                        <div style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex;">
+                                                            <div style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">
+                                                                ${dd.value}
+                                                            </div>
+                                                            <div style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; word-wrap: break-word;">
+                                                                ${dd.title}
+                                                            </div>
+                                                        </div>
+                                                        <img style="width:30px;height: 30px;" src="${dd.icon}" />
                                                     </div>
-                                                    <div class=""
-                                                         style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; word-wrap: break-word;"
-                                                    >${dd.title}
-                                                    </div>
-                                                </div>
-                                                <img class="" style="width:30px;height: 30px;"
-                                                     src="${dd.icon}">
-                                            </div>
-                                        </div>`;
+                                                </div>`;
                                             })
                                             .map((dd) => {
-                                                return `<div class="col-sm-4 col-lg-4 col-12  px-0 px-sm-2">${dd}</div>`;
+                                                return html`<div class="col-sm-4 col-lg-4 col-12 px-0 px-sm-2">${dd}</div>`;
                                             })
                                             .join('')}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="my-3"></div>
-                        ${BgWidget.alertInfo(`<div class="fs-6">請注意:列表僅會顯示已付款的訂單分析</div>`)}
-                        <div class="row mt-3">
+                        <div class="my-3">${BgWidget.alertInfo(html`<div class="fs-6">提示: 列表僅會顯示已付款的訂單分析</div>`)}</div>
+                        <div class="row">
                             ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return `<div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">當日熱銷商品</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="today-popular" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('當日熱銷商品', 'today-popular', '#39afd1');
                                     },
                                     onCreate: () => {
                                         const class_name = '.today-popular';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#39afd1'],
@@ -215,20 +213,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">當月熱銷商品</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="month-popular" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('當月熱銷商品', 'month-popular', '#39afd1');
                                     },
                                     onCreate: () => {
                                         const class_name = '.month-popular';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#39afd1'],
@@ -265,21 +254,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每日銷售總額</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="day-month-data" data-colors="#fa6767"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每日銷售總額', 'day-month-data', '#fa6767');
                                     },
                                     onCreate: () => {
                                         const class_name = '.day-month-data';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -324,21 +303,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每月銷售總額</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="year-month-data" data-colors="#fa6767"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每月銷售總額', 'year-month-data', '#fa6767');
                                     },
                                     onCreate: () => {
                                         const class_name = '.year-month-data';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -383,15 +352,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每日訂單平均消費金額</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="today-average" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每日訂單平均消費金額', 'today-average', '#39afd1');
                                     },
                                     onCreate: () => {
                                         function formatter(e: any) {
@@ -444,15 +405,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每月訂單平均消費金額</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="month-average" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每月訂單平均消費金額', 'month-average', '#39afd1');
                                     },
                                     onCreate: () => {
                                         function formatter(e: any) {
@@ -505,22 +458,12 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return `<div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每日訂單總量</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="sales_per_month_2_weak" data-colors="#ffbc00"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每日訂單總量', 'sales_per_month_2_weak', '#ffbc00');
                                     },
                                     onCreate: () => {
                                         const class_name = '.sales_per_month_2_weak';
-
                                         const interval = setInterval(function () {
                                             const element = document.querySelector(class_name);
-
                                             if (element) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffbc00'],
@@ -566,22 +509,12 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return `<div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每月訂單總量</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="total-order" data-colors="#ffbc00"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每月訂單總量', 'total-order', '#ffbc00');
                                     },
                                     onCreate: () => {
                                         const class_name = '.total-order';
-
                                         const interval = setInterval(function () {
                                             const element = document.querySelector(class_name);
-
                                             if (element) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffbc00'],
@@ -627,21 +560,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每日註冊會員</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="month-member" data-colors="#ff6c02"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每日註冊會員', 'month-member', '#ff6c02');
                                     },
                                     onCreate: () => {
                                         const class_name = '.month-member';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -686,21 +609,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每月註冊會員</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="year-month-member" data-colors="#ff6c02"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每月註冊會員', 'year-month-member', '#ff6c02');
                                     },
                                     onCreate: () => {
                                         const class_name = '.year-month-member';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -745,21 +658,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每日不重複瀏覽人數</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="day-active" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每日不重複瀏覽人數', 'day-active', '#39afd1');
                                     },
                                     onCreate: () => {
                                         const class_name = '.day-active';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -804,21 +707,11 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        // hot_products_today
-                                        return ` <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="header-title mb-4">每月不重複瀏覽人數</h4>
-                                        <div dir="ltr">
-                                            <div id="line-chart-zoomable" class="month-active-member" data-colors="#39afd1"></div>
-                                        </div>
-                                    </div>
-                                    <!-- end card body-->
-                                </div>`;
+                                        return cardStructure('每月不重複瀏覽人數', 'month-active-member', '#39afd1');
                                     },
                                     onCreate: () => {
                                         const class_name = '.month-active-member';
                                         const interval = setInterval(function () {
-                                            const element = document.querySelector(class_name);
                                             if ((window as any).ApexCharts) {
                                                 clearInterval(interval);
                                                 let colors = ['#ffffff'];
@@ -902,4 +795,5 @@ function getPastDays(numDays: number) {
 
     return days;
 }
+
 (window as any).glitter.setModule(import.meta.url, DataAnalyze);

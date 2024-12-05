@@ -46,23 +46,26 @@ class Workers {
             const chunkSize = Math.ceil(data.queryList.length / divisor);
             for (let i = 0; i < data.queryList.length; i += chunkSize) {
                 const chunk = data.queryList.slice(i, i + chunkSize);
-                const workerData = chunk.map((record) => {
-                    return {
-                        sql: record.sql,
-                        data: record.data,
-                    };
-                });
+                const workerData = chunk.map((record, index) => ({
+                    sql: record.sql,
+                    data: record.data,
+                    originalIndex: i + index,
+                }));
                 const worker = new worker_threads_1.Worker(__filename, {
                     workerData: workerData,
                 });
                 worker.on('message', (response) => {
                     completed += 1;
-                    resultArray = resultArray.concat(response.tempArray);
+                    resultArray = resultArray.concat(response.tempArray.map((item, idx) => ({
+                        index: workerData[idx].originalIndex,
+                        data: item,
+                    })));
                     if (completed === Math.ceil(data.queryList.length / chunkSize)) {
+                        resultArray.sort((a, b) => a.index - b.index);
                         console.info(response.message);
                         resolve({
                             status: 'success',
-                            resultArray,
+                            resultArray: resultArray.map((item) => item.data),
                         });
                     }
                 });
