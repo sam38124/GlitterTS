@@ -2797,7 +2797,7 @@ export class Shopping {
 
             const result = await Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
 
             result.queryData.map((data: any, index: number) => {
@@ -2860,7 +2860,7 @@ export class Shopping {
 
         const result = await Workers.query({
             queryList: formatJsonData,
-            divisor: 7,
+            divisor: 14,
         });
 
         const countArray: number[] = [];
@@ -2960,7 +2960,7 @@ export class Shopping {
 
             const result = await Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
 
             result.queryData.map((data: any) => {
@@ -3228,7 +3228,7 @@ export class Shopping {
 
             const result = await Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
 
             result.queryData.map((data: any) => {
@@ -3265,7 +3265,7 @@ export class Shopping {
 
             const result = await Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
 
             result.queryData.map((data: any) => {
@@ -3345,7 +3345,7 @@ export class Shopping {
 
             const result = await Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
 
             result.queryData.forEach((data: any) => {

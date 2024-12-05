@@ -2176,7 +2176,7 @@ class Shopping {
             }
             const result = await workers_js_1.Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
             result.queryData.map((data, index) => {
                 let cp_date = new Date();
@@ -2231,7 +2231,7 @@ class Shopping {
         }
         const result = await workers_js_1.Workers.query({
             queryList: formatJsonData,
-            divisor: 7,
+            divisor: 14,
         });
         const countArray = [];
         result.queryData.forEach((data, index) => {
@@ -2312,7 +2312,7 @@ class Shopping {
             }
             const result = await workers_js_1.Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
             result.queryData.map((data) => {
                 countArray.unshift(data[0]['count(1)']);
@@ -2547,7 +2547,7 @@ class Shopping {
             }
             const result = await workers_js_1.Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
             result.queryData.map((data) => {
                 countArray.unshift(data[0].c);
@@ -2580,7 +2580,7 @@ class Shopping {
             }
             const result = await workers_js_1.Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
             result.queryData.map((data) => {
                 let total = 0;
@@ -2652,7 +2652,7 @@ class Shopping {
             }
             const result = await workers_js_1.Workers.query({
                 queryList: formatJsonData,
-                divisor: 4,
+                divisor: 6,
             });
             result.queryData.forEach((data) => {
                 const total = data.reduce((sum, checkout) => sum + parseInt(checkout.orderData.total, 10), 0);
