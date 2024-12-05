@@ -7,6 +7,7 @@ exports.Recommend = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const shopping_js_1 = require("./shopping.js");
+const config_js_1 = require("../../config.js");
 class Recommend {
     constructor(app, token) {
         this.app = app;
@@ -32,18 +33,33 @@ class Recommend {
             `, []);
             const total = await database_1.default.query(`SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
             `, []);
-            for (const link of links) {
-                link.total_price = 0;
-                const orders = await new shopping_js_1.Shopping(this.app, this.token).getCheckOut({
+            function calculatePercentage(numerator, denominator, decimalPlaces = 2) {
+                if (denominator === 0) {
+                    throw new Error('分母不能為 0');
+                }
+                const percentage = (numerator / denominator) * 100;
+                return `${percentage.toFixed(decimalPlaces)}%`;
+            }
+            for (const data of links) {
+                const shopping = new shopping_js_1.Shopping(this.app, this.token);
+                const orders = await shopping.getCheckOut({
                     page: 0,
                     limit: 5000,
-                    distribution_code: link.code,
+                    distribution_code: data.code,
                 });
-                link.orders = orders.data.length;
-                orders.data.map((order) => {
-                    link.total_price += order.orderData.total - order.orderData.shipment_fee;
-                });
-                link.sharing_bonus = parseInt(`${(link.total_price * parseFloat(`${link.content.share_value}`)) / 100}`, 10);
+                const monitor = await database_1.default.query(`SELECT id, mac_address 
+                     FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                     WHERE app_name = ? AND base_url = ?`, [this.app, `/${this.app}/distribution/${data.content.link}`]);
+                const monitorLength = monitor.length;
+                const macAddrSize = new Set(monitor.map((item) => item.mac_address)).size;
+                const totalOrders = orders.data.length;
+                const totalPrice = orders.data.reduce((sum, order) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
+                data.orders = totalOrders;
+                data.click_times = monitorLength;
+                data.mac_address_count = macAddrSize;
+                data.conversion_rate = calculatePercentage(totalOrders, monitor.length, 1);
+                data.total_price = totalPrice;
+                data.sharing_bonus = Math.floor((totalPrice * parseFloat(data.content.share_value)) / 100);
             }
             return { data: links, total: total[0].c };
         }

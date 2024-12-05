@@ -210,33 +210,35 @@ export class BgRecommend {
                     },
                     {
                         key: '下單數',
-                        value: `<span class="fs-7">${dd.orders ? dd.orders.toLocaleString() : 0}</span>`,
+                        value: html`<div class="me-3">${dd.orders ? dd.orders.toLocaleString() : 0}</div>`,
                     },
                     {
                         key: '總金額',
-                        value: `<span class="fs-7">${dd.total_price ? dd.total_price.toLocaleString() : 0}</span>`,
+                        value: html`<div class="me-3">${dd.total_price ? dd.total_price.toLocaleString() : 0}</div>`,
                     },
                     {
-                        key: '曝光量',
-                        value: `<span class="fs-7">${dd.exposure ? dd.exposure.toLocaleString() : 0}</span>`,
+                        key: '被點擊次數',
+                        value: html`<div class="me-3">${dd.click_times ? dd.click_times.toLocaleString() : 0}</div>`,
+                    },
+                    {
+                        key: '裝置來源數',
+                        value: html`<div class="me-3">${dd.mac_address_count ? dd.mac_address_count.toLocaleString() : 0}個</div>`,
                     },
                     {
                         key: '轉換率',
-                        value: `<span class="fs-7">${dd.conversion_rate ?? 0}%</span>`,
+                        value: html`<div class="me-3">${dd.conversion_rate ?? '0%'}</div>`,
                     },
                     {
                         key: '分潤獎金',
-                        value: `<span class="fs-7">${dd.sharing_bonus ? dd.sharing_bonus.toLocaleString() : 0}</span>`,
+                        value: html`<div class="me-3">${dd.sharing_bonus ? dd.sharing_bonus.toLocaleString() : 0}</div>`,
                     },
                     {
                         key: '推薦人',
-                        value: html`<span class="fs-7">${getRecommender(vm.users, dd.content.recommend_user)}</span>`,
+                        value: html`<div class="me-3">${getRecommender(vm.users, dd.content.recommend_user)}</div>`,
                     },
                     {
                         key: '期限',
-                        value: html`<div class="me-2">
-                            <span class="fs-7">${dd.content.startDate} ~ ${dd.content.endDate ?? '永不過期'}</span>
-                        </div>`,
+                        value: html`<div class="me-3">${dd.content.startDate} ~ ${dd.content.endDate ?? '永不過期'}</div>`,
                     },
                     {
                         key: '狀態',
@@ -717,7 +719,12 @@ export class BgRecommend {
                                                                             />
                                                                         </div>`,
                                                                         html` <div class="mt-2 mb-1">
-                                                                            <span class="tx_normal me-2">網址預覽</span>${BgWidget.greenNote(prefixURL + (vm.data.link ?? ''))}
+                                                                            <span class="tx_normal me-2">網址預覽</span>${BgWidget.greenNote(
+                                                                                prefixURL + (vm.data.link ?? ''),
+                                                                                gvc.event(() => {
+                                                                                    gvc.glitter.openNewTab(prefixURL + (vm.data.link ?? ''));
+                                                                                })
+                                                                            )}
                                                                         </div>`,
                                                                     ].join('');
                                                                 },

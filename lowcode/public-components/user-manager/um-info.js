@@ -192,14 +192,15 @@ export class UMInfo {
                             </div>
                             <div class="col-12 col-md-6">
                                 ${(() => {
-                        var _a;
+                        var _a, _b;
                         if (!vm.memberNext) {
                             return '';
                         }
+                        const solidButtonBgr = (_a = gvc.glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _a !== void 0 ? _a : '#292218';
                         return html ` <div class="um-title mb-1 mt-2">目前累積消費金額</div>
                                         <div class="w-100 um-linebar-container">
                                             <div class="d-flex w-100 justify-content-between align-items-center">
-                                                <div class="um-content">NT. ${((_a = vm.memberNext.sum) !== null && _a !== void 0 ? _a : 0).toLocaleString()}</div>
+                                                <div class="um-content">NT. ${((_b = vm.memberNext.sum) !== null && _b !== void 0 ? _b : 0).toLocaleString()}</div>
                                                 <div class="um-content um-text-danger">差 NT.${vm.memberNext.leak.toLocaleString()} 即可升級</div>
                                             </div>
                                             <div class="w-100 um-linebar">
@@ -207,11 +208,10 @@ export class UMInfo {
                                                 <div
                                                     class="um-linebar-fill"
                                                     style="${(() => {
-                            var _a;
                             const sum = vm.memberNext.sum;
                             const leak = vm.memberNext.leak;
                             return `
-                                                            background: ${(_a = glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _a !== void 0 ? _a : '#292218'};
+                                                            background: ${solidButtonBgr};
                                                             width: ${sum ? (sum * 100) / (leak + sum) : 0}%;
                                                         `;
                         })()}"

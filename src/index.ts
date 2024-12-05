@@ -202,10 +202,10 @@ export async function createAPP(dd: any) {
                         const brandAndMemberType = await App.checkBrandAndMemberType(appName);
                         console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
                         //取得Login config
-                        const login_config=   await (new User(req.get('g-app') as string, req.body.token).getConfigV2({
+                        const login_config = await new User(req.get('g-app') as string, req.body.token).getConfigV2({
                             key: 'login_config',
                             user_id: 'manager',
-                        }))
+                        });
                         //取得頁面資訊
                         let data = await Seo.getPageInfo(appName, req.query.page as string);
                         //首頁SEO
@@ -293,7 +293,7 @@ export async function createAPP(dd: any) {
                             }
                             let distribution_code = '';
                             req.query.page = req.query.page || 'index';
-                            if ((req.query.page as string).split('/')[0] === 'order_detail' && req.query.EndCheckout === '1'){
+                            if ((req.query.page as string).split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
                                 distribution_code = `
                                     localStorage.setItem('distributionCode','');
                                 `;
@@ -302,17 +302,21 @@ export async function createAPP(dd: any) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
                                 const page = (
                                     await db.query(
-                                        `SELECT *
-                                     FROM \`${appName}\`.t_recommend_links
-                                     WHERE content ->>'$.link' = ?;
+                                        `SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
                                     `,
                                         [(req.query.page as string).split('/')[1]]
                                     )
                                 )[0].content;
-                                distribution_code = `
-                                localStorage.setItem('distributionCode','${page.code}');
-                                location.href='${page.redirect}${redURL.search}';
-                            `;
+                                if (page.status) {
+                                    distribution_code = `
+                                        localStorage.setItem('distributionCode','${page.code}');
+                                        location.href = '${page.redirect}${redURL.search}';
+                                    `;
+                                } else {
+                                    distribution_code = `
+                                        location.href = '/';
+                                    `;
+                                }
                             }
                             if ((req.query.page as string).split('/')[0] === 'collections' && (req.query.page as string).split('/')[1]) {
                                 const cols =

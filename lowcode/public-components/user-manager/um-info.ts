@@ -287,6 +287,7 @@ export class UMInfo {
                                     if (!vm.memberNext) {
                                         return '';
                                     }
+                                    const solidButtonBgr = gvc.glitter.share.globalValue['theme_color.0.solid-button-bg'] ?? '#292218';
                                     return html` <div class="um-title mb-1 mt-2">目前累積消費金額</div>
                                         <div class="w-100 um-linebar-container">
                                             <div class="d-flex w-100 justify-content-between align-items-center">
@@ -301,7 +302,7 @@ export class UMInfo {
                                                         const sum = vm.memberNext.sum;
                                                         const leak = vm.memberNext.leak;
                                                         return `
-                                                            background: ${glitter.share.globalValue['theme_color.0.solid-button-bg'] ?? '#292218'};
+                                                            background: ${solidButtonBgr};
                                                             width: ${sum ? (sum * 100) / (leak + sum) : 0}%;
                                                         `;
                                                     })()}"

@@ -205,10 +205,10 @@ async function createAPP(dd) {
                     console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
-                    const login_config = await (new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                    const login_config = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
                         key: 'login_config',
                         user_id: 'manager',
-                    }));
+                    });
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -303,14 +303,19 @@ async function createAPP(dd) {
                         }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
-                            const page = (await database_2.default.query(`SELECT *
-                                     FROM \`${appName}\`.t_recommend_links
-                                     WHERE content ->>'$.link' = ?;
+                            const page = (await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
                                     `, [req.query.page.split('/')[1]]))[0].content;
-                            distribution_code = `
-                                localStorage.setItem('distributionCode','${page.code}');
-                                location.href='${page.redirect}${redURL.search}';
-                            `;
+                            if (page.status) {
+                                distribution_code = `
+                                        localStorage.setItem('distributionCode','${page.code}');
+                                        location.href = '${page.redirect}${redURL.search}';
+                                    `;
+                            }
+                            else {
+                                distribution_code = `
+                                        location.href = '/';
+                                    `;
+                            }
                         }
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
                             const cols = (_k = (await database_2.default.query(`SELECT *
