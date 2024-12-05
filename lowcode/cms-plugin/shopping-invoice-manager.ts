@@ -1481,7 +1481,7 @@ export class ShoppingInvoiceManager {
 
     public static createOrder(gvc: GVC, vm: any , searchOrder?:string) {
         let viewModel: any = {
-            searchOrder: searchOrder??'',
+            searchOrder: searchOrder??'1733284711278',
             searchData: '',
             errorReport: '',
             invoiceData: {
@@ -1493,7 +1493,6 @@ export class ShoppingInvoiceManager {
             customerInfo: {}
         };
         const dialog = new ShareDialog(gvc.glitter)
-        console.log(viewModel.searchOrder)
         if (viewModel.searchOrder.length > 1) {
             dialog.dataLoading({
                 visible:true
@@ -1506,7 +1505,6 @@ export class ShoppingInvoiceManager {
                 archived: `false`,
                 returnSearch: 'true',
             }).then((response: any) => {
-                console.log("response", response)
                 viewModel.searchData = response.response;
                 ApiUser.getUsersDataWithEmailOrPhone(response.response.email).then((res) => {
                     viewModel.customerInfo = res.response;

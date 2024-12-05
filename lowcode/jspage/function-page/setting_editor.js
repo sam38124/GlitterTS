@@ -72,9 +72,18 @@ export class Setting_editor {
                     });
                 }).then(() => {
                     loading = false;
+                    removeInvoice();
                     gvc.notifyDataChange(id);
                 });
             });
+            function removeInvoice() {
+                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res) => {
+                    if (res.response.result[0].value.fincial == "off_line") {
+                        items = items.filter((dd) => { return dd.page != "invoice_list" && dd.page != "allowance_list"; });
+                        gvc.notifyDataChange(id);
+                    }
+                });
+            }
             return {
                 bind: id,
                 view: () => {

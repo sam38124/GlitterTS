@@ -675,11 +675,13 @@ export class Setting_editor {
             if ((window as any).memberType === 'noLimit') {
                 menuItems = menuItems.concat(this.noLimitMenuItems());
             }
+
             menuItems.map((dd, index) => {
                 if (dd.page === glitter.getUrlParameter('tab')) {
                     Storage.select_item = index;
                 }
             });
+
             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                 if (res.response.result[0]) {
                     items = res.response.result[0].value;
@@ -713,9 +715,20 @@ export class Setting_editor {
                     });
                 }).then(() => {
                     loading = false;
+                    removeInvoice()
                     gvc.notifyDataChange(id);
                 });
             });
+            //當發票設定只有選擇線下結帳時，要把發票的功能拿掉．
+            function removeInvoice(){
+                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res)=>{
+                    if (res.response.result[0].value.fincial == "off_line"){
+                        items = items.filter((dd: any) => {return dd.page != "invoice_list" && dd.page != "allowance_list"});
+                        gvc.notifyDataChange(id);
+                    }
+                })
+            }
+
             return {
                 bind: id,
                 view: () => {
@@ -735,7 +748,7 @@ export class Setting_editor {
                                 if (loading) {
                                     return BgWidget.spinner({text: {visible: false}});
                                 }
-
+                                
                                 function renderHTML(items: any) {
                                     const authConfig = permissionData.config.auth;
                                     let list: any = [];
@@ -971,7 +984,7 @@ export class Setting_editor {
                                     return html`
                                         <div class="p-2">${renderItem(list)}</div>`;
                                 }
-
+                                
                                 return renderHTML(items);
                             })()}
                         </div>

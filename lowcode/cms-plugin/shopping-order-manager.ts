@@ -695,7 +695,6 @@ export class ShoppingOrderManager {
                 } else if (vm.type == 'add') {
                     return this.createOrder(gvc, vm);
                 } else if(vm.type == 'createInvoice') {
-                    console.log("(vm as any).tempOrder -- " , (vm as any).tempOrder , vm);
                     return ShoppingInvoiceManager.createOrder(gvc,vm,(vm as any).tempOrder);
                 }
                 return '';
@@ -827,6 +826,7 @@ export class ShoppingOrderManager {
             orderData.orderData.shipment_selector.push({name: '立即取貨', value: 'now' , form: undefined})
         }
         let userDataLoading = true;
+        const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
 
         function formatDateString(isoDate?: string): string {
             // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
@@ -1655,12 +1655,49 @@ export class ShoppingOrderManager {
                             ${BgWidget.mbContainer(240)}
                             <div class="update-bar-container">
                                 <div class="${(orderData.orderData.method == "off_line" && orderData.status == 1)?'':'d-none'}">
-                                    ${BgWidget.grayButton("開立發票",gvc.event(()=>{
-                                        
-                                        vm.tempOrder = orderData.cart_token
-                                        vm.type = 'createInvoice';
-                                        // (vm as any).tempOrder = orderData.cart_token;
-                                    }))}
+                                    ${gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return new Promise(async (resolve, reject) => {
+                                                    const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
+                                                    if (data.response.result[0]) {
+                                                        vm.data = data.response.result[0].value;
+                                                    }
+                                                    resolve(
+                                                            gvc.bindView(() => {
+                                                                vm.data.fincial = vm.data.fincial ?? 'ezpay';
+                                                                const id = gvc.glitter.getUUID();
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        console.log(vm.data.fincial)
+                                                                        if (vm.data.fincial == "ezpay" || vm.data.fincial == "ecpay"){
+                                                                            return BgWidget.grayButton("開立發票",gvc.event(()=>{
+                                                                                vm.tempOrder = orderData.cart_token
+                                                                                vm.type = 'createInvoice';
+                                                                                // (vm as any).tempOrder = orderData.cart_token;
+                                                                            }))
+                                                                        }
+                                                                        return ``
+                                                                    },
+                                                                    divCreate: {
+                                                                        style: ``,
+                                                                        class: ``,
+                                                                    },
+                                                                };
+                                                            })
+                                                    );
+                                                });
+                                            },
+                                            divCreate: {
+                                                class: 'd-flex flex-column flex-column-reverse flex-md-row px-0',
+                                                style: 'gap:10px;',
+                                            },
+                                        };
+                                    })}
+                          
                                 </div>
                                 ${BgWidget.cancel(
                                         gvc.event(() => {

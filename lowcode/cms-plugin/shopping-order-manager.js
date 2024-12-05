@@ -593,7 +593,6 @@ export class ShoppingOrderManager {
                     return this.createOrder(gvc, vm);
                 }
                 else if (vm.type == 'createInvoice') {
-                    console.log("(vm as any).tempOrder -- ", vm.tempOrder, vm);
                     return ShoppingInvoiceManager.createOrder(gvc, vm, vm.tempOrder);
                 }
                 return '';
@@ -641,6 +640,7 @@ export class ShoppingOrderManager {
             orderData.orderData.shipment_selector.push({ name: '立即取貨', value: 'now', form: undefined });
         }
         let userDataLoading = true;
+        const saasConfig = window.parent.saasConfig;
         function formatDateString(isoDate) {
             const date = isoDate ? new Date(isoDate) : new Date();
             const year = date.getFullYear();
@@ -1443,10 +1443,47 @@ export class ShoppingOrderManager {
                             ${BgWidget.mbContainer(240)}
                             <div class="update-bar-container">
                                 <div class="${(orderData.orderData.method == "off_line" && orderData.status == 1) ? '' : 'd-none'}">
-                                    ${BgWidget.grayButton("開立發票", gvc.event(() => {
-                        vm.tempOrder = orderData.cart_token;
-                        vm.type = 'createInvoice';
-                    }))}
+                                    ${gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    const data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
+                                    if (data.response.result[0]) {
+                                        vm.data = data.response.result[0].value;
+                                    }
+                                    resolve(gvc.bindView(() => {
+                                        var _a;
+                                        vm.data.fincial = (_a = vm.data.fincial) !== null && _a !== void 0 ? _a : 'ezpay';
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                console.log(vm.data.fincial);
+                                                if (vm.data.fincial == "ezpay" || vm.data.fincial == "ecpay") {
+                                                    return BgWidget.grayButton("開立發票", gvc.event(() => {
+                                                        vm.tempOrder = orderData.cart_token;
+                                                        vm.type = 'createInvoice';
+                                                    }));
+                                                }
+                                                return ``;
+                                            },
+                                            divCreate: {
+                                                style: ``,
+                                                class: ``,
+                                            },
+                                        };
+                                    }));
+                                }));
+                            },
+                            divCreate: {
+                                class: 'd-flex flex-column flex-column-reverse flex-md-row px-0',
+                                style: 'gap:10px;',
+                            },
+                        };
+                    })}
+                          
                                 </div>
                                 ${BgWidget.cancel(gvc.event(() => {
                         vm.type = 'list';

@@ -26,6 +26,7 @@ export class Invoice {
                         invoice_data: cf.invoice_data,
                         beta: config.point === 'beta',
                     });
+                //     ecpay跟
                 case 'ecpay':
                     return await EcInvoice.postInvoice({
                         hashKey: config.hashkey,
@@ -43,7 +44,7 @@ export class Invoice {
     }
 
     //訂單開發票
-    public async postCheckoutInvoice(orderID: string | any, print: boolean) {
+    public async postCheckoutInvoice(orderID: string | any, print: boolean , obj?:{offlineInvoice?:boolean}) {
         const order: {
             user_info: {
                 name: string;
@@ -215,7 +216,6 @@ export class Invoice {
                 print: print
             });
         } else {
-            console.log("clear here -- ")
             return 'no_need'
         }
     }

@@ -4118,8 +4118,7 @@ export class Shopping {
             orderData: obj.orderData.orderData,
             status: obj.orderData.status
         })
-
-        await new Invoice(this.app).postCheckoutInvoice(obj.orderID, true);
+        await new Invoice(this.app).postCheckoutInvoice(obj.orderID, obj.invoice_data.getPaper=='Y');
         await new Invoice(this.app).updateInvoice({
             orderID: obj.orderData.cart_token,
             invoice_data: obj.invoice_data

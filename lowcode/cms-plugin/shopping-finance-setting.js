@@ -1087,68 +1087,68 @@ export class ShoppingFinanceSetting {
                                             bind: id,
                                             view: () => {
                                                 return html `
-                                                                                    <div class="d-flex flex-column"
-                                                                                         style="gap:18px;">
-                                                                                        <div class="tx_normal fw-bold">
-                                                                                            服務商選擇
-                                                                                        </div>
-                                                                                        ${[
+                                                                                <div class="d-flex flex-column"
+                                                                                     style="gap:18px;">
+                                                                                    <div class="tx_normal fw-bold">
+                                                                                        服務商選擇
+                                                                                    </div>
+                                                                                    ${[
                                                     {
                                                         title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        綠界發票
-                                                                                                        <span class=""
-                                                                                                              style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                                    </div>`,
+                                                                                                <div class="d-flex flex-column">
+                                                                                                    綠界發票
+                                                                                                    <span class=""
+                                                                                                          style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                                </div>`,
                                                         value: 'ecpay',
                                                     },
                                                     {
                                                         title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        線下開立
-                                                                                                        <span class=""
-                                                                                                              style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
-                                                                                                    </div>`,
+                                                                                                <div class="d-flex flex-column">
+                                                                                                    線下開立
+                                                                                                    <span class=""
+                                                                                                          style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                                </div>`,
                                                         value: 'off_line',
                                                     },
                                                     {
                                                         title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        不開立電子發票
-                                                                                                        <span class=""
-                                                                                                              style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
-                                                                                                    </div>`,
+                                                                                                <div class="d-flex flex-column">
+                                                                                                    不開立電子發票
+                                                                                                    <span class=""
+                                                                                                          style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+                                                                                                </div>`,
                                                         value: 'nouse',
                                                     },
                                                 ]
                                                     .map((dd) => {
                                                     return html `
-                                                                                                        <div>
-                                                                                                            ${[
+                                                                                                    <div>
+                                                                                                        ${[
                                                         html `
-                                                                                                                    <div
-                                                                                                                            class="d-flex align-items-center cursor_pointer"
-                                                                                                                            style="gap:8px;"
-                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                <div
+                                                                                                                        class="d-flex align-items-center cursor_pointer"
+                                                                                                                        style="gap:8px;"
+                                                                                                                        onclick="${gvc.event(() => {
                                                             vm.data.fincial = dd.value;
                                                             gvc.notifyDataChange(id);
                                                         })}"
-                                                                                                                    >
-                                                                                                                        ${vm.data.fincial === dd.value
+                                                                                                                >
+                                                                                                                    ${vm.data.fincial === dd.value
                                                             ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                             : ` <div class="c_39_checkbox"></div>`}
-                                                                                                                        <div class="tx_normal fw-normal">
-                                                                                                                            ${dd.title}
-                                                                                                                        </div>
-                                                                                                                    </div>`,
+                                                                                                                    <div class="tx_normal fw-normal">
+                                                                                                                        ${dd.title}
+                                                                                                                    </div>
+                                                                                                                </div>`,
                                                         html `
-                                                                                                                    <div class="d-flex position-relative mt-2"
-                                                                                                                         style="">
-                                                                                                                        <div class="ms-2 border-end position-absolute h-100"
-                                                                                                                             style="left: 0px;"></div>
-                                                                                                                        <div class="flex-fill "
-                                                                                                                             style="margin-left:30px;max-width: 518px;">
-                                                                                                                            ${(() => {
+                                                                                                                <div class="d-flex position-relative mt-2"
+                                                                                                                     style="">
+                                                                                                                    <div class="ms-2 border-end position-absolute h-100"
+                                                                                                                         style="left: 0px;"></div>
+                                                                                                                    <div class="flex-fill "
+                                                                                                                         style="margin-left:30px;max-width: 518px;">
+                                                                                                                        ${(() => {
                                                             var _a, _b, _c;
                                                             if (vm.data.fincial === 'nouse' ||
                                                                 vm.data.fincial === 'off_line' ||
@@ -1229,14 +1229,14 @@ export class ShoppingFinanceSetting {
                                                                 ].join(BgWidget.mbContainer(12));
                                                             }
                                                         })()}
-                                                                                                                        </div>
-                                                                                                                    </div>`,
+                                                                                                                    </div>
+                                                                                                                </div>`,
                                                     ].join('')}
-                                                                                                        </div>`;
+                                                                                                    </div>`;
                                                 })
                                                     .join('')}
-                                                                                    </div>
-                                                                                `;
+                                                                                </div>
+                                                                            `;
                                             },
                                             divCreate: {
                                                 style: ``,

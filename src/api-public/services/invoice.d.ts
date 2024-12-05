@@ -5,7 +5,9 @@ export declare class Invoice {
         invoice_data: any;
         print: boolean;
     }): Promise<boolean | undefined>;
-    postCheckoutInvoice(orderID: string | any, print: boolean): Promise<boolean | "no_need" | undefined>;
+    postCheckoutInvoice(orderID: string | any, print: boolean, obj?: {
+        offlineInvoice?: boolean;
+    }): Promise<boolean | "no_need" | undefined>;
     updateInvoice(obj: {
         orderID: string;
         invoice_data: any;
