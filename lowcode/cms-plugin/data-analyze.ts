@@ -763,23 +763,25 @@ export class DataAnalyze {
     }
 }
 
-function getPastMonths(numMonths: any) {
-    const months = [];
+function getPastMonths(numMonths: number): string[] {
+    const months: string[] = [];
     const currentDate = new Date();
-    let currentYear = currentDate.getFullYear() - 2000;
-    let currentMonth = currentDate.getMonth() + 2; // 月份從0開始，並記錄當月，所以要加2
+    let year = currentDate.getFullYear() - 2000; // 取年份後兩位
+    let month = currentDate.getMonth() + 2; // 月份從0開始，並往後一個月，所以加2
 
     for (let i = 0; i < numMonths; i++) {
-        currentMonth--; // 從當前月份開始往前推
-        if (currentMonth === 0) {
-            currentYear--; // 如果月份為0，代表上一年的12月
-            currentMonth = 12; // 將月份調整為12月
+        month--; // 每次迴圈減少一個月
+        if (month === 0) {
+            year--; // 如果月份減至0，則回到上一年
+            month = 12; // 調整為12月
         }
-        months.unshift(currentYear + '年' + (currentMonth < 10 ? '0' : '') + currentMonth + '月'); // 將年月添加到陣列的開頭
+        const formattedMonth = `${year}年${month.toString().padStart(2, '0')}月`; // 格式化為兩位數字的月份
+        months.unshift(formattedMonth); // 新增到陣列開頭
     }
 
     return months;
 }
+
 function getPastDays(numDays: number) {
     const days = [];
     const currentDate = new Date();

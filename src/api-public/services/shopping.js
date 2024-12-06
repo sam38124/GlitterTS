@@ -2153,75 +2153,76 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
     }
+    generateTimeRange(index) {
+        const now = new Date();
+        const ONE_DAY_TIME = 24 * 60 * 60 * 1000;
+        const startDate = new Date(now.getTime() - (index + 1) * ONE_DAY_TIME);
+        const endDate = new Date(startDate.getTime() + ONE_DAY_TIME);
+        startDate.setUTCHours(16, 0, 0, 0);
+        endDate.setUTCHours(16, 0, 0, 0);
+        const startISO = startDate.toISOString();
+        const endISO = endDate.toISOString();
+        return { startISO, endISO };
+    }
     async getActiveRecentYear() {
-        try {
-            const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const start_date = this.getTaiwanTimeZero();
-                start_date.setMonth(start_date.getMonth() - (index + 1));
-                const end_date = this.getTaiwanTimeZero();
-                end_date.setMonth(start_date.getMonth());
-                const sql = `SELECT mac_address, created_time
-                             from \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                             WHERE app_name = ${database_js_1.default.escape(this.app)}
-                               and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
-                             group by id, mac_address
-                `;
-                formatJsonData.push({
-                    sql: sql,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
-            });
-            result.queryData.map((data, index) => {
-                let cp_date = new Date();
-                let mac_address = [];
-                cp_date.setDate(cp_date.getDate() - index);
-                countArray.unshift(data.filter((dd) => {
-                    if (!mac_address.includes(dd.mac_address)) {
-                        mac_address.push(dd.mac_address);
-                        return new Date(dd.created_time).getDate() == cp_date.getDate();
-                    }
-                    else {
-                        return false;
-                    }
-                }).length);
-            });
-            return {
-                count_array: countArray.reverse(),
-            };
-        }
-        catch (e) {
-            console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
-        }
-    }
-    getTaiwanTimeZero() {
-        const date = new Date((0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'));
-        date.setTime(date.getTime() + 8 * 1000 * 3600);
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-    async getActiveRecent2Weak() {
-        const MILLISECONDS_PER_DAY = 24 * 3600 * 1000;
+        console.log('getActiveRecentYear');
         const formatJsonData = [];
-        for (let index = 0; index < 14; index++) {
-            const end_date = this.getTaiwanTimeZero();
-            end_date.setTime(end_date.getTime() - MILLISECONDS_PER_DAY * index);
-            const start_date = this.getTaiwanTimeZero();
-            start_date.setTime(start_date.getTime() - MILLISECONDS_PER_DAY * (index + 1));
+        for (let index = 0; index < 12; index++) {
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - index, 1);
+            startDate.setUTCHours(16, 0, 0, 0);
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + 1);
+            endDate.setUTCHours(16, 0, 0, 0);
             const sql = `
                 SELECT mac_address, created_time
                 FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                 WHERE app_name = ${database_js_1.default.escape(this.app)}
                 AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND created_time BETWEEN '${start_date.toISOString()}' AND '${end_date.toISOString()}'
+                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+                GROUP BY id, mac_address
+            `;
+            if (index === 1) {
+                console.log(sql);
+            }
+            formatJsonData.push({
+                sql: sql,
+                data: [],
+            });
+        }
+        const result = await workers_js_1.Workers.query({
+            queryList: formatJsonData,
+            divisor: 4,
+        });
+        const countArray = [];
+        result.queryData.forEach((data) => {
+            const uniqueMacSet = new Set();
+            const uniqueCount = data.reduce((count, dd) => {
+                if (!uniqueMacSet.has(dd.mac_address)) {
+                    uniqueMacSet.add(dd.mac_address);
+                    return count + 1;
+                }
+                return count;
+            }, 0);
+            countArray.push(uniqueCount);
+        });
+        console.log(countArray);
+        return {
+            count_array: countArray.reverse(),
+        };
+    }
+    async getActiveRecent2Weak() {
+        const formatJsonData = [];
+        for (let index = 0; index < 14; index++) {
+            const tw = this.generateTimeRange(index);
+            const sql = `
+                SELECT mac_address, created_time
+                FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                WHERE app_name = ${database_js_1.default.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
                 GROUP BY id, mac_address
             `;
             formatJsonData.push({

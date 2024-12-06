@@ -387,10 +387,13 @@ export declare class Shopping {
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
+    generateTimeRange(index: number): {
+        startISO: string;
+        endISO: string;
+    };
     getActiveRecentYear(): Promise<{
-        count_array: any[];
+        count_array: number[];
     }>;
-    getTaiwanTimeZero(): Date;
     getActiveRecent2Weak(): Promise<{
         count_array: number[];
     }>;

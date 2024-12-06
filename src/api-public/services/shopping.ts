@@ -2773,75 +2773,38 @@ export class Shopping {
         }
     }
 
+    generateTimeRange(index: number): { startISO: string; endISO: string } {
+        const now = new Date();
+        const ONE_DAY_TIME = 24 * 60 * 60 * 1000;
+
+        // 計算當天的開始和結束時間
+        const startDate = new Date(now.getTime() - (index + 1) * ONE_DAY_TIME); // 往前推指定天數
+        const endDate = new Date(startDate.getTime() + ONE_DAY_TIME); // 往後加一天
+
+        // 設定開始時間為當天的 16:00:00.000Z
+        startDate.setUTCHours(16, 0, 0, 0);
+
+        // 設定結束時間為隔天的 16:00:00.000Z
+        endDate.setUTCHours(16, 0, 0, 0);
+
+        // 格式化為 ISO 字串
+        const startISO = startDate.toISOString();
+        const endISO = endDate.toISOString();
+
+        return { startISO, endISO };
+    }
+
     async getActiveRecentYear() {
-        try {
-            const formatJsonData: { sql: string; data: any[] }[] = [];
-            const countArray: any[] = [];
-
-            for (let index = 0; index < 12; index++) {
-                const start_date = this.getTaiwanTimeZero();
-                start_date.setMonth(start_date.getMonth() - (index + 1));
-                const end_date = this.getTaiwanTimeZero();
-                end_date.setMonth(start_date.getMonth());
-                const sql = `SELECT mac_address, created_time
-                             from \`${saasConfig.SAAS_NAME}\`.t_monitor
-                             WHERE app_name = ${db.escape(this.app)}
-                               and ip != 'ffff:127.0.0.1'
-                      and req_type = 'file' and created_time >= '${start_date.toISOString()}' and created_time <= '${end_date.toISOString()}'
-                             group by id, mac_address
-                `;
-                formatJsonData.push({
-                    sql: sql,
-                    data: [],
-                });
-            }
-
-            const result = await Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
-            });
-
-            result.queryData.map((data: any, index: number) => {
-                let cp_date = new Date();
-                let mac_address: string[] = [];
-                cp_date.setDate(cp_date.getDate() - index);
-                countArray.unshift(
-                    data.filter((dd: any) => {
-                        if (!mac_address.includes(dd.mac_address)) {
-                            mac_address.push(dd.mac_address);
-                            return new Date(dd.created_time).getDate() == cp_date.getDate();
-                        } else {
-                            return false;
-                        }
-                    }).length
-                );
-            });
-
-            return {
-                count_array: countArray.reverse(),
-            };
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getActiveRecentYear Error:' + e, null);
-        }
-    }
-
-    getTaiwanTimeZero() {
-        const date = new Date(moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'));
-        date.setTime(date.getTime() + 8 * 1000 * 3600);
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-
-    async getActiveRecent2Weak() {
-        const MILLISECONDS_PER_DAY = 24 * 3600 * 1000; // 一天的毫秒數
         const formatJsonData: { sql: string; data: any[] }[] = [];
 
-        for (let index = 0; index < 14; index++) {
-            const end_date = this.getTaiwanTimeZero();
-            end_date.setTime(end_date.getTime() - MILLISECONDS_PER_DAY * index);
-            const start_date = this.getTaiwanTimeZero();
-            start_date.setTime(start_date.getTime() - MILLISECONDS_PER_DAY * (index + 1));
+        for (let index = 0; index < 12; index++) {
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - index, 1); // 設定當月的第一天
+            startDate.setUTCHours(16, 0, 0, 0);
+
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + 1); // 設定為下個月的第一天
+            endDate.setUTCHours(16, 0, 0, 0);
 
             const sql = `
                 SELECT mac_address, created_time
@@ -2849,7 +2812,56 @@ export class Shopping {
                 WHERE app_name = ${db.escape(this.app)}
                 AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND created_time BETWEEN '${start_date.toISOString()}' AND '${end_date.toISOString()}'
+                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+                GROUP BY id, mac_address
+            `;
+
+            formatJsonData.push({
+                sql: sql,
+                data: [],
+            });
+        }
+
+        const result = await Workers.query({
+            queryList: formatJsonData,
+            divisor: 4,
+        });
+
+        const countArray: number[] = [];
+
+        result.queryData.forEach((data: any) => {
+            const uniqueMacSet = new Set<string>(); // 使用 Set 儲存 mac_address
+
+            // 計算每月符合條件的不重複裝置數量
+            const uniqueCount = data.reduce((count: number, dd: any) => {
+                if (!uniqueMacSet.has(dd.mac_address)) {
+                    uniqueMacSet.add(dd.mac_address); // 新增至 Set
+                    return count + 1;
+                }
+                return count;
+            }, 0);
+
+            countArray.push(uniqueCount); // 加入結果陣列
+        });
+
+        return {
+            count_array: countArray.reverse(), // 將結果反轉，保證時間順序為最近到最遠
+        };
+    }
+
+    async getActiveRecent2Weak() {
+        const formatJsonData: { sql: string; data: any[] }[] = [];
+
+        for (let index = 0; index < 14; index++) {
+            const tw = this.generateTimeRange(index);
+
+            const sql = `
+                SELECT mac_address, created_time
+                FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+                WHERE app_name = ${db.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
                 GROUP BY id, mac_address
             `;
 
