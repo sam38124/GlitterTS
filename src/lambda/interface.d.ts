@@ -57,7 +57,7 @@ declare function create_function(fun: (db: DB, request: {
         }) => void;
     };
 }) => Promise<any>): (db: DB, request: {
-    user?: USER | undefined;
+    user?: USER;
     data: any;
     app: string;
     query: any;

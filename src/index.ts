@@ -246,14 +246,10 @@ export async function createAPP(dd: any) {
                         const brandAndMemberType = await App.checkBrandAndMemberType(appName);
                         console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
                         //取得Login config
-<<<<<<< HEAD
-                        const login_config = await new User(req.get('g-app') as string, req.body.token).getConfigV2({
-=======
                         const login_config = await (new User(req.get('g-app') as string, req.body.token).getConfigV2({
->>>>>>> 0eb807d6 ([update] : glitter version.)
                             key: 'login_config',
                             user_id: 'manager',
-                        });
+                        }));
                         //取得頁面資訊
                         let data = await Seo.getPageInfo(appName, req.query.page as string);
                         //首頁SEO
@@ -343,15 +339,10 @@ export async function createAPP(dd: any) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
                                 const page = (
                                     await db.query(
-<<<<<<< HEAD
-                                        `SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
-                                    `,
-=======
                                         `SELECT *
                                          FROM \`${appName}\`.t_recommend_links
                                          WHERE content ->>'$.link' = ?;
                                         `,
->>>>>>> 0eb807d6 ([update] : glitter version.)
                                         [(req.query.page as string).split('/')[1]]
                                     )
                                 )[0].content;

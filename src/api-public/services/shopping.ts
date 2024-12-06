@@ -329,14 +329,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -345,25 +345,12 @@ export class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
             if (query.status) {
-<<<<<<< HEAD
                 const statusSplit = query.status.split(',').map((status) => status.trim());
                 const statusJoin = statusSplit.map((status) => `"${status}"`).join(',');
 
                 // 基本條件
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
 
-=======
-                const statusSplit = query.status.split(',').map(status => status.trim()).map((dd)=>{
-                    if(dd==='inRange'){
-                        return `active`
-                    }else{
-                        return  dd
-                    }
-                });
-                const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
-                // 基本條件
-                const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
->>>>>>> 0eb807d6 ([update] : glitter version.)
                 // 時間條件
                 const scheduleConditions = statusSplit
                     .map((status) => {
@@ -397,24 +384,15 @@ export class Shopping {
                                     AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
                                 )
                             `;
-<<<<<<< HEAD
                             default:
                                 return '';
                         }
                     })
                     .join('');
-=======
-                        default:
-                            return '';
-                    }
-                }).join('');
->>>>>>> 0eb807d6 ([update] : glitter version.)
 
                 // 組合 SQL 條件
-                // querySql.push(`(${statusCondition} ${scheduleConditions})`);
-                querySql.push(`(${statusCondition})`);
+                querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
-<<<<<<< HEAD
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
                 const channelJoin = channelSplit.map((channel) => {
@@ -422,8 +400,6 @@ export class Shopping {
                 });
                 querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
             }
-=======
->>>>>>> 0eb807d6 ([update] : glitter version.)
 
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
@@ -480,10 +456,10 @@ export class Shopping {
                      FROM \`${this.app}\`.t_stock_recover,
                           \`${this.app}\`.t_checkout
                      WHERE product_id in (${productList
-                         .map((dd) => {
-                             return dd.id;
-                         })
-                         .join(',')})
+                        .map((dd) => {
+                            return dd.id;
+                        })
+                        .join(',')})
                        and order_id = cart_token
                        and dead_line < ?;`,
                     [new Date()]
@@ -559,6 +535,7 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
+
 
     public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
         let sql = `SELECT *

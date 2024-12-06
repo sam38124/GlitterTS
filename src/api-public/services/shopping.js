@@ -207,20 +207,8 @@ class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
             if (query.status) {
-<<<<<<< HEAD
                 const statusSplit = query.status.split(',').map((status) => status.trim());
                 const statusJoin = statusSplit.map((status) => `"${status}"`).join(',');
-=======
-                const statusSplit = query.status.split(',').map(status => status.trim()).map((dd) => {
-                    if (dd === 'inRange') {
-                        return `active`;
-                    }
-                    else {
-                        return dd;
-                    }
-                });
-                const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
->>>>>>> 0eb807d6 ([update] : glitter version.)
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
                 const scheduleConditions = statusSplit
                     .map((status) => {
@@ -257,14 +245,9 @@ class Shopping {
                         default:
                             return '';
                     }
-<<<<<<< HEAD
                 })
                     .join('');
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
-=======
-                }).join('');
-                querySql.push(`(${statusCondition})`);
->>>>>>> 0eb807d6 ([update] : glitter version.)
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());

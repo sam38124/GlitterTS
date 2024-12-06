@@ -1883,10 +1883,6 @@ export class ShoppingProductSetting {
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="d-flex align-items-center gap-2">
                                                                             <div style="color: #393939; font-weight: 700;">商品描述</div>
-                                                                            ${BgWidget.aiChatButton({
-                                                                                gvc,
-                                                                                select: 'writer',
-                                                                            })}
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <div
@@ -2030,7 +2026,19 @@ export class ShoppingProductSetting {
                                                                                                 const originContent = `${postMD.content}`;
                                                                                                 BgWidget.fullDialog({
                                                                                                     gvc: gvc,
-                                                                                                    title: '商品描述',
+                                                                                                    title: (gvc2)=>{
+                                                                                                        return `<div class="d-flex align-items-center" style="gap:10px;">${'商品描述'+BgWidget.aiChatButton({
+                                                                                                            gvc:gvc2,
+                                                                                                            select: 'writer',
+                                                                                                            click:()=>{
+                                                                                                                ProductAi.generateRichText(gvc,(text)=>{
+                                                                                                                    postMD.content+=text;
+                                                                                                                    gvc.notifyDataChange(vm.id)
+                                                                                                                    gvc2.recreateView()
+                                                                                                                })
+                                                                                                            }
+                                                                                                        })}</div>`
+                                                                                                    },
                                                                                                     innerHTML: (gvc2) => {
                                                                                                         return html` <div>
                                                                                                             ${EditorElem.richText({
@@ -4355,14 +4363,19 @@ ${postMD.seo.content ?? ''}</textarea
                                                         (() => {
                                                             const id = gvc.glitter.getUUID();
                                                             const inputStyle = 'display: block; width: 200px;';
-                                                            let options: any[] = [];
+                                                            let options: any[] = [ ];
                                                             ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
                                                                 options = data.response.value.map((label: any) => {
                                                                     return {
                                                                         key: label.id,
                                                                         value: label.title,
                                                                     };
-                                                                });
+                                                                }).concat( [
+                                                                    {
+                                                                        key:'',
+                                                                        value:'不設定'
+                                                                    }
+                                                                ]);
                                                                 gvc.notifyDataChange(id);
                                                             });
                                                             return {
@@ -4370,10 +4383,10 @@ ${postMD.seo.content ?? ''}</textarea
                                                                 view: () => {
                                                                     return BgWidget.select({
                                                                         gvc: obj.gvc,
-                                                                        default: postMD.label,
+                                                                        default: postMD.label || '',
                                                                         options: options,
                                                                         callback: (text: any) => {
-                                                                            postMD.label = text;
+                                                                            postMD.label = text || undefined;
                                                                             gvc.notifyDataChange(id);
                                                                         },
                                                                     });
