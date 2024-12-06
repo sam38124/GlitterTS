@@ -29,8 +29,11 @@ if (fs_1.default.existsSync(path_1.default.resolve(zackPath))) {
 function isDanielEnv() {
     return fs_1.default.existsSync(path_1.default.resolve(danielPath));
 }
+<<<<<<< HEAD
 exports.isDanielEnv = isDanielEnv;
 config_1.ConfigSetting.is_local = true;
+=======
+>>>>>>> 0eb807d6 ([update] : glitter version.)
 (0, index_1.initial)(4000).then(async () => {
 });
 //# sourceMappingURL=run.js.map

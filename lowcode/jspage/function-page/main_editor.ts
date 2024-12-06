@@ -10,6 +10,7 @@ import {ToolSetting} from "./tool-setting.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
 import {AppearType} from "../../glitterBundle/module/Enum.js";
+import {Language} from "../../glitter-base/global/language.js";
 
 
 enum ViewType {
@@ -1351,7 +1352,7 @@ export class Main_editor {
   top: 0;
   left: 0;"
                                         sandbox="allow-same-origin allow-scripts"
-                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                                        src="${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
                             </div>`
                     }
                 },
@@ -1387,7 +1388,7 @@ export class Main_editor {
                                  id="editerCenter">
                                 <iframe class="w-100 h-100  bg-white iframe_view"
                                         sandbox="allow-same-origin allow-scripts"
-                                        src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
+                                        src="${gvc.glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}&device=${gvc.glitter.getUrlParameter('device')}"></iframe>
                             </div>`
                     }
                 },

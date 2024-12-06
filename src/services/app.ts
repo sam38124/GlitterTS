@@ -561,7 +561,7 @@ export class App {
         };
     }
 
-    public static async preloadPageData(appName: string, refer_page: string) {
+    public static async preloadPageData(appName: string, refer_page: string,language:'zh-TW' | 'zh-CN' | 'en-US') {
         const start = new Date().getTime();
         const page = await Template.getRealPage(refer_page, appName);
         console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
@@ -581,6 +581,7 @@ export class App {
             await new Template(undefined).getPage({
                 appName: appName,
                 tag: page,
+                language:language
             })
         )[0];
         const event_list = fs.readFileSync(path.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');

@@ -2662,7 +2662,6 @@ transform: translateY(5px);
                     }
                     const gvc = glitter.pageConfig[0].gvc;
                     const document = glitter.document;
-                    const container = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
                     for (let a = 0; a < container_items.length; a++) {
                         if (container_items[a] == item) {
                             container_items.splice(a, 1);

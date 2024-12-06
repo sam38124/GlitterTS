@@ -6199,4 +6199,13 @@ ${[
     };
 }
 
-(window as any).glitter.setModule(import.meta.url, AddComponent);
+function loop(){
+    if(!(window as any).glitter){
+        setTimeout(()=>{
+            loop()
+        },100)
+    }else{
+        (window as any).glitter.setModule(import.meta.url, AddComponent);
+    }
+}
+loop()

@@ -8,6 +8,7 @@ export class FtClass {
             title: mainColorNum < 0 ? theme.title : glitter.share.globalValue[`theme_color.${mainColorNum}.title`],
             content: mainColorNum < 0 ? theme.content : glitter.share.globalValue[`theme_color.${mainColorNum}.content`],
             soild: mainColorNum < 0 ? theme['solid-button-bg'] : glitter.share.globalValue[`theme_color.${mainColorNum}.solid-button-bg`],
+            soild_text: mainColorNum < 0 ? theme['solid-button-text'] : glitter.share.globalValue[`theme_color.${mainColorNum}.solid-button-text`],
         };
     }
 }

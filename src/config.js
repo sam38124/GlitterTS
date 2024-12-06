@@ -8,6 +8,10 @@ const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const process_1 = __importDefault(require("process"));
 class ConfigSetting {
+    static get is_local() {
+        return process_1.default.env.is_local === 'true';
+    }
+    ;
     static setConfig(envPath) {
         ConfigSetting.config_path = envPath;
         dotenv_1.default.config({
@@ -16,7 +20,6 @@ class ConfigSetting {
     }
 }
 exports.ConfigSetting = ConfigSetting;
-ConfigSetting.is_local = false;
 ConfigSetting.runSchedule = false;
 ConfigSetting.config_path = '';
 exports.saasConfig = {

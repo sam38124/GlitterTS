@@ -1,6 +1,7 @@
 import {Animation, AnimationConfig} from './Animation.js';
 import {Glitter} from '../Glitter.js';
 import {GVC} from "../GVController.js";
+import {Language} from "../../glitter-base/global/language.js";
 
 export class DefaultSetting {
     public pageBgColor: string;
@@ -180,8 +181,7 @@ export class PageManager {
             {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
-                    const original = new URL(glitter.root_path + tag + window.location.search)
-
+                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix()+tag + window.location.search)
                     function switchFunction() {
                         glitter.page = tag
                         try {
@@ -316,14 +316,15 @@ export class PageManager {
 
     public static setHistory(tag: string, type: string) {
         const glitter = Glitter.glitter;
-        const search = glitter.root_path + tag + glitter.window.location.search;
+        const search = glitter.root_path + Language.getLanguageLinkPrefix()+tag + glitter.window.location.search;
         try {
 
             if (['home', 'page'].find((dd) => {
                 return dd === type
             })) {
                 window.history.pushState({}, glitter.document.title, search);
-                glitter.pageConfig[glitter.pageConfig.length - 1].search = search
+                glitter.pageConfig[glitter.pageConfig.length - 1].search = search;
+
             }
         } catch (e) {
         }

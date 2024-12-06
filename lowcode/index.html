@@ -357,13 +357,14 @@
                 tag = cf.tag
                 appName = cf.appName;
             }
-            window.glitterInitialHelper.setQueue(`getPageData-${appName}-${tag}`, (callback) => {
-                const myHeaders = new Headers();
+            let array_que=[appName,tag];
+            window.glitterInitialHelper.setQueue(`getPageData-${array_que.join('-')}`, (callback) => {
                 const requestOptions = {
                     method: 'GET',
-                    headers: myHeaders
+                    headers: {
+                        language:window.language
+                    }
                 };
-
                 function execute() {
                     fetch(window.glitterBackend + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent((typeof cf === 'object') ? cf.tag : tag)}&preload=true`, requestOptions)
                         .then(response => response.json())
@@ -375,8 +376,6 @@
                                     })
                                 }
                             }
-
-
                             Object.keys(response.preload_data || {}).map((dd) => {
                                 if (dd === 'eval_code_hash') {
                                     response.preload_data.eval_code_hash = response.preload_data.eval_code_hash || {};
@@ -403,7 +402,6 @@
                                 response: response, result: true
                             })
                         }).catch(error => {
-                        console.log(error)
                         setTimeout(() => {
                             execute()
                         }, 100)

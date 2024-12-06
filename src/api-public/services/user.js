@@ -1702,11 +1702,23 @@ class User {
                         return await this.getConfigV2(config);
                 }
             }
+            if ((data[0] && data[0].value)) {
+                this.checkLeakData(config.key, data[0].value);
+            }
             return (data[0] && data[0].value) || {};
         }
         catch (e) {
             console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
+        }
+    }
+    checkLeakData(key, value) {
+        var _a;
+        if (key === 'store-information') {
+            value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
+                def: 'zh-TW',
+                support: ['zh-TW']
+            };
         }
     }
     async checkEmailExists(email) {

@@ -270,7 +270,10 @@ export class ProductList {
                 const page = parseInt(`${vm.pageIndex}`, 10) - 1;
                 const limit = vm.limit;
                 const collection = extractCategoryTitleFromUrl(location.href);
-                const titleMatch = '';
+                if (collection) {
+                    gvc.glitter.setUrlParameter('search', undefined);
+                }
+                const titleMatch = gvc.glitter.getUrlParameter('search');
                 const maxPrice = '';
                 const minPrice = '';
                 const orderBy = orderByParam !== null && orderByParam !== void 0 ? orderByParam : '';
@@ -327,7 +330,17 @@ export class ProductList {
                                 gvc.glitter.closeDrawer();
                             })}"
                                         >
-                                            ${gvc.glitter.getUrlParameter('ai-search') ? `AI 選品` : `所有商品`}
+                                            ${(() => {
+                                if (gvc.glitter.getUrlParameter('ai-search')) {
+                                    return `AI 選品`;
+                                }
+                                else if (gvc.glitter.getUrlParameter('search')) {
+                                    return `搜尋 : ${gvc.glitter.getUrlParameter('search')}`;
+                                }
+                                else {
+                                    return `所有商品`;
+                                }
+                            })()}
                                         </div>
                                     </li>
                                     ${cols
@@ -389,26 +402,18 @@ export class ProductList {
                     },
                     onCreate: () => {
                         if (loading) {
-                            ApiShop.getProduct({
-                                page: 0,
-                                limit: 999999,
-                            }).then((d) => {
-                                if (d.result) {
-                                    const products = d.response.data;
-                                    ApiShop.getCollection().then((data) => {
-                                        if (data.result && data.response.value.length > 0) {
-                                            setAdTag(data.response.value);
-                                            vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
-                                            vm.collections = updateCollections({
-                                                products,
-                                                collections: data.response.value,
-                                            });
-                                            updatePageTitle();
-                                        }
-                                        loading = false;
-                                        gvc.notifyDataChange(id);
+                            ApiShop.getCollection().then((data) => {
+                                if (data.result && data.response.value.length > 0) {
+                                    setAdTag(data.response.value);
+                                    vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
+                                    vm.collections = updateCollections({
+                                        products: [],
+                                        collections: data.response.value,
                                     });
+                                    updatePageTitle();
                                 }
+                                loading = false;
+                                gvc.notifyDataChange(id);
                             });
                         }
                     },
@@ -416,7 +421,17 @@ export class ProductList {
             })());
         }
         function updatePageTitle() {
-            const all_text = gvc.glitter.getUrlParameter('ai-search') ? `AI 選品` : `所有商品`;
+            const all_text = (() => {
+                if (gvc.glitter.getUrlParameter('ai-search')) {
+                    return `AI 選品`;
+                }
+                else if (gvc.glitter.getUrlParameter('search')) {
+                    return `搜尋 : ${gvc.glitter.getUrlParameter('search')}`;
+                }
+                else {
+                    return `所有商品`;
+                }
+            })();
             if (!vm.collections || vm.collections.length === 0) {
                 vm.title = all_text;
             }

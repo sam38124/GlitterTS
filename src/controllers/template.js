@@ -19,6 +19,7 @@ router.post('/', async (req, resp) => {
 });
 router.put('/', async (req, resp) => {
     try {
+        req.body.language = req.headers['language'];
         return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).updatePage(req.body))) });
     }
     catch (err) {
@@ -27,6 +28,7 @@ router.put('/', async (req, resp) => {
 });
 router.delete('/', async (req, resp) => {
     try {
+        req.body.language = req.headers['language'];
         return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).deletePage(req.body))) });
     }
     catch (err) {
@@ -35,8 +37,11 @@ router.delete('/', async (req, resp) => {
 });
 router.get('/', async (req, resp) => {
     try {
+        let language = req.headers['language'];
+        req.query.language = language;
         const result = (await (new template_1.Template(req.body.token).getPage(req.query)));
         let redirect = '';
+        console.log(`language===>`, language);
         if (result.length === 0) {
             try {
                 const config = (await database_1.default.execute(`SELECT \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
@@ -62,7 +67,7 @@ router.get('/', async (req, resp) => {
         }
         let preload_data = {};
         if (req.query.preload) {
-            preload_data = await app_js_1.App.preloadPageData(req.query.appName, req.query.tag);
+            preload_data = await app_js_1.App.preloadPageData(req.query.appName, req.query.tag, language);
         }
         return response_1.default.succ(resp, {
             result: result,

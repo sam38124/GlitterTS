@@ -1,5 +1,6 @@
 import { Glitter } from '../Glitter.js';
 import { GVC } from "../GVController.js";
+import { Language } from "../../glitter-base/global/language.js";
 export class DefaultSetting {
     constructor(obj) {
         this.pageLoading = () => {
@@ -121,7 +122,7 @@ export class PageManager {
             {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
-                    const original = new URL(glitter.root_path + tag + window.location.search);
+                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix() + tag + window.location.search);
                     function switchFunction() {
                         var _a, _b, _c;
                         glitter.page = tag;
@@ -235,7 +236,7 @@ export class PageManager {
     }
     static setHistory(tag, type) {
         const glitter = Glitter.glitter;
-        const search = glitter.root_path + tag + glitter.window.location.search;
+        const search = glitter.root_path + Language.getLanguageLinkPrefix() + tag + glitter.window.location.search;
         try {
             if (['home', 'page'].find((dd) => {
                 return dd === type;

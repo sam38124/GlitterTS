@@ -14,9 +14,18 @@ import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
+import { Language } from "./glitter-base/global/language.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        if (window.language !== Language.getLanguage()) {
+            const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${window.glitter_page}`);
+            if (glitter.getUrlParameter('appName')) {
+                url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+            }
+            location.href = url.href;
+            return;
+        }
         glitter.share.reload = (page, app_name) => {
             window.appName = app_name || window.appName;
             window.glitter_page = page;
@@ -70,7 +79,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_14.4.5';
+        glitter.share.editerVersion = 'V_14.5.2';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],

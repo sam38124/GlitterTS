@@ -5987,4 +5987,14 @@ AddComponent.refresh = () => {
 };
 AddComponent.closeEvent = () => {
 };
-window.glitter.setModule(import.meta.url, AddComponent);
+function loop() {
+    if (!window.glitter) {
+        setTimeout(() => {
+            loop();
+        }, 100);
+    }
+    else {
+        window.glitter.setModule(import.meta.url, AddComponent);
+    }
+}
+loop();

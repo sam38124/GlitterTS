@@ -3209,7 +3209,12 @@ function getBadgeClass(){
                                             <button class="${gClass('button-bgr')}" onclick="${gvc.event(async () => {
                                                 if (!await this.checkFormData(vm.cartData, widget)) {
                                                     return
-                                                }
+                                                };
+                                                if (vm.cartData.user_info_same) {
+                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name
+                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone
+                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email
+                                                };
                                                 ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
                                                     if (gvc.glitter.getUrlParameter(dd)) {
                                                         vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));

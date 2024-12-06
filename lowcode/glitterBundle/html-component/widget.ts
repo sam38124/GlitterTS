@@ -12,6 +12,7 @@ import {RenderValue} from "./render-value.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 
 
+
 const container_style_list = ['grid', 'vertical', 'proportion']
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
@@ -251,6 +252,52 @@ export const widgetComponent = {
                                                                                     }
                                                                                 })()};height: 100%;"
                                                                                 onmousedown="${gvc.event(() => {
+                                                                        glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                                                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            AddComponent.toggle(true);
+                                                                            AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                                (window.parent as any).glitter.share.addComponent(cf);
+                                                                                RenderValue.custom_style.value(gvc, widget)
+                                                                                AddComponent.toggle(false);
+                                                                            };
+                                                                            AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                                                                (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                                (window.parent as any).glitter.share.addComponent({
+                                                                                    id: gvc.glitter.getUUID(),
+                                                                                    js: './official_view_component/official.js',
+                                                                                    css: {
+                                                                                        class: {},
+                                                                                        style: {},
+                                                                                    },
+                                                                                    data: {
+                                                                                        refer_app: tdata.copyApp,
+                                                                                        tag: tdata.copy,
+                                                                                        list: [],
+                                                                                        carryData: {},
+                                                                                        _style_refer_global: {
+                                                                                            index: `0`,
+                                                                                        },
+                                                                                    },
+                                                                                    type: 'component',
+                                                                                    class: 'w-100',
+                                                                                    index: 0,
+                                                                                    label: tdata.title,
+                                                                                    style: '',
+                                                                                    bundle: {},
+                                                                                    global: [],
+                                                                                    toggle: false,
+                                                                                    stylist: [],
+                                                                                    dataType: 'static',
+                                                                                    style_from: 'code',
+                                                                                    classDataType: 'static',
+                                                                                    preloadEvenet: {},
+                                                                                    share: {},
+                                                                                });
+                                                                                RenderValue.custom_style.value(gvc, widget)
+                                                                                AddComponent.toggle(false);
+                                                                            };  
+                                                                        })
                                                                                 })}"
                                                                         >
                                                                             <i class="fa-regular fa-circle-plus text-black"

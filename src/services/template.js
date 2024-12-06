@@ -54,6 +54,41 @@ class Template {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
+        const page_db = (() => {
+            switch (config.language) {
+                case 'zh-TW':
+                    return 'page_config';
+                case 'en-US':
+                    return 'page_config_en';
+                case 'zh-CN':
+                    return 'page_config_rcn';
+                default:
+                    return 'page_config';
+            }
+        })();
+        async function checkExits() {
+            const where_ = (() => {
+                let sql = '';
+                if (config.id) {
+                    sql += ` and \`id\` = ${config.id} `;
+                }
+                else {
+                    sql += ` and \`tag\` = ${database_1.default.escape(config.tag)}`;
+                }
+                sql += ` and appName = ${database_1.default.escape(config.appName)}`;
+                return sql;
+            })();
+            let sql = `
+                select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db} where 1=1 ${where_}
+            `;
+            const count = await database_1.default.query(sql, []);
+            if (count[0]['count(1)'] === 0) {
+                await database_1.default.query(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
+`, []);
+            }
+        }
+        await checkExits();
         try {
             const params = {};
             config.appName && (params['appName'] = config.appName);
@@ -67,7 +102,7 @@ class Template {
             config.favorite && (params['favorite'] = config.favorite);
             config.updated_time = new Date();
             let sql = `
-                UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
                 SET ?
                 WHERE 1 = 1
             `;
@@ -90,20 +125,20 @@ class Template {
             throw exception_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            const params = {};
-            let sql = config.id
-                ? `
+            for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
+                let sql = config.id
+                    ? `
                 delete
-                from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
                 WHERE appName = ${database_1.default.escape(config.appName)}
                   and id = ${database_1.default.escape(config.id)}`
-                : `
+                    : `
                 delete
-                from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
                 WHERE appName = ${database_1.default.escape(config.appName)}
                   and tag = ${database_1.default.escape(config.tag)}`;
-            console.log(sql);
-            await database_1.default.execute(sql, []);
+                await database_1.default.execute(sql, []);
+            }
             return true;
         }
         catch (e) {
@@ -204,8 +239,23 @@ class Template {
             config.tag = await Template.getRealPage(config.tag, config.appName);
         }
         try {
+            const page_db = (() => {
+                switch (config.language) {
+                    case 'zh-TW':
+                        return 'page_config';
+                    case 'en-US':
+                        return 'page_config_en';
+                    case 'zh-CN':
+                        return 'page_config_rcn';
+                    default:
+                        return 'page_config';
+                }
+            })();
+            if (config.tag === 'index') {
+                console.log(`page_db==>`, page_db);
+            }
             let sql = `select ${config.tag || config.id ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
-                       from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                       from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
                        where ${(() => {
                 let query = [`1 = 1`];
                 config.user_id && query.push(`userID=${config.user_id}`);
@@ -244,7 +294,14 @@ class Template {
                     sql += ` and \`group\` = 'glitter-article' `;
                 }
             }
-            return await database_1.default.query(sql, []);
+            const page_data = await database_1.default.query(sql, []);
+            if (page_db !== 'page_config' && page_data.length === 0) {
+                config.language = 'zh-TW';
+                return await this.getPage(config);
+            }
+            else {
+                return page_data;
+            }
         }
         catch (e) {
             throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);

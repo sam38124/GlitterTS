@@ -415,7 +415,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             else {
                                 return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                     let result = true;
-                                    if (glitter.getUrlParameter('page').startsWith('/pages') || glitter.getUrlParameter('page').startsWith('/hidden') || glitter.getUrlParameter('page').startsWith('/shop')) {
+                                    if (glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('hidden/') || glitter.getUrlParameter('page').startsWith('shop/')) {
                                         Article.get({
                                             page: 0,
                                             limit: 1,

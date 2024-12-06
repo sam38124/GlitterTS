@@ -70,7 +70,7 @@ const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language');
     res.status(200).send();
 });
 exports.app.use((0, express_session_1.default)({
@@ -196,6 +196,52 @@ async function createAPP(dd) {
                     }
                     req.headers['g-app'] = appName;
                     const start = new Date().getTime();
+                    console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
+                    let customCode = await new user_js_1.User(appName).getConfigV2({
+                        key: 'ga4_config',
+                        user_id: 'manager',
+                    });
+                    let FBCode = await new user_js_1.User(appName).getConfigV2({
+                        key: 'login_fb_setting',
+                        user_id: 'manager',
+                    });
+                    let store_info = await new user_js_1.User(appName).getConfigV2({
+                        key: 'store-information',
+                        user_id: 'manager',
+                    });
+                    console.log(`req.query.page.prefix===>`, req.query.page);
+                    const language = (() => {
+                        function checkIncludes(lan) {
+                            return store_info.language_setting.support.includes(lan);
+                        }
+                        function checkEqual(lan) {
+                            return (`${req.query.page}`.startsWith(`${lan}/`)) || (req.query.page === lan);
+                        }
+                        function replace(lan) {
+                            if (req.query.page === lan) {
+                                req.query.page = '';
+                            }
+                            else {
+                                req.query.page = `${req.query.page}`.replace(lan + '/', '');
+                            }
+                        }
+                        if (checkEqual('en') && checkIncludes("en-US")) {
+                            replace('en');
+                            return `en-US`;
+                        }
+                        else if (checkEqual('cn') && checkIncludes("zh-CN")) {
+                            replace('cn');
+                            return `zh-CN`;
+                        }
+                        else if (checkEqual('tw') && checkIncludes("zh-TW")) {
+                            replace('tw');
+                            return `zh-TW`;
+                        }
+                        else {
+                            return store_info.language_setting.def;
+                        }
+                    })();
+                    console.log(`req.query.page===>`, req.query.page);
                     monitor_js_1.Monitor.insertHistory({
                         req_type: 'file',
                         req: req,
@@ -218,16 +264,6 @@ async function createAPP(dd) {
                             return await seo_js_1.Seo.getPageInfo(appName, 'index');
                         }
                     })();
-                    console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
-                    let customCode = await new user_js_1.User(appName).getConfigV2({
-                        key: 'ga4_config',
-                        user_id: 'manager',
-                    });
-                    let FBCode = await new user_js_1.User(appName).getConfigV2({
-                        key: 'login_fb_setting',
-                        user_id: 'manager',
-                    });
-                    console.log(`customCode==>`, (new Date().getTime() - start) / 1000);
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -276,7 +312,7 @@ async function createAPP(dd) {
                         else if (d.type !== 'custom') {
                             data = home_page_data;
                         }
-                        const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
+                        const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page, language);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
                         data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
                         const seo_detail = await getSeoDetail(appName, req);
@@ -286,6 +322,9 @@ async function createAPP(dd) {
                             });
                         }
                         let link_prefix = req.originalUrl.split('/')[1];
+                        if (link_prefix.includes('?')) {
+                            link_prefix = link_prefix.substring(0, link_prefix.indexOf('?'));
+                        }
                         if (config_1.ConfigSetting.is_local) {
                             if (link_prefix !== 'shopnex' && link_prefix !== 'codenex_v2') {
                                 link_prefix = '';
@@ -303,6 +342,7 @@ async function createAPP(dd) {
                         }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
+<<<<<<< HEAD
                             const page = (await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
                                     `, [req.query.page.split('/')[1]]))[0].content;
                             if (page.status) {
@@ -316,12 +356,22 @@ async function createAPP(dd) {
                                         location.href = '/';
                                     `;
                             }
+=======
+                            const page = (await database_2.default.query(`SELECT *
+                                         FROM \`${appName}\`.t_recommend_links
+                                         WHERE content ->>'$.link' = ?;
+                                        `, [req.query.page.split('/')[1]]))[0].content;
+                            distribution_code = `
+                                localStorage.setItem('distributionCode','${page.code}');
+                                location.href='${page.redirect}${redURL.search}';
+                            `;
+>>>>>>> 0eb807d6 ([update] : glitter version.)
                         }
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
                             const cols = (_k = (await database_2.default.query(`SELECT *
-                                         FROM \`${appName}\`.public_config
-                                         WHERE \`key\` = 'collection';
-                                        `, []))[0]) !== null && _k !== void 0 ? _k : {};
+                                             FROM \`${appName}\`.public_config
+                                             WHERE \`key\` = 'collection';
+                                            `, []))[0]) !== null && _k !== void 0 ? _k : {};
                             const colJson = extractCols(cols);
                             const urlCode = decodeURI(req.query.page.split('/')[1]);
                             const colData = colJson.find((item) => item.code === urlCode);
@@ -342,34 +392,35 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                                    <link rel="canonical" href="/index" />
-                                                    <meta name="keywords" content="SHOPNEX,電商平台" />
-                                                    <link
+                                                <link rel="canonical" href="/index"/>
+                                                <meta name="keywords" content="SHOPNEX,電商平台"/>
+                                                <link
                                                         id="appImage"
                                                         rel="shortcut icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/x-icon"
-                                                    />
-                                                    <link
+                                                />
+                                                <link
                                                         rel="icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/png"
                                                         sizes="128x128"
-                                                    />
-                                                    <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-                                                    <meta property="og:title" content="SHOPNEX後台系統" />
-                                                    <meta
+                                                />
+                                                <meta property="og:image"
+                                                      content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
+                                                <meta property="og:title" content="SHOPNEX後台系統"/>
+                                                <meta
                                                         name="description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                    />
-                                                    <meta
+                                                />
+                                                <meta
                                                         name="og:description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                    />`;
+                                                />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                                    <link
+                                                <link
                                                         rel="canonical"
                                                         href="${(() => {
                                         if (data.tag === 'index') {
@@ -379,14 +430,19 @@ async function createAPP(dd) {
                                             return `https://${brandAndMemberType.domain}/${data.tag}`;
                                         }
                                     })()}"
-                                                    />
-                                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
-                                                    <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
-                                                    <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
-                                                    <meta property="og:image" content="${d.image || home_seo.image || ''}" />
-                                                    <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}" />
-                                                    <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}" />
-                                                    <meta name="og:description" content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}" />`;
+                                                />
+                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
+                                                <link id="appImage" rel="shortcut icon"
+                                                      href="${d.logo || home_seo.logo || ''}" type="image/x-icon"/>
+                                                <link rel="icon" href="${d.logo || home_seo.logo || ''}"
+                                                      type="image/png" sizes="128x128"/>
+                                                <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
+                                                <meta property="og:title"
+                                                      content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}"/>
+                                                <meta name="description"
+                                                      content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}"/>
+                                                <meta name="og:description"
+                                                      content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}"/>`;
                                 }
                             })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -400,13 +456,14 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html ` <link
-                                                                    type="text/css"
-                                                                    rel="stylesheet"
-                                                                    href="${dd.data.attr.find((dd) => {
+                                                return html `
+                                                                        <link
+                                                                                type="text/css"
+                                                                                rel="stylesheet"
+                                                                                href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                                />`;
+                                                                        />`;
                                             }
                                         }
                                         catch (e) {
@@ -419,21 +476,24 @@ async function createAPP(dd) {
                                     </head>
                                 `;
                         })()}
-                        <script>
-                            ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''};
-                            window.login_config= ${JSON.stringify(login_config)};
-                            window.appName = '${appName}';
-                            window.glitterBase = '${brandAndMemberType.brand}';
-                            window.memberType = '${brandAndMemberType.memberType}';
-                            window.glitterBackend = '${config_1.config.domain}';
-                            window.preloadData = ${JSON.stringify(preload)
+                            <script>
+                                ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''};
+                                window.login_config = ${JSON.stringify(login_config)};
+                                window.appName = '${appName}';
+                                window.glitterBase = '${brandAndMemberType.brand}';
+                                window.memberType = '${brandAndMemberType.memberType}';
+                                window.glitterBackend = '${config_1.config.domain}';
+                                window.preloadData = ${JSON.stringify(preload)
                             .replace(/<\/script>/g, 'sdjuescript_prepand')
                             .replace(/<script>/g, 'sdjuescript_prefix')};
-                            window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
-                            window.glitter_page = '${req.query.page}';
-                            ${distribution_code}
-                        </script>
-                        ${[
+                                window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
+                                window.glitter_page = '${req.query.page}';
+                                window.store_info = ${JSON.stringify(store_info)};
+                                window.server_execute_time = ${(new Date().getTime() - start) / 1000};
+                                window.language='${language}';
+                                ${distribution_code}
+                            </script>
+                            ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
                             { src: 'glitterBundle/module/html-generate.js', type: 'module' },
                             { src: 'glitterBundle/html-component/widget.js', type: 'module' },
@@ -441,10 +501,12 @@ async function createAPP(dd) {
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                            return html `
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                    type="${dd.type}"></script>`;
                         })
                             .join('')}
-                        ${((_m = preload.event) !== null && _m !== void 0 ? _m : [])
+                            ${((_m = preload.event) !== null && _m !== void 0 ? _m : [])
                             .filter((dd) => {
                             return dd;
                         })
@@ -453,81 +515,89 @@ async function createAPP(dd) {
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
+                            return html `
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                    type="module"></script>`;
                         })
                             .join('')}
-                        </head>
-                        ${(() => {
+                            </head>
+                            ${(() => {
                             if (req.query.type === 'editor') {
                                 return ``;
                             }
                             else {
                                 return html `
-                                    ${(customCode.ga4 || [])
+                                        ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-                                                <script>
-                                                    window.dataLayer = window.dataLayer || [];
+                                                    <script async
+                                                            src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                    <script>
+                                                        window.dataLayer = window.dataLayer || [];
 
-                                                    function gtag() {
-                                                        dataLayer.push(arguments);
-                                                    }
+                                                        function gtag() {
+                                                            dataLayer.push(arguments);
+                                                        }
 
-                                                    gtag('js', new Date());
+                                                        gtag('js', new Date());
 
-                                                    gtag('config', '${dd.code}');
-                                                </script>`;
+                                                        gtag('config', '${dd.code}');
+                                                    </script>`;
                                 })
                                     .join('')}
-                                    ${(customCode.g_tag || [])
+                                        ${(customCode.g_tag || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                <!-- Google Tag Manager -->
-                                                <script>
-                                                    (function (w, d, s, l, i) {
-                                                        w[l] = w[l] || [];
-                                                        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                                                        var f = d.getElementsByTagName(s)[0],
-                                                            j = d.createElement(s),
-                                                            dl = l != 'dataLayer' ? '&l=' + l : '';
-                                                        j.async = true;
-                                                        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                                                        f.parentNode.insertBefore(j, f);
-                                                    })(window, document, 'script', 'dataLayer', '${dd.code}');
-                                                </script>
-                                                <!-- End Google Tag Manager -->`;
+                                                    <!-- Google Tag Manager -->
+                                                    <script>
+                                                        (function (w, d, s, l, i) {
+                                                            w[l] = w[l] || [];
+                                                            w[l].push({
+                                                                'gtm.start': new Date().getTime(),
+                                                                event: 'gtm.js'
+                                                            });
+                                                            var f = d.getElementsByTagName(s)[0],
+                                                                    j = d.createElement(s),
+                                                                    dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                            j.async = true;
+                                                            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                                                            f.parentNode.insertBefore(j, f);
+                                                        })(window, document, 'script', 'dataLayer', '${dd.code}');
+                                                    </script>
+                                                    <!-- End Google Tag Manager -->`;
                                 })
                                     .join('')}
-                                    ${FBCode && FBCode.pixel
+                                        ${FBCode && FBCode.pixel
                                     ? html `<!-- Meta Pixel Code -->
-                                              <script>
-                                                  !(function (f, b, e, v, n, t, s) {
-                                                      if (f.fbq) return;
-                                                      n = f.fbq = function () {
-                                                          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                                                      };
-                                                      if (!f._fbq) f._fbq = n;
-                                                      n.push = n;
-                                                      n.loaded = !0;
-                                                      n.version = '2.0';
-                                                      n.queue = [];
-                                                      t = b.createElement(e);
-                                                      t.async = !0;
-                                                      t.src = v;
-                                                      s = b.getElementsByTagName(e)[0];
-                                                      s.parentNode.insertBefore(t, s);
-                                                  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                                                  fbq('init', '${FBCode.pixel}');
-                                                  fbq('track', 'PageView');
-                                              </script>
-                                              <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1" /></noscript>
-                                              <!-- End Meta Pixel Code -->`
+                                                <script>
+                                                    !(function (f, b, e, v, n, t, s) {
+                                                        if (f.fbq) return;
+                                                        n = f.fbq = function () {
+                                                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+                                                        };
+                                                        if (!f._fbq) f._fbq = n;
+                                                        n.push = n;
+                                                        n.loaded = !0;
+                                                        n.version = '2.0';
+                                                        n.queue = [];
+                                                        t = b.createElement(e);
+                                                        t.async = !0;
+                                                        t.src = v;
+                                                        s = b.getElementsByTagName(e)[0];
+                                                        s.parentNode.insertBefore(t, s);
+                                                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                                                    fbq('init', '${FBCode.pixel}');
+                                                    fbq('track', 'PageView');
+                                                </script>
+                                                <noscript><img height="1" width="1" style="display:none"
+                                                               src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"/>
+                                                </noscript>
+                                                <!-- End Meta Pixel Code -->`
                                     : ''}
-                                `;
+                                    `;
                             }
                         })()}
-                        `;
+                            `;
                     }
                     else {
                         console.log(`brandAndMemberType==>redirect`);
@@ -551,23 +621,23 @@ async function createAPP(dd) {
                     limit: 10000,
                 });
                 const domain = (await database_2.default.query(`select \`domain\`
-                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                         where appName = ?`, [appName]))[0]['domain'];
+                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                             where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
                 const cols = (_a = (await database_2.default.query(`SELECT *
-                             FROM \`${appName}\`.public_config
-                             WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+                                 FROM \`${appName}\`.public_config
+                                 WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
                 const products = await database_2.default.query(`SELECT *
-                     FROM \`${appName}\`.t_manager_post
-                     WHERE JSON_EXTRACT(content, '$.type') = 'product';
-                    `, []);
+                         FROM \`${appName}\`.t_manager_post
+                         WHERE JSON_EXTRACT(content, '$.type') = 'product';
+                        `, []);
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(await database_2.default.query(`select page_config, tag, updated_time
-                         from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                         where appName = ?
-                           and page_config ->>'$.seo.type'='custom'
-                        `, [appName]))
+                             from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                             where appName = ?
+                               and page_config ->>'$.seo.type'='custom'
+                            `, [appName]))
                     .map((d2) => {
                     if (d2.tag === 'index') {
                         return `<url>
@@ -640,8 +710,8 @@ async function createAPP(dd) {
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                         where appName = ?`, [appName]))[0]['domain'];
+                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                             where appName = ?`, [appName]))[0]['domain'];
                 return `<?xml version="1.0" encoding="UTF-8"?>
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                         <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
@@ -656,8 +726,8 @@ async function createAPP(dd) {
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                         where appName = ?`, [appName]))[0]['domain'];
+                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                             where appName = ?`, [appName]))[0]['domain'];
                 return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             tw_shop: async (req, resp) => {
@@ -676,12 +746,12 @@ async function createAPP(dd) {
                     appName = req.query.appName;
                 }
                 const products = await database_2.default.query(`SELECT *
-                     FROM \`${dd.appName}\`.t_manager_post
-                     WHERE JSON_EXTRACT(content, '$.type') = 'product';
-                    `, []);
+                         FROM \`${dd.appName}\`.t_manager_post
+                         WHERE JSON_EXTRACT(content, '$.type') = 'product';
+                        `, []);
                 const domain = (await database_2.default.query(`select \`domain\`
-                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                         where appName = ?`, [appName]))[0]['domain'];
+                             from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                             where appName = ?`, [appName]))[0]['domain'];
                 let printData = products
                     .map((product) => {
                     return product.content.variants
@@ -692,9 +762,9 @@ async function createAPP(dd) {
                                             <SKU>${variant.sku}</SKU>
                                             <Name>${product.content.title}</Name>
                                             <Description>${dd.appName} - ${product.content.title}</Description>
-                                            <URL> ${`https://` + domain + '/products/' + product.content.title} </URL>
+                                            <URL> ${`https://` + domain + '/products/' + product.content.title}</URL>
                                             <Price>${(_a = variant.compare_price) !== null && _a !== void 0 ? _a : variant.sale_price}</Price>
-                                            <LargeImage> ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ''} </LargeImage>
+                                            <LargeImage> ${(_b = variant.preview_image) !== null && _b !== void 0 ? _b : ''}</LargeImage>
                                             <SalePrice>${variant.sale_price}</SalePrice>
                                             <Category>${product.content.collection.join('')}</Category>
                                         </Product>

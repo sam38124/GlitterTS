@@ -29,6 +29,7 @@ import { AiMessage } from "../cms-plugin/ai-message.js";
 import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
 import { BgWidget } from "../backend-manager/bg-widget.js";
 import { Chat } from "../glitter-base/route/chat.js";
+import { Language } from "../glitter-base/global/language.js";
 const html = String.raw;
 export var ViewType;
 (function (ViewType) {
@@ -174,6 +175,14 @@ export class Editor {
                         return html `
                             <div style="background:#f1f1f1;border-radius:10px;"
                                  class="d-flex align-items-center justify-content-center p-1 ">
+                                <div
+                                        class="d-flex align-items-center justify-content-center  text-white me-1 fw-500"
+                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;background:linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
+                                        onclick="${gvc.event(() => {
+                            Editor.languageSwitch(gvc);
+                        })}">
+                                    ${Language.getLanguageText()}
+                                </div>
                                 ${[
                             ...(() => {
                                 if (Storage.select_function === 'user-editor') {
@@ -239,7 +248,8 @@ export class Editor {
                     <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top "
                             data-scroll-header
                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;` : `height:56px;`}">
-                        <div class="${(document.body.clientWidth < 800) ? `d-flex w-100 align-items-center` : `container-fluid pe-lg-4`}" style="position: relative">
+                        <div class="${(document.body.clientWidth < 800) ? `d-flex w-100 align-items-center` : `container-fluid pe-lg-4`}"
+                             style="position: relative">
                             <div
                                     class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
                                     style="${(() => {
@@ -1128,5 +1138,206 @@ color:white;
                 </div>
             `;
         };
+    }
+    static languageSwitch(gvc) {
+        const glitter = gvc.glitter;
+        const vm = {
+            language_setting: {
+                def: 'zh-TW',
+                support: ['zh-TW']
+            },
+            id: glitter.getUUID(),
+            tableId: glitter.getUUID(),
+            filterId: glitter.getUUID(),
+            type: 'list',
+            data: {
+                "ubn": "",
+                "email": "",
+                "phone": "",
+                "address": "",
+                "category": "",
+                "pos_type": "retails",
+                "ai_search": true,
+                "shop_name": "",
+                "support_pos_payment": [
+                    "cash",
+                    "creditCard",
+                    "line"
+                ]
+            },
+            SEOData: {
+                "seo": {
+                    "code": "",
+                    "type": "custom",
+                    "image": "",
+                    "logo": "",
+                    "title": "",
+                    "content": "",
+                    "keywords": ""
+                },
+                "list": [],
+                "version": "v2",
+                "formData": {},
+                "formFormat": [],
+                "resource_from": "global",
+                "globalStyleTag": [],
+                "support_editor": "true"
+            },
+            domain: {},
+            dataList: undefined,
+            query: '',
+            mainLoading: true,
+            SEOLoading: true,
+            domainLoading: true
+        };
+        const oGvc = gvc;
+        BgWidget.settingDialog({
+            gvc: gvc,
+            title: '語言切換',
+            innerHTML: (gvc) => {
+                return `<div style="position: relative;word-break: break-all;white-space: normal;">${gvc.bindView(() => {
+                    var _a;
+                    const vm = {
+                        language_setting: {
+                            def: 'zh-TW',
+                            support: ['zh-TW']
+                        },
+                        id: glitter.getUUID(),
+                        tableId: glitter.getUUID(),
+                        filterId: glitter.getUUID(),
+                        type: 'list',
+                        data: {
+                            "ubn": "",
+                            "email": "",
+                            "phone": "",
+                            "address": "",
+                            "category": "",
+                            "pos_type": "retails",
+                            "ai_search": true,
+                            "shop_name": "",
+                            "support_pos_payment": [
+                                "cash",
+                                "creditCard",
+                                "line"
+                            ]
+                        },
+                        SEOData: {
+                            "seo": {
+                                "code": "",
+                                "type": "custom",
+                                "image": "",
+                                "logo": "",
+                                "title": "",
+                                "content": "",
+                                "keywords": ""
+                            },
+                            "list": [],
+                            "version": "v2",
+                            "formData": {},
+                            "formFormat": [],
+                            "resource_from": "global",
+                            "globalStyleTag": [],
+                            "support_editor": "true"
+                        },
+                        domain: {},
+                        dataList: undefined,
+                        query: '',
+                        mainLoading: true,
+                        SEOLoading: true,
+                        domainLoading: true
+                    };
+                    ApiUser.getPublicConfig("store-information", "manager").then((r) => {
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                        vm.data = r.response.value;
+                        const data = r.response.value;
+                        vm.data = {
+                            "ubn": (_a = data.ubn) !== null && _a !== void 0 ? _a : "",
+                            "email": (_b = data.email) !== null && _b !== void 0 ? _b : "",
+                            "phone": (_c = data.phone) !== null && _c !== void 0 ? _c : "",
+                            "address": (_d = data.address) !== null && _d !== void 0 ? _d : "",
+                            "category": (_e = data.category) !== null && _e !== void 0 ? _e : "",
+                            "pos_type": (_f = data.pos_type) !== null && _f !== void 0 ? _f : "retails",
+                            "ai_search": (_g = data.ai_search) !== null && _g !== void 0 ? _g : true,
+                            "shop_name": (_h = data.shop_name) !== null && _h !== void 0 ? _h : "",
+                            "support_pos_payment": (_j = data.support_pos_payment) !== null && _j !== void 0 ? _j : [
+                                "cash",
+                                "creditCard",
+                                "line"
+                            ],
+                            language_setting: data.language_setting || {
+                                def: 'zh-TW',
+                                support: ['zh-TW']
+                            }
+                        };
+                        vm.mainLoading = false;
+                        gvc.notifyDataChange(vm.id);
+                    });
+                    const html = String.raw;
+                    const all_lan = ['en-US', 'zh-CN', 'zh-TW'];
+                    vm.data.language_setting = (_a = vm.data.language_setting) !== null && _a !== void 0 ? _a : {
+                        def: 'zh-TW',
+                        support: ['zh-TW']
+                    };
+                    function refreshLanguage() {
+                        gvc.notifyDataChange([vm.id]);
+                    }
+                    let select_language = '';
+                    return {
+                        bind: vm.id,
+                        view: () => {
+                            if (vm.mainLoading) {
+                                return BgWidget.spinner();
+                            }
+                            const sup = [
+                                {
+                                    key: 'en-US',
+                                    value: '英文'
+                                },
+                                {
+                                    key: 'zh-CN',
+                                    value: '簡體中文'
+                                },
+                                {
+                                    key: 'zh-TW',
+                                    value: '繁體中文'
+                                }
+                            ].filter((dd) => {
+                                return vm.data.language_setting.support.includes(dd.key);
+                            }).sort((dd) => {
+                                return dd.key === vm.data.language_setting.def ? -1 : 1;
+                            });
+                            return html `
+                                <div class="" style="color: #393939;font-size: 16px;">
+                                    多國語言
+                                </div>
+                                ${BgWidget.grayNote('前往後台系統->商店設定->商店訊息中，設定支援語言。')}
+                                <div class="d-flex mt-3 flex-wrap" style="gap:15px;">
+                                    ${sup.map((dd) => {
+                                return html `
+                                            <div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
+                                                 style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;"
+                                                 onclick="${gvc.event(() => {
+                                    const dialog = new ShareDialog(glitter);
+                                    Language.setLanguage(dd.key);
+                                    dialog.dataLoading({ visible: true });
+                                    location.href = `${glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=editor&appName=${window.appName}&function=user-editor`;
+                                })}">${dd.value}
+                                                <div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== Language.getLanguage() ? `d-none` : ``}"
+                                                     style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">
+                                                    已選擇
+                                                </div>
+                                            </div>
+                                        `;
+                            }).join('')}
+                                </div>`;
+                        }
+                    };
+                })}</div>`;
+            },
+            footer_html: (gvc) => {
+                return ``;
+            },
+            width: 200
+        });
     }
 }

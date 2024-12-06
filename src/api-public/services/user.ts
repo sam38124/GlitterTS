@@ -2126,6 +2126,9 @@ export class User {
                         return await this.getConfigV2(config);
                 }
             }
+            if((data[0] && data[0].value)){
+                 this.checkLeakData(config.key,data[0].value)
+            }
             return (data[0] && data[0].value) || {};
         } catch (e) {
             console.error(e);
@@ -2133,6 +2136,14 @@ export class User {
         }
     }
 
+    public  checkLeakData(key:string,value:any){
+        if(key==='store-information'){
+            value.language_setting = value.language_setting ?? {
+                def: 'zh-TW',
+                support: ['zh-TW']
+            }
+        }
+    }
     public async checkEmailExists(email: string) {
         try {
             const count = (

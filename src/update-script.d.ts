@@ -1,5 +1,6 @@
 export declare class UpdateScript {
     static run(): Promise<void>;
+    static migrateArticle(): Promise<void>;
     static footer_migrate(app_name: string): Promise<void>;
     static container_migrate(app_name: string): Promise<void>;
     static migrate_blogs_toPage(): Promise<void>;

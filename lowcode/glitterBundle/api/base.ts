@@ -1,3 +1,4 @@
+import {Language} from "../../glitter-base/global/language.js";
 
 
 export class BaseApi {
@@ -14,10 +15,10 @@ export class BaseApi {
             }
             try {
                 requestOptions.headers['mac_address']=(window as any).glitter.macAddress;
+                requestOptions.headers['language']=Language.getLanguage()
             }catch (e) {
 
             }
-
             fetch(config.url, requestOptions)
                 .then(async (response) => {
                     try {
@@ -27,9 +28,10 @@ export class BaseApi {
                         resolve({result:  response.status===200,response:''})
                     }
                 }).catch(error => {
-                    console.log(error)
+                console.log(`fetch-error`,error)
                 resolve({result: false,response:error})
             });
+
         })
     }
 }

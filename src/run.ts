@@ -29,7 +29,6 @@ export function isDanielEnv() {
     return fs.existsSync(path.resolve(danielPath));
 }
 
-ConfigSetting.is_local = true;
 initial(4000).then(async () => {
     // ReleaseIos.release()
     // createEC2Instance('')

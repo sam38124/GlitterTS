@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 import process from "process";
 
 export class ConfigSetting {
-    public static is_local = false;
+    public static get is_local ():boolean{
+        return process.env.is_local==='true'
+    } ;
     public static runSchedule = false;
     public static config_path = '';
 

@@ -7,8 +7,306 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        for (const b of await database_1.default.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])) {
-            await this.footer_migrate(b.appName);
+        await this.migrateArticle();
+    }
+    static async migrateArticle() {
+        let pass = 0;
+        for (const b of (await database_1.default.query(`SELECT *
+                                        FROM glitter.page_config
+                                         where tag = 'article';`, []))) {
+            pass++;
+            await database_1.default.query(`update glitter.page_config set config=? where id=?`, [
+                JSON.stringify([
+                    {
+                        "id": "sas6sas6s3s0ses0-s5sbs3s3-4scs0s4-sascsas4-s3s1s0s8s4sas4s9s7s5s0se",
+                        "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+                        "css": {
+                            "class": {},
+                            "style": {}
+                        },
+                        "data": {
+                            "attr": [
+                                {
+                                    "attr": "href",
+                                    "type": "par",
+                                    "value": "https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css",
+                                    "expand": false,
+                                    "attrType": "normal",
+                                    "valueFrom": "manual"
+                                },
+                                {
+                                    "attr": "rel",
+                                    "type": "par",
+                                    "value": "stylesheet",
+                                    "expand": false,
+                                    "attrType": "normal"
+                                }
+                            ],
+                            "elem": "link",
+                            "note": "",
+                            "class": "",
+                            "inner": "",
+                            "style": "",
+                            "setting": [],
+                            "dataFrom": "static",
+                            "atrExpand": {
+                                "expand": true
+                            },
+                            "elemExpand": {
+                                "expand": true
+                            },
+                            "innerEvenet": {},
+                            "onCreateEvent": {}
+                        },
+                        "type": "widget",
+                        "index": 0,
+                        "label": "STYLE資源",
+                        "global": [],
+                        "styleList": [],
+                        "preloadEvenet": {}
+                    },
+                    {
+                        "id": "scs4s5s3s7scsbs1-s0sfsasc-4s6sfsa-sas6s9s0-s4s9s4sfs8s5sfs2s8ses2sd",
+                        "js": "$style1/official.js",
+                        "css": {
+                            "class": {},
+                            "style": {}
+                        },
+                        "data": {
+                            "attr": [],
+                            "elem": "style",
+                            "list": [],
+                            "inner": "/***請輸入設計代碼***/\n\n    .swiper {\n      width: 100%;\n      height: 100%;\n    }\n\n    .swiper-slide {\n      text-align: center;\n      font-size: 18px;\n      background: #fff;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n    }\n\n    .swiper-slide img {\n      display: block;\n      width: 100%;\n      height: 100%;\n      object-fit: cover;\n    }\n\n\n\n    .swiper {\n      width: 100%;\n      height: 300px;\n      margin-left: auto;\n      margin-right: auto;\n    }\n\n    .swiper-slide {\n      background-size: cover;\n      background-position: center;\n    }\n\n    .mySwiper2 {\n      height: 80%;\n      width: 100%;\n    }\n\n    .mySwiper {\n      height: 20%;\n      box-sizing: border-box;\n      padding: 10px 0;\n    }\n\n    .mySwiper .swiper-slide {\n      width: 25%;\n      height: 100%;\n      opacity: 0.4;\n    }\n\n    .mySwiper .swiper-slide-thumb-active {\n      opacity: 1;\n    }\n\n    .swiper-slide img {\n      display: block;\n      width: 100%;\n      height: 100%;\n      object-fit: cover;\n    }",
+                            "version": "v2",
+                            "dataFrom": "static",
+                            "atrExpand": {
+                                "expand": true
+                            },
+                            "elemExpand": {
+                                "expand": true
+                            },
+                            "innerEvenet": {}
+                        },
+                        "type": "widget",
+                        "index": 1,
+                        "label": "STYLE代碼",
+                        "global": [],
+                        "onCreateEvent": {},
+                        "preloadEvenet": {}
+                    },
+                    {
+                        "id": "s4s6s3s3s3s1sbs7",
+                        "js": "./official_view_component/official.js",
+                        "css": {
+                            "class": {},
+                            "style": {}
+                        },
+                        "data": {
+                            "tag": "c_header",
+                            "list": [],
+                            "carryData": {},
+                            "_style_refer": "global",
+                            "elem": "div",
+                            "inner": "",
+                            "attr": [],
+                            "_padding": {},
+                            "_margin": {},
+                            "_border": {},
+                            "_max_width": "",
+                            "_gap": "",
+                            "_background": "",
+                            "_other": {},
+                            "_radius": "",
+                            "_reverse": "false",
+                            "_hor_position": "center",
+                            "_background_setting": {
+                                "type": "none"
+                            }
+                        },
+                        "list": [],
+                        "type": "component",
+                        "index": 2,
+                        "label": "嵌入模塊",
+                        "global": [],
+                        "version": "v2",
+                        "preloadEvenet": {},
+                        "editor_bridge": {},
+                        "mobile": {
+                            "refer": "custom",
+                            "data": {}
+                        },
+                        "mobile_editable": [],
+                        "desktop": {
+                            "refer": "custom",
+                            "data": {}
+                        },
+                        "desktop_editable": [],
+                        "container_fonts": 0
+                    },
+                    {
+                        "id": "s4sbses1sbsfs4sc",
+                        "js": "./official_view_component/official.js",
+                        "css": {
+                            "class": {},
+                            "style": {}
+                        },
+                        "data": {
+                            "tag": "art_template",
+                            "list": [],
+                            "carryData": {},
+                            "refer_app": "shop_template_black_style",
+                            "_style_refer": "global",
+                            "elem": "div",
+                            "inner": "",
+                            "attr": [],
+                            "_padding": {},
+                            "_margin": {},
+                            "_border": {},
+                            "_max_width": "",
+                            "_gap": "",
+                            "_background": "",
+                            "_other": {},
+                            "_radius": "",
+                            "_reverse": "false",
+                            "_hor_position": "center",
+                            "_background_setting": {
+                                "type": "none"
+                            }
+                        },
+                        "list": [],
+                        "type": "component",
+                        "class": "",
+                        "index": 3,
+                        "label": "網誌模板",
+                        "style": "",
+                        "global": [],
+                        "toggle": false,
+                        "stylist": [],
+                        "version": "v2",
+                        "dataType": "static",
+                        "style_from": "code",
+                        "classDataType": "static",
+                        "preloadEvenet": {},
+                        "editor_bridge": {},
+                        "mobile": {
+                            "id": "s4sbses1sbsfs4sc",
+                            "js": "./official_view_component/official.js",
+                            "css": {
+                                "class": {},
+                                "style": {}
+                            },
+                            "data": {
+                                "refer_app": "shop_template_black_style"
+                            },
+                            "list": [],
+                            "type": "component",
+                            "class": "",
+                            "index": 3,
+                            "label": "網誌模板",
+                            "style": "",
+                            "global": [],
+                            "toggle": false,
+                            "stylist": [],
+                            "version": "v2",
+                            "dataType": "static",
+                            "style_from": "code",
+                            "classDataType": "static",
+                            "preloadEvenet": {},
+                            "refreshAllParameter": {},
+                            "refreshComponentParameter": {},
+                            "editor_bridge": {},
+                            "mobile_editable": [],
+                            "desktop_editable": [],
+                            "refer": "custom"
+                        },
+                        "mobile_editable": [],
+                        "desktop": {
+                            "id": "s4sbses1sbsfs4sc",
+                            "js": "./official_view_component/official.js",
+                            "css": {
+                                "class": {},
+                                "style": {}
+                            },
+                            "data": {
+                                "refer_app": "shop_template_black_style"
+                            },
+                            "list": [],
+                            "type": "component",
+                            "class": "",
+                            "index": 3,
+                            "label": "網誌模板",
+                            "style": "",
+                            "global": [],
+                            "toggle": false,
+                            "stylist": [],
+                            "version": "v2",
+                            "dataType": "static",
+                            "style_from": "code",
+                            "classDataType": "static",
+                            "preloadEvenet": {},
+                            "refreshAllParameter": {},
+                            "refreshComponentParameter": {},
+                            "editor_bridge": {},
+                            "mobile_editable": [],
+                            "desktop_editable": [],
+                            "refer": "custom"
+                        },
+                        "desktop_editable": [],
+                        "container_fonts": 0
+                    },
+                    {
+                        "id": "sds0s9s1s1s6sbs7-s2s4s3sd-4s1scs8-s9s0s9s6-s4s5s1s9sdsds0sbs8s3s6s1",
+                        "js": "./official_view_component/official.js",
+                        "css": {
+                            "class": {},
+                            "style": {}
+                        },
+                        "data": {
+                            "tag": "footer",
+                            "list": [],
+                            "carryData": {},
+                            "_style_refer": "global",
+                            "elem": "div",
+                            "inner": "",
+                            "attr": [],
+                            "_padding": {},
+                            "_margin": {},
+                            "_border": {},
+                            "_max_width": "",
+                            "_gap": "",
+                            "_background": "",
+                            "_other": {},
+                            "_radius": "",
+                            "_reverse": "false",
+                            "_hor_position": "center",
+                            "_background_setting": {
+                                "type": "none"
+                            }
+                        },
+                        "list": [],
+                        "type": "component",
+                        "index": 4,
+                        "label": "嵌入模塊",
+                        "global": [],
+                        "version": "v2",
+                        "preloadEvenet": {},
+                        "editor_bridge": {},
+                        "mobile": {
+                            "refer": "custom",
+                            "data": {}
+                        },
+                        "mobile_editable": [],
+                        "desktop": {
+                            "refer": "custom",
+                            "data": {}
+                        },
+                        "desktop_editable": [],
+                        "container_fonts": 0
+                    }
+                ]),
+                b.id
+            ]);
+            console.log(pass);
         }
     }
     static async footer_migrate(app_name) {

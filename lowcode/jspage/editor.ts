@@ -25,6 +25,7 @@ import {AiMessage} from "../cms-plugin/ai-message.js";
 import {BgCustomerMessage} from "../backend-manager/bg-customer-message.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
 import {Chat} from "../glitter-base/route/chat.js";
+import {Language} from "../glitter-base/global/language.js";
 
 const html = String.raw;
 
@@ -175,6 +176,14 @@ export class Editor {
                         return html`
                             <div style="background:#f1f1f1;border-radius:10px;"
                                  class="d-flex align-items-center justify-content-center p-1 ">
+                                <div
+                                        class="d-flex align-items-center justify-content-center  text-white me-1 fw-500"
+                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;background:linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
+                                        onclick="${gvc.event(() => {
+                                            Editor.languageSwitch(gvc)
+                                        })}">
+                                    ${Language.getLanguageText()}
+                                </div>
                                 ${[
                                     ...(() => {
                                         if (Storage.select_function === 'user-editor') {
@@ -240,7 +249,8 @@ export class Editor {
                     <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top "
                             data-scroll-header
                             style="${(parseInt(glitter.share.top_inset, 10)) ? `padding-top:${glitter.share.top_inset || 0}px;min-height: 56px;` : `height:56px;`}">
-                        <div class="${(document.body.clientWidth<800) ? `d-flex w-100 align-items-center`:`container-fluid pe-lg-4`}" style="position: relative">
+                        <div class="${(document.body.clientWidth < 800) ? `d-flex w-100 align-items-center` : `container-fluid pe-lg-4`}"
+                             style="position: relative">
                             <div
                                     class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
                                     style="${(() => {
@@ -278,7 +288,7 @@ color: transparent;"
 
                             ${(document.body.clientWidth > 922 || EditorConfig.backend_page() === 'backend-manger') ? `
                              <div
-                                    class="border-end d-flex align-items-center justify-content-center ${(document.body.clientWidth>800?`ms-n2`:``)} fs-3 d-lg-none"
+                                    class="border-end d-flex align-items-center justify-content-center ${(document.body.clientWidth > 800 ? `ms-n2` : ``)} fs-3 d-lg-none"
                                     style="width:56px;height: 56px;cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                 if ((EditorConfig.backend_page() === 'backend-manger')) {
@@ -339,7 +349,7 @@ ${dd.title}</a></li>`
                              <div class="border-end d-flex align-items-center justify-content-center flex-column  fs-5 fw-bold   linear_text"
                                                  style="width:56px;height: 56px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
-                                AiMessage.vm.select_bt='page_editor'
+                                AiMessage.vm.select_bt = 'page_editor'
                                 AiMessage.setDrawer(gvc, [
                                     {
                                         key: 'page_editor',
@@ -398,50 +408,50 @@ ${dd.title}</a></li>`
                                         view: () => {
                                             const size = document.body.clientWidth > 768 ? 24 : 18;
                                             return [
-                                            //     ` <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
-                                            //      style="width:56px;height: 56px;cursor: pointer;"
-                                            //      onclick="${gvc.event(() => {
-                                            //         AiMessage.setDrawer(gvc, [
-                                            //             {
-                                            //                 key: 'writer',
-                                            //                 label: '文案寫手',
-                                            //             },
-                                            //             {
-                                            //                 key: 'design',
-                                            //                 label: '圖片生成',
-                                            //             }
-                                            //         ]);
-                                            //     })}">
-                                            //    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                            //                  class="me-2" style="width:${size}px;height: ${size}px;">
-                                            //     <span class="fw-500" style="font-size: 10px;">AI</span>
-                                            // </div>`,
-                                                (document.body.clientWidth<992) ? ``: html`
+                                                //     ` <div class="border-start d-flex align-items-center justify-content-center flex-column  fs-3  pt-2"
+                                                //      style="width:56px;height: 56px;cursor: pointer;"
+                                                //      onclick="${gvc.event(() => {
+                                                //         AiMessage.setDrawer(gvc, [
+                                                //             {
+                                                //                 key: 'writer',
+                                                //                 label: '文案寫手',
+                                                //             },
+                                                //             {
+                                                //                 key: 'design',
+                                                //                 label: '圖片生成',
+                                                //             }
+                                                //         ]);
+                                                //     })}">
+                                                //    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                //                  class="me-2" style="width:${size}px;height: ${size}px;">
+                                                //     <span class="fw-500" style="font-size: 10px;">AI</span>
+                                                // </div>`,
+                                                (document.body.clientWidth < 992) ? `` : html`
                                                     <div
                                                             class="ms-auto me-2 bt_orange_lin_mb d-md-flex"
                                                             style=""
                                                             onclick="${gvc.event(() => {
-                                                                AiMessage.vm.select_bt='page_editor'
-                                                    AiMessage.setDrawer(gvc, [
-                                                        {
-                                                            key: 'page_editor',
-                                                            label: '元件編輯',
-                                                        },
-                                                        {
-                                                            key: 'writer',
-                                                            label: '文案寫手',
-                                                        },
-                                                        {
-                                                            key: 'design',
-                                                            label: '圖片生成',
-                                                        }
-                                                    ]);
-                                                })}"
+                                                                AiMessage.vm.select_bt = 'page_editor'
+                                                                AiMessage.setDrawer(gvc, [
+                                                                    {
+                                                                        key: 'page_editor',
+                                                                        label: '元件編輯',
+                                                                    },
+                                                                    {
+                                                                        key: 'writer',
+                                                                        label: '文案寫手',
+                                                                    },
+                                                                    {
+                                                                        key: 'design',
+                                                                        label: '圖片生成',
+                                                                    }
+                                                                ]);
+                                                            })}"
                                                     >
                                                         <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                              class="me-2" style="width:25px;height:25px;">AI助手
                                                     </div>`
-                                               ,
+                                                ,
                                                 // html`
                                                 //                         <div class="indexGuideBTN d-none d-sm-block"
                                                 //                              style="padding: 10px;cursor: pointer;" data-bs-toggle="tooltip"
@@ -1106,10 +1116,10 @@ color:white;
                     <aside
                             id="componentsNav"
                             class="${Storage.view_type === ViewType.fullScreen ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
-                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: ${document.body.clientWidth<1200 ? 200:284}px;`}z-index:10 !important;"
+                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: ${document.body.clientWidth < 1200 ? 200 : 284}px;`}z-index:10 !important;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0 ${Storage.select_function === 'user-editor' ? `border-end` : ``}"
-                             style="height: ${(glitter.share.top_inset ? ((parseInt(glitter.share.top_inset,10)+56)+((Storage.select_function === 'backend-manger') ? 10:5)):56)}px;">
+                             style="height: ${(glitter.share.top_inset ? ((parseInt(glitter.share.top_inset, 10) + 56) + ((Storage.select_function === 'backend-manger') ? 10 : 5)) : 56)}px;">
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
@@ -1152,7 +1162,7 @@ color:white;
                                         elem: 'main',
                                         class: `docs-container`,
                                         style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
-                           padding-left:${size < 992 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `${document.body.clientWidth<1200 ? 200:284}px;`}
+                           padding-left:${size < 992 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `${document.body.clientWidth < 1200 ? 200 : 284}px;`}
                            padding-right:0px;
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}`
                                     }
@@ -1203,5 +1213,243 @@ color:white;
                 </div>
             `;
         };
+    }
+
+    public static languageSwitch(gvc: GVC) {
+        const glitter = gvc.glitter;
+        const vm: {
+            id: string;
+            tableId: string;
+            filterId: string;
+            type: 'list' | 'add' | 'replace';
+            data: any;
+            SEOData: any,
+            domain: any,
+            dataList: any;
+            query?: string;
+            mainLoading: boolean;
+            SEOLoading: boolean;
+            domainLoading: boolean;
+            language_setting: {
+                def: string,
+                support: string[]
+            };
+        } = {
+            language_setting: {
+                def: 'zh-TW',
+                support: ['zh-TW']
+            },
+            id: glitter.getUUID(),
+            tableId: glitter.getUUID(),
+            filterId: glitter.getUUID(),
+            type: 'list',
+            data: {
+                "ubn": "",
+                "email": "",
+                "phone": "",
+                "address": "",
+                "category": "",
+                "pos_type": "retails",
+                "ai_search": true,
+                "shop_name": "",
+                "support_pos_payment": [
+                    "cash",
+                    "creditCard",
+                    "line"
+                ]
+            },
+            SEOData: {
+                "seo": {
+                    "code": "",
+                    "type": "custom",
+                    "image": "",
+                    "logo": "",
+                    "title": "",
+                    "content": "",
+                    "keywords": ""
+                },
+                "list": [],
+                "version": "v2",
+                "formData": {},
+                "formFormat": [],
+                "resource_from": "global",
+                "globalStyleTag": [],
+                "support_editor": "true"
+            },
+            domain: {},
+            dataList: undefined,
+            query: '',
+            mainLoading: true,
+            SEOLoading: true,
+            domainLoading: true
+        };
+        const oGvc = gvc;
+        BgWidget.settingDialog({
+            gvc: gvc,
+            title: '語言切換',
+            innerHTML: (gvc: GVC) => {
+                return `<div style="position: relative;word-break: break-all;white-space: normal;">${gvc.bindView(() => {
+                    const vm: {
+                        id: string;
+                        tableId: string;
+                        filterId: string;
+                        type: 'list' | 'add' | 'replace';
+                        data: any;
+                        SEOData: any,
+                        domain: any,
+                        dataList: any;
+                        query?: string;
+                        mainLoading: boolean;
+                        SEOLoading: boolean;
+                        domainLoading: boolean;
+                        language_setting: {
+                            def: string,
+                            support: string[]
+                        };
+                    } = {
+                        language_setting: {
+                            def: 'zh-TW',
+                            support: ['zh-TW']
+                        },
+                        id: glitter.getUUID(),
+                        tableId: glitter.getUUID(),
+                        filterId: glitter.getUUID(),
+                        type: 'list',
+                        data: {
+                            "ubn": "",
+                            "email": "",
+                            "phone": "",
+                            "address": "",
+                            "category": "",
+                            "pos_type": "retails",
+                            "ai_search": true,
+                            "shop_name": "",
+                            "support_pos_payment": [
+                                "cash",
+                                "creditCard",
+                                "line"
+                            ]
+                        },
+                        SEOData: {
+                            "seo": {
+                                "code": "",
+                                "type": "custom",
+                                "image": "",
+                                "logo": "",
+                                "title": "",
+                                "content": "",
+                                "keywords": ""
+                            },
+                            "list": [],
+                            "version": "v2",
+                            "formData": {},
+                            "formFormat": [],
+                            "resource_from": "global",
+                            "globalStyleTag": [],
+                            "support_editor": "true"
+                        },
+                        domain: {},
+                        dataList: undefined,
+                        query: '',
+                        mainLoading: true,
+                        SEOLoading: true,
+                        domainLoading: true
+                    };
+                    ApiUser.getPublicConfig("store-information", "manager").then((r: any) => {
+                        vm.data = r.response.value;
+                        const data = r.response.value
+                        vm.data = {
+                            "ubn": data.ubn ?? "",
+                            "email": data.email ?? "",
+                            "phone": data.phone ?? "",
+                            "address": data.address ?? "",
+                            "category": data.category ?? "",
+                            "pos_type": data.pos_type ?? "retails",
+                            "ai_search": data.ai_search ?? true,
+                            "shop_name": data.shop_name ?? "",
+                            "support_pos_payment": data.support_pos_payment ?? [
+                                "cash",
+                                "creditCard",
+                                "line"
+                            ],
+                            language_setting: data.language_setting || {
+                                def: 'zh-TW',
+                                support: ['zh-TW']
+                            }
+                        }
+                        vm.mainLoading = false;
+                        gvc.notifyDataChange(vm.id)
+                    })
+
+                    const html = String.raw
+                    const all_lan = ['en-US', 'zh-CN', 'zh-TW'];
+                    vm.data.language_setting = vm.data.language_setting ?? {
+                        def: 'zh-TW',
+                        support: ['zh-TW']
+                    }
+
+                    function refreshLanguage() {
+                        gvc.notifyDataChange([vm.id])
+                    }
+
+                    let select_language = ''
+                    return {
+                        bind: vm.id,
+                        view: () => {
+                            if (vm.mainLoading) {
+                                return BgWidget.spinner()
+                            }
+                            const sup = [
+                                {
+                                    key: 'en-US',
+                                    value: '英文'
+                                },
+                                {
+                                    key: 'zh-CN',
+                                    value: '簡體中文'
+                                },
+                                {
+                                    key: 'zh-TW',
+                                    value: '繁體中文'
+                                }
+                            ].filter((dd) => {
+                                return vm.data.language_setting.support.includes(dd.key)
+                            }).sort((dd: any) => {
+                                return dd.key === vm.data.language_setting.def ? -1 : 1
+                            });
+
+                            return html`
+                                <div class="" style="color: #393939;font-size: 16px;">
+                                    多國語言
+                                </div>
+                                ${BgWidget.grayNote('前往後台系統->商店設定->商店訊息中，設定支援語言。')}
+                                <div class="d-flex mt-3 flex-wrap" style="gap:15px;">
+                                    ${sup.map((dd: any) => {
+                                        return html`
+                                            <div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
+                                                 style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;"
+                                                 onclick="${gvc.event(() => {
+                                                     const dialog=new ShareDialog(glitter)
+                                                     Language.setLanguage(dd.key);
+                                                     dialog.dataLoading({visible:true})
+                                                     location.href=`${glitter.root_path}${Language.getLanguageLinkPrefix()}${gvc.glitter.getUrlParameter('page')}?type=editor&appName=${(window as any).appName}&function=user-editor`
+                                                 })}">${dd.value}
+                                                <div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== Language.getLanguage() ? `d-none` : ``}"
+                                                     style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">
+                                                    已選擇
+                                                </div>
+                                            </div>
+                                        `
+                                    }).join('')}
+                                </div>`
+                        }
+                    }
+                })}</div>`
+            },
+            footer_html: (gvc: GVC) => {
+                return ``
+            },
+            width: 200
+        })
     }
 }

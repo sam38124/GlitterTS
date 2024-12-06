@@ -12,6 +12,7 @@ import { Animation } from "./module/Animation.js";
 import { GVCType, PageManager, DefaultSetting } from "./module/PageManager.js";
 import { AppearType } from "./module/Enum.js";
 import { HtmlGenerate } from "./module/html-generate.js";
+import { Language } from "../glitter-base/global/language.js";
 export class Glitter {
     constructor(window) {
         var _a;
@@ -731,10 +732,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 this.page = value;
                 const url = new URL((() => {
                     if (value === 'index') {
-                        return this.root_path.substring(0, this.root_path.length - 1) + window.location.search;
+                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false) + window.location.search;
                     }
                     else {
-                        return this.root_path + value + window.location.search;
+                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.search;
                     }
                 })());
                 url.searchParams.delete('page');

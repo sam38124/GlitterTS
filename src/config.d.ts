@@ -1,5 +1,5 @@
 export declare class ConfigSetting {
-    static is_local: boolean;
+    static get is_local(): boolean;
     static runSchedule: boolean;
     static config_path: string;
     static setConfig(envPath: string): void;

@@ -18,6 +18,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
 
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
+        req.body.language=req.headers['language'] as any;
         return response.succ(resp, {result: (await (new Template(req.body.token).updatePage(req.body)))});
     } catch (err) {
         return response.fail(resp, err);
@@ -26,6 +27,7 @@ router.put('/', async (req: express.Request, resp: express.Response) => {
 
 router.delete('/', async (req: express.Request, resp: express.Response) => {
     try {
+        req.body.language=req.headers['language'] as any;
         return response.succ(resp, {result: (await (new Template(req.body.token).deletePage(req.body)))});
     } catch (err) {
         return response.fail(resp, err);
@@ -34,9 +36,11 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
-
-        const result = (await (new Template(req.body.token).getPage(req.query as any)))
-        let redirect = ''
+        let language:'zh-TW' | 'zh-CN' | 'en-US'=req.headers['language'] as any;
+        req.query.language=language;
+        const result = (await (new Template(req.body.token).getPage(req.query as any)));
+        let redirect = '';
+        console.log(`language===>`,language)
         if (result.length === 0) {
             try {
                 const config = (await db.execute(`SELECT \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
@@ -61,7 +65,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         }
         let preload_data = {};
         if (req.query.preload) {
-            preload_data = await App.preloadPageData(req.query.appName as any, req.query.tag as string)
+            preload_data = await App.preloadPageData(req.query.appName as any, req.query.tag as string,language)
         }
         return response.succ(resp, {
             result: result,

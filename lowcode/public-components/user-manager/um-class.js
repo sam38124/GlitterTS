@@ -252,7 +252,7 @@ export class UmClass {
             var _a;
             return html ` <div
                 class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width || 600}px;` : `width:  ${obj.width ? `${obj.width}px` : `90vw`}; max-width: 92.5vw;`}"
             >
                 <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
                     <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">

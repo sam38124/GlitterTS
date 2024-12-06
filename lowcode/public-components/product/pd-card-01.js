@@ -179,7 +179,6 @@ export class ProductCard01 {
                     });
                 }
                 if (Object.entries(label).length > 0) {
-                    console.log(label.data);
                     function showPosition() {
                         switch (label.data.position) {
                             case "左上":

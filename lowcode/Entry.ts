@@ -7,10 +7,19 @@ import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import {EditorElem} from "./glitterBundle/plugins/editor-elem.js";
+import {Language} from "./glitter-base/global/language.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
 
+        if((window as any).language !== Language.getLanguage()){
+            const url=new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}`)
+            if(glitter.getUrlParameter('appName')){
+                url.searchParams.set('appName',glitter.getUrlParameter('appName'))
+            }
+            location.href=url.href;
+            return
+        }
         glitter.share.reload = (page: string, app_name: string) => {
             (window as any).appName = app_name || (window as any).appName;
             (window as any).glitter_page = page;
@@ -73,7 +82,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_14.4.5';
+        glitter.share.editerVersion = 'V_14.5.2';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -87,7 +96,6 @@ export class Entry {
         };
         // 設定SAAS管理員請求API
         config.token = GlobalUser.saas_token;
-
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`

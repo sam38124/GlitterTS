@@ -432,7 +432,7 @@ class App {
             user_id: userID,
         };
     }
-    static async preloadPageData(appName, refer_page) {
+    static async preloadPageData(appName, refer_page, language) {
         const start = new Date().getTime();
         const page = await template_js_1.Template.getRealPage(refer_page, appName);
         console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
@@ -447,6 +447,7 @@ class App {
         const pageData = (await new template_js_1.Template(undefined).getPage({
             appName: appName,
             tag: page,
+            language: language
         }))[0];
         const event_list = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
         const index = `TriggerEvent.create(import.meta.url,`;

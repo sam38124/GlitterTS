@@ -26,6 +26,7 @@ export declare class Template {
         preview_image: string;
         favorite: number;
         updated_time: any;
+        language?: 'zh-TW' | 'zh-CN' | 'en-US';
     }): Promise<boolean>;
     deletePage(config: {
         appName: string;
@@ -63,6 +64,7 @@ export declare class Template {
         favorite?: string;
         preload?: boolean;
         id?: string;
+        language?: 'zh-TW' | 'zh-CN' | 'en-US';
     }): Promise<any>;
     constructor(token?: IToken);
 }

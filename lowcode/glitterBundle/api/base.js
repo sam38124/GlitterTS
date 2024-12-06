@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { Language } from "../../glitter-base/global/language.js";
 export class BaseApi {
     static create(config) {
         return new Promise((resolve, reject) => {
@@ -21,6 +22,7 @@ export class BaseApi {
             }
             try {
                 requestOptions.headers['mac_address'] = window.glitter.macAddress;
+                requestOptions.headers['language'] = Language.getLanguage();
             }
             catch (e) {
             }
@@ -34,7 +36,7 @@ export class BaseApi {
                     resolve({ result: response.status === 200, response: '' });
                 }
             })).catch(error => {
-                console.log(error);
+                console.log(`fetch-error`, error);
                 resolve({ result: false, response: error });
             });
         });

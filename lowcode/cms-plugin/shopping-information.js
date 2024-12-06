@@ -282,6 +282,131 @@ export class ShoppingInformation {
                             : ``}
                                             />
                                         </div>
+                                        ${gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            const html = String.raw;
+                            const all_lan = ['en-US', 'zh-CN', 'zh-TW'];
+                            vm.data.language_setting = window.parent.store_info.language_setting;
+                            function refreshLanguage() {
+                                gvc.notifyDataChange([id, 'SEO']);
+                            }
+                            return {
+                                bind: id,
+                                view: () => {
+                                    const sup = [
+                                        {
+                                            key: 'en-US',
+                                            value: '英文'
+                                        },
+                                        {
+                                            key: 'zh-CN',
+                                            value: '簡體中文'
+                                        },
+                                        {
+                                            key: 'zh-TW',
+                                            value: '繁體中文'
+                                        }
+                                    ].filter((dd) => {
+                                        return vm.data.language_setting.support.includes(dd.key);
+                                    }).sort((dd) => {
+                                        return dd.key === vm.data.language_setting.def ? -1 : 1;
+                                    });
+                                    return html `
+                                                        <div class="mt-2" style="color: #393939;font-size: 16px;">
+                                                            多國語言
+                                                        </div>
+                                                        <div class="d-flex mt-3" style="gap:15px;">
+                                                            ${sup.map((dd) => {
+                                        return `<div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center" style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;" onclick="${gvc.event(() => {
+                                            BgWidget.settingDialog({
+                                                gvc: gvc,
+                                                title: '語系設定',
+                                                innerHTML: (gvc) => {
+                                                    return html `
+                                                                                <div class="w-100 d-flex align-items-center justify-content-end" style="gap:10px;">
+                                                                                    ${BgWidget.danger(gvc.event(() => {
+                                                        vm.data.language_setting.support = vm.data.language_setting.support.filter((d1) => {
+                                                            return d1 != dd.key;
+                                                        });
+                                                        refreshLanguage();
+                                                        gvc.closeDialog();
+                                                    }), '刪除語系')}
+                                                                                    ${BgWidget.save(gvc.event(() => {
+                                                        vm.data.language_setting.def = dd.key;
+                                                        refreshLanguage();
+                                                        gvc.closeDialog();
+                                                    }), '設為預設語系')}
+                                                                                </div>`;
+                                                },
+                                                footer_html: (gvc) => {
+                                                    return ``;
+                                                },
+                                                width: 200
+                                            });
+                                        })}">${dd.value}
+<div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== vm.data.language_setting.def ? `d-none` : ``}" style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">預設</div>
+</div>
+`;
+                                    }).join('')}
+                                                            ${(all_lan.length !== vm.data.language_setting.support.length) ? html `
+                                                                <div class=" d-flex align-items-center justify-content-center cursor_pointer"
+                                                                     style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                     onclick="${gvc.event(() => {
+                                        let add = '';
+                                        BgWidget.settingDialog({
+                                            gvc: gvc,
+                                            title: '新增語言',
+                                            innerHTML: (gvc) => {
+                                                const can_add = [{
+                                                        key: 'en-US',
+                                                        value: '英文'
+                                                    },
+                                                    {
+                                                        key: 'zh-CN',
+                                                        value: '簡體中文'
+                                                    },
+                                                    {
+                                                        key: 'zh-TW',
+                                                        value: '繁體中文'
+                                                    }].filter((dd) => {
+                                                    return !vm.data.language_setting.support.includes(dd.key);
+                                                });
+                                                add = can_add[0].key;
+                                                return [
+                                                    BgWidget.select({
+                                                        gvc: gvc,
+                                                        default: can_add[0].key,
+                                                        options: can_add,
+                                                        callback: (text) => {
+                                                            add = text;
+                                                        },
+                                                    })
+                                                ].join('');
+                                            },
+                                            footer_html: (gvc) => {
+                                                return BgWidget.save(gvc.event(() => {
+                                                    vm.data.language_setting.support.push(add);
+                                                    gvc.closeDialog();
+                                                    setTimeout(() => {
+                                                        refreshLanguage();
+                                                    }, 100);
+                                                }), '新增');
+                                            },
+                                            width: 200
+                                        });
+                                    })}">
+                                                                    <div>新增語言</div>
+                                                                    <div>
+                                                                        <i class="fa-solid fa-plus ps-2"
+                                                                           style="font-size: 16px; height: 14px; width: 14px;"
+                                                                           aria-hidden="true"></i>
+                                                                    </div>
+                                                                </div>
+                                                            ` : ``}
+                                                        </div>`;
+                                }
+                            };
+                        })}
                                     </div>
                                     <div class="d-flex justify-content-end">
                                         ${BgWidget.save(gvc.event(() => {

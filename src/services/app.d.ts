@@ -39,7 +39,7 @@ export declare class App {
         domain: any;
         user_id: any;
     }>;
-    static preloadPageData(appName: string, refer_page: string): Promise<any>;
+    static preloadPageData(appName: string, refer_page: string, language: 'zh-TW' | 'zh-CN' | 'en-US'): Promise<any>;
     setAppConfig(config: {
         appName: string;
         data: any;

@@ -253,6 +253,52 @@ export const widgetComponent = {
                                                                     }
                                                                 })()};height: 100%;"
                                                                                 onmousedown="${gvc.event(() => {
+                                                                    glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
+                                                                        glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                        AddComponent.toggle(true);
+                                                                        AddComponent.addWidget = (gvc, cf) => {
+                                                                            window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            window.parent.glitter.share.addComponent(cf);
+                                                                            RenderValue.custom_style.value(gvc, widget);
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                        AddComponent.addEvent = (gvc, tdata) => {
+                                                                            window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            window.parent.glitter.share.addComponent({
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                js: './official_view_component/official.js',
+                                                                                css: {
+                                                                                    class: {},
+                                                                                    style: {},
+                                                                                },
+                                                                                data: {
+                                                                                    refer_app: tdata.copyApp,
+                                                                                    tag: tdata.copy,
+                                                                                    list: [],
+                                                                                    carryData: {},
+                                                                                    _style_refer_global: {
+                                                                                        index: `0`,
+                                                                                    },
+                                                                                },
+                                                                                type: 'component',
+                                                                                class: 'w-100',
+                                                                                index: 0,
+                                                                                label: tdata.title,
+                                                                                style: '',
+                                                                                bundle: {},
+                                                                                global: [],
+                                                                                toggle: false,
+                                                                                stylist: [],
+                                                                                dataType: 'static',
+                                                                                style_from: 'code',
+                                                                                classDataType: 'static',
+                                                                                preloadEvenet: {},
+                                                                                share: {},
+                                                                            });
+                                                                            RenderValue.custom_style.value(gvc, widget);
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                    });
                                                                 })}"
                                                                         >
                                                                             <i class="fa-regular fa-circle-plus text-black"
