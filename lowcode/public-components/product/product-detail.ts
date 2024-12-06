@@ -75,6 +75,7 @@ export class ProductDetail {
             content_tag: 'default' as string,
             specs: [] as string[],
             wishStatus: false,
+            swiper:undefined,
             quantity: '1',
         };
         const ids = {
@@ -94,7 +95,6 @@ export class ProductDetail {
                 <span class="mt-3">載入中</span>
             </div>`;
         }
-
         gvc.addMtScript(
             [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
             () => {},
@@ -129,7 +129,11 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                               return spec.option[0].title;
                           });
-
+                prod.variants.forEach(variant => {
+                    if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)){
+                        prod.preview_image.push(variant.preview_image);
+                    }
+                })
                 return html` <div class="container">
                     <div class="row" style="${isPhone ? 'margin: 1rem 0; width: 100%;' : 'margin: 7rem;'}">
                         <div class="col-12 col-md-6 px-0 px-md-3" id="swiper-container">
@@ -249,8 +253,8 @@ export class ProductDetail {
                                         })
                                     ).response.data;
                                     setTimeout(() => {
-                                        //@ts-ignore
-                                        var swiper = new Swiper('#' + swipID, {
+                                     
+                                        const swiper = new (window as any).Swiper('#' + swipID, {
                                             slidesPerView: glitter.ut.frSize(
                                                 {
                                                     sm: product.length < 4 ? product.length : 4,
@@ -386,7 +390,7 @@ export class ProductDetail {
                                 watchSlidesVisibility: true,
                             });
 
-                            new Swiper('.swiper', {
+                            vm.swiper =  new Swiper('.swiper', {
                                 loop: true,
                                 navigation: {
                                     nextEl: '.swiper-button-next',
@@ -396,6 +400,17 @@ export class ProductDetail {
                                     swiper: thumbs,
                                 },
                             });
+                            const prod = vm.data.content
+                            const v = prod.variants.find((variant) => {
+                                return PdClass.ObjCompare(variant.spec, vm.specs);
+                            });
+                            if (v?.preview_image){
+                                let index = prod.preview_image.findIndex((variant) => {return variant == v.preview_image})
+
+                                if (index && vm.swiper){
+                                    (vm.swiper as any).slideTo(index);
+                                }
+                            }
                             clearInterval(si);
                         }
                     }, 200);

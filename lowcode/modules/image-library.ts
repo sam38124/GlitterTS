@@ -1142,33 +1142,131 @@ export class imageLibrary {
         cancelEvent?: () => void;
     }) {
         const gvc = cf.gvc;
+        gvc.addStyle(`
+            .imageHover {
+                border: 2px solid #393939;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);
+            }
+        `)
         let selected: any = undefined
         BgWidget.imageLibraryDialog({
             gvc: gvc,
             title: cf.title,
             innerHTML: (gvc: GVC) => {
+                let editArray:boolean[] = []
+                imageArray.forEach((item) => {
+                    editArray.push(false)
+                })
                 return html`
                     <div class="w-100 d-flex flex-column">
                         <div style="font-size: 13px;">您只能選擇圖片當作子類媒體</div>
 
                         <div class="d-flex flex-wrap w-100" style="gap: 0.5rem;margin-top:1rem;">
-                            
                             ${gvc.bindView({
                                 bind: "imageArray",
                                 view: () => {
-                                    return [html`<div class="col-2 d-flex align-items-center justify-content-center d-none" style="border:.0625rem dashed rgba(204, 204, 204, 1);cursor: pointer;" onclick="${gvc.event(()=>{
-                                        
+                                    const isSafari = (() => {
+                                        const userAgent = navigator.userAgent.toLowerCase();
+                                        return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('edg');
+                                    })();
+                                    return [html`<div class="col-2 d-flex align-items-center justify-content-center " style="border-radius:10px;cursor: pointer;border:1px solid #DDD;" onclick="${gvc.event(()=>{
+                                        EditorElem.uploadFileFunction({
+                                            gvc: gvc,
+                                            callback: (text: any) => {
+                                                let allData: any ={}
+                                                const updateData = {
+                                                    title: text[0].split('_')[3],
+                                                    data: text[0],
+                                                    items: [],
+                                                    type: 'file',
+                                                    tag: [],
+                                                    id: gvc.glitter.getUUID(),
+                                                }
+                                                const dialog = new ShareDialog(gvc.glitter)
+                                                dialog.dataLoading({
+                                                    visible:true
+                                                })
+                                                function getPublicConfig(callback: () => void) {
+                                                    ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
+                                                        if (data.response.value) {
+                                                            allData = data.response.value;
+                                                            function loop(array: FileItem[]) {
+                                                                if (array.length > 0) {
+                                                                    array.map((dd) => {
+                                                                        if (dd.type === 'folder') {
+                                                                            loop(dd.items ?? []);
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+
+                                                            loop(data);
+                                                            callback();
+                                                        } else {
+                                                            callback();
+                                                        }
+                                                    });
+                                                }
+                                                getPublicConfig(()=>{
+                                                    allData.push(updateData);
+                                                    ApiUser.setPublicConfig({
+                                                        key: 'image-manager',
+                                                        value: allData,
+                                                        user_id: 'manager',
+                                                    }).then((data) => {
+                                                        imageArray.push(text[0]);
+                                                        dialog.dataLoading({
+                                                            visible:false
+                                                        })
+                                                        gvc.notifyDataChange('imageArray');
+                                                    });
+                                                })
+                                            },
+                                            return_array: true,
+                                            multiple: true,
+                                        });
                                     })}">
-                                        <div style="background-color: rgba(241, 241, 241, 1);color: rgba(0, 66, 153, 1)">新增圖片</div>
+                                        <div style="padding:6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);font-size: 16px;font-weight: 400;cursor:pointer;">新增圖片</div>
                                     </div>`,
                                         imageArray.map((image: string, index) => {
                                             return html`
-                                            <div class="col-2 position-relative" style="" onclick="${gvc.event(() => {
+                                            <div class="col-2 position-relative imageHover" style="padding: 10px 12px;position: relative;${selected==index
+                                                    ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);`
+                                                    : editArray[index]
+                                                            ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;`
+                                                            : ``}" onclick="${gvc.event(() => {
                                                 selected = index;
                                                 gvc.notifyDataChange("imageArray");
-                                            })}">
+                                            })}"
+                                                 onmouseenter="${gvc.event(() => {
+                                                     if (!editArray[index]) {
+                                                         editArray[index] = true;
+                                                         gvc.notifyDataChange('imageArray');
+                                                     }
+                                                 })}"
+                                                 onmouseleave="${gvc.event((e, event) => {
+                                                     if (isSafari) {
+                                                         const imageBoxClass = Tool.randomString(5);
+                                                         const target = event.relatedTarget as HTMLElement;
+                                                         const imageBoxClassList = [imageBoxClass];
+                                                         const targetClassList = Array.from(target.classList);
+                                                         const isOutBorder =
+                                                                 imageBoxClassList.every((cls) => targetClassList.includes(cls)) &&
+                                                                 targetClassList.every((cls) => imageBoxClassList.includes(cls));
+                                                         const isTitle = targetClassList.includes(`${imageBoxClass}-title`);
+                                                         const isInside = targetClassList.length === 0;
+                                                         const isOutOfViewContainer = target.dataset.viewContainer === 'true';
+                                                         const isUL = target.tagName === 'UL';
+
+                                                         if ((isOutBorder || isTitle || isInside) && !(isOutOfViewContainer || isUL)) {
+                                                             return;
+                                                         }
+                                                     }
+                                                     editArray[index] = false;
+                                                     gvc.notifyDataChange('imageArray');
+                                                 })}"
+                                            >
                                                 <div class="w-100"
-                                                     style="background: url('${image}') 50%/cover;padding-bottom:100%;border-radius: 10px;${selected == index ? 'border: 2px solid #393939;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);' : ''}"></div>
+                                                     style="background: url('${image}') 50%/cover;padding-bottom:100%;border-radius: 10px;"></div>
                                             </div>
                                         `
                                         })

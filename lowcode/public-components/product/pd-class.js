@@ -239,6 +239,15 @@ export class PdClass {
                     });
                     e.classList.toggle('selected-option');
                     vm.specs[index1] = opt.title;
+                    const v = prod.variants.find((variant) => {
+                        return PdClass.ObjCompare(variant.spec, vm.specs);
+                    });
+                    if (v === null || v === void 0 ? void 0 : v.preview_image) {
+                        let index = prod.preview_image.findIndex((variant) => { return variant == v.preview_image; });
+                        if (index) {
+                            vm.swiper.slideTo(index);
+                        }
+                    }
                     gvc.notifyDataChange(ids.price);
                     gvc.notifyDataChange(ids.addCartButton);
                 })}"

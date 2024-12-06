@@ -65,6 +65,7 @@ export class ProductDetail {
             content_tag: 'default',
             specs: [],
             wishStatus: false,
+            swiper: undefined,
             quantity: '1',
         };
         const ids = {
@@ -111,6 +112,11 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                             return spec.option[0].title;
                         });
+                prod.variants.forEach(variant => {
+                    if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)) {
+                        prod.preview_image.push(variant.preview_image);
+                    }
+                });
                 return html ` <div class="container">
                     <div class="row" style="${isPhone ? 'margin: 1rem 0; width: 100%;' : 'margin: 7rem;'}">
                         <div class="col-12 col-md-6 px-0 px-md-3" id="swiper-container">
@@ -217,7 +223,7 @@ export class ProductDetail {
                                     id_list: prod.relative_product.join(','),
                                 })).response.data;
                                 setTimeout(() => {
-                                    var swiper = new Swiper('#' + swipID, {
+                                    const swiper = new window.Swiper('#' + swipID, {
                                         slidesPerView: glitter.ut.frSize({
                                             sm: product.length < 4 ? product.length : 4,
                                             lg: product.length < 6 ? product.length : 6,
@@ -343,7 +349,7 @@ export class ProductDetail {
                                 spaceBetween: 8,
                                 watchSlidesVisibility: true,
                             });
-                            new Swiper('.swiper', {
+                            vm.swiper = new Swiper('.swiper', {
                                 loop: true,
                                 navigation: {
                                     nextEl: '.swiper-button-next',
@@ -353,6 +359,16 @@ export class ProductDetail {
                                     swiper: thumbs,
                                 },
                             });
+                            const prod = vm.data.content;
+                            const v = prod.variants.find((variant) => {
+                                return PdClass.ObjCompare(variant.spec, vm.specs);
+                            });
+                            if (v === null || v === void 0 ? void 0 : v.preview_image) {
+                                let index = prod.preview_image.findIndex((variant) => { return variant == v.preview_image; });
+                                if (index && vm.swiper) {
+                                    vm.swiper.slideTo(index);
+                                }
+                            }
                             clearInterval(si);
                         }
                     }, 200);

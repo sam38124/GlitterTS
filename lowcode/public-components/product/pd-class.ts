@@ -323,16 +323,12 @@ export class PdClass {
     static selectSpec(obj: {
         gvc: GVC;
         titleFontColor: string;
-        prod: {
-            id: number;
-            title: string;
-            variants: Variant[];
-            specs: Spec[];
-        };
+        prod: Content;
         vm: {
             specs: string[];
             quantity: string;
             wishStatus: boolean;
+            swiper:any
         };
         with_qty?:boolean,
         callback?:()=>void,
@@ -383,6 +379,17 @@ export class PdClass {
                                                 });
                                                 e.classList.toggle('selected-option');
                                                 vm.specs[index1] = opt.title;
+                                                const v = prod.variants.find((variant) => {
+                                                    return PdClass.ObjCompare(variant.spec, vm.specs);
+                                                });
+                                                if (v?.preview_image){
+                                                    let index = prod.preview_image.findIndex((variant) => {return variant == v.preview_image})
+                                          
+                                                    if (index){
+                                                        vm.swiper.slideTo(index);
+                                                    }
+                                                }
+                                                
                                                 gvc.notifyDataChange(ids.price);
                                                 gvc.notifyDataChange(ids.addCartButton);
                                             })}"
