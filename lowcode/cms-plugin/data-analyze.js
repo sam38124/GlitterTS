@@ -723,15 +723,16 @@ export class DataAnalyze {
 function getPastMonths(numMonths) {
     const months = [];
     const currentDate = new Date();
-    let currentYear = currentDate.getFullYear() - 2000;
-    let currentMonth = currentDate.getMonth() + 2;
+    let year = currentDate.getFullYear() - 2000;
+    let month = currentDate.getMonth() + 2;
     for (let i = 0; i < numMonths; i++) {
-        currentMonth--;
-        if (currentMonth === 0) {
-            currentYear--;
-            currentMonth = 12;
+        month--;
+        if (month === 0) {
+            year--;
+            month = 12;
         }
-        months.unshift(currentYear + '年' + (currentMonth < 10 ? '0' : '') + currentMonth + '月');
+        const formattedMonth = `${year}年${month.toString().padStart(2, '0')}月`;
+        months.unshift(formattedMonth);
     }
     return months;
 }
