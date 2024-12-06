@@ -2,6 +2,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { AiSearch } from '../ai/ai-search.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class Sy02 {
     static main(gvc, widget, subData) {
@@ -15,8 +16,8 @@ export class Sy02 {
         return html `
             <div style="height: 76px;"></div>
             <nav
-                    class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
-                    style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;height: 76px;z-index:9999;"
+                class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
+                style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;height: 76px;z-index:9999;"
             >
                 <div class="container header-place  h-100">
                     <!--LOGO顯示區塊-->
@@ -70,7 +71,7 @@ export class Sy02 {
                                                             <div class="position-relative">
                                                                 <input
                                                                     class="form-control fw-500 "
-                                                                    placeholder="找商品"
+                                                                    placeholder="${Language.text('find_product')}"
                                                                     autocomplete="off"
                                                                     value=""
                                                                     onchange="${gvc.event((e, event) => {
@@ -158,8 +159,10 @@ export class Sy02 {
                                                                                                     ${dd.title}
                                                                                                 </div>
                                                                                                 ${((_c = dd.items) !== null && _c !== void 0 ? _c : []).length
-                                                ? `<i class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
-                                                                                   style="color: ${(_d = widget.formData.theme_color['title']) !== null && _d !== void 0 ? _d : '#000'} !important;"></i>`
+                                                ? html `<i
+                                                                                                          class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
+                                                                                                          style="color: ${(_d = widget.formData.theme_color['title']) !== null && _d !== void 0 ? _d : '#000'} !important;"
+                                                                                                      ></i>`
                                                 : ``}
                                                                                             </div>
                                                                                             ${dd.open ? `<ul class="ps-3  pb-2">${loopItems((_e = dd.items) !== null && _e !== void 0 ? _e : [], false)}</ul>` : ``}
@@ -237,9 +240,12 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                                                             >${dd.title} ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
                                                         >
                                                         ${dd.items.length > 0
-                                ? `<ul class="dropdown-menu" style="background:${(_b = widget.formData.theme_color['background']) !== null && _b !== void 0 ? _b : '#000'} !important;
-    cursor: pointer;
-    z-index: 99999;">${loopItems(dd.items)}</ul>`
+                                ? html `<ul
+                                                                  class="dropdown-menu"
+                                                                  style="background:${(_b = widget.formData.theme_color['background']) !== null && _b !== void 0 ? _b : '#000'} !important; cursor: pointer; z-index: 99999;"
+                                                              >
+                                                                  ${loopItems(dd.items)}
+                                                              </ul>`
                                 : ``}
                                                     </li>`;
                         })
@@ -273,14 +279,17 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                 bind: id,
                 view: () => {
                     var _a, _b;
-                    return `<div class="d-flex align-items-center justify-content-center "
-                                     style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;width:30px;height:30px;font-size: 15px;
+                    return html `<div
+                                                class="d-flex align-items-center justify-content-center "
+                                                style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;width:30px;height:30px;font-size: 15px;
 border: 2px solid ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'} !important;
 border-radius: 50%;
 font-weight: 700 !important;
 padding-bottom: 2px;
-">AI
-                                </div>`;
+"
+                                            >
+                                                AI
+                                            </div>`;
                 },
                 divCreate: () => {
                     return {
@@ -332,7 +341,7 @@ padding-bottom: 2px;
                                                         ><input
                                                             class="ms-3 form-control"
                                                             style="height:40px;"
-                                                            placeholder="輸入商品關鍵字。"
+                                                            placeholder="${Language.text('input_product_keyword')}"
                                                             autocomplete="off"
                                                             onchange="${gvc.event((e, event) => {
                             gvc.glitter.href = `/all-product?search=${e.value}`;
@@ -405,7 +414,6 @@ padding-bottom: 2px;
                                         class="nav-item d-flex align-items-center justify-content-center ms-3 ms-sm-4"
                                         style=""
                                         onclick="${gvc.event(() => {
-            console.log(`changePage==>`);
             if (GlobalUser.token) {
                 changePage('account_userinfo', 'page', {});
             }
@@ -426,7 +434,7 @@ align-items: center;
 gap: 10px;
 border-radius: 5px;"
                                     >
-                                        ${GlobalUser.token ? `會員管理` : `會員登入`}
+                                        ${GlobalUser.token ? Language.text('member_management') : Language.text('member_login')}
                                     </div>
                                 </li>
                             </ul>

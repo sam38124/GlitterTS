@@ -12,15 +12,15 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Tool } from '../../modules/tool.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
-import { ApiDelivery } from "../../glitter-base/route/delivery.js";
-import { ApiUser } from "../../glitter-base/route/user.js";
-import { FormWidget } from "../../official_view_component/official/form.js";
-import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
-import { PdClass } from "../product/pd-class.js";
-import { Ad } from "../public/ad.js";
+import { ApiDelivery } from '../../glitter-base/route/delivery.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { FormWidget } from '../../official_view_component/official/form.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { PdClass } from '../product/pd-class.js';
+import { Ad } from '../public/ad.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
-const css = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
         const glitter = gvc.glitter;
@@ -33,932 +33,836 @@ export class CheckoutIndex {
         };
         const vm = {
             cartData: {
-                "customer_info": {},
-                "lineItems": [
+                customer_info: {},
+                lineItems: [
                     {
-                        "spec": [
-                            "黑色",
-                            "小號"
-                        ],
-                        "id": 710,
-                        "count": 5,
-                        "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
-                        "title": "溫德米爾 茶几",
-                        "sale_price": 1800,
-                        "collection": [
-                            "折扣專區",
-                            "熱門商品",
-                            "熱門商品 / 夏季限定"
-                        ],
-                        "sku": "",
-                        "shipment_obj": {
-                            "type": "volume",
-                            "value": 600
+                        spec: ['黑色', '小號'],
+                        id: 710,
+                        count: 5,
+                        preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                        title: '溫德米爾 茶几',
+                        sale_price: 1800,
+                        collection: ['折扣專區', '熱門商品', '熱門商品 / 夏季限定'],
+                        sku: '',
+                        shipment_obj: {
+                            type: 'volume',
+                            value: 600,
                         },
-                        "discount_price": 17.6,
-                        "rebate": 0
-                    }
+                        discount_price: 17.6,
+                        rebate: 0,
+                    },
                 ],
-                "total": 9212,
-                "email": "sam38124@gmail.com",
-                "user_info": {
-                    "shipment": "shop"
+                total: 9212,
+                email: 'sam38124@gmail.com',
+                user_info: {
+                    shipment: 'shop',
                 },
-                "shipment_fee": 300,
-                "rebate": 0,
-                "use_rebate": 0,
-                "orderID": "1732712547962",
-                "shipment_support": [
-                    "OKMARTC2C",
-                    "shop",
-                    "FAMIC2C",
-                    "UNIMARTC2C",
-                    "sescsbsfs4s2s4sf",
-                    "normal",
-                    "HILIFEC2C"
-                ],
-                "shipment_info": "<p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;' id=\"isPasted\">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style='box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: \"Open Sans\", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>商家會約定再次配送的時間，您將支付額外的運費。</p>",
-                "shipment_selector": [
+                shipment_fee: 300,
+                rebate: 0,
+                use_rebate: 0,
+                orderID: '1732712547962',
+                shipment_support: ['OKMARTC2C', 'shop', 'FAMIC2C', 'UNIMARTC2C', 'sescsbsfs4s2s4sf', 'normal', 'HILIFEC2C'],
+                shipment_info: '<p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\' id="isPasted">感謝您在 SHOPNEX 購買商品，商品的包裝與配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>預計花費約 3 到 6 週，煩請耐心等候！</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>若約定配送日當天未能聯繫到你，因而無法完成配送</p><p style=\'box-sizing: border-box; margin: 0px; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; color: rgb(254, 85, 65); font-family: "Open Sans", sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\'>商家會約定再次配送的時間，您將支付額外的運費。</p>',
+                shipment_selector: [
                     {
-                        "name": "一般宅配",
-                        "value": "normal"
+                        name: '一般宅配',
+                        value: 'normal',
                     },
                     {
-                        "name": "全家店到店",
-                        "value": "FAMIC2C"
+                        name: '全家店到店',
+                        value: 'FAMIC2C',
                     },
                     {
-                        "name": "萊爾富店到店",
-                        "value": "HILIFEC2C"
+                        name: '萊爾富店到店',
+                        value: 'HILIFEC2C',
                     },
                     {
-                        "name": "OK超商店到店",
-                        "value": "OKMARTC2C"
+                        name: 'OK超商店到店',
+                        value: 'OKMARTC2C',
                     },
                     {
-                        "name": "7-ELEVEN超商交貨便",
-                        "value": "UNIMARTC2C"
+                        name: '7-ELEVEN超商交貨便',
+                        value: 'UNIMARTC2C',
                     },
                     {
-                        "name": "實體門市取貨",
-                        "value": "shop"
+                        name: '實體門市取貨',
+                        value: 'shop',
                     },
                     {
-                        "form": [
+                        form: [
                             {
-                                "col": "12",
-                                "key": "1732152125723",
-                                "page": "form-select",
-                                "type": "form_plugin_v2",
-                                "group": "",
-                                "title": "物流司機",
-                                "col_sm": "12",
-                                "toggle": true,
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "moduleName": "下拉選單",
-                                "style_data": {
-                                    "input": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
+                                col: '12',
+                                key: '1732152125723',
+                                page: 'form-select',
+                                type: 'form_plugin_v2',
+                                group: '',
+                                title: '物流司機',
+                                col_sm: '12',
+                                toggle: true,
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                moduleName: '下拉選單',
+                                style_data: {
+                                    input: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "label": {
-                                        "list": [],
-                                        "class": "form-label fs-base ",
-                                        "style": "",
-                                        "version": "v2"
+                                    label: {
+                                        list: [],
+                                        class: 'form-label fs-base ',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "container": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
-                                    }
+                                    container: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
+                                    },
                                 },
-                                "form_config": {
-                                    "type": "name",
-                                    "title": "",
-                                    "option": [
+                                form_config: {
+                                    type: 'name',
+                                    title: '',
+                                    option: [
                                         {
-                                            "name": "A司機",
-                                            "index": 0,
-                                            "value": "A司機"
+                                            name: 'A司機',
+                                            index: 0,
+                                            value: 'A司機',
                                         },
                                         {
-                                            "name": "B司機",
-                                            "index": 0,
-                                            "value": "B司機"
+                                            name: 'B司機',
+                                            index: 0,
+                                            value: 'B司機',
                                         },
                                         {
-                                            "name": "C司機",
-                                            "index": 0,
-                                            "value": "C司機"
-                                        }
+                                            name: 'C司機',
+                                            index: 0,
+                                            value: 'C司機',
+                                        },
                                     ],
-                                    "input_style": {},
-                                    "title_style": {},
-                                    "place_holder": ""
-                                }
-                            }
-                        ],
-                        "name": "小榮物流",
-                        "value": "sescsbsfs4s2s4sf"
-                    }
-                ],
-                "use_wallet": 0,
-                "user_email": "sam38124@gmail.com",
-                "useRebateInfo": {
-                    "point": 0
-                },
-                "orderSource": "",
-                "code_array": [],
-                "give_away": [
-                    {
-                        "id": 737,
-                        "spec": [
-                            "淺木色",
-                            "4人座"
-                        ],
-                        "count": 1,
-                        "voucher_id": 738
-                    }
-                ],
-                "user_rebate_sum": 39807,
-                "voucherList": [
-                    {
-                        "id": 718,
-                        "for": "all",
-                        "code": "",
-                        "rule": "min_price",
-                        "type": "voucher",
-                        "title": "示範優惠券1121全館",
-                        "value": "88",
-                        "device": [
-                            "normal"
-                        ],
-                        "forKey": [],
-                        "method": "fixed",
-                        "status": 1,
-                        "target": "all",
-                        "userID": 122538856,
-                        "endDate": "2024-11-28",
-                        "endTime": "02:00",
-                        "overlay": true,
-                        "trigger": "auto",
-                        "counting": "single",
-                        "ruleValue": 100,
-                        "startDate": "2024-11-21",
-                        "startTime": "02:00",
-                        "reBackType": "discount",
-                        "targetList": [],
-                        "end_ISO_Date": "2024-11-27T18:00:00.000Z",
-                        "macroLimited": 0,
-                        "microLimited": 0,
-                        "rebateEndDay": "30",
-                        "conditionType": "order",
-                        "start_ISO_Date": "2024-11-20T18:00:00.000Z",
-                        "bind": [
-                            {
-                                "spec": [
-                                    "黑色",
-                                    "小號"
-                                ],
-                                "id": 710,
-                                "count": 5,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
-                                "title": "溫德米爾 茶几",
-                                "sale_price": 1800,
-                                "collection": [
-                                    "折扣專區",
-                                    "熱門商品",
-                                    "熱門商品 / 夏季限定"
-                                ],
-                                "sku": "",
-                                "shipment_obj": {
-                                    "type": "volume",
-                                    "value": 600
+                                    input_style: {},
+                                    title_style: {},
+                                    place_holder: '',
                                 },
-                                "discount_price": 17.6,
-                                "rebate": 0
-                            }
+                            },
                         ],
-                        "times": 1,
-                        "bind_subtotal": 9000,
-                        "discount_total": 88,
-                        "rebate_total": 0
+                        name: '小榮物流',
+                        value: 'sescsbsfs4s2s4sf',
+                    },
+                ],
+                use_wallet: 0,
+                user_email: 'sam38124@gmail.com',
+                useRebateInfo: {
+                    point: 0,
+                },
+                orderSource: '',
+                code_array: [],
+                give_away: [
+                    {
+                        id: 737,
+                        spec: ['淺木色', '4人座'],
+                        count: 1,
+                        voucher_id: 738,
+                    },
+                ],
+                user_rebate_sum: 39807,
+                voucherList: [
+                    {
+                        id: 718,
+                        for: 'all',
+                        code: '',
+                        rule: 'min_price',
+                        type: 'voucher',
+                        title: '示範優惠券1121全館',
+                        value: '88',
+                        device: ['normal'],
+                        forKey: [],
+                        method: 'fixed',
+                        status: 1,
+                        target: 'all',
+                        userID: 122538856,
+                        endDate: '2024-11-28',
+                        endTime: '02:00',
+                        overlay: true,
+                        trigger: 'auto',
+                        counting: 'single',
+                        ruleValue: 100,
+                        startDate: '2024-11-21',
+                        startTime: '02:00',
+                        reBackType: 'discount',
+                        targetList: [],
+                        end_ISO_Date: '2024-11-27T18:00:00.000Z',
+                        macroLimited: 0,
+                        microLimited: 0,
+                        rebateEndDay: '30',
+                        conditionType: 'order',
+                        start_ISO_Date: '2024-11-20T18:00:00.000Z',
+                        bind: [
+                            {
+                                spec: ['黑色', '小號'],
+                                id: 710,
+                                count: 5,
+                                preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                                title: '溫德米爾 茶几',
+                                sale_price: 1800,
+                                collection: ['折扣專區', '熱門商品', '熱門商品 / 夏季限定'],
+                                sku: '',
+                                shipment_obj: {
+                                    type: 'volume',
+                                    value: 600,
+                                },
+                                discount_price: 17.6,
+                                rebate: 0,
+                            },
+                        ],
+                        times: 1,
+                        bind_subtotal: 9000,
+                        discount_total: 88,
+                        rebate_total: 0,
                     },
                     {
-                        "id": 738,
-                        "for": "all",
-                        "code": "",
-                        "rule": "min_price",
-                        "type": "voucher",
-                        "title": "滿100贈送",
-                        "value": "0",
-                        "device": [
-                            "normal"
-                        ],
-                        "forKey": [],
-                        "method": "fixed",
-                        "status": 1,
-                        "target": "all",
-                        "userID": 122538856,
-                        "overlay": false,
-                        "trigger": "auto",
-                        "counting": "single",
-                        "ruleValue": 1000,
-                        "startDate": "2024-11-20",
-                        "startTime": "20:00",
-                        "reBackType": "giveaway",
-                        "targetList": [],
-                        "end_ISO_Date": "",
-                        "macroLimited": 0,
-                        "microLimited": 0,
-                        "rebateEndDay": "30",
-                        "conditionType": "order",
-                        "start_ISO_Date": "2024-11-20T12:00:00.000Z",
-                        "add_on_products": [
+                        id: 738,
+                        for: 'all',
+                        code: '',
+                        rule: 'min_price',
+                        type: 'voucher',
+                        title: '滿100贈送',
+                        value: '0',
+                        device: ['normal'],
+                        forKey: [],
+                        method: 'fixed',
+                        status: 1,
+                        target: 'all',
+                        userID: 122538856,
+                        overlay: false,
+                        trigger: 'auto',
+                        counting: 'single',
+                        ruleValue: 1000,
+                        startDate: '2024-11-20',
+                        startTime: '20:00',
+                        reBackType: 'giveaway',
+                        targetList: [],
+                        end_ISO_Date: '',
+                        macroLimited: 0,
+                        microLimited: 0,
+                        rebateEndDay: '30',
+                        conditionType: 'order',
+                        start_ISO_Date: '2024-11-20T12:00:00.000Z',
+                        add_on_products: [
                             {
-                                "id": 737,
-                                "seo": {
-                                    "title": "北歐風實木餐桌 - 優雅的餐桌選擇",
-                                    "domain": "北歐風實木餐桌 ( 贈品 )",
-                                    "content": "選擇北歐風實木餐桌，帶給您的家居新氣象。",
-                                    "keywords": ""
+                                id: 737,
+                                seo: {
+                                    title: '北歐風實木餐桌 - 優雅的餐桌選擇',
+                                    domain: '北歐風實木餐桌 ( 贈品 )',
+                                    content: '選擇北歐風實木餐桌，帶給您的家居新氣象。',
+                                    keywords: '',
                                 },
-                                "type": "product",
-                                "specs": [
+                                type: 'product',
+                                specs: [
                                     {
-                                        "title": "顏色",
-                                        "option": [
+                                        title: '顏色',
+                                        option: [
                                             {
-                                                "title": "淺木色",
-                                                "expand": true
+                                                title: '淺木色',
+                                                expand: true,
                                             },
                                             {
-                                                "title": "胡桃木色",
-                                                "expand": true
+                                                title: '胡桃木色',
+                                                expand: true,
                                             },
                                             {
-                                                "title": "黑色",
-                                                "expand": true
-                                            }
-                                        ]
+                                                title: '黑色',
+                                                expand: true,
+                                            },
+                                        ],
                                     },
                                     {
-                                        "title": "尺寸",
-                                        "option": [
+                                        title: '尺寸',
+                                        option: [
                                             {
-                                                "title": "4人座"
+                                                title: '4人座',
                                             },
                                             {
-                                                "title": "6人座"
+                                                title: '6人座',
                                             },
                                             {
-                                                "title": "8人座"
-                                            }
-                                        ]
-                                    }
+                                                title: '8人座',
+                                            },
+                                        ],
+                                    },
                                 ],
-                                "title": "北歐風實木餐桌 ( 贈品 )",
-                                "token": {
-                                    "exp": 1764244210,
-                                    "iat": 1732708210,
-                                    "userID": 122538856,
-                                    "account": "rdtest",
-                                    "userData": {}
+                                title: '北歐風實木餐桌 ( 贈品 )',
+                                token: {
+                                    exp: 1764244210,
+                                    iat: 1732708210,
+                                    userID: 122538856,
+                                    account: 'rdtest',
+                                    userData: {},
                                 },
-                                "status": "active",
-                                "content": "北歐風實木餐桌，提供多種顏色與尺寸，適合不同家庭。",
-                                "visible": "true",
-                                "template": "",
-                                "variants": [
+                                status: 'active',
+                                content: '北歐風實木餐桌，提供多種顏色與尺寸，適合不同家庭。',
+                                visible: 'true',
+                                template: '',
+                                variants: [
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "淺木色",
-                                            "4人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 3500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['淺木色', '4人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 3500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "淺木色",
-                                            "6人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 3000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['淺木色', '6人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 3000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "淺木色",
-                                            "8人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['淺木色', '8人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "胡桃木色",
-                                            "4人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['胡桃木色', '4人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "胡桃木色",
-                                            "6人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['胡桃木色', '6人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "胡桃木色",
-                                            "8人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['胡桃木色', '8人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "4人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '4人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "6人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '6人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "8人座"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 737,
-                                        "sale_price": 2500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
-                                    }
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '8人座'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 737,
+                                        sale_price: 2500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
+                                    },
                                 ],
-                                "hideIndex": "false",
-                                "max_price": 3500,
-                                "min_price": 2500,
-                                "collection": [],
-                                "productType": {
-                                    "product": false,
-                                    "giveaway": true,
-                                    "addProduct": false
+                                hideIndex: 'false',
+                                max_price: 3500,
+                                min_price: 2500,
+                                collection: [],
+                                productType: {
+                                    product: false,
+                                    giveaway: true,
+                                    addProduct: false,
                                 },
-                                "content_json": [],
-                                "in_wish_list": false,
-                                "content_array": [],
-                                "preview_image": [
-                                    "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E 2024-11-04 11.13.58 - A Scandinavian-style solid wood dining table in a minimalist dining room setting. The table has a simple yet elegant design, showcasing natural wood g.webp"
+                                content_json: [],
+                                in_wish_list: false,
+                                content_array: [],
+                                preview_image: [
+                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E 2024-11-04 11.13.58 - A Scandinavian-style solid wood dining table in a minimalist dining room setting. The table has a simple yet elegant design, showcasing natural wood g.webp',
                                 ],
-                                "relative_product": [],
-                                "voucher_id": 738,
-                                "selected": true,
-                                "have_select": true
+                                relative_product: [],
+                                voucher_id: 738,
+                                selected: true,
+                                have_select: true,
                             },
                             {
-                                "id": 739,
-                                "seo": {
-                                    "title": "摩根鋼架書架 - 多色多層選擇",
-                                    "domain": "摩根鋼架書架 ( 贈品 )",
-                                    "content": "摩根鋼架書架，提供黑色、白色和灰色選擇，適合家庭及辦公室使用，尺寸有3層、4層、5層，價格合理。",
-                                    "keywords": ""
+                                id: 739,
+                                seo: {
+                                    title: '摩根鋼架書架 - 多色多層選擇',
+                                    domain: '摩根鋼架書架 ( 贈品 )',
+                                    content: '摩根鋼架書架，提供黑色、白色和灰色選擇，適合家庭及辦公室使用，尺寸有3層、4層、5層，價格合理。',
+                                    keywords: '',
                                 },
-                                "type": "product",
-                                "specs": [
+                                type: 'product',
+                                specs: [
                                     {
-                                        "title": "顏色",
-                                        "option": [
+                                        title: '顏色',
+                                        option: [
                                             {
-                                                "title": "黑色",
-                                                "expand": true
+                                                title: '黑色',
+                                                expand: true,
                                             },
                                             {
-                                                "title": "白色",
-                                                "expand": true
+                                                title: '白色',
+                                                expand: true,
                                             },
                                             {
-                                                "title": "灰色",
-                                                "expand": true
-                                            }
-                                        ]
+                                                title: '灰色',
+                                                expand: true,
+                                            },
+                                        ],
                                     },
                                     {
-                                        "title": "尺寸",
-                                        "option": [
+                                        title: '尺寸',
+                                        option: [
                                             {
-                                                "title": "3層"
+                                                title: '3層',
                                             },
                                             {
-                                                "title": "4層"
+                                                title: '4層',
                                             },
                                             {
-                                                "title": "5層"
-                                            }
-                                        ]
-                                    }
+                                                title: '5層',
+                                            },
+                                        ],
+                                    },
                                 ],
-                                "title": "摩根鋼架書架 ( 贈品 )",
-                                "token": {
-                                    "exp": 1764244210,
-                                    "iat": 1732708210,
-                                    "userID": 122538856,
-                                    "account": "rdtest",
-                                    "userData": {}
+                                title: '摩根鋼架書架 ( 贈品 )',
+                                token: {
+                                    exp: 1764244210,
+                                    iat: 1732708210,
+                                    userID: 122538856,
+                                    account: 'rdtest',
+                                    userData: {},
                                 },
-                                "status": "active",
-                                "content": "摩根鋼架書架，完美擺放您的書籍與裝飾品，適合不同空間需求，提供不同顏色及層數選擇。",
-                                "visible": "true",
-                                "template": "",
-                                "variants": [
+                                status: 'active',
+                                content: '摩根鋼架書架，完美擺放您的書籍與裝飾品，適合不同空間需求，提供不同顏色及層數選擇。',
+                                visible: 'true',
+                                template: '',
+                                variants: [
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "3層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1500,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '3層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1500,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "4層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1300,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '4層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1300,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "黑色",
-                                            "5層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['黑色', '5層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "白色",
-                                            "3層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['白色', '3層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "白色",
-                                            "4層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['白色', '4層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "白色",
-                                            "5層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['白色', '5層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "灰色",
-                                            "3層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['灰色', '3層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "灰色",
-                                            "4層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['灰色', '4層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
                                     },
                                     {
-                                        "sku": "",
-                                        "cost": 0,
-                                        "spec": [
-                                            "灰色",
-                                            "5層"
-                                        ],
-                                        "type": "variants",
-                                        "stock": 0,
-                                        "profit": 0,
-                                        "weight": "1",
-                                        "barcode": "",
-                                        "v_width": 0,
-                                        "editable": false,
-                                        "v_height": 0,
-                                        "v_length": 0,
-                                        "product_id": 739,
-                                        "sale_price": 1000,
-                                        "compare_price": 0,
-                                        "preview_image": "",
-                                        "shipment_type": "weight",
-                                        "shipment_weight": 0,
-                                        "show_understocking": "false"
-                                    }
+                                        sku: '',
+                                        cost: 0,
+                                        spec: ['灰色', '5層'],
+                                        type: 'variants',
+                                        stock: 0,
+                                        profit: 0,
+                                        weight: '1',
+                                        barcode: '',
+                                        v_width: 0,
+                                        editable: false,
+                                        v_height: 0,
+                                        v_length: 0,
+                                        product_id: 739,
+                                        sale_price: 1000,
+                                        compare_price: 0,
+                                        preview_image: '',
+                                        shipment_type: 'weight',
+                                        shipment_weight: 0,
+                                        show_understocking: 'false',
+                                    },
                                 ],
-                                "hideIndex": "false",
-                                "max_price": 1500,
-                                "min_price": 1000,
-                                "collection": [],
-                                "productType": {
-                                    "product": false,
-                                    "giveaway": true,
-                                    "addProduct": false
+                                hideIndex: 'false',
+                                max_price: 1500,
+                                min_price: 1000,
+                                collection: [],
+                                productType: {
+                                    product: false,
+                                    giveaway: true,
+                                    addProduct: false,
                                 },
-                                "content_json": [],
-                                "in_wish_list": false,
-                                "content_array": [],
-                                "preview_image": [
-                                    "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0412.09.55-AmodernMorgansteel-framebookshelfwithaminimalist,industrialdesign.Thebookshelffeaturessturdy,darkmetalframeswithmultipleopenwood.webp"
+                                content_json: [],
+                                in_wish_list: false,
+                                content_array: [],
+                                preview_image: [
+                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0412.09.55-AmodernMorgansteel-framebookshelfwithaminimalist,industrialdesign.Thebookshelffeaturessturdy,darkmetalframeswithmultipleopenwood.webp',
                                 ],
-                                "relative_product": [],
-                                "voucher_id": 738,
-                                "have_select": true
-                            }
+                                relative_product: [],
+                                voucher_id: 738,
+                                have_select: true,
+                            },
                         ],
-                        "bind": [
+                        bind: [
                             {
-                                "spec": [
-                                    "黑色",
-                                    "小號"
-                                ],
-                                "id": 710,
-                                "count": 5,
-                                "preview_image": "https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp",
-                                "title": "溫德米爾 茶几",
-                                "sale_price": 1800,
-                                "collection": [
-                                    "折扣專區",
-                                    "熱門商品",
-                                    "熱門商品 / 夏季限定"
-                                ],
-                                "sku": "",
-                                "shipment_obj": {
-                                    "type": "volume",
-                                    "value": 600
+                                spec: ['黑色', '小號'],
+                                id: 710,
+                                count: 5,
+                                preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                                title: '溫德米爾 茶几',
+                                sale_price: 1800,
+                                collection: ['折扣專區', '熱門商品', '熱門商品 / 夏季限定'],
+                                sku: '',
+                                shipment_obj: {
+                                    type: 'volume',
+                                    value: 600,
                                 },
-                                "discount_price": 17.6,
-                                "rebate": 0
-                            }
+                                discount_price: 17.6,
+                                rebate: 0,
+                            },
                         ],
-                        "times": 1,
-                        "bind_subtotal": 9000,
-                        "discount_total": 0,
-                        "rebate_total": 0,
-                        "select_gif": {
-                            "spec": [
-                                "淺木色",
-                                "4人座"
-                            ],
-                            "id": 737,
-                            "count": 1,
-                            "voucher_id": 738
-                        }
-                    }
-                ],
-                "distribution_info": {
-                    "code": "saasaw",
-                    "link": "tests",
-                    "title": "小明分銷",
-                    "status": true,
-                    "endDate": "2024-11-27",
-                    "endTime": "11:00",
-                    "voucher": 0,
-                    "redirect": "/hidden/1732074471329",
-                    "relative": "all",
-                    "condition": 0,
-                    "startDate": "2024-11-20",
-                    "startTime": "11:00",
-                    "share_type": "percent",
-                    "share_value": 1,
-                    "relative_data": [],
-                    "recommend_user": {
-                        "id": 1,
-                        "name": "王建智",
-                        "email": "sam38124@gmail.com",
-                        "phone": "0978028730"
+                        times: 1,
+                        bind_subtotal: 9000,
+                        discount_total: 0,
+                        rebate_total: 0,
+                        select_gif: {
+                            spec: ['淺木色', '4人座'],
+                            id: 737,
+                            count: 1,
+                            voucher_id: 738,
+                        },
                     },
-                    "voucher_status": "no",
-                    "recommend_medium": [
-                        "other"
-                    ],
-                    "recommend_status": "new"
+                ],
+                distribution_info: {
+                    code: 'saasaw',
+                    link: 'tests',
+                    title: '小明分銷',
+                    status: true,
+                    endDate: '2024-11-27',
+                    endTime: '11:00',
+                    voucher: 0,
+                    redirect: '/hidden/1732074471329',
+                    relative: 'all',
+                    condition: 0,
+                    startDate: '2024-11-20',
+                    startTime: '11:00',
+                    share_type: 'percent',
+                    share_value: 1,
+                    relative_data: [],
+                    recommend_user: {
+                        id: 1,
+                        name: '王建智',
+                        email: 'sam38124@gmail.com',
+                        phone: '0978028730',
+                    },
+                    voucher_status: 'no',
+                    recommend_medium: ['other'],
+                    recommend_status: 'new',
                 },
-                "discount": 88,
-                "payment_setting": {
-                    "TYPE": "ecPay"
+                discount: 88,
+                payment_setting: {
+                    TYPE: 'ecPay',
                 },
-                "off_line_support": {
-                    "atm": true,
-                    "line": true,
-                    "cash_on_delivery": true
+                off_line_support: {
+                    atm: true,
+                    line: true,
+                    cash_on_delivery: true,
                 },
-                "payment_info_line_pay": {
-                    "text": "<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p><p><br><img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png\" class=\"fr-fic fr-dii\" style=\"width: 230px;\">&nbsp;<img src=\"https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png\" class=\"fr-fic fr-dii\" style=\"width: 582px;\"></p><p><br></p>"
+                payment_info_line_pay: {
+                    text: '<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p><p><br><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png" class="fr-fic fr-dii" style="width: 230px;">&nbsp;<img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png" class="fr-fic fr-dii" style="width: 582px;"></p><p><br></p>',
                 },
-                "payment_info_atm": {
-                    "text": "<p id=\"isPasted\">當日下單匯款，隔日出貨，後天到貨。</p><p>若有需要統一編號 請提早告知</p><p>------------------------------------------------------------------</p><p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p>",
-                    "bank_code": "812",
-                    "bank_name": "台新銀行",
-                    "bank_user": "陳女士",
-                    "bank_account": "888800004567"
-                }
+                payment_info_atm: {
+                    text: '<p id="isPasted">當日下單匯款，隔日出貨，後天到貨。</p><p>若有需要統一編號 請提早告知</p><p>------------------------------------------------------------------</p><p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p>',
+                    bank_code: '812',
+                    bank_name: '台新銀行',
+                    bank_user: '陳女士',
+                    bank_account: '888800004567',
+                },
             },
             rebateConfig: {
-                title: '購物金'
-            }
+                title: '購物金',
+            },
         };
-        const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         const classPrefix = Tool.randomString(6);
         PdClass.addSpecStyle(gvc);
         function spinner(obj) {
@@ -977,100 +881,14 @@ export class CheckoutIndex {
                 visible: ((_l = obj === null || obj === void 0 ? void 0 : obj.text) === null || _l === void 0 ? void 0 : _l.visible) === false ? false : true,
                 fontSize: (_o = (_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.fontSize) !== null && _o !== void 0 ? _o : 16,
             };
-            return html `
-                <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
-                     style="${container.style}">
-                    <div
-                            class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                            style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                            role="status"
-                    ></div>
-                    <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
-                          style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-                </div>`;
-        }
-        function isImageUrlValid(url) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = url;
-            });
-        }
-        function validImageBox(obj) {
-            var _a, _b;
-            const imageVM = {
-                id: obj.gvc.glitter.getUUID(),
-                loading: true,
-                url: noImageURL,
-            };
-            const wh = `
-                display: flex;
-                min-width: ${obj.width}px;
-                min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
-                max-width: ${obj.width}px;
-                max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                object-position: center;
-            `;
-            return obj.gvc.bindView({
-                bind: imageVM.id,
-                view: () => {
-                    if (imageVM.loading) {
-                        return obj.gvc.bindView(() => {
-                            var _a, _b;
-                            return {
-                                bind: obj.gvc.glitter.getUUID(),
-                                view: () => {
-                                    return spinner({
-                                        container: { class: 'mt-0' },
-                                        text: { visible: false },
-                                    });
-                                },
-                                divCreate: {
-                                    style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
-                                    class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
-                                },
-                            };
-                        });
-                    }
-                    else {
-                        return obj.gvc.bindView(() => {
-                            var _a, _b;
-                            return {
-                                bind: obj.gvc.glitter.getUUID(),
-                                view: () => {
-                                    return '';
-                                },
-                                divCreate: {
-                                    elem: 'img',
-                                    style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
-                                    class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
-                                    option: [
-                                        {
-                                            key: 'src',
-                                            value: imageVM.url,
-                                        },
-                                    ],
-                                },
-                            };
-                        });
-                    }
-                },
-                onCreate: () => {
-                    if (imageVM.loading) {
-                        isImageUrlValid(obj.image).then((isValid) => {
-                            if (isValid) {
-                                imageVM.url = obj.image;
-                            }
-                            imageVM.loading = false;
-                            obj.gvc.notifyDataChange(imageVM.id);
-                        });
-                    }
-                },
-            });
+            return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
+                <div
+                    class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                    style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                    role="status"
+                ></div>
+                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+            </div>`;
         }
         function gClass(text) {
             if (Array.isArray(text)) {
@@ -1079,19 +897,17 @@ export class CheckoutIndex {
             return `${classPrefix}-${text}`;
         }
         function addItemBadge() {
-            return html `
-                <div class="${gClass('add-item-badge')}">
-                    <div class="${gClass('add-item-text')}">加購品</div>
-                </div>`;
+            return html ` <div class="${gClass('add-item-badge')}">
+                <div class="${gClass('add-item-text')}">${Language.text('addon')}</div>
+            </div>`;
         }
         function giftBadge() {
-            return html `
-                <div class="${gClass('add-item-badge')}" style="background: #95ffe0;">
-                    <div class="${gClass('add-item-text')}">贈品</div>
-                </div>`;
+            return html ` <div class="${gClass('add-item-badge')}" style="background: #95ffe0;">
+                <div class="${gClass('add-item-text')}">${Language.text('gift')}</div>
+            </div>`;
         }
         function addStyle() {
-            gvc.addStyle(css `
+            gvc.addStyle(`
                 .${classPrefix}-container {
                     max-width: 70% !important;
                     margin: 2.5rem auto !important;
@@ -1166,7 +982,7 @@ export class CheckoutIndex {
                     border: 0;
                     border-radius: 0.375rem;
                     height: 40px;
-                    background: #DDDDDD;
+                    background: #dddddd;
                     padding: 0 24px;
                     margin: 18px 0;
                 }
@@ -1298,8 +1114,35 @@ export class CheckoutIndex {
                     font-weight: 400;
                     word-wrap: break-word;
                 }
+
+                .img-106px {
+                    width: 106px;
+                    min-width: 106px;
+                    height: 106px;
+                    border-radius: 3px;
+                    background-position: center;
+                    background-size: cover;
+                    background-repeat: no-repeat;
+                }
+
+                .banner-font-15 {
+                    font-size: 15px;
+                    font-style: normal;
+                    font-weight: 400;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    max-width: 130px;
+                    text-overflow: ellipsis;
+                }
+
+                .ntd-font-14 {
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 700;
+                    line-height: 140%;
+                }
             `);
-            gvc.addStyle(css `
+            gvc.addStyle(`
                 @media (max-width: 768px) {
                     .${classPrefix}-container {
                         max-width: 100% !important;
@@ -1322,7 +1165,8 @@ export class CheckoutIndex {
                         gap: 12px;
                         margin: 24px 0;
                     }
-                }`);
+                }
+            `);
         }
         function refreshCartData() {
             const dialog = new ShareDialog(gvc.glitter);
@@ -1400,7 +1244,7 @@ export class CheckoutIndex {
                         if (res.result && res.response.data) {
                             vm.rebateConfig = res.response.data;
                         }
-                        vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                        vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? Language.text('shopping_credit') : vm.rebateConfig.title;
                         gvc.addMtScript([
                             {
                                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
@@ -1409,8 +1253,7 @@ export class CheckoutIndex {
                             loadings.page = false;
                             dialog.dataLoading({ visible: false });
                             gvc.notifyDataChange(['js-cart-count', ids.page]);
-                        }, () => {
-                        });
+                        }, () => { });
                     }));
                 });
             }
@@ -1423,8 +1266,7 @@ export class CheckoutIndex {
                     loadings.page = false;
                     dialog.dataLoading({ visible: false });
                     gvc.notifyDataChange(ids.page);
-                }, () => {
-                });
+                }, () => { });
             }
             gvc.glitter.recreateView('.js-cart-count');
         }
@@ -1442,63 +1284,42 @@ export class CheckoutIndex {
                         if (vm.cartData.lineItems.length === 0) {
                             return html `
                                     <div class="container ${gClass(['container', 'null-container'])}">
-                                        <div class="${gClass('header')}">購物明細</div>
+                                        <div class="${gClass('header')}">${Language.text('shopping_details')}</div>
                                         <lottie-player
-                                                style="max-width: 100%; width: 300px; height: 300px;"
-                                                src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
-                                                speed="1"
-                                                loop=""
-                                                autoplay=""
-                                                background="transparent"
+                                            style="max-width: 100%; width: 300px; height: 300px;"
+                                            src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                            speed="1"
+                                            loop=""
+                                            autoplay=""
+                                            background="transparent"
                                         ></lottie-player>
-                                        <div class="mt-3 fw-bold">購物車是空的，趕快前往挑選您心儀的商品</div>
-                                    </div> `;
+                                        <div class="mt-3 fw-bold">${Language.text('empty_cart_message')}</div>
+                                    </div>
+                                `;
                         }
-                        return html `
-                                <div class="container ${gClass('container')}">
-                                    <div class="${gClass('header')}">購物明細</div>
-                                    ${gvc.bindView((() => {
+                        return html ` <div class="container ${gClass('container')}">
+                                <div class="${gClass('header')}">${Language.text('shopping_details')}</div>
+                                ${gvc.bindView((() => {
                             return {
                                 bind: ids.cart,
                                 view: () => {
                                     return html `
-                                                            <section>
-                                                                <div class="${gClass('banner-bgr')}">
-                                                                    <span class="${gClass('banner-text')}">購物車</span>
-                                                                </div>
-                                                                <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
-                                                                    <div class="${gClass('first-td')} justify-content-start">
-                                                                        商品名稱
-                                                                    </div>
-                                                                    <div class="${gClass('td')}">規格</div>
-                                                                    <div class="${gClass('td')}">單價</div>
-                                                                    <div class="${gClass('td')}">數量</div>
-                                                                    <div class="${gClass('td')}">小計</div>
-                                                                </div>
-                                                                ${gvc.bindView({
+                                                    <section>
+                                                        <div class="${gClass('banner-bgr')}">
+                                                            <span class="${gClass('banner-text')}">${Language.text('your_shopping_cart')}</span>
+                                                        </div>
+                                                        <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
+                                                            <div class="${gClass('first-td')} justify-content-start">${Language.text('product_name')}</div>
+                                                            <div class="${gClass('td')}">${Language.text('specification')}</div>
+                                                            <div class="${gClass('td')}">${Language.text('unit_price')}</div>
+                                                            <div class="${gClass('td')}">${Language.text('quantity')}</div>
+                                                            <div class="${gClass('td')}">${Language.text('subtotal')}</div>
+                                                        </div>
+                                                        ${gvc.bindView({
                                         bind: glitter.getUUID(),
                                         view: () => {
                                             return vm.cartData.lineItems
                                                 .map((item, index) => {
-                                                function financial(x) {
-                                                    const parsed = Number.parseFloat(`${x}`);
-                                                    if (Number.isInteger(parsed)) {
-                                                        return parsed.toLocaleString();
-                                                    }
-                                                    const decimalPart = parsed.toString().split('.')[1];
-                                                    if (decimalPart && decimalPart.length > 1) {
-                                                        return parsed.toLocaleString(undefined, {
-                                                            minimumFractionDigits: 1,
-                                                            maximumFractionDigits: 1
-                                                        });
-                                                    }
-                                                    else {
-                                                        return parsed.toLocaleString(undefined, {
-                                                            minimumFractionDigits: 1,
-                                                            maximumFractionDigits: 3
-                                                        });
-                                                    }
-                                                }
                                                 function getBadgeClass() {
                                                     if (item.is_add_on_items) {
                                                         return addItemBadge();
@@ -1511,141 +1332,148 @@ export class CheckoutIndex {
                                                     }
                                                 }
                                                 return html `
-                                                                                        <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3">
-                                                                                            <div class="d-flex w-100   position-relative"
-                                                                                                 style="gap:20px;">
-                                                                                                <div class="${gClass('first-td')} justify-content-start  d-sm-none">
-                                                                                                    <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
-                                                                                                    <span class="ms-2 d-none">${getBadgeClass()}${item.title}</span>
-                                                                                                </div>
-                                                                                                <div class="d-flex flex-sm-row    flex-column w-100 position-relative"
-                                                                                                     style="gap: 8px; position: relative;">
-                                                                                                    <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex"
-                                                                                                         style="">
-                                                                                                        <div style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"></div>
-                                                                                                        <span class="ms-2 d-flex align-items-start flex-column "
-                                                                                                              style="gap:5px;">${getBadgeClass()}${item.title}</span>
-                                                                                                    </div>
-                                                                                                    <span class="d-flex align-items-start flex-column d-lg-none fw-bold"
-                                                                                                          style="gap:5px;font-size:17px;">${getBadgeClass()}${item.title}</span>
-                                                                                                    <div class="${gClass('td')}">
-                                                                                                        ${item.spec ? item.spec.join(' / ') : ''}
-                                                                                                    </div>
-                                                                                                    <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center"
-                                                                                                         style="gap:10px;">
-                                                                                                        <div class="">
-                                                                                                            ${(() => {
+                                                                            <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3">
+                                                                                <div class="d-flex w-100   position-relative" style="gap:20px;">
+                                                                                    <div class="${gClass('first-td')} justify-content-start  d-sm-none">
+                                                                                        <div
+                                                                                            style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"
+                                                                                        ></div>
+                                                                                        <span class="ms-2 d-none">${getBadgeClass()}${item.title}</span>
+                                                                                    </div>
+                                                                                    <div class="d-flex flex-sm-row    flex-column w-100 position-relative" style="gap: 8px; position: relative;">
+                                                                                        <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex" style="">
+                                                                                            <div
+                                                                                                style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"
+                                                                                            ></div>
+                                                                                            <span class="ms-2 d-flex align-items-start flex-column " style="gap:5px;"
+                                                                                                >${getBadgeClass()}${item.title}</span
+                                                                                            >
+                                                                                        </div>
+                                                                                        <span class="d-flex align-items-start flex-column d-lg-none fw-bold" style="gap:5px;font-size:17px;"
+                                                                                            >${getBadgeClass()}${item.title}</span
+                                                                                        >
+                                                                                        <div class="${gClass('td')}">${item.spec ? item.spec.join(' / ') : ''}</div>
+                                                                                        <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center" style="gap:10px;">
+                                                                                            <div class="">
+                                                                                                ${(() => {
                                                     if (item.is_gift) {
                                                         return `NT.0`;
                                                     }
                                                     return `NT.${parseInt(item.sale_price, 10).toLocaleString()}`;
                                                 })()}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div class="${gClass('td')}">
-                                                                                                        <select
-                                                                                                                class="${gClass('select')}"
-                                                                                                                style="width: 100px;"
-                                                                                                                onchange="${gvc.event((e) => {
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="${gClass('td')}">
+                                                                                            <select
+                                                                                                class="${gClass('select')}"
+                                                                                                style="width: 100px;"
+                                                                                                onchange="${gvc.event((e) => {
                                                     ApiCart.setCart((cartItem) => {
                                                         cartItem.line_items.find((dd) => {
-                                                            return dd.id === item.id && (item.spec.join('')) === dd.spec.join('');
+                                                            return dd.id === item.id && item.spec.join('') === dd.spec.join('');
                                                         }).count = parseInt(e.value, 10);
                                                         refreshCartData();
                                                     });
                                                 })}"
-                                                                                                                ${item.is_gift ? `disabled` : ``}
-                                                                                                                
-                                                                                                        >
-                                                                                                            ${[...new Array(99)].map((_, index) => {
-                                                    return html `
-                                                                                                                    <option value="${index + 1}"
-                                                                                                                            ${(index + 1 === item.count) ? `selected` : ``}>
-                                                                                                                        ${index + 1}
-                                                                                                                    </option>`;
-                                                }).join('')}
-                                                                                                        </select>
-                                                                                                    </div>
-                                                                                                    <div class="d-block d-md-none"
-                                                                                                         style="position: absolute; right: 0px; top:0px;">
-                                                                                                        <i class="fa-solid fa-xmark-large"
-                                                                                                           style="cursor: pointer;"
-                                                                                                           onclick="${gvc.event(() => {
-                                                    ApiCart.setCart((cartItem) => {
-                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                            return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''));
-                                                        });
-                                                        refreshCartData();
-                                                    });
-                                                })}"></i>
-                                                                                                    </div>
-                                                                                                    <span class="d-block d-md-none"
-                                                                                                          style="position: absolute;bottom:0px;right:0px;">合計 NT. ${((item.discount_price) ? ((item.sale_price - item.discount_price) * item.count) : (item.sale_price * item.count)).toLocaleString()}</span>
-                                                                                                    <div class="${gClass('td')}  d-none d-md-flex"
-                                                                                                         style="bottom:0px;right:10px;">
-                                                                                                        <span class="d-none d-md-block">合計 NT. ${(item.sale_price * item.count).toLocaleString()}</span>
-                                                                                                        <div class="d-none d-md-block"
-                                                                                                             style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;">
-                                                                                                            <i class="fa-solid fa-xmark-large"
-                                                                                                               style="cursor: pointer;"
-                                                                                                               onclick="${gvc.event(() => {
-                                                    ApiCart.setCart((cartItem) => {
-                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                            return !(dd.id === item.id && (item.spec.join('')) === dd.spec.join(''));
-                                                        });
-                                                        refreshCartData();
-                                                    });
-                                                })}"></i>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                ${vm.cartData.voucherList.filter((dd) => {
-                                                    return dd.bind.find((d2) => {
-                                                        return d2.id === item.id;
-                                                    }) && (dd.reBackType !== 'giveaway') && (dd.reBackType !== 'add_on_items');
-                                                }).map((dd) => {
-                                                    return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
-                                                }).join('<div class="my-1"></div>')}
-                                                                                            </div>
-
+                                                                                                ${item.is_gift ? `disabled` : ``}
+                                                                                            >
+                                                                                                ${[...new Array(99)]
+                                                    .map((_, index) => {
+                                                    return html ` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>
+                                                                                                            ${index + 1}
+                                                                                                        </option>`;
+                                                })
+                                                    .join('')}
+                                                                                            </select>
                                                                                         </div>
-
-                                                                                    `;
+                                                                                        <div class="d-block d-md-none" style="position: absolute; right: 0px; top:0px;">
+                                                                                            <i
+                                                                                                class="fa-solid fa-xmark-large"
+                                                                                                style="cursor: pointer;"
+                                                                                                onclick="${gvc.event(() => {
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                            return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                        });
+                                                        refreshCartData();
+                                                    });
+                                                })}"
+                                                                                            ></i>
+                                                                                        </div>
+                                                                                        <span class="d-block d-md-none" style="position: absolute;bottom:0px;right:0px;"
+                                                                                            >${Language.text('total')} NT.
+                                                                                            ${(item.discount_price
+                                                    ? (item.sale_price - item.discount_price) * item.count
+                                                    : item.sale_price * item.count).toLocaleString()}</span
+                                                                                        >
+                                                                                        <div class="${gClass('td')}  d-none d-md-flex" style="bottom:0px;right:10px;">
+                                                                                            <span class="d-none d-md-block"
+                                                                                                >${Language.text('total')} NT. ${(item.sale_price * item.count).toLocaleString()}</span
+                                                                                            >
+                                                                                            <div
+                                                                                                class="d-none d-md-block"
+                                                                                                style="position: absolute; right: -10px; transform: translateY(-50%); top: 50%;"
+                                                                                            >
+                                                                                                <i
+                                                                                                    class="fa-solid fa-xmark-large"
+                                                                                                    style="cursor: pointer;"
+                                                                                                    onclick="${gvc.event(() => {
+                                                    ApiCart.setCart((cartItem) => {
+                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                            return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                        });
+                                                        refreshCartData();
+                                                    });
+                                                })}"
+                                                                                                ></i>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    ${vm.cartData.voucherList
+                                                    .filter((dd) => {
+                                                    return (dd.bind.find((d2) => {
+                                                        return d2.id === item.id;
+                                                    }) &&
+                                                        dd.reBackType !== 'giveaway' &&
+                                                        dd.reBackType !== 'add_on_items');
+                                                })
+                                                    .map((dd) => {
+                                                    return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
+                                                })
+                                                    .join('<div class="my-1"></div>')}
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
                                             })
                                                 .join('');
                                         },
                                     })}
-                                                            </section>
-                                                            <section class="d-flex">
-                                                                <div class="flex-fill"></div>
-                                                                <div class="${gClass('price-container')}">
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>商品總計</div>
-                                                                        <div>NT.
-                                                                            ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>運費</div>
-                                                                        <div>NT.
-                                                                            ${vm.cartData.shipment_fee.toLocaleString()}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>優惠券折抵</div>
-                                                                        <div>- NT.
-                                                                            ${vm.cartData.discount.toLocaleString()}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="${gClass(['price-row', 'text-2'])}">
-                                                                        <div>優惠代碼</div>
-                                                                        <div style="cursor: pointer; color: #3564c0;"
-                                                                             onclick="${gvc.event(() => {
+                                                    </section>
+                                                    <section class="d-flex">
+                                                        <div class="flex-fill"></div>
+                                                        <div class="${gClass('price-container')}">
+                                                            <div class="${gClass(['price-row', 'text-2'])}">
+                                                                <div>${Language.text('total_products')}</div>
+                                                                <div>NT. ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}</div>
+                                                            </div>
+                                                            <div class="${gClass(['price-row', 'text-2'])}">
+                                                                <div>${Language.text('shipping_fee')}</div>
+                                                                <div>NT. ${vm.cartData.shipment_fee.toLocaleString()}</div>
+                                                            </div>
+                                                            <div class="${gClass(['price-row', 'text-2'])}">
+                                                                <div>${Language.text('discount_coupon')}</div>
+                                                                <div>- NT. ${vm.cartData.discount.toLocaleString()}</div>
+                                                            </div>
+                                                            <div class="${gClass(['price-row', 'text-2'])}">
+                                                                <div>${Language.text('promo_code')}</div>
+                                                                <div
+                                                                    style="cursor: pointer; color: #3564c0;"
+                                                                    onclick="${gvc.event(() => {
                                         this.viewDialog({
                                             gvc: gvc,
-                                            title: '可使用的優惠券',
+                                            title: Language.text('available_coupons'),
                                             tag: '',
                                             innerHTML: (gvc) => {
                                                 return gvc.bindView((() => {
@@ -1659,21 +1487,18 @@ export class CheckoutIndex {
                                                         bind: id,
                                                         view: () => {
                                                             if (loading) {
-                                                                return html `
-                                                                                                                             <div style="height: 400px">
-                                                                                                                                 ${spinner()}
-                                                                                                                             </div>`;
+                                                                return html ` <div style="height: 400px">${spinner()}</div>`;
                                                             }
                                                             else {
                                                                 const header = [
                                                                     {
-                                                                        title: '優惠券名稱',
+                                                                        title: Language.text('coupon_name'),
                                                                     },
                                                                     {
-                                                                        title: '優惠券代碼',
+                                                                        title: Language.text('coupon_code'),
                                                                     },
                                                                     {
-                                                                        title: '使用期限',
+                                                                        title: Language.text('expiration_date'),
                                                                     },
                                                                     {
                                                                         title: '',
@@ -1684,33 +1509,33 @@ export class CheckoutIndex {
                                                                         item.title,
                                                                         item.code,
                                                                         (() => {
-                                                                            const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : '無使用期限';
+                                                                            const endText = item.end_ISO_Date
+                                                                                ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd')
+                                                                                : Language.text('no_expiration');
                                                                             return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
                                                                         })(),
-                                                                        item.usePass ? html `
-                                                                                                                                             <button
-                                                                                                                                                     class="${gClass('button-bgr')} my-2"
-                                                                                                                                                     style="max-width: 150px;"
-                                                                                                                                                     onclick="${gvc.event(() => {
-                                                                            console.log(JSON.stringify(item));
-                                                                            ApiCart.setCart((cartItem) => {
-                                                                                cartItem.code = item.code;
-                                                                                refreshCartData();
-                                                                                gvc.closeDialog();
-                                                                            });
-                                                                        })}"
-                                                                                                                                             >
-                                        <span
-                                                class="${gClass('button-text')}">選擇使用</span>
-                                                                                                                                             </button>` :
-                                                                            html `
-                                                                                                                                             <button
-                                                                                                                                                     class="${gClass('button-bgr-disable')} my-2"
-                                                                                                                                                     style="max-width: 150px; cursor: not-allowed"
-                                                                                                                                             >
-                                        <span
-                                                class="${gClass('button-text')}">未達使用標準</span>
-                                                                                                                                             </button>`,
+                                                                        item.usePass
+                                                                            ? html ` <button
+                                                                                                                      class="${gClass('button-bgr')} my-2"
+                                                                                                                      style="max-width: 150px;"
+                                                                                                                      onclick="${gvc.event(() => {
+                                                                                ApiCart.setCart((cartItem) => {
+                                                                                    cartItem.code = item.code;
+                                                                                    refreshCartData();
+                                                                                    gvc.closeDialog();
+                                                                                });
+                                                                            })}"
+                                                                                                                  >
+                                                                                                                      <span class="${gClass('button-text')}">${Language.text('select_to_use')}</span>
+                                                                                                                  </button>`
+                                                                            : html ` <button
+                                                                                                                      class="${gClass('button-bgr-disable')} my-2"
+                                                                                                                      style="max-width: 150px; cursor: not-allowed"
+                                                                                                                  >
+                                                                                                                      <span class="${gClass('button-text')}"
+                                                                                                                          >${Language.text('not_meet_usage_criteria')}</span
+                                                                                                                      >
+                                                                                                                  </button>`,
                                                                     ];
                                                                 }
                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -1721,9 +1546,11 @@ export class CheckoutIndex {
                                                                     dialog.dataLoading({ visible: true });
                                                                     ApiShop.getCheckout(cloneCart).then((r) => {
                                                                         dialog.dataLoading({ visible: false });
-                                                                        if (r.result && r.response.data && r.response.data.voucherList.some((dd) => {
-                                                                            return dd.code === code;
-                                                                        })) {
+                                                                        if (r.result &&
+                                                                            r.response.data &&
+                                                                            r.response.data.voucherList.some((dd) => {
+                                                                                return dd.code === code;
+                                                                            })) {
                                                                             ApiCart.setCart((cartItem) => {
                                                                                 cartItem.code = code;
                                                                                 refreshCartData();
@@ -1732,7 +1559,7 @@ export class CheckoutIndex {
                                                                         }
                                                                         else {
                                                                             dialog.errorMessage({
-                                                                                text: '此代碼無法使用'
+                                                                                text: Language.text('code_unusable'),
                                                                             });
                                                                         }
                                                                     });
@@ -1740,88 +1567,87 @@ export class CheckoutIndex {
                                                                 if (isWebsite) {
                                                                     const flexList = [1.2, 1, 1.5, 1.5];
                                                                     return html `
-                                                                                                                                 <div>
-                                                                                                                                     <div class="d-flex align-items-center mb-2">
-                                                                                                                                         <label class="${gClass('label')} mb-0"
-                                                                                                                                                style="min-width: 80px;">輸入代碼</label>
-                                                                                                                                         <input class="${gClass('input')}"
-                                                                                                                                                type="text"
-                                                                                                                                                onchange="${gvc.event((e) => {
+                                                                                                            <div>
+                                                                                                                <div class="d-flex align-items-center mb-2">
+                                                                                                                    <label class="${gClass('label')} mb-0" style="min-width: 80px;"
+                                                                                                                        >${Language.text('enter_code')}</label
+                                                                                                                    >
+                                                                                                                    <input
+                                                                                                                        class="${gClass('input')}"
+                                                                                                                        type="text"
+                                                                                                                        onchange="${gvc.event((e) => {
                                                                         checkCodeValue(e.value);
-                                                                    })}"/>
-                                                                                                                                     </div>
-                                                                                                                                 </div>
-                                                                                                                                 <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                                                                                                                     ${header
+                                                                    })}"
+                                                                                                                    />
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                            <div class="w-100 d-sm-flex py-4 um-th-bar">
+                                                                                                                ${header
                                                                         .map((item, index) => {
-                                                                        return html `
-                                                                                                                                                     <div class="um-th"
-                                                                                                                                                          style="flex: ${flexList[index]};">
-                                                                                                                                                         ${item.title}
-                                                                                                                                                     </div>`;
+                                                                        return html ` <div class="um-th" style="flex: ${flexList[index]};">
+                                                                                                                            ${item.title}
+                                                                                                                        </div>`;
                                                                     })
                                                                         .join('')}
-                                                                                                                                 </div>
-                                                                                                                                 ${vmi.dataList
+                                                                                                            </div>
+                                                                                                            ${vmi.dataList
                                                                         .map((item, t1) => {
                                                                         const fText = formatText(item.content);
-                                                                        return html `
-                                                                                                                                                 <div class="w-100 d-sm-flex py-1 align-items-center">
-                                                                                                                                                     ${fText
+                                                                        return html ` <div class="w-100 d-sm-flex py-1 align-items-center">
+                                                                                                                        ${fText
                                                                             .map((dd, t2) => {
-                                                                            return html `
-                                                                                                                                                                     <div class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
-                                                                                                                                                                          style="flex: ${flexList[t2]}">
-                                                                                                                                                                         ${dd}
-                                                                                                                                                                     </div>`;
+                                                                            return html ` <div
+                                                                                                                                    class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
+                                                                                                                                    style="flex: ${flexList[t2]}"
+                                                                                                                                >
+                                                                                                                                    ${dd}
+                                                                                                                                </div>`;
                                                                         })
                                                                             .join('')}
-                                                                                                                                                 </div>`;
+                                                                                                                    </div>`;
                                                                     })
                                                                         .join('')}
-                                                                                                                             `;
+                                                                                                        `;
                                                                 }
-                                                                return html `
-                                                                                                                             <div>
-                                                                                                                                 <div class="d-flex flex-column flex-sm-row align-items-center ">
-                                                                                                                                     <div class="d-flex align-items-center">
-                                                                                                                                         <input class="${gClass('input')}"
-                                                                                                                                                type="text"
-                                                                                                                                                style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
-                                                                                                                                                placeholder="請輸入優惠代碼"/>
-                                                                                                                                         <button class="${gClass('button-bgr')}"
-                                                                                                                                                 style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
-                                                                                                                                                 onclick="${gvc.event((e) => {
+                                                                return html ` <div>
+                                                                                                        <div class="d-flex flex-column flex-sm-row align-items-center ">
+                                                                                                            <div class="d-flex align-items-center">
+                                                                                                                <input
+                                                                                                                    class="${gClass('input')}"
+                                                                                                                    type="text"
+                                                                                                                    style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                                                                                    placeholder="${Language.text('enter_promo_code')}"
+                                                                                                                />
+                                                                                                                <button
+                                                                                                                    class="${gClass('button-bgr')}"
+                                                                                                                    style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
+                                                                                                                    onclick="${gvc.event((e) => {
                                                                     checkCodeValue(e.value);
-                                                                })}">
-                                                                                                                                             <span class="${gClass('button-text')}"
-                                                                                                                                                   style="">確認</span>
-                                                                                                                                         </button>
-                                                                                                                                     </div>
-                                                                                                                                 </div>
-                                                                                                                                 <div class="w-100 d-sm-none mb-3 s162413">
-                                                                                                                                     ${vmi.dataList
+                                                                })}"
+                                                                                                                >
+                                                                                                                    <span class="${gClass('button-text')}">${Language.text('confirm')}</span>
+                                                                                                                </button>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <div class="w-100 d-sm-none mb-3 s162413">
+                                                                                                            ${vmi.dataList
                                                                     .map((item) => {
-                                                                    return html `
-                                                                                                                                                     <div class="um-mobile-area">
-                                                                                                                                                         ${formatText(item.content)
+                                                                    return html ` <div class="um-mobile-area">
+                                                                                                                        ${formatText(item.content)
                                                                         .map((dd, index) => {
                                                                         if (header[index].title === '') {
                                                                             return dd;
                                                                         }
-                                                                        return html `
-                                                                                                                                                                         <div class="um-mobile-text">
-                                                                                                                                                                             ${header[index].title}
-                                                                                                                                                                             :
-                                                                                                                                                                             ${dd}
-                                                                                                                                                                         </div>`;
+                                                                        return html ` <div class="um-mobile-text">
+                                                                                                                                    ${header[index].title} : ${dd}
+                                                                                                                                </div>`;
                                                                     })
                                                                         .join('')}
-                                                                                                                                                     </div>`;
+                                                                                                                    </div>`;
                                                                 })
                                                                     .join('')}
-                                                                                                                                 </div>
-                                                                                                                             </div>`;
+                                                                                                        </div>
+                                                                                                    </div>`;
                                                             }
                                                         },
                                                         divCreate: {},
@@ -1844,7 +1670,8 @@ export class CheckoutIndex {
                                                                     }).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                                         if (res.result && res.response.data) {
                                                                             vmi.dataList = res.response.data.filter((item) => {
-                                                                                return item.content.trigger === 'code' && isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date);
+                                                                                return (item.content.trigger === 'code' &&
+                                                                                    isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date));
                                                                             });
                                                                         }
                                                                         else {
@@ -1859,13 +1686,13 @@ export class CheckoutIndex {
                                                                                 ApiShop.getCheckout(cloneCart).then((response) => {
                                                                                     resolve({
                                                                                         code,
-                                                                                        response
+                                                                                        response,
                                                                                     });
                                                                                 });
                                                                             });
                                                                         })).then((resolveArray) => {
                                                                             vmi.dataList = vmi.dataList.map((item) => {
-                                                                                const f = resolveArray.find(res => {
+                                                                                const f = resolveArray.find((res) => {
                                                                                     return item.content.code === res.code;
                                                                                 });
                                                                                 if (f) {
@@ -1882,64 +1709,70 @@ export class CheckoutIndex {
                                                                             gvc.notifyDataChange(id);
                                                                         });
                                                                     }));
-                                                                }, () => {
-                                                                });
+                                                                }, () => { });
                                                             }
                                                         },
                                                     };
                                                 })());
-                                            }
+                                            },
                                         });
-                                    })}">
-                                                                            ${vm.cartData.code ? `${vm.cartData.code}<i class="fa-solid fa-xmark-large ms-2"
-                                                                                                      style="cursor: pointer;" onclick="${gvc.event((e, event) => {
-                                        event.stopPropagation();
-                                        ApiCart.setCart((cartItem) => {
-                                            cartItem.code = '';
-                                            refreshCartData();
-                                        });
-                                    })}"></i>` : '新增'}
-                                                                        </div>
-                                                                    </div>
-                                                                    ${(() => {
+                                    })}"
+                                                                >
+                                                                    ${vm.cartData.code
+                                        ? html `${vm.cartData.code}<i
+                                                                                  class="fa-solid fa-xmark-large ms-2"
+                                                                                  style="cursor: pointer;"
+                                                                                  onclick="${gvc.event((e, event) => {
+                                            event.stopPropagation();
+                                            ApiCart.setCart((cartItem) => {
+                                                cartItem.code = '';
+                                                refreshCartData();
+                                            });
+                                        })}"
+                                                                              ></i>`
+                                        : Language.text('add')}
+                                                                </div>
+                                                            </div>
+                                                            ${(() => {
                                         if (!GlobalUser.token) {
                                             return ``;
                                         }
                                         else {
-                                            return ` ${(() => {
+                                            return html ` ${(() => {
                                                 let tempRebate = 0;
                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                return `<div class="${gClass(['price-row', 'text-2'])}">
-                                                                                <div>${vm.rebateConfig.title}折抵</div>
-                                                                    <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
-                                                                </div>
-                                                              
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-                                                                    <div
-                                                                        style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                                return html `<div class="${gClass(['price-row', 'text-2'])}">
+                                                                                    <div>${Language.text('discount')}: ${vm.rebateConfig.title}</div>
+                                                                                    <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
+                                                                                </div>
+
+                                                                                <div class="${gClass(['price-row', 'text-2'])}">
+                                                                                    <div
+                                                                                        style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                                     .body.clientWidth > 768
-                                                    ? 'gap: 18px; '
-                                                    : ' gap: 0px; '}"
-                                                                        class="w-100"
-                                                                    >
-                                                                        <input
-                                                                                    class="flex-fill ${gClass('group-input')}"
-                                                                                    placeholder="請輸入${vm.rebateConfig.title}"
-                                                                                    style="${document.body.clientWidth < 800 ? `width:calc(100% - 150px) !important;` : ``}"
-                                                                                    value="${vm.cartData.use_rebate || ''}"
-                                                                                    onchange="${gvc.event((e, event) => {
+                                                    ? 'gap: 18px;'
+                                                    : 'gap: 0px;'}"
+                                                                                        class="w-100"
+                                                                                    >
+                                                                                        <input
+                                                                                            class="flex-fill ${gClass('group-input')}"
+                                                                                            placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                                                                                            style="${document.body.clientWidth < 800 ? `width:calc(100% - 150px) !important;` : ``}"
+                                                                                            value="${vm.cartData.use_rebate || ''}"
+                                                                                            onchange="${gvc.event((e, event) => {
                                                     if (CheckInput.isNumberString(e.value)) {
                                                         tempRebate = parseInt(e.value, 10);
                                                     }
                                                     else {
-                                                        dialog.errorMessage({ text: `請輸入數值` });
+                                                        dialog.errorMessage({ text: Language.text('enter_value') });
                                                         gvc.notifyDataChange(ids.page);
                                                     }
                                                 })}"
-                                                                        />
-                                                                        <div class="${gClass('group-button')}" >
-                                                                            <div class="${gClass('button-text')}" 
-                                                                                onclick="${gvc.event((e) => __awaiter(this, void 0, void 0, function* () {
+                                                                                        />
+                                                                                        <div class="${gClass('group-button')}">
+                                                                                            <div
+                                                                                                class="${gClass('button-text')}"
+                                                                                                onclick="${gvc.event((e) => __awaiter(this, void 0, void 0, function* () {
                                                     const sum = yield new Promise((resolve, reject) => {
                                                         ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                             if (res.result && res.response.sum) {
@@ -1956,28 +1789,30 @@ export class CheckoutIndex {
                                                         return;
                                                     }
                                                     if (tempRebate > Math.min(sum, limit)) {
-                                                        dialog.errorMessage({ text: `請輸入 0 到 ${Math.min(sum, limit)} 的數值` });
+                                                        dialog.errorMessage({
+                                                            text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
+                                                        });
                                                         return;
                                                     }
                                                     ApiCart.setCart((cartItem) => {
                                                         cartItem.use_rebate = tempRebate;
                                                         refreshCartData();
                                                     });
-                                                }))}">
-                                                                                套用
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>`;
+                                                }))}"
+                                                                                            >
+                                                                                                ${Language.text('apply')}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>`;
                                             })()}
-                                                                <div class="${gClass(['price-row', 'text-2'])}">
-
-    ${(() => {
+                                                                        <div class="${gClass(['price-row', 'text-2'])}">
+                                                                            ${(() => {
                                                 return gvc.bindView(() => {
                                                     return {
                                                         bind: gvc.glitter.getUUID(),
                                                         view: () => __awaiter(this, void 0, void 0, function* () {
-                                                            const sum = (yield new Promise((resolve, reject) => {
+                                                            const sum = yield new Promise((resolve, reject) => {
                                                                 ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                                     if (res.result && res.response.sum) {
                                                                         resolve(res.response.sum);
@@ -1986,46 +1821,48 @@ export class CheckoutIndex {
                                                                         resolve(0);
                                                                     }
                                                                 }));
-                                                            }));
+                                                            });
                                                             if (!vm.cartData.useRebateInfo) {
                                                                 return '';
                                                             }
                                                             const info = vm.cartData.useRebateInfo;
                                                             if (info.condition) {
-                                                                return `還差$ ${info.condition.toLocaleString()} 即可使用 ${vm.rebateConfig.title} 折抵`;
+                                                                return html `${Language.text('distance_from_target_amount')}$ ${info.condition.toLocaleString()}
+                                                                                                ${Language.text('can_use_now')} ${vm.rebateConfig.title} ${Language.text('discount')}`;
                                                             }
                                                             if (info.limit) {
-                                                                return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}<br />此份訂單最多可折抵 ${info.limit.toLocaleString()} 點 ${vm.rebateConfig.title}`;
+                                                                return html `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')}
+                                                                                                    ${vm.rebateConfig.title}<br />${Language.text('max_discount_order')} ${info.limit.toLocaleString()}
+                                                                                                    ${Language.text('point')} ${vm.rebateConfig.title}`;
                                                             }
                                                             else {
-                                                                return `您目前剩餘 ${sum || 0} 點 ${vm.rebateConfig.title}`;
+                                                                return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${vm.rebateConfig.title}`;
                                                             }
-                                                        })
+                                                        }),
                                                     };
                                                 });
                                             })()}
-                                                                </div>`;
+                                                                        </div>`;
                                         }
                                     })()}
-
-                                                                </div>
-                                                            </section>
-                                                        `;
+                                                        </div>
+                                                    </section>
+                                                `;
                                 },
                             };
                         })())}
-                                    <section class="border-bottom"></section>
-                                    <section class="d-flex">
-                                        <div class="flex-fill"></div>
-                                        <div class="${gClass('price-container')}">
-                                            <div class="${gClass(['price-row', 'text-1', 'bold'])}">
-                                                <div>總金額</div>
-                                                <div>NT. ${vm.cartData.total.toLocaleString()}</div>
-                                            </div>
+                                <section class="border-bottom"></section>
+                                <section class="d-flex">
+                                    <div class="flex-fill"></div>
+                                    <div class="${gClass('price-container')}">
+                                        <div class="${gClass(['price-row', 'text-1', 'bold'])}">
+                                            <div>${Language.text('total_amount')}</div>
+                                            <div>NT. ${vm.cartData.total.toLocaleString()}</div>
                                         </div>
-                                    </section>
-                                    <!--加購品-->
-                                    ${(() => {
+                                    </div>
+                                </section>
+                                <!--加購品-->
+                                ${(() => {
                             let add_on = [];
                             vm.cartData.voucherList.filter((dd) => {
                                 if (dd.reBackType === 'add_on_items') {
@@ -2038,78 +1875,59 @@ export class CheckoutIndex {
                                     return {
                                         bind: id,
                                         view: () => __awaiter(this, void 0, void 0, function* () {
-                                            const add_products = (yield ApiShop.getProduct({
+                                            const add_products = yield ApiShop.getProduct({
                                                 page: 0,
                                                 limit: 100,
                                                 productType: 'addProduct',
-                                                id_list: add_on.join(',')
-                                            }));
+                                                id_list: add_on.join(','),
+                                            });
                                             if (!add_products.response.data.length) {
                                                 return ``;
                                             }
                                             return html `
-                                                                                    <div class="${gClass('banner-bgr')}">
-                                                                                        <span class="${gClass('banner-text')}">可加購商品</span>
-                                                                                    </div>
-                                                                                    <div class="d-flex align-items-center w-100"
-                                                                                         style="overflow-x:auto;gap:10px;">
-                                                                                        ${add_products.response.data.map((dd) => {
-                                                return html `
-                                                                                                <div class="d-flex py-3 align-items-center"
-                                                                                                     style="gap:10px;">
-                                                                                                    <div class="img-fluid "
-                                                                                                         style="width: 106px;
-    min-width: 106px;
-    height: 106px;
-    border-radius: 3px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: url('${dd.content.preview_image[0]}');"></div>
-                                                                                                    <div class="d-flex flex-column"
-                                                                                                         style="gap:5px;">
-                                                                                                        <div class="${gClass('banner-text')}"
-                                                                                                             style="font-size: 15px;
-    font-style: normal;
-    font-weight: 400;
-    white-space: nowrap;
-    overflow: hidden;
-    max-width: 130px;
-    text-overflow: ellipsis;">${dd.content.title}
-                                                                                                        </div>
-                                                                                                        <div class=""
-                                                                                                             style="font-size: 14px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 140%;">NT.${dd.content.min_price.toLocaleString()}
-                                                                                                        </div>
-                                                                                                        <button class="${gClass('button-bgr')} mb-0 mt-2"
-                                                                                                                onclick="${gvc.event(() => {
+                                                        <div class="${gClass('banner-bgr')}">
+                                                            <span class="${gClass('banner-text')}">${Language.text('additional_purchase_items')}</span>
+                                                        </div>
+                                                        <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
+                                                            ${add_products.response.data
+                                                .map((dd) => {
+                                                return html ` <div class="d-flex py-3 align-items-center" style="gap:10px;">
+                                                                        <div class="img-fluid img-106px" style="background-image: url('${dd.content.preview_image[0]}');"></div>
+                                                                        <div class="d-flex flex-column" style="gap:5px;">
+                                                                            <div class="${gClass('banner-text')} banner-font-15">${dd.content.title}</div>
+                                                                            <div class="ntd-font-14">NT.${dd.content.min_price.toLocaleString()}</div>
+                                                                            <button
+                                                                                class="${gClass('button-bgr')} mb-0 mt-2"
+                                                                                onclick="${gvc.event(() => {
                                                     return gvc.glitter.innerDialog((gvc) => {
                                                         var _a, _b;
-                                                        return html `
-                                                                                                                            <div
-                                                                                                                                    class="bg-white shadow rounded-3"
-                                                                                                                                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-                                                                                                                            >
-                                                                                                                                <div class="bg-white shadow rounded-3"
-                                                                                                                                     style="width: 100%; overflow-y: auto; position: relative;">
-                                                                                                                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                                                                                         style="position: sticky; top: 0; background: #fff;">
-                                                                                                                                        <div class="flex-fill"></div>
-                                                                                                                                        <i
-                                                                                                                                                class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                                                                                                style="cursor: pointer"
-                                                                                                                                                onclick="${gvc.event(() => {
+                                                        return html ` <div
+                                                                                            class="bg-white shadow rounded-3"
+                                                                                            style="overflow-y: auto; ${document.body.clientWidth > 768
+                                                            ? `min-width: 400px; width: 600px;`
+                                                            : 'min-width: 90vw; max-width: 92.5vw;'}"
+                                                                                        >
+                                                                                            <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                                                                                                <div
+                                                                                                    class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                    style="position: sticky; top: 0; background: #fff;"
+                                                                                                >
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    <i
+                                                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                        style="cursor: pointer"
+                                                                                                        onclick="${gvc.event(() => {
                                                             gvc.closeDialog();
                                                         })}"
-                                                                                                                                        ></i>
-                                                                                                                                    </div>
-                                                                                                                                    <div class="c_dialog">
-                                                                                                                                        <div class="c_dialog_body">
-                                                                                                                                            <div class="c_dialog_main"
-                                                                                                                                                 style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                                                                                                                                ${PdClass.selectSpec({
+                                                                                                    ></i>
+                                                                                                </div>
+                                                                                                <div class="c_dialog">
+                                                                                                    <div class="c_dialog_body">
+                                                                                                        <div
+                                                                                                            class="c_dialog_main"
+                                                                                                            style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;"
+                                                                                                        >
+                                                                                                            ${PdClass.selectSpec({
                                                             gvc,
                                                             titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
                                                             prod: dd.content,
@@ -2120,44 +1938,47 @@ export class CheckoutIndex {
                                                                 quantity: '1',
                                                                 wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
                                                                     return item.id === dd.id;
-                                                                })
+                                                                }),
                                                             },
                                                             callback: () => {
                                                                 gvc.closeDialog();
                                                                 refreshCartData();
-                                                            }
+                                                            },
                                                         })}
-                                                                                                                                            </div>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </div>`;
-                                                    }, Tool.randomString(7));
-                                                })}">
-                                                                                                            <span class="${gClass('button-text')}">加入購物車</span>
-                                                                                                        </button>
+                                                                                                        </div>
                                                                                                     </div>
-                                                                                                </div>`;
-                                            }).join('')}
-                                                                                    </div>
-                                                                                `;
-                                        })
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>`;
+                                                    }, Tool.randomString(7));
+                                                })}"
+                                                                            >
+                                                                                <span class="${gClass('button-text')}">${Language.text('add_to_cart')}</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>`;
+                                            })
+                                                .join('')}
+                                                        </div>
+                                                    `;
+                                        }),
                                     };
                                 });
                             }
                             else {
-                                return ``;
+                                return '';
                             }
-                            return ``;
                         })()}
-                                    <!--贈品-->
-                                    ${(() => {
+                                <!--贈品-->
+                                ${(() => {
                             let already_add = vm.cartData.lineItems.filter((dd) => {
                                 return dd.is_gift;
                             });
-                            return vm.cartData.voucherList.filter((d1) => {
+                            return vm.cartData.voucherList
+                                .filter((d1) => {
                                 return d1.reBackType === 'giveaway';
-                            }).map((dd) => {
+                            })
+                                .map((dd) => {
                                 let isSelected = already_add.find((d2) => {
                                     return dd.add_on_products.find((d1) => {
                                         return d1.id === d2.id;
@@ -2167,73 +1988,51 @@ export class CheckoutIndex {
                                     return !dd === isSelected;
                                 });
                                 return html `
-                                                                                    <div class="${gClass('banner-bgr')}">
-                                                                                        <span class="${gClass('banner-text')}">${dd.title}</span>
-                                                                                    </div>
-                                                                                    <div class="d-flex align-items-center w-100"
-                                                                                         style="overflow-x:auto;gap:10px;">
-                                                                                        ${dd.add_on_products.map((pd) => {
+                                                <div class="${gClass('banner-bgr')}">
+                                                    <span class="${gClass('banner-text')}">${dd.title}</span>
+                                                </div>
+                                                <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
+                                                    ${dd.add_on_products
+                                    .map((pd) => {
                                     try {
-                                        return html `
-                                                                                                <div class="d-flex py-3 align-items-center"
-                                                                                                     style="gap:10px;">
-                                                                                                    <div class="img-fluid "
-                                                                                                         style="width: 106px;
-    min-width: 106px;
-    height: 106px;
-    border-radius: 3px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: url('${pd.preview_image[0]}');"></div>
-                                                                                                    <div class="d-flex flex-column"
-                                                                                                         style="gap:5px;">
-                                                                                                        <div class="${gClass('banner-text')}"
-                                                                                                             style="font-size: 15px;
-    font-style: normal;
-    font-weight: 400;
-    white-space: nowrap;
-    overflow: hidden;
-    max-width: 130px;
-    text-overflow: ellipsis;">${pd.title}
-                                                                                                        </div>
-                                                                                                        <div class="text-decoration-line-through text-danger"
-                                                                                                             style="font-size: 14px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 140%;">NT.${pd.min_price.toLocaleString()}
-                                                                                                        </div>
-                                                                                                        <button class="${gClass('button-bgr')} mb-0 mt-2"
-                                                                                                                style="${(isSelected ? ((isSelected.id === pd.id) ? `background: gray !important;` : ``) : ``)}"
-                                                                                                                onclick="${gvc.event(() => {
-                                            if (isSelected && (isSelected.id === pd.id)) {
+                                        return html ` <div class="d-flex py-3 align-items-center" style="gap:10px;">
+                                                                    <div class="img-fluid img-106px" style="background-image: url('${pd.preview_image[0]}');"></div>
+                                                                    <div class="d-flex flex-column" style="gap:5px;">
+                                                                        <div class="${gClass('banner-text')} banner-font-15">${pd.title}</div>
+                                                                        <div class="text-decoration-line-through text-danger ntd-font-14">NT.${pd.min_price.toLocaleString()}</div>
+                                                                        <button
+                                                                            class="${gClass('button-bgr')} mb-0 mt-2"
+                                                                            style="${isSelected ? (isSelected.id === pd.id ? `background: gray !important;` : ``) : ``}"
+                                                                            onclick="${gvc.event(() => {
+                                            if (isSelected && isSelected.id === pd.id) {
                                                 return;
                                             }
                                             return gvc.glitter.innerDialog((gvc) => {
                                                 var _a, _b;
-                                                return html `
-                                                                                                                            <div
-                                                                                                                                    class="bg-white shadow rounded-3"
-                                                                                                                                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-                                                                                                                            >
-                                                                                                                                <div class="bg-white shadow rounded-3"
-                                                                                                                                     style="width: 100%; overflow-y: auto; position: relative;">
-                                                                                                                                    <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                                                                                         style="position: sticky; top: 0; background: #fff;">
-                                                                                                                                        <div class="flex-fill"></div>
-                                                                                                                                        <i
-                                                                                                                                                class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                                                                                                style="cursor: pointer"
-                                                                                                                                                onclick="${gvc.event(() => {
+                                                return html ` <div
+                                                                                        class="bg-white shadow rounded-3"
+                                                                                        style="overflow-y: auto; ${document.body.clientWidth > 768
+                                                    ? `min-width: 400px; width: 600px;`
+                                                    : 'min-width: 90vw; max-width: 92.5vw;'}"
+                                                                                    >
+                                                                                        <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                                                                                            <div
+                                                                                                class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                style="position: sticky; top: 0; background: #fff;"
+                                                                                            >
+                                                                                                <div class="flex-fill"></div>
+                                                                                                <i
+                                                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                    style="cursor: pointer"
+                                                                                                    onclick="${gvc.event(() => {
                                                     gvc.closeDialog();
                                                 })}"
-                                                                                                                                        ></i>
-                                                                                                                                    </div>
-                                                                                                                                    <div class="c_dialog">
-                                                                                                                                        <div class="c_dialog_body">
-                                                                                                                                            <div class="c_dialog_main"
-                                                                                                                                                 style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                                                                                                                                ${PdClass.selectSpec({
+                                                                                                ></i>
+                                                                                            </div>
+                                                                                            <div class="c_dialog">
+                                                                                                <div class="c_dialog_body">
+                                                                                                    <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                                                                                        ${PdClass.selectSpec({
                                                     gvc,
                                                     titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
                                                     prod: pd,
@@ -2244,7 +2043,7 @@ export class CheckoutIndex {
                                                         quantity: '1',
                                                         wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
                                                             return item.id === dd.id;
-                                                        })
+                                                        }),
                                                     },
                                                     with_qty: false,
                                                     callback: () => {
@@ -2271,81 +2070,117 @@ export class CheckoutIndex {
                                                             refreshCartData();
                                                             gvc.closeDialog();
                                                         }
-                                                    }
+                                                    },
                                                 })}
-                                                                                                                                            </div>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </div>`;
-                                            }, Tool.randomString(7));
-                                        })}">
-                                                                                                            
-                                                                                                            <span class="${gClass('button-text')}">${isSelected ? ((isSelected.id === pd.id) ? `已選擇` : `更換贈品`) : `選擇贈品`}</span>
-                                                                                                        </button>
                                                                                                     </div>
-                                                                                                </div>`;
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>`;
+                                            }, Tool.randomString(7));
+                                        })}"
+                                                                        >
+                                                                            <span class="${gClass('button-text')}"
+                                                                                >${isSelected
+                                            ? isSelected.id === pd.id
+                                                ? Language.text('selected')
+                                                : Language.text('change_gift')
+                                            : Language.text('select_gift')}</span
+                                                                            >
+                                                                        </button>
+                                                                    </div>
+                                                                </div>`;
                                     }
                                     catch (e) {
                                         console.log(e);
                                     }
-                                }).join('')}
-                                                                                    </div>
-                                                                                `;
-                            }).join('');
+                                })
+                                    .join('')}
+                                                </div>
+                                            `;
+                            })
+                                .join('');
                         })()}
-                                    <section>
-                                        <div class="${gClass('banner-bgr')}">
-                                            <span class="${gClass('banner-text')}">付款及配送方式</span>
-                                        </div>
-                                        ${vm.cartData.shipment_info ? `<div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
-                                        <div class="row m-0 my-md-3">
-                                            <div class="col-12 col-md-6 mb-2 mb-sm-0">
-                                                <label class="${gClass('label')}">付款方式</label>
-                                                <div>
-                                                    <select class="w-100 ${gClass('select')}"
-                                                            onchange="${gvc.event((e, event) => {
+                                <section>
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">${Language.text('payment_and_shipping_methods')}</span>
+                                    </div>
+                                    ${vm.cartData.shipment_info ? `<div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
+                                    <div class="row m-0 my-md-3">
+                                        <div class="col-12 col-md-6 mb-2 mb-sm-0">
+                                            <label class="${gClass('label')}">${Language.text('payment_method')}</label>
+                                            <div>
+                                                <select
+                                                    class="w-100 ${gClass('select')}"
+                                                    onchange="${gvc.event((e, event) => {
                             vm.cartData.customer_info.payment_select = e.value;
                             this.storeLocalData(vm.cartData);
                             refreshCartData();
-                        })}">
-                                                        ${(() => {
-                            return this.getPaymentMethod(vm.cartData).map((dd) => {
-                                return `<option value="${dd.value}" ${(localStorage.getItem('checkout-payment') === dd.value) ? `selected` : ``}>${dd.name}</option>`;
-                            }).join('');
+                        })}"
+                                                >
+                                                    ${(() => {
+                            return this.getPaymentMethod(vm.cartData)
+                                .map((dd) => {
+                                return html `<option value="${dd.value}" ${localStorage.getItem('checkout-payment') === dd.value ? `selected` : ``}>${dd.name}</option>`;
+                            })
+                                .join('');
                         })()}
-                                                    </select>
-                                                </div>
+                                                </select>
                                             </div>
-                                            <div class="col-12 col-md-6 mb-2">
-                                                <label class="${gClass('label')}">配送方式</label>
-                                                <div>
-                                                    <select class="w-100 ${gClass('select')}"
-                                                            onchange="${gvc.event((e, event) => {
-                            ['CVSStoreName', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
+                                        </div>
+                                        <div class="col-12 col-md-6 mb-2">
+                                            <label class="${gClass('label')}">${Language.text('shipping_method')}</label>
+                                            <div>
+                                                <select
+                                                    class="w-100 ${gClass('select')}"
+                                                    onchange="${gvc.event((e) => {
+                            [
+                                'CVSStoreName',
+                                'MerchantTradeNo',
+                                'LogisticsSubType',
+                                'CVSStoreID',
+                                'CVSStoreName',
+                                'CVSTelephone',
+                                'CVSOutSide',
+                                'ExtraData',
+                                'CVSAddress',
+                            ].map((dd) => {
                                 gvc.glitter.setUrlParameter(dd);
                             });
                             vm.cartData.user_info.shipment = e.value;
                             this.storeLocalData(vm.cartData);
                             refreshCartData();
-                        })}">
-                                                        ${(() => {
-                            return this.getShipmentMethod(vm.cartData).map((dd) => {
-                                return `<option value="${dd.value}" ${(vm.cartData.user_info.shipment === dd.value) ? `selected` : ``}>${dd.name}</option>`;
-                            }).join('');
+                        })}"
+                                                >
+                                                    ${(() => {
+                            return this.getShipmentMethod(vm.cartData)
+                                .map((dd) => {
+                                return `<option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>${dd.name}</option>`;
+                            })
+                                .join('');
                         })()}
-                                                    </select>
-                                                </div>
+                                                </select>
                                             </div>
-                                            ${(vm.cartData.user_info.shipment === 'normal') ? `<div class="col-12 col-md-6 mb-2">
-                                                        <label class="${gClass('label')}">配送地址</label>
-                                                        <input class="${gClass('input')}" type="address" placeholder="請輸入配送地址" value="${vm.cartData.user_info.address || ''}" onchange="${gvc.event((e, event) => {
-                            vm.cartData.user_info.address = e.value;
-                            this.storeLocalData(vm.cartData);
-                        })}">
-                                                    </div>` : ``}
-                                            <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
-                                                <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => {
+                                        </div>
+                                        ${vm.cartData.user_info.shipment === 'normal'
+                            ? html `<div class="col-12 col-md-6 mb-2">
+                                                  <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
+                                                  <input
+                                                      class="${gClass('input')}"
+                                                      type="address"
+                                                      placeholder="${Language.text('please_enter_delivery_address')}"
+                                                      value="${vm.cartData.user_info.address || ''}"
+                                                      onchange="${gvc.event((e, event) => {
+                                vm.cartData.user_info.address = e.value;
+                                this.storeLocalData(vm.cartData);
+                            })}"
+                                                  />
+                                              </div>`
+                            : ``}
+                                        <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
+                                            <button
+                                                class="${gClass('button-bgr')}"
+                                                onclick="${gvc.event(() => {
                             ApiDelivery.storeMaps({
                                 returnURL: location.href,
                                 logistics: vm.cartData.user_info.shipment,
@@ -2353,19 +2188,22 @@ export class CheckoutIndex {
                                 $('body').html(res.response.form);
                                 document.querySelector('#submit').click();
                             }));
-                        })}">
-                                                    <span class="${gClass('button-text')}">${(() => {
+                        })}"
+                                            >
+                                                <span class="${gClass('button-text')}"
+                                                    >${(() => {
                             let cvs = glitter.getUrlParameter('CVSStoreName') || '';
                             if (decodeURIComponent(cvs)) {
-                                return `${decodeURIComponent(cvs)} 『 點擊重選門市 』`;
+                                return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
                             }
                             else {
-                                return `選擇配送門市`;
+                                return Language.text('select_pickup_store');
                             }
-                        })()}</span>
-                                                </button>
-                                            </div>
-                                            ${(() => {
+                        })()}</span
+                                                >
+                                            </button>
+                                        </div>
+                                        ${(() => {
                             var _a;
                             try {
                                 vm.cartData.user_info.custom_form_delivery = (_a = vm.cartData.user_info.custom_form_delivery) !== null && _a !== void 0 ? _a : {};
@@ -2421,7 +2259,7 @@ export class CheckoutIndex {
                                             this.storeLocalData(vm.cartData);
                                         },
                                         formData: vm.cartData.user_info.custom_form_delivery,
-                                    })
+                                    }),
                                 ].join('');
                             }
                             catch (e) {
@@ -2429,37 +2267,44 @@ export class CheckoutIndex {
                                 return ``;
                             }
                         })()}
-                                        </div>
-                                    </section>
-                                    <section
-                                            class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
-                                        <div class="${gClass('banner-bgr')}">
-                                            <span class="${gClass('banner-text')}">顧客資料</span>
-                                        </div>
-                                        <div class="row m-0 mt-3 mb-2">
-                                            ${[{
-                                name: '姓名',
-                                key: 'name'
-                            }, {
-                                name: '聯絡電話',
-                                key: 'phone'
-                            }, {
-                                name: '電子信箱',
-                                key: 'email'
-                            }].map((dd) => {
-                            return html `
-                                                    <div class="col-12 col-md-4 mb-2">
-                                                        <label class="${gClass('label')}">${dd.name}</label>
-                                                        <input class="${gClass('input')}" type="${dd.key}"
-                                                               value="${vm.cartData.customer_info[dd.key] || ""}"
-                                                               onchange="${gvc.event((e, event) => {
+                                    </div>
+                                </section>
+                                <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">${Language.text('customer_info')}</span>
+                                    </div>
+                                    <div class="row m-0 mt-3 mb-2">
+                                        ${[
+                            {
+                                name: Language.text('name'),
+                                key: 'name',
+                            },
+                            {
+                                name: Language.text('contact_number'),
+                                key: 'phone',
+                            },
+                            {
+                                name: Language.text('email'),
+                                key: 'email',
+                            },
+                        ]
+                            .map((dd) => {
+                            return html ` <div class="col-12 col-md-4 mb-2">
+                                                    <label class="${gClass('label')}">${dd.name}</label>
+                                                    <input
+                                                        class="${gClass('input')}"
+                                                        type="${dd.key}"
+                                                        value="${vm.cartData.customer_info[dd.key] || ''}"
+                                                        onchange="${gvc.event((e, event) => {
                                 vm.cartData.customer_info[dd.key] = e.value;
                                 this.storeLocalData(vm.cartData);
-                            })}"/>
-                                                    </div>`;
-                        }).join('')}
-                                        </div>
-                                        ${gvc.bindView(() => {
+                            })}"
+                                                    />
+                                                </div>`;
+                        })
+                            .join('')}
+                                    </div>
+                                    ${gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             const vm_info = {
                                 loading: true,
@@ -2525,7 +2370,7 @@ export class CheckoutIndex {
                                                 this.storeLocalData(vm.cartData);
                                             },
                                             formData: vm.cartData.custom_form_data,
-                                        })
+                                        }),
                                     ].join('');
                                 },
                                 divCreate: {
@@ -2533,13 +2378,13 @@ export class CheckoutIndex {
                                 },
                             };
                         })}
-                                    </section>
-                                    <section>
-                                        <div class="${gClass('banner-bgr')}">
-                                            <span class="${gClass('banner-text')}">收件人資料</span>
-                                        </div>
+                                </section>
+                                <section>
+                                    <div class="${gClass('banner-bgr')}">
+                                        <span class="${gClass('banner-text')}">${Language.text('recipient_info')}</span>
+                                    </div>
 
-                                        ${gvc.bindView(() => {
+                                    ${gvc.bindView(() => {
                             const id = 'invoice_place';
                             const vm_info = {
                                 loading: true,
@@ -2547,11 +2392,11 @@ export class CheckoutIndex {
                                 login_config: {},
                             };
                             let method = '';
-                            (ApiShop.getInvoiceType().then((response) => {
+                            ApiShop.getInvoiceType().then((response) => {
                                 method = response.method;
                                 vm_info.loading = false;
                                 gvc.notifyDataChange(id);
-                            }));
+                            });
                             const checkbox = this.getCheckedClass(gvc, '#393939');
                             return {
                                 bind: id,
@@ -2566,7 +2411,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '姓名',
+                                            title: Language.text('name'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'true',
@@ -2578,19 +2423,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2598,7 +2443,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入姓名'
+                                                place_holder: Language.text('please_enter_name'),
                                             },
                                             hidden_code: '',
                                         },
@@ -2608,7 +2453,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '聯絡電話',
+                                            title: Language.text('contact_number'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'true',
@@ -2620,19 +2465,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2640,7 +2485,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入聯絡電話'
+                                                place_holder: Language.text('please_enter_contact_number'),
                                             },
                                             hidden_code: '',
                                         },
@@ -2650,7 +2495,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '電子信箱',
+                                            title: Language.text('email'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'true',
@@ -2662,19 +2507,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2682,7 +2527,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入電子信箱'
+                                                place_holder: Language.text('please_enter_email'),
                                             },
                                             hidden_code: '',
                                         },
@@ -2692,7 +2537,7 @@ export class CheckoutIndex {
                                             page: 'form-select',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '發票開立對象',
+                                            title: Language.text('invoice_recipient'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'true',
@@ -2704,31 +2549,31 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
                                                 type: 'name',
                                                 title: '',
                                                 option: [
-                                                    { name: '個人', index: 0, value: 'me' },
-                                                    { name: '公司', index: 1, value: 'company' },
+                                                    { name: Language.text('personal'), index: 0, value: 'me' },
+                                                    { name: Language.text('company'), index: 1, value: 'company' },
                                                     {
-                                                        name: '捐贈發票',
+                                                        name: Language.text('donate_invoice'),
                                                         index: 2,
-                                                        value: 'donate'
+                                                        value: 'donate',
                                                     },
                                                 ],
                                                 input_style: { list: [], version: 'v2' },
@@ -2743,7 +2588,7 @@ export class CheckoutIndex {
                                             page: 'form-select',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '開立方式',
+                                            title: Language.text('invoice_method'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'true',
@@ -2755,19 +2600,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2775,14 +2620,14 @@ export class CheckoutIndex {
                                                 title: '',
                                                 option: [
                                                     {
-                                                        name: '傳送至用戶信箱',
+                                                        name: Language.text('send_to_user_email'),
                                                         index: 0,
-                                                        value: 'email'
+                                                        value: 'email',
                                                     },
                                                     {
-                                                        name: '手機條碼載具',
+                                                        name: Language.text('mobile_barcode_device'),
                                                         index: 1,
-                                                        value: 'carrier'
+                                                        value: 'carrier',
                                                     },
                                                 ],
                                                 input_style: { list: [], version: 'v2' },
@@ -2796,7 +2641,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '載具號碼',
+                                            title: Language.text('carrier_number'),
                                             appName: 'cms_system',
                                             require: 'false',
                                             readonly: 'write',
@@ -2809,19 +2654,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2829,7 +2674,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入載具號碼'
+                                                place_holder: Language.text('please_enter_carrier_number'),
                                             },
                                             hidden_code: "    \n    if(form_data['invoice_type']!=='me' || form_data['send_type']!=='carrier'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
                                         },
@@ -2838,7 +2683,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '公司名稱',
+                                            title: Language.text('company_name'),
                                             appName: 'cms_system',
                                             require: 'false',
                                             readonly: 'write',
@@ -2851,19 +2696,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2871,7 +2716,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入公司名稱'
+                                                place_holder: Language.text('please_enter_company_name'),
                                             },
                                             hidden_code: "    if(form_data['invoice_type']!=='company' || (form_data['invoice_method']==='nouse')){\n         form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
                                         },
@@ -2880,7 +2725,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '公司統一編號',
+                                            title: Language.text('company_tax_id'),
                                             col: '3',
                                             col_sm: '12',
                                             appName: 'cms_system',
@@ -2893,19 +2738,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2913,7 +2758,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入公司統一編號'
+                                                place_holder: Language.text('please_enter_company_tax_id'),
                                             },
                                             hidden_code: "    if(form_data['invoice_type']!=='company'){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
                                         },
@@ -2923,7 +2768,7 @@ export class CheckoutIndex {
                                             page: 'input',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '捐贈碼',
+                                            title: Language.text('donation_code'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'false',
@@ -2935,19 +2780,19 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
@@ -2955,7 +2800,7 @@ export class CheckoutIndex {
                                                 title: '',
                                                 input_style: { list: [], version: 'v2' },
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入捐贈碼'
+                                                place_holder: Language.text('please_enter_donation_code'),
                                             },
                                             hidden_code: "    if(form_data['invoice_type']!=='donate' || (form_data['invoice_method']==='nouse')){\n       form_data[form_key]=undefined\nreturn true\n    }else{\n return false\n    }",
                                         },
@@ -2965,7 +2810,7 @@ export class CheckoutIndex {
                                             page: 'multiple_line_text',
                                             type: 'form_plugin_v2',
                                             group: '',
-                                            title: '送貨備註',
+                                            title: Language.text('delivery_notes'),
                                             col_sm: '12',
                                             appName: 'cms_system',
                                             require: 'false',
@@ -2977,26 +2822,26 @@ export class CheckoutIndex {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 label: {
                                                     list: [],
                                                     class: 'form-label fs-base ',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                                 container: {
                                                     list: [],
                                                     class: '',
                                                     style: '',
-                                                    version: 'v2'
+                                                    version: 'v2',
                                                 },
                                             },
                                             form_config: {
                                                 type: 'text',
                                                 title: '',
                                                 title_style: { list: [], version: 'v2' },
-                                                place_holder: '請輸入送貨備註'
+                                                place_holder: Language.text('enter_delivery_notes'),
                                             },
                                             hidden_code: 'return false',
                                         },
@@ -3007,14 +2852,15 @@ export class CheckoutIndex {
                                     vm.cartData.user_info.invoice_type = vm.cartData.user_info.invoice_type || 'me';
                                     vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
                                     const form_array = JSON.parse(JSON.stringify(vm_info.list));
-                                    form_array.map((dd) => {
+                                    form_array
+                                        .map((dd) => {
                                         if (dd.key === 'send_type' && vm.cartData.user_info.send_type === 'carrier') {
                                             dd.col = 3;
                                         }
                                         dd.form_config.title_style = {
                                             list: [
                                                 {
-                                                    class: (['company', 'gui_number', 'carrier_num'].includes(dd.key)) ? (gClass('label') + ' mt-2') : (gClass('label') + ' mb-2'),
+                                                    class: ['company', 'gui_number', 'carrier_num'].includes(dd.key) ? gClass('label') + ' mt-2' : gClass('label') + ' mb-2',
                                                     style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
                                                     stylist: [],
                                                     dataType: 'code',
@@ -3049,11 +2895,15 @@ export class CheckoutIndex {
                                             style_from: 'code',
                                             classDataType: 'static',
                                         };
-                                    }).filter((dd) => {
+                                    })
+                                        .filter((dd) => {
                                         return !(method === 'nouse' && ['invoice_type', 'send_type', 'carrier_num', 'company', 'gui_number', 'love_code'].includes(dd.key));
                                     });
                                     return [
-                                        ` <div class="d-flex ms-2 my-3" style="gap:10px;cursor:pointer;" onclick="${gvc.event(() => {
+                                        html ` <div
+                                                        class="d-flex ms-2 my-3"
+                                                        style="gap:10px;cursor:pointer;"
+                                                        onclick="${gvc.event(() => {
                                             vm.cartData.user_info_same = !vm.cartData.user_info_same;
                                             if (vm.cartData.user_info_same) {
                                                 vm.cartData.user_info.name = vm.cartData.customer_info.name;
@@ -3061,10 +2911,11 @@ export class CheckoutIndex {
                                                 vm.cartData.user_info.email = vm.cartData.customer_info.email;
                                             }
                                             gvc.notifyDataChange(id);
-                                        })}">
-                                            <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox"  ${(vm.cartData.user_info_same) ? `checked` : ''}>
-                                            收件人同購買人資料
-                                        </div>`,
+                                        })}"
+                                                    >
+                                                        <input class="form-check-input form-checkbox  ${checkbox}" type="checkbox" ${vm.cartData.user_info_same ? `checked` : ''} />
+                                                        ${Language.text('same_as_buyer_info')}
+                                                    </div>`,
                                         FormWidget.editorView({
                                             gvc: gvc,
                                             array: form_array,
@@ -3073,7 +2924,7 @@ export class CheckoutIndex {
                                                 gvc.notifyDataChange(id);
                                             },
                                             formData: vm.cartData.user_info,
-                                        })
+                                        }),
                                     ].join('<div class="my-2"></div>');
                                 },
                                 divCreate: {
@@ -3081,18 +2932,18 @@ export class CheckoutIndex {
                                 },
                             };
                         })}
-                                        <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3">
-                                            <button class="${gClass('button-bgr')}" onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                    <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3">
+                                        <button
+                                            class="${gClass('button-bgr')}"
+                                            onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                             if (!(yield this.checkFormData(vm.cartData, widget))) {
                                 return;
                             }
-                            ;
                             if (vm.cartData.user_info_same) {
                                 vm.cartData.user_info.name = vm.cartData.customer_info.name;
                                 vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
                                 vm.cartData.user_info.email = vm.cartData.customer_info.email;
                             }
-                            ;
                             ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
                                 if (gvc.glitter.getUrlParameter(dd)) {
                                     vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
@@ -3122,10 +2973,10 @@ export class CheckoutIndex {
                                 custom_form_format: vm.cartData.custom_form_format,
                                 custom_form_data: vm.cartData.custom_form_data,
                                 distribution_code: ApiCart.cart.distribution_code,
-                                give_away: ApiCart.cart.give_away
+                                give_away: ApiCart.cart.give_away,
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
-                                console.log("res -- ", res);
+                                console.log('res -- ', res);
                                 if (res.response.off_line || res.response.is_free) {
                                     ApiCart.clearCart();
                                     location.href = res.response.return_url;
@@ -3137,18 +2988,19 @@ export class CheckoutIndex {
                                     }
                                     else {
                                         const id = gvc.glitter.getUUID();
-                                        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                        $('body').append(html `<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                         document.querySelector(`#${id} #submit`).click();
                                     }
                                 }
                             });
-                        }))}" style="width:200px;">
-                                                <span class="${gClass('button-text')}">下一步</span>
-                                            </button>
-                                        </div>
-                                    </section>
-
-                                </div>`;
+                        }))}"
+                                            style="width:200px;"
+                                        >
+                                            <span class="${gClass('button-text')}">下一步</span>
+                                        </button>
+                                    </div>
+                                </section>
+                            </div>`;
                     }
                     catch (e) {
                         console.log(e);
@@ -3211,19 +3063,23 @@ export class CheckoutIndex {
             function checkString(text, errorMessage, type = '') {
                 if ((pass && !text) || text === '') {
                     pass = false;
-                    widget.event('error', { title: `請輸入「${errorMessage}」` });
+                    widget.event('error', { title: `${Language.text('please_enter')}「${errorMessage}」` });
                 }
                 if (pass && type === 'email' && !checkEmailPattern(text)) {
                     pass = false;
-                    widget.event('error', { title: `「${errorMessage}」格式錯誤` });
+                    widget.event('error', { title: `「${errorMessage}」${Language.text('format_error')}` });
                 }
                 if (pass && type === 'phone' && !checkPhonePattern(text)) {
                     pass = false;
-                    widget.event('error', { title: `<div class="text-center">「${errorMessage}」格式錯誤<br/>請輸入 09 開頭的手機格式</div>` });
+                    widget.event('error', {
+                        title: html `<div class="text-center">
+                            「${errorMessage}」${Language.text('format_error')}<br />${Language.text('please_enter')} ${Language.text('phone_format_starting_with_09')}
+                        </div>`,
+                    });
                 }
                 if (pass && type === 'name' && !checkReceiverPattern(text)) {
                     pass = false;
-                    widget.event('error', { title: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)' });
+                    widget.event('error', { title: Language.text('name_length_restrictions') });
                 }
             }
             if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])) {
@@ -3237,13 +3093,13 @@ export class CheckoutIndex {
                 });
             }
             if (subData['shipment'] === 'normal' && (!subData['address'] || subData['address'] === '')) {
-                widget.event('error', { title: '請輸入「配送地址」' });
+                widget.event('error', { title: `${Language.text('please_enter')}「${Language.text('shipping_address')}」` });
             }
             else if (subData['shipment'] === 'normal' && !checkAddressPattern(subData['address'])) {
-                widget.event('error', { title: '地址長度需大於6個字元，且不可超過60個字元' });
+                widget.event('error', { title: Language.text('address_length_requirements') });
             }
-            else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && (!subData['CVSStoreName'])) {
-                widget.event('error', { title: '請選擇「配送門市」' });
+            else if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && !subData['CVSStoreName']) {
+                widget.event('error', { title: Language.text('select_delivery_store') });
             }
             else if ((() => {
                 const form = this.getShipmentMethod(cartData).find((dd) => {
@@ -3254,35 +3110,36 @@ export class CheckoutIndex {
                 const form = this.getShipmentMethod(cartData).find((dd) => {
                     return dd.value === subData['shipment'];
                 }).form;
-                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(form, subData)}」` });
+                widget.event('error', { title: `${Language.text('please_enter')}「${FormWidget.checkLeakData(form, subData)}」` });
             }
             else if ((() => {
                 return FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data);
             })()) {
-                widget.event('error', { title: `請輸入「${FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data)}」` });
+                widget.event('error', { title: `${Language.text('please_enter')}「${FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data)}」` });
             }
             else if ((() => {
-                let gift_need = cartData.voucherList
-                    .filter((dd) => {
+                let gift_need = cartData.voucherList.filter((dd) => {
                     return dd.reBackType === 'giveaway';
                 }).length;
                 let gift = 0;
-                cartData.lineItems.filter((dd) => {
+                cartData.lineItems
+                    .filter((dd) => {
                     return dd.is_gift;
-                }).map((dd) => {
+                })
+                    .map((dd) => {
                     gift += dd.count;
                 });
                 return false && gift < gift_need;
             })()) {
-                widget.event('error', { title: '請選擇「贈品」' });
+                widget.event('error', { title: Language.text('please_select_gift') });
             }
             else {
-                checkString(userData.name, '顧客姓名', 'name');
-                checkString(userData.phone, '顧客電話', 'phone');
-                checkString(userData.email, '顧客信箱', 'email');
-                checkString(subData.name, '收件人姓名', 'name');
-                checkString(subData.phone, '收件人電話', 'phone');
-                checkString(subData.email, '收件人信箱', 'email');
+                checkString(userData.name, Language.text('customer_name'), 'name');
+                checkString(userData.phone, Language.text('customer_phone'), 'phone');
+                checkString(userData.email, Language.text('customer_email'), 'email');
+                checkString(subData.name, Language.text('recipient_name'), 'name');
+                checkString(subData.phone, Language.text('recipient_phone'), 'phone');
+                checkString(subData.email, Language.text('recipient_email'), 'email');
                 if (pass) {
                     Ad.gtagEvent('begin_checkout', {
                         currency: 'TWD',
@@ -3318,34 +3175,29 @@ export class CheckoutIndex {
     static viewDialog(obj) {
         return obj.gvc.glitter.innerDialog((gvc) => {
             var _a;
-            return html `
-                <div
-                        class="bg-white shadow rounded-3"
-                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 600px; width: 700px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-                >
-                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                             style="position: sticky; top: 0; background: #fff;">
-                            <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
-                            <div class="flex-fill"></div>
-                            <i
-                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                    style="cursor: pointer"
-                                    onclick="${gvc.event(() => {
+            return html ` <div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 600px; width: 700px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
+                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"
-                            ></i>
-                        </div>
-                        <div class="c_dialog">
-                            <div class="c_dialog_body">
-                                <div class="c_dialog_main"
-                                     style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                    ${obj.innerHTML(gvc)}
-                                </div>
-                            </div>
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
         }, obj.tag);
     }
     static getPaymentMethod(cartData) {
@@ -3415,10 +3267,10 @@ export class CheckoutIndex {
         localStorage.setItem('give_away', JSON.stringify(cartData.give_away));
     }
     static initial(cartData) {
-        cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || "{}");
-        cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || "{}");
-        cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || "{}");
-        cartData.give_away = JSON.parse(localStorage.getItem('give_away') || "[]");
+        cartData.customer_info = JSON.parse(localStorage.getItem('cart_customer_info') || '{}');
+        cartData.custom_form_data = JSON.parse(localStorage.getItem('custom_form_data') || '{}');
+        cartData.user_info = JSON.parse(localStorage.getItem('custom_user_info') || '{}');
+        cartData.give_away = JSON.parse(localStorage.getItem('give_away') || '[]');
         this.getPaymentMethod(cartData);
         this.getShipmentMethod(cartData);
     }

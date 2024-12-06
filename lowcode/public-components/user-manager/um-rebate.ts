@@ -4,6 +4,7 @@ import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { UMVoucher } from './um-voucher.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -54,7 +55,7 @@ export class UMRebate {
                     return UmClass.spinner();
                 } else {
                     const isWebsite = document.body.clientWidth > 768;
-                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? '購物金' : vm.rebateConfig.title;
+                    vm.rebateConfig.title = CheckInput.isEmpty(vm.rebateConfig.title) ? Language.text('shopping_credit') : vm.rebateConfig.title;
                     return html`
                         <div class="um-container row mx-auto">
                             <div class="col-12">${UmClass.nav(gvc)}</div>
@@ -62,12 +63,12 @@ export class UMRebate {
                                 <div class="d-flex ${isWebsite ? 'gap-4' : 'gap-3'}">
                                     <div class="fa-duotone fa-coins fs-1 d-flex align-items-center justify-content-center"></div>
                                     <div class="${isWebsite ? '' : 'd-flex align-items-center gap-2'}">
-                                        <div class="fw-500 fs-6">現有${vm.rebateConfig.title}</div>
+                                        <div class="fw-500 fs-6">${vm.rebateConfig.title}</div>
                                         <div class="fw-bold mt-0 mt-md-1 mb-1 um-rb-amount">${vm.amount.toLocaleString()}</div>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <div class="d-flex align-items-center gap-3">${vm.oldestText.replace(`@{{rebate_title}}`,vm.rebateConfig.title)}</div>
+                                    <div class="d-flex align-items-center gap-3">${vm.oldestText.replace(`@{{rebate_title}}`, vm.rebateConfig.title)}</div>
                                 </div>
                             </div>
                             <div class="col-12 mt-2" style="min-height: 500px;">
@@ -76,31 +77,31 @@ export class UMRebate {
                                         if (vm.dataList.length === 0) {
                                             return html`<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
                                                 <lottie-player
-                                                        style="max-width: 100%;width: 300px;"
-                                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                        speed="1"
-                                                        loop="true"
-                                                        background="transparent"
+                                                    style="max-width: 100%;width: 300px;"
+                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                    speed="1"
+                                                    loop="true"
+                                                    background="transparent"
                                                 ></lottie-player>
-                                                <span class="mb-5 fs-5">目前沒有取得${vm.rebateConfig.title}呦</span>
+                                                <span class="mb-5 fs-5">${Language.text('no_current_obtain')} ${vm.rebateConfig.title}</span>
                                             </div>`;
                                         }
 
                                         const header = [
                                             {
-                                                title: '建立日期',
+                                                title: Language.text('creation_date'),
                                             },
                                             {
-                                                title: '到期日期',
+                                                title: Language.text('expiration_date'),
                                             },
                                             {
-                                                title: `${vm.rebateConfig.title}來源`,
+                                                title: Language.text('source'),
                                             },
                                             {
-                                                title: '獲得款項',
+                                                title: Language.text('received_amount'),
                                             },
                                             {
-                                                title: '餘額',
+                                                title: Language.text('balance'),
                                             },
                                         ];
 
@@ -126,21 +127,23 @@ export class UMRebate {
                                                     if (item.money <= 0) {
                                                         return `-`;
                                                     } else if (item.deadline.includes('2999')) {
-                                                        return '無期限';
+                                                        return Language.text('no_expiry');
                                                     } else {
-                                                        return `${glitter.ut.dateFormat(new Date(item.deadline), 'yyyy/MM/dd hh:mm')}
-                                                  ${threeDayLater(item.deadline) && item.remain && item.remain > 0 ? html`<span class="badge bg-faded-danger text-danger ms-1">即將到期</span>` : ''}`;
+                                                        return html`${glitter.ut.dateFormat(new Date(item.deadline), 'yyyy/MM/dd hh:mm')}
+                                                        ${threeDayLater(item.deadline) && item.remain && item.remain > 0
+                                                            ? html`<span class="badge bg-faded-danger text-danger ms-1">${Language.text('about_to_expire')}</span>`
+                                                            : ''}`;
                                                     }
                                                 })(),
                                                 (() => {
                                                     if (item.orderID) {
                                                         if (item.money > 0) {
-                                                            return `訂單『 ${item.orderID} 』獲得${vm.rebateConfig.title}`;
+                                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('obtain')} ${vm.rebateConfig.title}`;
                                                         } else {
-                                                            return `訂單『 ${item.orderID} 』使用${vm.rebateConfig.title}`;
+                                                            return `${Language.text('order')}『 ${item.orderID} 』${Language.text('use')} ${vm.rebateConfig.title}`;
                                                         }
                                                     } else {
-                                                        return item.note || `手動增減${vm.rebateConfig.title}`;
+                                                        return item.note || `${Language.text('manual_adjustment')} ${vm.rebateConfig.title}`;
                                                     }
                                                 })(),
                                                 item.money.toLocaleString(),
@@ -153,37 +156,37 @@ export class UMRebate {
                                             return html`
                                                 <div class="w-100 d-sm-flex py-4 um-th-bar">
                                                     ${header
-                                                            .map((item, index) => {
-                                                                return html`<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
-                                                            })
-                                                            .join('')}
-                                                </div>
-                                                ${vm.dataList
-                                                        .map((item) => {
-                                                            return html`<div class="w-100 d-sm-flex py-5 um-td-bar">
-                                                                ${formatText(item)
-                                                                        .map((dd, index) => {
-                                                                            return html`<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
-                                                                        })
-                                                                        .join('')}
-                                                            </div>`;
+                                                        .map((item, index) => {
+                                                            return html`<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
                                                         })
                                                         .join('')}
+                                                </div>
+                                                ${vm.dataList
+                                                    .map((item) => {
+                                                        return html`<div class="w-100 d-sm-flex py-5 um-td-bar">
+                                                            ${formatText(item)
+                                                                .map((dd, index) => {
+                                                                    return html`<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
+                                                                })
+                                                                .join('')}
+                                                        </div>`;
+                                                    })
+                                                    .join('')}
                                             `;
                                         }
 
                                         return html`<div class="w-100 d-sm-none mb-3 s162413">
                                             ${vm.dataList
-                                                    .map((item) => {
-                                                        return html`<div class="um-mobile-area">
-                                                            ${formatText(item)
-                                                                    .map((dd, index) => {
-                                                                        return html`<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
-                                                                    })
-                                                                    .join('')}
-                                                        </div>`;
-                                                    })
-                                                    .join('')}
+                                                .map((item) => {
+                                                    return html`<div class="um-mobile-area">
+                                                        ${formatText(item)
+                                                            .map((dd, index) => {
+                                                                return html`<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
+                                                            })
+                                                            .join('')}
+                                                    </div>`;
+                                                })
+                                                .join('')}
                                         </div> `;
                                     })()}
                                 </div>
@@ -224,7 +227,16 @@ export class UMRebate {
                                         if (!(oldest.remain && oldest.deadline)) {
                                             resolve('');
                                         }
-                                        resolve(html`您尚有 ${oldest.remain.toLocaleString()} @{{rebate_title}}<br/>將於 ${glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm')} 到期`);
+
+                                        const remainStr = oldest.remain.toLocaleString();
+                                        const endDate = glitter.ut.dateFormat(new Date(oldest.deadline), 'yyyy/MM/dd hh:mm');
+                                        const text = {
+                                            'zh-TW': `您尚有 ${remainStr} @{{rebate_title}} <br />將於 ${endDate} 到期`,
+                                            'zh-CN': `您还有 ${remainStr} @{{rebate_title}}  <br />将于 ${endDate} 到期`,
+                                            'en-US': `You have ${remainStr} @{{rebate_title}} <br />expiring on ${endDate}`,
+                                        } as any;
+
+                                        resolve(text[Language.getLanguage()]);
                                     });
                                 }),
                                 new Promise<RebateInfo[]>((resolve) => {
@@ -239,7 +251,7 @@ export class UMRebate {
                                             resolve([]);
                                         }
                                     });
-                                })
+                                }),
                             ]).then((dataList) => {
                                 vm.rebateConfig = dataList[0];
                                 vm.amount = dataList[1];

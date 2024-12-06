@@ -4,6 +4,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -20,7 +21,7 @@ type User = {
     static_info: string | null;
     member: Member[];
     member_level: MemberLevel;
-    member_level_status: 'auto' | 'manual' | string; // 若只有 "auto"，可改成更精確的型別
+    member_level_status: 'auto' | 'manual' | string;
 };
 
 type UserData = {
@@ -121,7 +122,7 @@ export class UMInfo {
                                         const mem = vm.data.member.find((d) => {
                                             return d.trigger;
                                         });
-                                        return mem ? mem.tag_name : '一般會員';
+                                        return mem ? mem.tag_name : Language.text('normal_member');
                                     })()}
                                 </div>
                             </div>
@@ -130,19 +131,23 @@ export class UMInfo {
                                     ${[
                                         (() => {
                                             if (vm.data.member_level.dead_line) {
-                                                return `＊ 會員到期日至 ${vm.data.member_level.dead_line.substring(0, 10).replace(/-/g, '/')}`;
+                                                return `＊ ${Language.text('membership_expiry_date')} ${vm.data.member_level.dead_line.substring(0, 10).replace(/-/g, '/')}`;
                                             }
                                             return '';
                                         })(),
                                         (() => {
                                             try {
                                                 if (vm.data.member_level.re_new_member.trigger) {
-                                                    return `＊ 已達成續會條件`;
+                                                    return `＊ ${Language.text('renewal_criteria_met')}`;
                                                 }
                                                 if (vm.data.member_level.re_new_member.og.condition.type === 'total') {
-                                                    return `＊ 再消費NT.${Number(vm.data.member_level.re_new_member.leak).toLocaleString()}即可達成續會條件`;
+                                                    return `＊ ${Language.text('spend_again')} NT.${Number(vm.data.member_level.re_new_member.leak).toLocaleString()} ${Language.text(
+                                                        'can_meet_renewal_criteria'
+                                                    )}`;
                                                 }
-                                                return `＊ 單筆消費滿NT.${Number(vm.data.member_level.re_new_member.leak).toLocaleString()}即可達成續會條件`;
+                                                return `＊ ${Language.text('single_purchase_over')} NT.${Number(vm.data.member_level.re_new_member.leak).toLocaleString()} ${Language.text(
+                                                    'can_meet_renewal_criteria'
+                                                )}`;
                                             } catch {
                                                 return '';
                                             }
@@ -153,12 +158,13 @@ export class UMInfo {
                                             }
                                             const condition_val = vm.memberNext.og.condition.value.toLocaleString();
                                             if (vm.memberNext.og.condition.type !== 'total') {
-                                                return `＊ 單筆消費達 NT${condition_val} 即可升級至${vm.memberNext.tag_name}`;
+                                                return `＊ ${Language.text('single_purchase_reaches')} NT.${condition_val} ${Language.text('upgrade_to')} ${vm.memberNext.tag_name}`;
                                             }
                                             if (vm.memberNext.og.duration.type === 'noLimit') {
-                                                return `＊ 累積消費額達 NT${condition_val} 即可升級至${vm.memberNext.tag_name}`;
+                                                return `＊ ${Language.text('accumulated_spending_reaches')} NT.${condition_val} ${Language.text('upgrade_to')} ${vm.memberNext.tag_name}`;
                                             }
-                                            return `＊ ${vm.memberNext.og.duration.value}天內累積消費額達 NT${condition_val} 即可升級至${vm.memberNext.tag_name}`;
+                                            return html`＊ ${vm.memberNext.og.duration.value} ${Language.text('days')} ${Language.text('accumulated_spending_reaches')} NT.${condition_val}
+                                            ${Language.text('upgrade_to')} ${vm.memberNext.tag_name}`;
                                         })(),
                                     ]
                                         .map((str) => {
@@ -171,11 +177,11 @@ export class UMInfo {
                                             UmClass.dialog({
                                                 gvc,
                                                 tag: 'level-of-detail',
-                                                title: '規則說明',
+                                                title: Language.text('rules_explanation'),
                                                 innerHTML: (gvc: GVC) => {
                                                     return html`<div class="mt-1 pb-2 ${vm.data.member.length > 0 ? 'border-bottom' : ''}">
-                                                            <div class="um-title">會員等級規則</div>
-                                                            <div class="um-content">會籍期效內若沒達成續會條件，將會自動降級</div>
+                                                            <div class="um-title">${Language.text('membership_level_rules')}</div>
+                                                            <div class="um-content">${Language.text('if_renewal_criteria_not_met_within_membership_period')}</div>
                                                         </div>
                                                         ${(() => {
                                                             const members = JSON.parse(JSON.stringify(vm.data.member)) as Member[];
@@ -187,12 +193,17 @@ export class UMInfo {
                                                                         const condition_val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
                                                                         if (leadData.og.condition.type === 'total') {
                                                                             if (leadData.og.duration.type === 'noLimit') {
-                                                                                return `累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                                return `${Language.text('accumulated_spending_reaches')} NT.${condition_val} ${Language.text('upgrade_to')} ${
+                                                                                    leadData.tag_name
+                                                                                }`;
                                                                             } else {
-                                                                                return `${leadData.og.duration.value}天內累積消費額達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                                return html`${leadData.og.duration.value} ${Language.text('days')} ${Language.text('accumulated_spending_reaches')}
+                                                                                NT.${condition_val} ${Language.text('upgrade_to')} ${leadData.tag_name}`;
                                                                             }
                                                                         } else {
-                                                                            return `單筆消費達 NT${condition_val} 即可升級至${leadData.tag_name}`;
+                                                                            return `${Language.text('single_purchase_reaches')} NT.${condition_val} ${Language.text('upgrade_to')} ${
+                                                                                leadData.tag_name
+                                                                            }`;
                                                                         }
                                                                     })();
                                                                     return html`
@@ -208,7 +219,7 @@ export class UMInfo {
                                             });
                                         })}"
                                     >
-                                        查看會員級數規則
+                                        ${Language.text('view_membership_level_rules')}
                                     </div>
                                     <div
                                         class="um-info-event"
@@ -216,7 +227,7 @@ export class UMInfo {
                                             UmClass.dialog({
                                                 gvc,
                                                 tag: 'user-qr-code',
-                                                title: '會員條碼',
+                                                title: Language.text('membership_barcode'),
                                                 innerHTML: (gvc) => {
                                                     return gvc.bindView(
                                                         (() => {
@@ -278,7 +289,7 @@ export class UMInfo {
                                             });
                                         })}"
                                     >
-                                        出示會員條碼
+                                        ${Language.text('present_membership_barcode')}
                                     </div>
                                 </div>
                             </div>
@@ -288,11 +299,13 @@ export class UMInfo {
                                         return '';
                                     }
                                     const solidButtonBgr = gvc.glitter.share.globalValue['theme_color.0.solid-button-bg'] ?? '#292218';
-                                    return html` <div class="um-title mb-1 mt-2">目前累積消費金額</div>
+                                    return html` <div class="um-title mb-1 mt-2">${Language.text('current_accumulated_spending_amount')}</div>
                                         <div class="w-100 um-linebar-container">
                                             <div class="d-flex w-100 justify-content-between align-items-center">
                                                 <div class="um-content">NT. ${(vm.memberNext.sum ?? 0).toLocaleString()}</div>
-                                                <div class="um-content um-text-danger">差 NT.${vm.memberNext.leak.toLocaleString()} 即可升級</div>
+                                                <div class="um-content um-text-danger">
+                                                    ${Language.text('distance_from_target_amount')} NT.${vm.memberNext.leak.toLocaleString()} ${Language.text('can_upgrade')}
+                                                </div>
                                             </div>
                                             <div class="w-100 um-linebar">
                                                 <div class="um-linebar-behind"></div>
@@ -312,7 +325,7 @@ export class UMInfo {
                                 })()}
                             </div>
                             <div class="w-100 mt-4" style="min-height: 500px;">
-                                <div class="um-title my-2">編輯個人資料</div>
+                                <div class="um-title my-2">${Language.text('edit_profile')}</div>
                                 ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     const vm_info: {
@@ -358,7 +371,7 @@ export class UMInfo {
                                                         type: 'form_plugin_v2',
                                                         group: '',
                                                         toggle: true,
-                                                        title: '信箱驗證碼',
+                                                        title: Language.text('email_verification_code'),
                                                         appName: 'cms_system',
                                                         require: 'true',
                                                         readonly: 'write',
@@ -394,7 +407,7 @@ export class UMInfo {
                                                                 list: [],
                                                                 version: 'v2',
                                                             },
-                                                            place_holder: '請輸入驗證碼',
+                                                            place_holder: Language.text('please_enter_verification_code'),
                                                             get email() {
                                                                 return update_userData.email;
                                                             },
@@ -417,7 +430,7 @@ export class UMInfo {
                                                         type: 'form_plugin_v2',
                                                         group: '',
                                                         toggle: true,
-                                                        title: '簡訊驗證碼',
+                                                        title: Language.text('sms_verification_code'),
                                                         appName: 'cms_system',
                                                         require: 'true',
                                                         readonly: 'write',
@@ -453,7 +466,7 @@ export class UMInfo {
                                                                 list: [],
                                                                 version: 'v2',
                                                             },
-                                                            place_holder: '請輸入簡訊驗證碼',
+                                                            place_holder: Language.text('please_enter_sms_verification_code'),
                                                             get phone_number() {
                                                                 return update_userData.phone;
                                                             },
@@ -529,7 +542,7 @@ export class UMInfo {
                                                                 return `${dd.require}` === 'true' && !update_userData[dd.key];
                                                             });
                                                             if (leak) {
-                                                                dialog.errorMessage({ text: '尚未填寫' + leak.title });
+                                                                dialog.errorMessage({ text: `${Language.text('not_filled_in_yet')} ${leak.title}` });
                                                                 return;
                                                             }
                                                             dialog.dataLoading({ visible: true });
@@ -538,23 +551,23 @@ export class UMInfo {
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (!res.result && res.response.data.msg === 'email-verify-false') {
-                                                                    dialog.errorMessage({ text: '信箱驗證碼輸入錯誤' });
+                                                                    dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
                                                                 } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
-                                                                    dialog.errorMessage({ text: '簡訊驗證碼輸入錯誤' });
+                                                                    dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
                                                                 } else if (!res.result && res.response.data.msg === 'phone-exists') {
-                                                                    dialog.errorMessage({ text: '此電話號碼已存在' });
+                                                                    dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
                                                                 } else if (!res.result && res.response.data.msg === 'email-exists') {
-                                                                    dialog.errorMessage({ text: '此信箱已存在' });
+                                                                    dialog.errorMessage({ text: Language.text('email_already_exists') });
                                                                 } else if (!res.result) {
-                                                                    dialog.errorMessage({ text: '更新異常' });
+                                                                    dialog.errorMessage({ text: Language.text('update_exception') });
                                                                 } else {
-                                                                    dialog.successMessage({ text: '更新成功' });
+                                                                    dialog.successMessage({ text: Language.text('change_success') });
                                                                     gvc.recreateView();
                                                                 }
                                                             });
                                                         })}"
                                                     >
-                                                        儲存更改
+                                                        ${Language.text('confirm_reset')}
                                                     </div>
                                                 </div>`,
                                             ].join('');

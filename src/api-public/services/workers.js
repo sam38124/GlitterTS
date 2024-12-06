@@ -10,7 +10,6 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const worker_threads_1 = require("worker_threads");
 worker_threads_1.parentPort === null || worker_threads_1.parentPort === void 0 ? void 0 : worker_threads_1.parentPort.on('message', async (name) => {
     try {
-        console.info(`Worker Name: ${name}`);
         const tempArray = [];
         const pool = promise_1.default.createPool({
             connectionLimit: config_1.default.DB_CONN_LIMIT,
@@ -62,7 +61,6 @@ class Workers {
                     })));
                     if (completed === Math.ceil(data.queryList.length / chunkSize)) {
                         resultArray.sort((a, b) => a.index - b.index);
-                        console.info(response.message);
                         resolve({
                             status: 'success',
                             resultArray: resultArray.map((item) => item.data),

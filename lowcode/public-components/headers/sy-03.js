@@ -2,6 +2,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { AiSearch } from '../ai/ai-search.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class Sy03 {
     static main(gvc, widget, subData) {
@@ -58,7 +59,7 @@ export class Sy03 {
                                                             <div class="position-relative">
                                                                 <input
                                                                     class="form-control fw-500 "
-                                                                    placeholder="找商品"
+                                                                    placeholder="${Language.text('find_product')}"
                                                                     autocomplete="off"
                                                                     value=""
                                                                     onchange="${gvc.event((e, event) => {
@@ -318,7 +319,7 @@ padding-bottom: 2px;
                                                     ><input
                                                         class="ms-3 form-control"
                                                         style="height:40px;"
-                                                        placeholder="輸入商品關鍵字。"
+                                                        placeholder="${Language.text('input_product_keyword')}"
                                                         autocomplete="off"
                                                         onchange="${gvc.event((e, event) => {
                             gvc.glitter.href = `/all-product?search=${e.value}`;

@@ -12,7 +12,8 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
-import { ApiUser } from "../../glitter-base/route/user.js";
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductCard02 {
     static main(gvc, widget, subData) {
@@ -105,10 +106,6 @@ export class ProductCard02 {
                 border-radius: 50%;
                 z-index: 2;
             }
-            .card-tag {
-                left: -3px;
-                top: 25px;
-            }
             .card-title-container {
                 min-height: 55px;
                 align-items: center;
@@ -180,25 +177,21 @@ export class ProductCard02 {
                 if (Object.entries(label).length > 0) {
                     function showPosition() {
                         switch (label.data.position) {
-                            case "左上":
+                            case '左上':
                                 return `left:0;top:0;`;
-                            case "右上":
+                            case '右上':
                                 return `right:0;top:0;`;
-                            case "左下":
+                            case '左下':
                                 return `left:0;bottom:0;`;
                             default:
                                 return `right:0;bottom:0;`;
                         }
                     }
-                    return html `
-                                    <div style="position: absolute;${showPosition()};z-index:2;">
-                                        ${label.data.content}
-                                    </div>
-                                    
-                                `;
+                    return html ` <div style="position: absolute;${showPosition()};z-index:2;">${label.data.content}</div> `;
                 }
                 return ``;
-            }, divCreate: { class: `probLabel w-100 h-100`, style: `position: absolute;left: 0;top: 0;` }
+            },
+            divCreate: { class: `probLabel w-100 h-100`, style: `position: absolute;left: 0;top: 0;` },
         })}
                 <img
                     class="card-image-fit-center"
@@ -228,7 +221,7 @@ export class ProductCard02 {
                 ApiShop.deleteWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
                     PdClass.jumpAlert({
                         gvc,
-                        text: '刪除成功',
+                        text: Language.text('delete_success'),
                         justify: 'top',
                         align: 'center',
                     });
@@ -240,7 +233,7 @@ export class ProductCard02 {
                 ApiShop.postWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
                     PdClass.jumpAlert({
                         gvc,
-                        text: '新增成功',
+                        text: Language.text('add_success'),
                         justify: 'top',
                         align: 'center',
                     });
@@ -262,7 +255,6 @@ export class ProductCard02 {
             },
         })}
             </div>
-            <div class="d-none card-tag">限時特價</div>
             <div class="card-collapse-parent">
                 <div class="px-1 d-flex card-title-container justify-content-around align-items-center">
                     <div class="row gx-0 mb-1">

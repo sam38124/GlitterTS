@@ -12,7 +12,7 @@ export class Language {
             if (!window.store_info.language_setting.support.includes(last_select)) {
                 last_select = window.store_info.language_setting.def;
             }
-            if (last_select !== (window.store_info.language_setting.def)) {
+            if (last_select !== window.store_info.language_setting.def) {
                 switch (last_select) {
                     case 'en-US':
                         return `en`;
@@ -41,16 +41,16 @@ export class Language {
         const sup = [
             {
                 key: 'en-US',
-                value: local ? 'English' : '英'
+                value: local ? 'English' : '英',
             },
             {
                 key: 'zh-CN',
-                value: local ? '简体中文' : '简'
+                value: local ? '简体中文' : '简',
             },
             {
                 key: 'zh-TW',
-                value: local ? '繁體中文' : '繁'
-            }
+                value: local ? '繁體中文' : '繁',
+            },
         ];
         return (_a = sup.find((dd) => {
             return dd.key === Language.getLanguage();
@@ -60,9 +60,7 @@ export class Language {
         localStorage.setItem('select_language', value);
     }
     static text(key) {
-        return ([
-            { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: `Switch language` }
-        ]).find((dd) => {
+        return this.languageDataList().find((dd) => {
             return dd.key === key;
         })[(() => {
             switch (Language.getLanguage()) {
@@ -76,5 +74,234 @@ export class Language {
                     return `en`;
             }
         })()];
+    }
+    static checkKeys() {
+        const arr = this.languageDataList();
+        const keySet = new Set();
+        for (const item of arr) {
+            if (keySet.has(item.key)) {
+                alert(`重複值: ${item.key}`);
+                return;
+            }
+            else {
+                keySet.add(item.key);
+            }
+        }
+        alert('沒有重複值');
+        return;
+    }
+    static languageDataList() {
+        return [
+            { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: 'Switch language' },
+            { key: 'shopping_details', tw: '購物明細', cn: '购物明细', en: 'Shopping details' },
+            { key: 'your_shopping_cart', tw: '您的購物車', cn: '您的购物车', en: 'Your shopping cart' },
+            { key: 'product_name', tw: '商品名稱', cn: '商品名称', en: 'Product name' },
+            { key: 'specification', tw: '規格', cn: '规格', en: 'Specification' },
+            { key: 'unit_price', tw: '單價', cn: '单价', en: 'Unit price' },
+            { key: 'quantity', tw: '數量', cn: '数量', en: 'Quantity' },
+            { key: 'subtotal', tw: '小計', cn: '小计', en: 'Subtotal' },
+            { key: 'total', tw: '合計', cn: '合计', en: 'Total' },
+            { key: 'total_products', tw: '商品總計', cn: '商品总计', en: 'Total products' },
+            { key: 'shipping_fee', tw: '運費', cn: '运费', en: 'Shipping fee' },
+            { key: 'discount_coupon', tw: '優惠券折抵', cn: '优惠券折抵', en: 'Discount coupon' },
+            { key: 'promo_code', tw: '優惠代碼', cn: '优惠码', en: 'Promo code' },
+            { key: 'discount', tw: '折抵', cn: '折抵', en: 'Discount' },
+            { key: 'remaining_balance', tw: '您目前剩餘', cn: '您目前剩余', en: 'Your remaining balance' },
+            { key: 'point', tw: '點', cn: '点', en: '' },
+            { key: 'max_discount_order', tw: '此份訂單最多可折抵', cn: '此份订单最多可折抵', en: 'Maximum discount for this order' },
+            { key: 'total_amount', tw: '總金額', cn: '总金额', en: 'Total amount' },
+            { key: 'additional_purchase_items', tw: '可加購商品', cn: '可加购商品', en: 'Additional purchase items' },
+            { key: 'payment_and_shipping_methods', tw: '付款及配送方式', cn: '付款及配送方式', en: 'Payment and shipping' },
+            { key: 'payment_method', tw: '付款方式', cn: '付款方式', en: 'Payment method' },
+            { key: 'shipping_method', tw: '配送方式', cn: '配送方式', en: 'Shipping method' },
+            { key: 'shipping_address', tw: '配送地址', cn: '配送地址', en: 'Shipping address' },
+            { key: 'customer_info', tw: '顧客資料', cn: '顾客资料', en: 'Customer information' },
+            { key: 'name', tw: '姓名', cn: '姓名', en: 'Name' },
+            { key: 'contact_number', tw: '聯絡電話', cn: '联系电话', en: 'Contact number' },
+            { key: 'email', tw: '電子信箱', cn: '电子邮箱', en: 'Email' },
+            { key: 'recipient_info', tw: '收件人資料', cn: '收件人资料', en: 'Recipient information' },
+            { key: 'invoice_recipient', tw: '發票開立對象', cn: '发票开立对象', en: 'Invoice recipient' },
+            { key: 'invoice_method', tw: '開立方式', cn: '开立方式', en: 'Invoice method' },
+            { key: 'delivery_notes', tw: '送貨備註', cn: '送货备注', en: 'Delivery notes' },
+            { key: 'enter_delivery_notes', tw: '請輸入送貨備註', cn: '请输入送货备注', en: 'Please enter delivery notes' },
+            { key: 'send_to_user_email', tw: '傳送至用戶信箱', cn: '传送至用户邮箱', en: 'Send to user email' },
+            { key: 'mobile_barcode_device', tw: '手機條碼載具', cn: '手机条码载具', en: 'Mobile barcode device' },
+            { key: 'add_to_cart', tw: '加入購物車', cn: '加入购物车', en: 'Add to Cart' },
+            {
+                key: 'empty_cart_message',
+                tw: '購物車是空的，趕快前往挑選您心儀的商品',
+                cn: '购物车是空的，赶快前往挑选您心仪的商品',
+                en: 'Your shopping cart is empty. Quickly go pick out your favorite items',
+            },
+            { key: 'same_as_buyer_info', tw: '收件人同購買人資料', cn: '收件人同购买人资料', en: 'Recipient same as buyer information' },
+            { key: 'personal', tw: '個人', cn: '个人', en: 'Personal' },
+            { key: 'company', tw: '公司', cn: '公司', en: 'Company' },
+            { key: 'donate_invoice', tw: '捐贈發票', cn: '捐赠发票', en: 'Donate invoice' },
+            { key: 'carrier_number', tw: '載具號碼', cn: '载具号码', en: 'Carrier number' },
+            { key: 'company_name', tw: '公司名稱', cn: '公司名称', en: 'Company name' },
+            { key: 'company_tax_id', tw: '公司統一編號', cn: '公司统一编码', en: 'Company tax ID' },
+            { key: 'donation_code', tw: '捐贈碼', cn: '捐赠码', en: 'Donation code' },
+            { key: 'add', tw: '新增', cn: '新增', en: 'Add' },
+            { key: 'available_coupons', tw: '可使用的優惠券', cn: '可使用的优惠券', en: 'Available coupons' },
+            { key: 'enter_code', tw: '輸入代碼', cn: '输入代码', en: 'Enter code' },
+            { key: 'coupon_name', tw: '優惠券名稱', cn: '优惠券名称', en: 'Coupon name' },
+            { key: 'coupon_code', tw: '優惠券代碼', cn: '优惠券代码', en: 'Coupon code' },
+            { key: 'expiration_date', tw: '使用期限', cn: '使用期限', en: 'Expiration date' },
+            { key: 'no_expiration', tw: '無使用期限', cn: '无使用期限', en: 'No expiration' },
+            { key: 'select_to_use', tw: '選擇使用', cn: '选择使用', en: 'Select to use' },
+            { key: 'not_meet_usage_criteria', tw: '未達使用標準', cn: '未达使用标准', en: 'Does not meet usage criteria' },
+            { key: 'code_unusable', tw: '此代碼無法使用', cn: '此代码无法使用', en: 'This code cannot be used' },
+            { key: 'enter_promo_code', tw: '請輸入優惠代碼', cn: '请输入优惠代码', en: 'Please enter promo code' },
+            { key: 'confirm', tw: '確認', cn: '确认', en: 'Confirm' },
+            { key: 'enter_value', tw: '請輸入數值', cn: '请输入数值', en: 'Please enter a value' },
+            { key: 'apply', tw: '套用', cn: '应用', en: 'Apply' },
+            { key: 'can_use_now', tw: '即可使用', cn: '即可使用', en: 'Can use now' },
+            { key: 'select_pickup_store', tw: '選擇配送門市', cn: '选择配送门市', en: 'Select pickup store' },
+            { key: 'click_to_reselct_store', tw: '點擊重選門市', cn: '点击重选门市', en: 'Click to reselect store' },
+            { key: 'please_enter', tw: '請輸入', cn: '请输入', en: 'Please enter' },
+            { key: 'please_enter_delivery_address', tw: '請輸入配送地址', cn: '请输入配送地址', en: 'Please enter delivery address' },
+            { key: 'please_enter_name', tw: '請輸入姓名', cn: '请输入姓名', en: 'Please enter name' },
+            { key: 'please_enter_contact_number', tw: '請輸入聯絡電話', cn: '请输入联系电话', en: 'Please enter contact number' },
+            { key: 'please_enter_email', tw: '請輸入電子信箱', cn: '请输入电子邮箱', en: 'Please enter email' },
+            { key: 'please_enter_carrier_number', tw: '請輸入載具號碼', cn: '请输入载具号码', en: 'Please enter carrier number' },
+            { key: 'please_enter_company_name', tw: '請輸入公司名稱', cn: '请输入公司名称', en: 'Please enter company name' },
+            { key: 'please_enter_company_tax_id', tw: '請輸入公司統一編號', cn: '请输入公司统一编码', en: 'Please enter company tax ID' },
+            { key: 'please_enter_donation_code', tw: '請輸入捐贈碼', cn: '请输入捐赠码', en: 'Please enter donation code' },
+            {
+                key: 'name_length_restrictions',
+                tw: '姓名請設定為4~10字元(中文2~5個字, 英文4~10個字, 不得含指定特殊符號)',
+                cn: '姓名请设置为4~10字元(中文2~5个字, 英文4~10个字, 不得含指定特殊符号)',
+                en: 'Name should be set to 4-10 characters (2-5 characters for Chinese, 4-10 characters for English, no designated special symbols)',
+            },
+            {
+                key: 'address_length_requirements',
+                tw: '地址長度需大於6個字元，且不可超過60個字元',
+                cn: '地址长度需大于6个字元，且不可超过60个字元',
+                en: 'Address length should be greater than 6 characters and not exceed 60 characters',
+            },
+            { key: 'select_delivery_store', tw: '請選擇「配送門市」', cn: '请选择「配送门市」', en: 'Please select "Delivery Store"' },
+            { key: 'please_select_gift', tw: '請選擇「贈品」', cn: '请选择「赠品」', en: 'Please select "Gift"' },
+            { key: 'customer_name', tw: '顧客姓名', cn: '顾客姓名', en: 'Customer name' },
+            { key: 'customer_phone', tw: '顧客電話', cn: '顾客电话', en: 'Customer phone' },
+            { key: 'customer_email', tw: '顧客信箱', cn: '顾客邮箱', en: 'Customer email' },
+            { key: 'recipient_name', tw: '收件人姓名', cn: '收件人姓名', en: 'Recipient name' },
+            { key: 'recipient_phone', tw: '收件人電話', cn: '收件人电话', en: 'Recipient phone' },
+            { key: 'recipient_email', tw: '收件人信箱', cn: '收件人邮箱', en: 'Recipient email' },
+            { key: 'format_error', tw: '格式錯誤', cn: '格式错误', en: 'Format error' },
+            { key: 'phone_format_starting_with_09', tw: '09 開頭的手機格式', cn: '以 09 開头的手机格式', en: 'Phone format starting with 09' },
+            { key: 'addon', tw: '加購品', cn: '加购品', en: 'Addon' },
+            { key: 'gift', tw: '贈品', cn: '赠品', en: 'Gift' },
+            { key: 'selected', tw: '已選擇', cn: '已选择', en: 'Selected' },
+            { key: 'change_gift', tw: '更換贈品', cn: '更换赠品', en: 'Change gift' },
+            { key: 'select_gift', tw: '選擇贈品', cn: '选择赠品', en: 'Select gift' },
+            { key: 'shopping_credit', tw: '購物金', cn: '购物金', en: 'Shopping credit' },
+            { key: 'distance_from_target_amount', tw: '距離目標金額還差', cn: '距离目标金额还差', en: 'Amount remaining to target' },
+            { key: 'member_login', tw: '會員登入', cn: '会员登录', en: 'Login' },
+            { key: 'input_product_keyword', tw: '輸入商品關鍵字', cn: '输入商品关键字', en: 'Enter Product Keyword' },
+            { key: 'find_product', tw: '找商品', cn: '找商品', en: 'Find Product' },
+            { key: 'delete_success', tw: '刪除成功', cn: '删除成功', en: 'Delete Successful' },
+            { key: 'add_success', tw: '新增成功', cn: '新增成功', en: 'Add Successful' },
+            { key: 'loading', tw: '載入中', cn: '加载中', en: 'Loading' },
+            { key: 'ai_choose', tw: 'AI 選品', cn: 'AI 选品', en: 'AI Choose' },
+            { key: 'search', tw: '搜尋', cn: '搜索', en: 'Search' },
+            { key: 'all_products', tw: '所有商品', cn: '所有商品', en: 'All Products' },
+            { key: 'product_categories', tw: '商品分類', cn: '商品分类', en: 'Product Categories' },
+            { key: 'products', tw: '單一商品', cn: '单一商品', en: 'Products' },
+            { key: 'filter', tw: '篩選', cn: '筛选', en: 'Filter' },
+            { key: 'sort_by_date', tw: '依照上架時間', cn: '按上架时间排序', en: 'Sort by Date' },
+            { key: 'sort_by_price_asc', tw: '價格由低至高', cn: '价格由低到高', en: 'Price Low to High' },
+            { key: 'sort_by_price_desc', tw: '價格由高至低', cn: '价格由高到低', en: 'Price High to Low' },
+            { key: 'no_related_products', tw: '查無相關商品', cn: '暂无相关商品', en: 'No Related Products' },
+            { key: 'my', tw: '我的', cn: '我的', en: 'My' },
+            { key: 'my_coupons', tw: '我的優惠券', cn: '我的优惠券', en: 'Coupons' },
+            { key: 'order_history', tw: '訂單記錄', cn: '订单记录', en: 'Order History' },
+            { key: 'wishlist', tw: '心願單', cn: '心愿单', en: 'Wishlist' },
+            { key: 'reset_password', tw: '重設密碼', cn: '重设密码', en: 'Reset Password' },
+            { key: 'logout', tw: '登出', cn: '登出', en: 'Logout' },
+            { key: 'reset_password_event', tw: '重設密碼事件', cn: '重设密码事件', en: 'Reset Password Event' },
+            { key: 'password', tw: '密碼', cn: '密码', en: 'Password' },
+            { key: 'confirm_password', tw: '確認密碼', cn: '确认密码', en: 'Confirm Password' },
+            { key: 'please_enter_password', tw: '請輸入密碼', cn: '请输入密码', en: 'Please Enter Password' },
+            { key: 'please_enter_password_again', tw: '請再次輸入密碼', cn: '请再次输入密码', en: 'Please Enter Password Again' },
+            { key: 'reset_password_verification_code', tw: '重設密碼驗證碼', cn: '重设密码验证码', en: 'Reset Password Verification Code' },
+            { key: 'verification_code_sent_to', tw: '驗證碼已發送至', cn: '验证码已发送至', en: 'Verification Code Sent to' },
+            { key: 'click_to_get_verification_code', tw: '點我取得驗證碼', cn: '点击获取验证码', en: 'Click to Get Verification Code' },
+            { key: 'please_enter_verification_code', tw: '請輸入驗證碼', cn: '请输入验证码', en: 'Please Enter Verification Code' },
+            { key: 'password_min_length', tw: '密碼必須大於8位數', cn: '密码必须大于8位数', en: 'Password must be greater than 8 characters' },
+            { key: 'please_confirm_password_again', tw: '請再次確認密碼', cn: '请再次确认密码', en: 'Please Confirm Password Again' },
+            { key: 'email_verification_code_incorrect', tw: '信箱驗證碼輸入錯誤', cn: '邮箱验证码输入错误', en: 'Email verification code entered incorrectly' },
+            { key: 'sms_verification_code_incorrect', tw: '簡訊驗證碼輸入錯誤', cn: '短信验证码输入错误', en: 'SMS verification code entered incorrectly' },
+            { key: 'phone_number_already_exists', tw: '此電話號碼已存在', cn: '此电话号码已存在', en: 'This phone number already exists' },
+            { key: 'email_already_exists', tw: '此信箱已存在', cn: '此邮箱已存在', en: 'This email already exists' },
+            { key: 'update_exception', tw: '更新異常', cn: '更新异常', en: 'Update Exception' },
+            { key: 'change_success', tw: '更改成功', cn: '更改成功', en: 'Change Success' },
+            { key: 'confirm_reset', tw: '確認重設', cn: '确认重设', en: 'Confirm Reset' },
+            { key: 'member_management', tw: '會員管理', cn: '会员管理', en: 'My Profile' },
+            { key: 'my_profile', tw: '個人資料', cn: '个人资料', en: 'My Profile' },
+            { key: 'account', tw: '我的帳號', cn: '我的帐号', en: 'Account' },
+            { key: 'normal_member', tw: '一般會員', cn: '普通会员', en: 'Regular Member' },
+            { key: 'membership_expiry_date', tw: '會員到期日至', cn: '会员到期日至', en: 'Membership Expiry Date' },
+            { key: 'renewal_criteria_met', tw: '已達成續會條件', cn: '已达成续会条件', en: 'Renewal Criteria Met' },
+            { key: 'spend_again', tw: '再消費', cn: '再消费', en: 'Spend Again' },
+            { key: 'single_purchase_over', tw: '單筆消費滿', cn: '单笔消费满', en: 'Single Purchase Over' },
+            { key: 'can_meet_renewal_criteria', tw: '即可達成續會條件', cn: '即可达成续会条件', en: 'Can Meet Renewal Criteria' },
+            { key: 'single_purchase_reaches', tw: '單筆消費達', cn: '单笔消费达', en: 'Single Purchase Reaches' },
+            { key: 'accumulated_spending_reaches', tw: '累積消費額達', cn: '累积消费额达', en: 'Accumulated Spending Reaches' },
+            { key: 'upgrade_to', tw: '即可升級至', cn: '即可升级至', en: 'Upgrade To' },
+            { key: 'days', tw: '天', cn: '天', en: 'Days' },
+            { key: 'rules_explanation', tw: '規則說明', cn: '规则说明', en: 'Rules Explanation' },
+            { key: 'membership_level_rules', tw: '會員等級規則', cn: '会员等级规则', en: 'Membership Level Rules' },
+            {
+                key: 'if_renewal_criteria_not_met_within_membership_period',
+                tw: '會籍期效內若沒達成續會條件，將會自動降級',
+                cn: '会籍期效内若没达成续会条件，将会自动降级',
+                en: 'If renewal criteria are not met within the membership period, automatic downgrade will occur',
+            },
+            { key: 'view_membership_level_rules', tw: '查看會員級數規則', cn: '查看会员级数规则', en: 'View Membership Level Rules' },
+            { key: 'membership_barcode', tw: '會員條碼', cn: '会员条码', en: 'Membership Barcode' },
+            { key: 'present_membership_barcode', tw: '出示會員條碼', cn: '出示会员条码', en: 'Present Membership Barcode' },
+            { key: 'current_accumulated_spending_amount', tw: '目前累積消費金額', cn: '当前累积消费金额', en: 'Current Accumulated Spending Amount' },
+            { key: 'can_upgrade', tw: '即可升級', cn: '即可升级', en: 'Can Upgrade' },
+            { key: 'edit_profile', tw: '編輯個人資料', cn: '编辑个人资料', en: 'Edit Profile' },
+            { key: 'email_verification_code', tw: '信箱驗證碼', cn: '邮箱验证码', en: 'Email Verification Code' },
+            { key: 'sms_verification_code', tw: '簡訊驗證碼', cn: '短信验证码', en: 'SMS Verification Code' },
+            { key: 'please_enter_sms_verification_code', tw: '請輸入簡訊驗證碼', cn: '请输入短信验证码', en: 'Please Enter SMS Verification Code' },
+            { key: 'not_filled_in_yet', tw: '尚未填寫', cn: '尚未填写', en: 'Not Filled In Yet' },
+            { key: 'no_current_obtain', tw: '目前沒有取得', cn: '目前没有取得', en: 'Currently Not Obtained' },
+            { key: 'no_current_orders', tw: '目前沒有訂單', cn: '目前没有订单', en: 'No Current Orders' },
+            { key: 'order_number', tw: '訂單編號', cn: '订单编号', en: 'Order Number' },
+            { key: 'order_date', tw: '訂單日期', cn: '订单日期', en: 'Order Date' },
+            { key: 'order_amount', tw: '訂單金額', cn: '订单金额', en: 'Order Amount' },
+            { key: 'order_status', tw: '訂單狀態', cn: '订单状态', en: 'Order Status' },
+            { key: 'no_number_order', tw: '無編號訂單', cn: '无编号订单', en: 'No Number Order' },
+            { key: 'unpaid', tw: '尚未付款', cn: '尚未付款', en: 'Unpaid' },
+            { key: 'shipping', tw: '配送中', cn: '配送中', en: 'Shipping' },
+            { key: 'delivered', tw: '已送達', cn: '已送达', en: 'Delivered' },
+            { key: 'preparing', tw: '準備中', cn: '准备中', en: 'Preparing' },
+            { key: 'view', tw: '查看', cn: '查看', en: 'View' },
+            { key: 'creation_date', tw: '建立日期', cn: '创建日期', en: 'Creation date' },
+            { key: 'source', tw: '來源', cn: '来源', en: 'Source' },
+            { key: 'received_amount', tw: '獲得款項', cn: '获得款项', en: 'Amount' },
+            { key: 'balance', tw: '餘額', cn: '余额', en: 'Balance' },
+            { key: 'no_expiry', tw: '無期限', cn: '无期限', en: 'No Expiry' },
+            { key: 'about_to_expire', tw: '即將到期', cn: '即将到期', en: 'About to Expire' },
+            { key: 'order', tw: '訂單', cn: '订单', en: 'Order' },
+            { key: 'obtain', tw: '獲得', cn: '获取', en: 'Obtain' },
+            { key: 'use', tw: '使用', cn: '使用', en: 'Use' },
+            { key: 'manual_adjustment', tw: '手動增減', cn: '手动增减', en: 'Manual Adjustment' },
+            { key: 'no_coupons_available', tw: '目前沒有任何優惠券', cn: '目前没有任何优惠券', en: 'Currently no coupons available' },
+            { key: 'show_qr_code', tw: '顯示 QR code', cn: '显示 QR code', en: 'Show QR Code' },
+            { key: 'coupon_qr_code', tw: '優惠券 QR code', cn: '优惠券 QR code', en: 'Coupon QR Code' },
+            { key: 'view_details', tw: '詳細內容', cn: '详细内容', en: 'View Details' },
+            { key: 'coupon_details', tw: '優惠券詳細內容', cn: '优惠券详细内容', en: 'Coupon Details' },
+            { key: 'no_items_added', tw: '目前沒有加入任何商品', cn: '目前没有添加任何商品', en: 'Currently there are no items added' },
+            { key: 'error', tw: '發生錯誤', cn: '發生錯誤', en: 'Error' },
+            { key: 'ai_assisted_shopping', tw: '透過 AI 可以協助你快速找到喜歡的商品', cn: '通过AI可以帮助您快速找到喜欢的商品', en: 'AI can assist you in quickly finding products you like.' },
+            { key: 'product_list', tw: '產品列表', cn: '产品列表', en: 'Product List' },
+            { key: 'save', tw: '儲存', cn: '保存', en: 'Save' },
+            { key: 'enter_website_password', tw: '請輸入網站密碼', cn: '请输入网站密码', en: 'Please enter website password' },
+            { key: 'incorrect_website_password', tw: '網站密碼輸入錯誤', cn: '网站密码输入错误', en: 'Incorrect website password entered' },
+            { key: 'no_access_permission', tw: '無訪問權限', cn: '无访问权限', en: 'No access permission' },
+        ];
     }
 }

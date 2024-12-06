@@ -4,7 +4,8 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
-import {ApiUser} from "../../glitter-base/route/user.js";
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -15,7 +16,7 @@ export class ProductCard03 {
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
         const prod = subData.content;
-        let label: any = {}
+        let label: any = {};
         let loading = false;
         const titleFontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
         const vm = {
@@ -110,10 +111,6 @@ export class ProductCard03 {
                 background: white;
                 border-radius: 50%;
             }
-            .card-tag {
-                left: -3px;
-                top: 25px;
-            }
             .card-title-container {
                 min-height: 55px;
                 align-items: center;
@@ -152,7 +149,7 @@ export class ProductCard03 {
                 letter-spacing: -0.98px;
             }
         `);
-        const labelID = glitter.getUUID()
+        const labelID = glitter.getUUID();
         return html`<div
             class="card mb-7 card-border"
             style="cursor: pointer"
@@ -175,35 +172,31 @@ export class ProductCard03 {
                         if (prod.label && !loading) {
                             ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
                                 label = data.response.value.find((item: { id: number }) => {
-                                    return item.id == prod.label
-                                })
+                                    return item.id == prod.label;
+                                });
                                 // loading = true;
                                 loading = true;
-                                gvc.notifyDataChange(labelID)
+                                gvc.notifyDataChange(labelID);
                             });
                         }
-                        if (Object.entries(label).length > 0){
-                            function showPosition(){
-                                switch (label.data.position){
-                                    case "左上":
-                                        return `left:0;top:0;`
-                                    case "右上":
-                                        return `right:0;top:0;`
-                                    case "左下":
-                                        return `left:0;bottom:0;`
+                        if (Object.entries(label).length > 0) {
+                            function showPosition() {
+                                switch (label.data.position) {
+                                    case '左上':
+                                        return `left:0;top:0;`;
+                                    case '右上':
+                                        return `right:0;top:0;`;
+                                    case '左下':
+                                        return `left:0;bottom:0;`;
                                     default:
-                                        return `right:0;bottom:0;`
+                                        return `right:0;bottom:0;`;
                                 }
                             }
-                            return html`
-                                    <div style="position: absolute;${showPosition()};z-index:2;">
-                                        ${label.data.content}
-                                    </div>
-                                    
-                                `
+                            return html` <div style="position: absolute;${showPosition()};z-index:2;">${label.data.content}</div> `;
                         }
-                        return ``
-                    }, divCreate: {class:`probLabel w-100 h-100` , style:`position: absolute;left: 0;top: 0;`}
+                        return ``;
+                    },
+                    divCreate: { class: `probLabel w-100 h-100`, style: `position: absolute;left: 0;top: 0;` },
                 })}
                 <img
                     class="card-image-fit-center"
@@ -234,7 +227,7 @@ export class ProductCard03 {
                         ApiShop.deleteWishList(`${prod.id}`).then(async () => {
                             PdClass.jumpAlert({
                                 gvc,
-                                text: '刪除成功',
+                                text: Language.text('delete_success'),
                                 justify: 'top',
                                 align: 'center',
                             });
@@ -245,7 +238,7 @@ export class ProductCard03 {
                         ApiShop.postWishList(`${prod.id}`).then(async () => {
                             PdClass.jumpAlert({
                                 gvc,
-                                text: '新增成功',
+                                text: Language.text('add_success'),
                                 justify: 'top',
                                 align: 'center',
                             });
@@ -266,7 +259,6 @@ export class ProductCard03 {
                     },
                 })}
             </div>
-            <div class="d-none card-tag">限時特價</div>
             <div class="card-collapse-parent">
                 <div class="px-1 card-title-container">
                     <div class="row gx-0 mb-2">
@@ -343,7 +335,7 @@ export class ProductCard03 {
                                 }, Tool.randomString(7));
                             })}"
                         >
-                            <i class="fa-solid fa-cart-plus me-2"></i>加入購物車
+                            <i class="fa-solid fa-cart-plus me-2"></i>${Language.text('add_to_cart')}
                         </div>
                     </div>
                 </div>

@@ -10,7 +10,7 @@ type WorkerResp = {
 
 parentPort?.on('message', async (name) => {
     try {
-        console.info(`Worker Name: ${name}`);
+        // console.log(`Worker Name: ${name}`);
 
         const tempArray = [];
         const pool = mysql.createPool({
@@ -84,7 +84,7 @@ export class Workers {
                         // 按原始索引排序
                         resultArray.sort((a, b) => a.index - b.index);
 
-                        console.info(response.message);
+                        // console.log(response.message);
                         resolve({
                             status: 'success',
                             resultArray: resultArray.map((item) => item.data), // 去除索引，只保留數據

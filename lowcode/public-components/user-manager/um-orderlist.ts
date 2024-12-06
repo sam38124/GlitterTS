@@ -1,6 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { UmClass } from './um-class.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -162,22 +163,22 @@ export class UMOrderList {
                                                     loop="true"
                                                     background="transparent"
                                                 ></lottie-player>
-                                                <span class="mb-5 fs-5">目前沒有訂單呦</span>
+                                                <span class="mb-5 fs-5">${Language.text('no_current_orders')}</span>
                                             </div>`;
                                         }
 
                                         const header = [
                                             {
-                                                title: '訂單編號',
+                                                title: Language.text('order_number'),
                                             },
                                             {
-                                                title: '訂單日期',
+                                                title: Language.text('order_date'),
                                             },
                                             {
-                                                title: '訂單金額',
+                                                title: Language.text('order_amount'),
                                             },
                                             {
-                                                title: '訂單狀態',
+                                                title: Language.text('order_status'),
                                             },
                                             {
                                                 title: '',
@@ -186,20 +187,20 @@ export class UMOrderList {
 
                                         function formatText(item: CartOrder) {
                                             return [
-                                                item.cart_token ?? '無編號訂單',
+                                                item.cart_token ?? Language.text('no_number_order'),
                                                 glitter.ut.dateFormat(new Date(item.created_time), 'yyyy/MM/dd'),
                                                 (item.orderData.total ?? 0).toLocaleString(),
                                                 (() => {
                                                     if (item.status !== 1) {
-                                                        return '尚未付款';
+                                                        return Language.text('unpaid');
                                                     }
                                                     switch (item.orderData.progress) {
                                                         case 'shipping':
-                                                            return '配送中';
+                                                            return Language.text('shipping');
                                                         case 'finish':
-                                                            return '已送達';
+                                                            return Language.text('delivered');
                                                         default:
-                                                            return '準備中';
+                                                            return Language.text('preparing');
                                                     }
                                                 })(),
                                                 html`<div
@@ -209,7 +210,7 @@ export class UMOrderList {
                                                         changePage('order_detail', 'page', {});
                                                     })}"
                                                 >
-                                                    查閱
+                                                    ${Language.text('view')}
                                                 </div>`,
                                             ];
                                         }

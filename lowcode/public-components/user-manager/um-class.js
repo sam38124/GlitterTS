@@ -14,6 +14,7 @@ import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 const css = String.raw;
 export class UmClass {
@@ -36,35 +37,35 @@ export class UmClass {
                     return '';
                 }
                 else {
-                    glitter.share.rebateConfig.title = CheckInput.isEmpty(glitter.share.rebateConfig.title) ? '購物金' : glitter.share.rebateConfig.title;
+                    glitter.share.rebateConfig.title = CheckInput.isEmpty(glitter.share.rebateConfig.title) ? Language.text('shopping_credit') : glitter.share.rebateConfig.title;
                     const buttonHTML = [
                         {
                             key: 'account_userinfo',
-                            title: '個人資料',
+                            title: Language.text('account'),
                         },
                         {
                             key: 'voucher-list',
-                            title: '我的優惠券',
+                            title: Language.text('my_coupons'),
                         },
                         {
                             key: 'rebate',
-                            title: `我的${glitter.share.rebateConfig.title}`,
+                            title: `${Language.text('my')} ${glitter.share.rebateConfig.title}`,
                         },
                         {
                             key: 'order_list',
-                            title: '訂單記錄',
+                            title: Language.text('order_history'),
                         },
                         {
                             key: 'wishlist',
-                            title: '心願單',
+                            title: Language.text('wishlist'),
                         },
                         {
                             key: 'reset_password',
-                            title: '重設密碼',
+                            title: Language.text('reset_password'),
                         },
                         {
                             key: 'logout',
-                            title: '登出',
+                            title: Language.text('logout'),
                         },
                     ]
                         .map((item) => {
@@ -79,7 +80,7 @@ export class UmClass {
                                 dialog.dataLoading({ visible: false });
                                 UmClass.dialog({
                                     gvc: gvc,
-                                    title: '重設密碼事件',
+                                    title: Language.text('reset_password_event'),
                                     tag: '',
                                     innerHTML: (gvc) => {
                                         let update_vm = {
@@ -89,24 +90,22 @@ export class UmClass {
                                         let get_verify_timer = 0;
                                         let repeat_pwd = '';
                                         return [
-                                            html `<div class="tx_normal fw-normal mb-1" style="">密碼</div>`,
+                                            html `<div class="tx_normal fw-normal mb-1">${Language.text('password')}</div>`,
                                             html `<input
-                                                            class="bgw-input "
-                                                            style=""
+                                                            class="bgw-input"
                                                             type="password"
-                                                            placeholder="請輸入密碼"
-                                                            oninput="${gvc.event((e, event) => {
+                                                            placeholder="${Language.text('please_enter_password')}"
+                                                            oninput="${gvc.event((e) => {
                                                 update_vm.pwd = e.value;
                                             })}"
                                                             value="${update_vm.pwd}"
                                                         />`,
-                                            html `<div class="tx_normal fw-normal mt-2 mb-1" style="">確認密碼</div>`,
+                                            html `<div class="tx_normal fw-normal mt-2 mb-1">${Language.text('confirm_password')}</div>`,
                                             html `<input
                                                             class="bgw-input mb-2"
-                                                            style=""
                                                             type="password"
-                                                            placeholder="請再次輸入密碼"
-                                                            oninput="${gvc.event((e, event) => {
+                                                            placeholder="${Language.text('please_enter_password_again')}"
+                                                            oninput="${gvc.event((e) => {
                                                 repeat_pwd = e.value;
                                             })}"
                                                             value="${repeat_pwd}"
@@ -116,8 +115,10 @@ export class UmClass {
                                                 return {
                                                     bind: id,
                                                     view: () => {
-                                                        return html `重設密碼驗證碼
-                                                                    ${BgWidget.blueNote(get_verify_timer ? `驗證碼已發送至『${userData.userData.email}』` : '點我取得驗證碼', gvc.event(() => {
+                                                        return html `${Language.text('reset_password_verification_code')}
+                                                                    ${BgWidget.blueNote(get_verify_timer
+                                                            ? `${Language.text('verification_code_sent_to')}『${userData.userData.email}』`
+                                                            : Language.text('click_to_get_verification_code'), gvc.event(() => {
                                                             if (!get_verify_timer) {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.dataLoading({ visible: true });
@@ -145,9 +146,8 @@ export class UmClass {
                                             }),
                                             html `<input
                                                             class="bgw-input mt-2 mb-4"
-                                                            style=""
                                                             type="text"
-                                                            placeholder="請輸入驗證碼"
+                                                            placeholder="${Language.text('please_enter_verification_code')}"
                                                             oninput="${gvc.event((e, event) => {
                                                 update_vm.verify_code = e.value;
                                             })}"
@@ -160,11 +160,11 @@ export class UmClass {
                                                                 type="button"
                                                                 onclick="${gvc.event(() => {
                                                 if (update_vm.pwd.length < 8) {
-                                                    dialog.errorMessage({ text: '密碼必須大於8位數' });
+                                                    dialog.errorMessage({ text: Language.text('password_min_length') });
                                                     return;
                                                 }
                                                 if (repeat_pwd !== update_vm.pwd) {
-                                                    dialog.errorMessage({ text: '請再次確認密碼' });
+                                                    dialog.errorMessage({ text: Language.text('please_confirm_password_again') });
                                                     return;
                                                 }
                                                 dialog.dataLoading({ visible: true });
@@ -173,28 +173,28 @@ export class UmClass {
                                                 }).then((res) => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (!res.result && res.response.data.msg === 'email-verify-false') {
-                                                        dialog.errorMessage({ text: '信箱驗證碼輸入錯誤' });
+                                                        dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
                                                     }
                                                     else if (!res.result && res.response.data.msg === 'phone-verify-false') {
-                                                        dialog.errorMessage({ text: '簡訊驗證碼輸入錯誤' });
+                                                        dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
                                                     }
                                                     else if (!res.result && res.response.data.msg === 'phone-exists') {
-                                                        dialog.errorMessage({ text: '此電話號碼已存在' });
+                                                        dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
                                                     }
                                                     else if (!res.result && res.response.data.msg === 'email-exists') {
-                                                        dialog.errorMessage({ text: '此信箱已存在' });
+                                                        dialog.errorMessage({ text: Language.text('email_already_exists') });
                                                     }
                                                     else if (!res.result) {
-                                                        dialog.errorMessage({ text: '更新異常' });
+                                                        dialog.errorMessage({ text: Language.text('update_exception') });
                                                     }
                                                     else {
-                                                        dialog.successMessage({ text: '更改成功' });
+                                                        dialog.successMessage({ text: Language.text('change_success') });
                                                         gvc.closeDialog();
                                                     }
                                                 });
                                             })}"
                                                             >
-                                                                <span class="tx_700_white">確認重設</span>
+                                                                <span class="tx_700_white">${Language.text('confirm_reset')}</span>
                                                             </div>
                                                         </div>`,
                                         ].join('');
@@ -216,7 +216,7 @@ export class UmClass {
                     })
                         .join('');
                     return html ` <div class="account-section">
-                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">我的帳號</div>
+                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">${Language.text('my_profile')}</div>
                         ${document.body.clientWidth > 768
                         ? html ` <div class="mx-auto mt-3 um-nav-container">
                                   <div class="account-options d-flex gap-3">${buttonHTML}</div>
@@ -244,7 +244,7 @@ export class UmClass {
     static spinner(height) {
         return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
             <div class="spinner-border" role="status"></div>
-            <span class="mt-3">載入中</span>
+            <span class="mt-3">${Language.text('loading')}</span>
         </div>`;
     }
     static dialog(obj) {

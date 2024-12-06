@@ -2165,7 +2165,6 @@ class Shopping {
         return { startISO, endISO };
     }
     async getActiveRecentYear() {
-        console.log('getActiveRecentYear');
         const formatJsonData = [];
         for (let index = 0; index < 12; index++) {
             const startDate = new Date();
@@ -2183,9 +2182,6 @@ class Shopping {
                 AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
                 GROUP BY id, mac_address
             `;
-            if (index === 1) {
-                console.log(sql);
-            }
             formatJsonData.push({
                 sql: sql,
                 data: [],
@@ -2207,7 +2203,6 @@ class Shopping {
             }, 0);
             countArray.push(uniqueCount);
         });
-        console.log(countArray);
         return {
             count_array: countArray.reverse(),
         };

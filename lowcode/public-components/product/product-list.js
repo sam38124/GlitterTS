@@ -11,6 +11,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
 import { PdClass } from './pd-class.js';
 import { Ad } from '../public/ad.js';
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductList {
     static arrowDownDataImage(color) {
@@ -138,7 +139,7 @@ export class ProductList {
     static spinner() {
         return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
             <div class="spinner-border" role="status"></div>
-            <span class="mt-3">載入中</span>
+            <span class="mt-3">${Language.text('loading')}</span>
         </div>`;
     }
     static main(gvc, widget, subData) {
@@ -332,13 +333,13 @@ export class ProductList {
                                         >
                                             ${(() => {
                                 if (gvc.glitter.getUrlParameter('ai-search')) {
-                                    return `AI 選品`;
+                                    return Language.text('ai_choose');
                                 }
                                 else if (gvc.glitter.getUrlParameter('search')) {
-                                    return `搜尋 : ${gvc.glitter.getUrlParameter('search')}`;
+                                    return `${Language.text('search')}: ${gvc.glitter.getUrlParameter('search')}`;
                                 }
                                 else {
-                                    return `所有商品`;
+                                    return Language.text('all_products');
                                 }
                             })()}
                                         </div>
@@ -423,13 +424,13 @@ export class ProductList {
         function updatePageTitle() {
             const all_text = (() => {
                 if (gvc.glitter.getUrlParameter('ai-search')) {
-                    return `AI 選品`;
+                    return Language.text('ai_choose');
                 }
                 else if (gvc.glitter.getUrlParameter('search')) {
-                    return `搜尋 : ${gvc.glitter.getUrlParameter('search')}`;
+                    return `${Language.text('search')}: ${gvc.glitter.getUrlParameter('search')}`;
                 }
                 else {
-                    return `所有商品`;
+                    return Language.text('all_products');
                 }
             })();
             if (!vm.collections || vm.collections.length === 0) {
@@ -530,7 +531,7 @@ export class ProductList {
                                   class="filter-btn"
                                   onclick="${gvc.event(() => {
                 glitter.setDrawer(html `<div class="p-3">
-                                              <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor}">商品分類</div>
+                                              <div class="fw-500 mb-3" style="font-size: 24px; color: ${fontColor}">${Language.text('product_categories')}</div>
                                               ${getCollectionHTML()}
                                           </div>`, () => {
                     gvc.glitter.openDrawer();
@@ -538,7 +539,7 @@ export class ProductList {
             })}"
                               >
                                   <i class="fa-regular fa-filter-list me-1"></i>
-                                  篩選
+                                  ${Language.text('filter')}
                               </button>`}
                         <select
                             class="form-select form-select-xs"
@@ -550,9 +551,9 @@ export class ProductList {
             gvc.notifyDataChange(ids.product);
         })}"
                         >
-                            <option value="time">依照上架時間</option>
-                            <option value="min_price">價格由低至高</option>
-                            <option value="max_price">價格由高至低</option>
+                            <option value="time">${Language.text('sort_by_date')}</option>
+                            <option value="min_price">${Language.text('sort_by_price_asc')}</option>
+                            <option value="max_price">${Language.text('sort_by_price_desc')}</option>
                         </select>
                     </div>
                     ${gvc.bindView((() => {
@@ -585,7 +586,7 @@ export class ProductList {
                                                               loop="true"
                                                               background="transparent"
                                                           ></lottie-player>
-                                                          <span class="mb-5 fs-5">查無相關商品</span>
+                                                          <span class="mb-5 fs-5">${Language.text('no_related_products')}</span>
                                                       </div>`}
                                             </div>
                                             ${this.pageSplitV2(gvc, vm.pageSize, vm.pageIndex, (p) => {

@@ -36,10 +36,14 @@ export class DataAnalyze {
                 gvc.notifyDataChange(id);
             });
 
-            function cardStructure(text: string, className: string, color: string) {
+            function cardStructure(text: string, className: string, color: string, unit?: string) {
                 return html` <div class="card">
                     <div class="card-body">
-                        <h4 class="header-title mb-4">${text}</h4>
+                        <div class="d-flex align-items-center justify-content-center w-100 mb-3">
+                            <h4 class="header-title">${text}</h4>
+                            <div class="flex-fill"></div>
+                            ${unit ? BgWidget.grayNote(unit) : ''}
+                        </div>
                         <div dir="ltr">
                             <div id="line-chart-zoomable" class="${className}" data-colors="${color}"></div>
                         </div>
@@ -86,7 +90,7 @@ export class DataAnalyze {
                                                     .reverse()[0]
                                                     .toLocaleString()}
                                                 ${BgWidget.grayNote(
-                                                    `(本月:${vm.data.active_recent_year.count_array
+                                                    `(本月: ${vm.data.active_recent_year.count_array
                                                         .map((dd: any) => {
                                                             return dd;
                                                         })
@@ -100,7 +104,7 @@ export class DataAnalyze {
                                                 title: '今日會員註冊',
                                                 value: html`${vm.data.recent_register['today'].toLocaleString()}
                                                 ${BgWidget.grayNote(
-                                                    `(本月:${vm.data.recent_register['count_register']
+                                                    `(本月: ${vm.data.recent_register['count_register']
                                                         .map((dd: any) => {
                                                             return dd;
                                                         })
@@ -113,7 +117,7 @@ export class DataAnalyze {
                                             {
                                                 title: '今日成交總額',
                                                 value: `${vm.data.order_today.total_amount.toLocaleString()} ${BgWidget.grayNote(
-                                                    `(本月:${vm.data.sales_per_month_1_year.countArray
+                                                    `(本月: $${vm.data.sales_per_month_1_year.countArray
                                                         .map((dd: any) => {
                                                             return dd;
                                                         })
@@ -204,7 +208,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -245,7 +249,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -254,7 +258,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每日銷售總額', 'day-month-data', '#fa6767');
+                                        return cardStructure('每日銷售總額', 'day-month-data', '#fa6767', '單位: 月/日');
                                     },
                                     onCreate: () => {
                                         const class_name = '.day-month-data';
@@ -294,7 +298,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -303,7 +307,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每月銷售總額', 'year-month-data', '#fa6767');
+                                        return cardStructure('每月銷售總額', 'year-month-data', '#fa6767', '單位: 年.月');
                                     },
                                     onCreate: () => {
                                         const class_name = '.year-month-data';
@@ -343,7 +347,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -352,7 +356,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每日訂單平均消費金額', 'today-average', '#39afd1');
+                                        return cardStructure('每日訂單平均消費金額', 'today-average', '#39afd1', '單位: 月/日');
                                     },
                                     onCreate: () => {
                                         function formatter(e: any) {
@@ -396,7 +400,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -405,7 +409,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每月訂單平均消費金額', 'month-average', '#39afd1');
+                                        return cardStructure('每月訂單平均消費金額', 'month-average', '#39afd1', '單位: 年.月');
                                     },
                                     onCreate: () => {
                                         function formatter(e: any) {
@@ -449,7 +453,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -458,7 +462,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每日訂單總量', 'sales_per_month_2_weak', '#ffbc00');
+                                        return cardStructure('每日訂單總量', 'sales_per_month_2_weak', '#ffbc00', '單位: 月/日');
                                     },
                                     onCreate: () => {
                                         const class_name = '.sales_per_month_2_weak';
@@ -500,7 +504,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -509,7 +513,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每月訂單總量', 'total-order', '#ffbc00');
+                                        return cardStructure('每月訂單總量', 'total-order', '#ffbc00', '單位: 年.月');
                                     },
                                     onCreate: () => {
                                         const class_name = '.total-order';
@@ -551,7 +555,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -560,7 +564,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每日註冊會員', 'month-member', '#ff6c02');
+                                        return cardStructure('每日註冊會員', 'month-member', '#ff6c02', '單位: 月/日');
                                     },
                                     onCreate: () => {
                                         const class_name = '.month-member';
@@ -600,7 +604,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -609,7 +613,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每月註冊會員', 'year-month-member', '#ff6c02');
+                                        return cardStructure('每月註冊會員', 'year-month-member', '#ff6c02', '單位: 年.月');
                                     },
                                     onCreate: () => {
                                         const class_name = '.year-month-member';
@@ -649,7 +653,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -658,7 +662,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每日不重複瀏覽人數', 'day-active', '#39afd1');
+                                        return cardStructure('每日不重複瀏覽人數', 'day-active', '#39afd1', '單位: 月/日');
                                     },
                                     onCreate: () => {
                                         const class_name = '.day-active';
@@ -698,7 +702,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -707,7 +711,7 @@ export class DataAnalyze {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return cardStructure('每月不重複瀏覽人數', 'month-active-member', '#39afd1');
+                                        return cardStructure('每月不重複瀏覽人數', 'month-active-member', '#39afd1', '單位: 年.月');
                                     },
                                     onCreate: () => {
                                         const class_name = '.month-active-member';
@@ -747,7 +751,7 @@ export class DataAnalyze {
                                         }, 500);
                                     },
                                     divCreate: {
-                                        class: `col-12 col-sm-6 mb-2`,
+                                        class: `col-12 col-sm-6 mb-2 px-1`,
                                     },
                                 };
                             })}
@@ -775,7 +779,7 @@ function getPastMonths(numMonths: number): string[] {
             year--; // 如果月份減至0，則回到上一年
             month = 12; // 調整為12月
         }
-        const formattedMonth = `${year}年${month.toString().padStart(2, '0')}月`; // 格式化為兩位數字的月份
+        const formattedMonth = `${year}.${month.toString().padStart(2, '0')}`; // 格式化為兩位數字的月份
         months.unshift(formattedMonth); // 新增到陣列開頭
     }
 

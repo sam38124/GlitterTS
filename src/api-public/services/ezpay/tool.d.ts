@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
 interface IData {
     [key: string]: string | string[] | number;

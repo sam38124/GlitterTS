@@ -2,8 +2,8 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { all } from 'underscore/index.js';
 import { AiSearch } from '../ai/ai-search.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -19,8 +19,8 @@ export class Sy02 {
         return html`
             <div style="height: 76px;"></div>
             <nav
-                    class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
-                    style="background:  ${widget.formData.theme_color['background'] ?? '#000'} !important;height: 76px;z-index:9999;"
+                class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
+                style="background:  ${widget.formData.theme_color['background'] ?? '#000'} !important;height: 76px;z-index:9999;"
             >
                 <div class="container header-place  h-100">
                     <!--LOGO顯示區塊-->
@@ -74,7 +74,7 @@ export class Sy02 {
                                                             <div class="position-relative">
                                                                 <input
                                                                     class="form-control fw-500 "
-                                                                    placeholder="找商品"
+                                                                    placeholder="${Language.text('find_product')}"
                                                                     autocomplete="off"
                                                                     value=""
                                                                     onchange="${gvc.event((e, event) => {
@@ -160,8 +160,10 @@ export class Sy02 {
                                                                                                     ${dd.title}
                                                                                                 </div>
                                                                                                 ${(dd.items ?? []).length
-                                                                                                    ? `<i class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
-                                                                                   style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"></i>`
+                                                                                                    ? html`<i
+                                                                                                          class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
+                                                                                                          style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"
+                                                                                                      ></i>`
                                                                                                     : ``}
                                                                                             </div>
                                                                                             ${dd.open ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false)}</ul>` : ``}
@@ -243,9 +245,12 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                                             >${dd.title} ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
                                                         >
                                                         ${dd.items.length > 0
-                                                            ? `<ul class="dropdown-menu" style="background:${widget.formData.theme_color['background'] ?? '#000'} !important;
-    cursor: pointer;
-    z-index: 99999;">${loopItems(dd.items)}</ul>`
+                                                            ? html`<ul
+                                                                  class="dropdown-menu"
+                                                                  style="background:${widget.formData.theme_color['background'] ?? '#000'} !important; cursor: pointer; z-index: 99999;"
+                                                              >
+                                                                  ${loopItems(dd.items)}
+                                                              </ul>`
                                                             : ``}
                                                     </li>`;
                                                 })
@@ -279,14 +284,17 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                     return {
                                         bind: id,
                                         view: () => {
-                                            return `<div class="d-flex align-items-center justify-content-center "
-                                     style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;width:30px;height:30px;font-size: 15px;
+                                            return html`<div
+                                                class="d-flex align-items-center justify-content-center "
+                                                style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;width:30px;height:30px;font-size: 15px;
 border: 2px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;
 border-radius: 50%;
 font-weight: 700 !important;
 padding-bottom: 2px;
-">AI
-                                </div>`;
+"
+                                            >
+                                                AI
+                                            </div>`;
                                         },
                                         divCreate: () => {
                                             return {
@@ -336,7 +344,7 @@ padding-bottom: 2px;
                                                         ><input
                                                             class="ms-3 form-control"
                                                             style="height:40px;"
-                                                            placeholder="輸入商品關鍵字。"
+                                                            placeholder="${Language.text('input_product_keyword')}"
                                                             autocomplete="off"
                                                             onchange="${gvc.event((e, event) => {
                                                                 gvc.glitter.href = `/all-product?search=${e.value}`;
@@ -411,7 +419,6 @@ padding-bottom: 2px;
                                         class="nav-item d-flex align-items-center justify-content-center ms-3 ms-sm-4"
                                         style=""
                                         onclick="${gvc.event(() => {
-                                            console.log(`changePage==>`);
                                             if (GlobalUser.token) {
                                                 changePage('account_userinfo', 'page', {});
                                             } else {
@@ -431,7 +438,7 @@ align-items: center;
 gap: 10px;
 border-radius: 5px;"
                                     >
-                                        ${GlobalUser.token ? `會員管理` : `會員登入`}
+                                        ${GlobalUser.token ? Language.text('member_management') : Language.text('member_login')}
                                     </div>
                                 </li>
                             </ul>

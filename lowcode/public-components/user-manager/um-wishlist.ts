@@ -3,6 +3,7 @@ import { UmClass } from './um-class.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -132,7 +133,7 @@ export class UMWishList {
                                                     loop="true"
                                                     background="transparent"
                                                 ></lottie-player>
-                                                <span class="mb-5 fs-5">目前沒有加入任何商品呦</span>
+                                                <span class="mb-5 fs-5">${Language.text('no_items_added')}</span>
                                             </div>`;
                                         }
                                         return vm.dataList
@@ -165,7 +166,7 @@ export class UMWishList {
                                                                     ApiShop.deleteWishList(`${item.id}`).then(async () => {
                                                                         UmClass.jumpAlert({
                                                                             gvc,
-                                                                            text: '刪除成功',
+                                                                            text: Language.text('delete_success'),
                                                                             justify: 'top',
                                                                             align: 'center',
                                                                         });
@@ -240,6 +241,7 @@ export class UMWishList {
                         [{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }],
                         () => {
                             ApiShop.getWishList().then(async (res) => {
+                                console.log(res);
                                 if (res.result && res.response.data) {
                                     vm.dataList = res.response.data;
                                 } else {
