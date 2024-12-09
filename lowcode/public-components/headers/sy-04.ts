@@ -4,6 +4,8 @@ import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { AiSearch } from '../ai/ai-search.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Color } from '../public/color.js';
+import { LanguageView } from '../public/language-view.js';
 
 const html = String.raw;
 
@@ -13,6 +15,8 @@ export class Sy04 {
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
+        const colors = Color.getTheme(gvc, widget.formData);
+
         return html` <div style="height: 76px;"></div>
             <nav
                 class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
@@ -62,6 +66,7 @@ export class Sy04 {
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
                                                         <div class="position-relative">
                                                             <input
                                                                 class="form-control fw-500 "
@@ -93,7 +98,7 @@ export class Sy04 {
                                                             };
                                                             ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then((res) => {
                                                                 vm.data = res.response.value[Language.getLanguage()];
-                                                                
+
                                                                 gvc.notifyDataChange(id);
                                                             });
                                                             return {

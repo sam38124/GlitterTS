@@ -1,7 +1,5 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-
-export class FtClass {
-    static getColor(gvc: GVC, formData: any) {
+export class Color {
+    static getTheme(gvc, formData) {
         const glitter = gvc.glitter;
         const theme = formData.theme_color;
         const mainColorNum = theme.background.includes('#') ? -1 : theme.background.split('.')[1];

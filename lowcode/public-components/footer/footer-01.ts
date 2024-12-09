@@ -1,8 +1,8 @@
 import { GVC } from '../../glitterBundle/GVController.js';
-import { FtClass } from './ft-class.js';
+import { Color } from '../public/color.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { LanguageView } from '../public/language-view.js';
-import {Language} from "../../glitter-base/global/language.js";
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 
@@ -20,7 +20,7 @@ type FooterItem = {
 export class Footer01 {
     static main(gvc: GVC, widget: any, subData: any) {
         const formData = widget.formData;
-        const colors = FtClass.getColor(gvc, formData);
+        const colors = Color.getTheme(gvc, formData);
         const footer = {
             list: [],
         };

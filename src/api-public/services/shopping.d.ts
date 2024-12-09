@@ -54,11 +54,11 @@ interface ProductItem {
     total_sales?: number;
 }
 interface seo {
-    "title": string;
-    "seo": {
-        "domain": string;
-        "title": string;
-        "content": string;
+    title: string;
+    seo: {
+        domain: string;
+        title: string;
+        content: string;
     };
 }
 type Collection = {
@@ -74,9 +74,9 @@ type Collection = {
     seo_image: string;
     code: string;
     language_data: {
-        "en-US": seo;
-        "zh-CN": seo;
-        "zh-TW": seo;
+        'en-US': seo;
+        'zh-CN': seo;
+        'zh-TW': seo;
     };
 };
 type CartItem = {
