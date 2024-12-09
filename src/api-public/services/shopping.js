@@ -130,9 +130,11 @@ class Shopping {
                 let sql_join_search = [];
                 sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
                 sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
-                querySql.push(`(${sql_join_search.map(((dd) => {
+                querySql.push(`(${sql_join_search
+                    .map((dd) => {
                     return `(${dd})`;
-                })).join(' or ')})`);
+                })
+                    .join(' or ')})`);
             }
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
@@ -177,7 +179,7 @@ class Shopping {
                     .map((dd) => {
                     function loop(array, prefix) {
                         const find = array.find((d1) => {
-                            return (d1.language_data) && (d1.language_data[query.language].seo.domain === dd) || (d1.code === dd);
+                            return (d1.language_data && d1.language_data[query.language].seo.domain === dd) || d1.code === dd;
                         });
                         if (find) {
                             prefix.push(find.title);
@@ -199,7 +201,6 @@ class Shopping {
                 })
                     .join(',');
             }
-            ;
             console.log(`query.collection=>`, query.collection);
             query.collection &&
                 querySql.push(`(${query.collection
@@ -371,10 +372,10 @@ class Shopping {
             (Array.isArray(products.data) ? products.data : [products.data]).map((dd) => {
                 if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
                     dd.content.seo = dd.content.language_data[`${query.language}`].seo;
-                    dd.content.title = (dd.content.language_data[`${query.language}`].title) || dd.content.title;
-                    dd.content.content = (dd.content.language_data[`${query.language}`].content) || dd.content.content;
-                    dd.content.content_array = (dd.content.language_data[`${query.language}`].content_array) || dd.content.content_array;
-                    dd.content.content_json = (dd.content.language_data[`${query.language}`].content_json) || dd.content.content_json;
+                    dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
+                    dd.content.content = dd.content.language_data[`${query.language}`].content || dd.content.content;
+                    dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
+                    dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                 }
             });
             if (query.domain && products.data[0]) {
@@ -638,7 +639,8 @@ class Shopping {
                     })).list || [];
             }
             shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
-            shipment_setting.info = (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
+            shipment_setting.info =
+                (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -809,8 +811,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -870,8 +871,7 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
                 let can_add_gift = [];
@@ -2198,33 +2198,38 @@ class Shopping {
     }
     async getActiveRecentYear() {
         const formatJsonData = [];
-        for (let index = 0; index < 12; index++) {
-            const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - index, 1);
-            startDate.setUTCHours(16, 0, 0, 0);
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + 1);
-            endDate.setUTCHours(16, 0, 0, 0);
-            const sql = `
-                SELECT mac_address, created_time
-                FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                WHERE app_name = ${database_js_1.default.escape(this.app)}
-                  AND ip != 'ffff:127.0.0.1'
-                AND req_type = 'file'
-                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
-                GROUP BY id, mac_address
-            `;
-            formatJsonData.push({
-                sql: sql,
-                data: [],
-            });
-        }
-        const result = await workers_js_1.Workers.query({
-            queryList: formatJsonData,
-            divisor: 4,
+        const result = await new Promise((resolve, reject) => {
+            for (let index = 0; index < 12; index++) {
+                const startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - index, 1);
+                startDate.setUTCHours(16, 0, 0, 0);
+                const endDate = new Date(startDate);
+                endDate.setMonth(endDate.getMonth() + 1);
+                endDate.setUTCHours(16, 0, 0, 0);
+                const sql = `
+                    SELECT mac_address, created_time
+                    FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${database_js_1.default.escape(this.app)}
+                      AND ip != 'ffff:127.0.0.1'
+                    AND req_type = 'file'
+                    AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+                    GROUP BY id, mac_address
+                `;
+                database_js_1.default.query(sql, []).then((data) => {
+                    formatJsonData.push({ index, data });
+                });
+            }
+            setInterval(() => {
+                if (formatJsonData.length === 12) {
+                    resolve(formatJsonData.sort((a, b) => {
+                        return a.index > b.index ? 1 : -1;
+                    }));
+                }
+            }, 200);
         });
         const countArray = [];
-        result.queryData.forEach((data) => {
+        result.forEach((d) => {
+            const data = d.data;
             const uniqueMacSet = new Set();
             const uniqueCount = data.reduce((count, dd) => {
                 if (!uniqueMacSet.has(dd.mac_address)) {
@@ -2241,28 +2246,33 @@ class Shopping {
     }
     async getActiveRecent2Weak() {
         const formatJsonData = [];
-        for (let index = 0; index < 14; index++) {
-            const tw = this.generateTimeRange(index);
-            const sql = `
-                SELECT mac_address, created_time
-                FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                WHERE app_name = ${database_js_1.default.escape(this.app)}
-                AND ip != 'ffff:127.0.0.1'
-                AND req_type = 'file'
-                AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
-                GROUP BY id, mac_address
-            `;
-            formatJsonData.push({
-                sql: sql,
-                data: [],
-            });
-        }
-        const result = await workers_js_1.Workers.query({
-            queryList: formatJsonData,
-            divisor: 14,
+        const result = await new Promise((resolve) => {
+            for (let index = 0; index < 14; index++) {
+                const tw = this.generateTimeRange(index);
+                const sql = `
+                    SELECT mac_address, created_time
+                    FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = ${database_js_1.default.escape(this.app)}
+                    AND ip != 'ffff:127.0.0.1'
+                    AND req_type = 'file'
+                    AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
+                    GROUP BY id, mac_address
+                `;
+                database_js_1.default.query(sql, []).then((data) => {
+                    formatJsonData.push({ index, data });
+                });
+            }
+            setInterval(() => {
+                if (formatJsonData.length === 14) {
+                    resolve(formatJsonData.sort((a, b) => {
+                        return a.index > b.index ? 1 : -1;
+                    }));
+                }
+            }, 200);
         });
         const countArray = [];
-        result.queryData.forEach((data, index) => {
+        result.forEach((d, index) => {
+            const data = d.data;
             const targetDate = new Date();
             targetDate.setDate(targetDate.getDate() - index);
             const uniqueMacSet = new Set();
@@ -2823,7 +2833,7 @@ class Shopping {
                 seo_title: replace.seo_title,
                 seo_content: replace.seo_content,
                 seo_image: replace.seo_image,
-                language_data: replace.language_data
+                language_data: replace.language_data,
             };
             if (original.title.length === 0) {
                 const parentIndex = config.value.findIndex((col) => {
