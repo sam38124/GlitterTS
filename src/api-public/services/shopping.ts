@@ -2855,124 +2855,103 @@ export class Shopping {
     }
 
     async getActiveRecentYear() {
-        const formatJsonData: { index: number; data: any }[] = [];
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 1, 1); // 設定為下個月的第一天
+        endDate.setUTCHours(16, 0, 0, 0);
 
-        const result = await new Promise<any[]>((resolve, reject) => {
-            let pass = 0;
-            for (let index = 0; index < 12; index++) {
-                const startDate = new Date();
-                startDate.setMonth(startDate.getMonth() - index, 1); // 設定當月的第一天
-                startDate.setUTCHours(16, 0, 0, 0);
+        const startDate = new Date(endDate);
+        startDate.setMonth(endDate.getMonth() - 12); // 設定當月的第一天
+        startDate.setUTCHours(16, 0, 0, 0);
 
-                const endDate = new Date(startDate);
-                endDate.setMonth(endDate.getMonth() + 1); // 設定為下個月的第一天
-                endDate.setUTCHours(16, 0, 0, 0);
+        const sql = `
+            SELECT mac_address, created_time
+            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${db.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+            AND req_type = 'file'
+            AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            GROUP BY id, mac_address
+        `;
+        const queryData = await db.query(sql, []);
 
-                const sql = `
-                    SELECT mac_address, created_time
-                    FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)}
-                      AND ip != 'ffff:127.0.0.1'
-                    AND req_type = 'file'
-                    AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
-                    GROUP BY id, mac_address
-                `;
+        const now = new Date(); // 當前時間
+        const dataList = Array.from({ length: 12 }, (_, index) => {
+            const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // 月份從 0 開始，需要加 1
 
-                db.query(sql, []).then((data) => {
-                    formatJsonData.push({ index, data });
-                    pass++;
-                    if (pass === 12) {
-                        resolve(
-                            formatJsonData.sort((a, b) => {
-                                return a.index > b.index ? 1 : -1;
-                            })
-                        );
-                    }
-                });
-            }
+            // 篩選該月份的資料
+            const filteredData = queryData.filter((item: any) => {
+                const date = new Date(item.created_time);
+                return date.getFullYear() === year && date.getMonth() + 1 === month;
+            });
+
+            // 計算不重複的 mac_address
+            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
+
+            return {
+                year,
+                month,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
         });
 
-        const countArray: number[] = [];
-
-        result.forEach((d: any) => {
-            const data = d.data;
-            const uniqueMacSet = new Set<string>(); // 使用 Set 儲存 mac_address
-
-            // 計算每月符合條件的不重複裝置數量
-            const uniqueCount = data.reduce((count: number, dd: any) => {
-                if (!uniqueMacSet.has(dd.mac_address)) {
-                    uniqueMacSet.add(dd.mac_address); // 新增至 Set
-                    return count + 1;
-                }
-                return count;
-            }, 0);
-
-            countArray.push(uniqueCount); // 加入結果陣列
-        });
+        const result = dataList.map((data) => data.unique_count);
 
         return {
-            count_array: countArray.reverse(), // 將結果反轉，保證時間順序為最近到最遠
+            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
         };
     }
 
     async getActiveRecent2Weak() {
-        const formatJsonData: { index: number; data: any }[] = [];
+        const endDate = new Date();
+        endDate.setUTCHours(16, 0, 0, 0); // 設定為當天的 UTC 16:00:00
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 14); // 設定為 14 天前
 
-        const result = await new Promise<any[]>((resolve) => {
-            let pass = 0;
-            for (let index = 0; index < 14; index++) {
-                const tw = this.generateTimeRange(index);
-                const sql = `
-                    SELECT mac_address, created_time
-                    FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${db.escape(this.app)}
-                    AND ip != 'ffff:127.0.0.1'
-                    AND req_type = 'file'
-                    AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
-                    GROUP BY id, mac_address
-                `;
+        const sql = `
+            SELECT mac_address, created_time
+            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${db.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            GROUP BY id, mac_address
+        `;
+        const queryData = await db.query(sql, []);
 
-                db.query(sql, []).then((data) => {
-                    formatJsonData.push({ index, data });
-                    pass++;
-                    if (pass === 14) {
-                        resolve(
-                            formatJsonData.sort((a, b) => {
-                                return a.index > b.index ? 1 : -1;
-                            })
-                        );
-                    }
-                });
-            }
+        const now = new Date(); // 當前時間
+        const dataList = Array.from({ length: 14 }, (_, index) => {
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() - index); // 設定為第 index 天前的日期
+
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
+            const day = targetDate.getDate();
+
+            // 篩選該日期的資料
+            const filteredData = queryData.filter((item: any) => {
+                const date = new Date(item.created_time);
+                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+            });
+
+            // 計算不重複的 mac_address
+            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
+
+            return {
+                year,
+                month,
+                day,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
         });
 
-        const countArray: number[] = [];
-
-        result.forEach((d: any, index: number) => {
-            const data = d.data;
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - index);
-
-            const uniqueMacSet = new Set<string>(); // 使用 Set 儲存 mac_address
-
-            // 計算每一天的符合條件的數量
-            const uniqueCount = data.reduce((count: number, dd: any) => {
-                const recordDate = new Date(dd.created_time);
-                if (
-                    !uniqueMacSet.has(dd.mac_address) && // 檢查是否已經出現過
-                    recordDate.getDate() === targetDate.getDate()
-                ) {
-                    uniqueMacSet.add(dd.mac_address); // 新增至 Set
-                    return count + 1;
-                }
-                return count;
-            }, 0);
-
-            countArray.push(uniqueCount); // 使用 push 而不是 unshift
-        });
+        const result = dataList.map((data) => data.unique_count);
 
         return {
-            count_array: countArray.reverse(),
+            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
         };
     }
 
