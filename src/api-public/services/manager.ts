@@ -4,7 +4,7 @@ import db from "../../modules/database.js";
 import {saasConfig} from "../../config.js";
 import moment from "moment";
 
-export class Manager{
+export class Manager {
     public token: IToken;
 
     public async setConfig(config: {
@@ -25,16 +25,43 @@ export class Manager{
         }
     }
 
-    public async getConfig(config: {
-        appName: string, key: string
+    public static async getConfig(config: {
+        appName: string, key: string,
+        language: 'zh-TW' | 'zh-CN' | 'en-US'
     }) {
         try {
-            return  await db.execute(`select * from \`${config.appName}\`.public_config where \`key\`=${db.escape(config.key)}
-            `, []);
+            return await this.checkData(await db.execute(`select *
+                                                          from \`${config.appName}\`.public_config
+                                                          where \`key\` = ${db.escape(config.key)}
+            `, []), config.language);
         } catch (e) {
             console.log(e);
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);
         }
+    }
+
+    public static async checkData(data: any[], language: 'zh-TW' | 'zh-CN' | 'en-US') {
+        if (data[0]) {
+            let data_ = data[0]
+            switch (data_.key) {
+                case 'collection':
+                function loop(array: any[]) {
+                    array.map((dd) => {
+                        if (dd.language_data && dd.language_data[language]) {
+                            dd.code = dd.language_data[language].seo.domain || dd.code;
+                            dd.seo_content = dd.language_data[language].seo.content || dd.seo_content;
+                            dd.seo_title = dd.language_data[language].seo.title || dd.seo_title;
+                            if (dd.array) {
+                                loop(dd.array)
+                            }
+                        }
+                    })
+                }
+                    loop(data_.value);
+                    break
+            }
+        }
+        return data
     }
 
 

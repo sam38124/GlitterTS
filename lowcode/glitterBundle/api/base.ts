@@ -15,7 +15,7 @@ export class BaseApi {
             }
             try {
                 requestOptions.headers['mac_address']=(window as any).glitter.macAddress;
-                requestOptions.headers['language']=Language.getLanguage()
+                requestOptions.headers['language']= requestOptions.headers['language'] || Language.getLanguage()
             }catch (e) {
 
             }

@@ -2127,7 +2127,7 @@ export class User {
                 }
             }
             if((data[0] && data[0].value)){
-                 this.checkLeakData(config.key,data[0].value)
+                data[0].value=this.checkLeakData(config.key,data[0].value) || data[0].value
             }
             return (data[0] && data[0].value) || {};
         } catch (e) {
@@ -2142,6 +2142,12 @@ export class User {
                 def: 'zh-TW',
                 support: ['zh-TW']
             }
+        }else if(['menu-setting','footer-setting'].includes(key) && Array.isArray(value)){
+           return {
+               "zh-TW":value,
+               "en-US":[],
+               "zh-CN":[]
+           }
         }
     }
     public async checkEmailExists(email: string) {

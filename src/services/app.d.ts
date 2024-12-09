@@ -67,4 +67,6 @@ export declare class App {
         appName: string;
     }): Promise<void>;
     constructor(token?: IToken);
+    static getSupportLanguage(appName: string): Promise<any>;
+    static getDefLanguage(appName: string): Promise<any>;
 }

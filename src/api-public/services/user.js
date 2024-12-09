@@ -1703,7 +1703,7 @@ class User {
                 }
             }
             if ((data[0] && data[0].value)) {
-                this.checkLeakData(config.key, data[0].value);
+                data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
             }
             return (data[0] && data[0].value) || {};
         }
@@ -1718,6 +1718,13 @@ class User {
             value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
                 def: 'zh-TW',
                 support: ['zh-TW']
+            };
+        }
+        else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
+            return {
+                "zh-TW": value,
+                "en-US": [],
+                "zh-CN": []
             };
         }
     }

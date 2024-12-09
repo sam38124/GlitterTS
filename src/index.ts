@@ -37,6 +37,7 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import {Monitor} from './api-public/services/monitor.js';
 import {UpdateScript} from "./update-script.js";
+import {Manager} from "./api-public/services/manager.js";
 
 export const app = express();
 const logger = new Logger();
@@ -251,13 +252,13 @@ export async function createAPP(dd: any) {
                             user_id: 'manager',
                         }));
                         //取得頁面資訊
-                        let data = await Seo.getPageInfo(appName, req.query.page as string);
+                        let data = await Seo.getPageInfo(appName, req.query.page as string,language);
                         //首頁SEO
                         let home_page_data = await (async () => {
                             if (data && data.config) {
-                                return await Seo.getPageInfo(appName, data.config.homePage);
+                                return await Seo.getPageInfo(appName, data.config.homePage,language);
                             } else {
-                                return await Seo.getPageInfo(appName, 'index');
+                                return await Seo.getPageInfo(appName, 'index',language);
                             }
                         })();
                         if (data && data.page_config) {
@@ -271,24 +272,27 @@ export async function createAPP(dd: any) {
                                             page: 0,
                                             limit: 1,
                                             domain: decodeURIComponent(product_domain),
+                                            language:language
                                         }
                                         : {
                                             page: 0,
                                             limit: 1,
                                             id: req.query.product_id as string,
+                                            language:language
                                         }
                                 );
 
                                 if (pd.data.content) {
-                                    const productSeo = pd.data.content.seo ?? {};
-                                    data = await Seo.getPageInfo(appName, data.config.homePage);
+                                    pd.data.content.language_data= pd.data.content.language_data ?? {}
+                                    const productSeo = (pd.data.content.language_data[language].seo) || (pd.data.content.seo ?? {});
+                                    data = await Seo.getPageInfo(appName, data.config.homePage,language);
                                     data.page_config = data.page_config ?? {};
                                     data.page_config.seo = data.page_config.seo ?? {};
                                     data.page_config.seo.title = productSeo.title;
                                     data.page_config.seo.image = pd.data.content.preview_image[0];
                                     data.page_config.seo.content = productSeo.content;
                                 } else {
-                                    data = await Seo.getPageInfo(appName, data.config.homePage);
+                                    data = await Seo.getPageInfo(appName, data.config.homePage,language);
                                 }
                             } else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
                                 req.query.article = req.query.article || (req.query.page as any).split('/')[1];
@@ -297,7 +301,7 @@ export async function createAPP(dd: any) {
                                     page: 0,
                                     limit: 1,
                                 });
-                                data = await Seo.getPageInfo(appName, data.config.homePage);
+                                data = await Seo.getPageInfo(appName, data.config.homePage,language);
                                 data.page_config = data.page_config ?? {};
                                 data.page_config.seo = data.page_config.seo ?? {};
                                 if (article.data[0]) {
@@ -358,17 +362,11 @@ export async function createAPP(dd: any) {
                                 }
                             }
                             if ((req.query.page as string).split('/')[0] === 'collections' && (req.query.page as string).split('/')[1]) {
-                                const cols =
-                                    (
-                                        await db.query(
-                                            `SELECT *
-                                             FROM \`${appName}\`.public_config
-                                             WHERE \`key\` = 'collection';
-                                            `,
-                                            []
-                                        )
-                                    )[0] ?? {};
-
+                                const cols=(await Manager.getConfig({
+                                    appName: appName,
+                                    key: 'collection',
+                                    language:language
+                                }))[0] ?? {};
                                 const colJson = extractCols(cols);
                                 const urlCode = decodeURI((req.query.page as string).split('/')[1]);
                                 const colData = colJson.find((item: { code: string }) => item.code === urlCode);
@@ -378,7 +376,6 @@ export async function createAPP(dd: any) {
                                     data.page_config.seo.keywords = colData.seo_keywords;
                                 }
                             }
-                            console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                             return html`${(() => {
                                 const d = data.page_config.seo;
                                 const home_seo = home_page_data.page_config.seo;
@@ -738,6 +735,11 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    const robots=await (new User(appName).getConfigV2({
+                        key:'robots_text',
+                        user_id:'manager'
+                    }));
+                    robots.text=(robots.text || '')
                     const domain = (
                         await db.query(
                             `select \`domain\`
@@ -746,7 +748,7 @@ export async function createAPP(dd: any) {
                             [appName]
                         )
                     )[0]['domain'];
-                    return html`# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
+                    return  (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: * \nSitemap: ${domain}/sitemap.xml`;
                 },
                 tw_shop: async (req, resp) => {
                     let appName = dd.appName;

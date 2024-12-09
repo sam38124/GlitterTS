@@ -3,7 +3,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
 import { PdClass } from './pd-class.js';
 import { Ad } from '../public/ad.js';
-import { Language } from '../../glitter-base/global/language.js';
+import {Language} from "../../glitter-base/global/language.js";
 
 /*
  * Page: sy01_pd_collection
@@ -17,7 +17,14 @@ type Product = {
         collection: string[];
     };
 };
-
+interface LanguageData {
+    title: string,
+    seo: {
+        domain: string;
+        title: string;
+        content: string;
+    }
+}
 type Collection = {
     title: string;
     code: string;
@@ -30,6 +37,7 @@ type Collection = {
     seo_content: string;
     seo_image: string;
     checked: boolean;
+    language_data:LanguageData
 };
 
 export class ProductList {
@@ -109,7 +117,6 @@ export class ProductList {
                 }
             }
         `);
-
         return html` <div class="box-tag-${obj.tag} box-container-${text}">
             <div
                 class="box-navbar-${text} ${obj.guideClass ?? ''}"
@@ -160,6 +167,7 @@ export class ProductList {
                         obj.gvc.glitter.closeDrawer();
                     })}"
                 >
+                    
                     ${obj.title}
                 </div>
                 <div class="d-flex">
@@ -378,19 +386,39 @@ export class ProductList {
             const flattenCollections = (collections: Collection[], parentTitles: string[] = [], topLevelCollections: string[] = []): Collection[] => {
                 let flattened: Collection[] = [];
                 collections.forEach((col) => {
-                    const { title, array, product_id, seo_title, seo_content, seo_image, code } = col;
+                    const { title, array, product_id, seo_title, seo_content, seo_image, code,language_data } = col;
                     const flattenedCol: Collection = {
-                        title,
+                        title:(()=>{
+                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
+                                return  (language_data as any)[Language.getLanguage()].title
+                            }else{
+                                return title
+                            }
+                        })(),
                         array: [],
                         product_id: product_id ?? [],
                         checked: false,
                         parentTitles: parentTitles.length ? [...parentTitles] : [],
                         allCollections: parentTitles.length ? [...topLevelCollections] : [],
-                        subCollections: array.map((subCol) => subCol.title),
+                        subCollections: array.map((subCol) => (()=>{
+                            const language_data=subCol.language_data
+                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
+                                return  (language_data as any)[Language.getLanguage()].title
+                            }else{
+                                return subCol.title
+                            }
+                        })()),
                         seo_title: seo_title,
                         seo_content: seo_content,
                         seo_image: seo_image,
-                        code: code,
+                        code: (()=>{
+                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
+                                return  (language_data as any)[Language.getLanguage()].seo.domain
+                            }else{
+                                return code
+                            }
+                        })(),
+                        language_data:language_data
                     };
                     if (
                         flattenedCol.title.includes(vm.query) ||
@@ -404,7 +432,13 @@ export class ProductList {
                         flattened.push(flattenedCol);
                     }
                     if (array.length) {
-                        flattened = flattened.concat(flattenCollections(array, [...parentTitles, title], topLevelCollections));
+                        flattened = flattened.concat(flattenCollections(array, [...parentTitles, (()=>{
+                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
+                                return  (language_data as any)[Language.getLanguage()].title
+                            }else{
+                                return title
+                            }
+                        })()], topLevelCollections));
                     }
                 });
                 return flattened;
@@ -425,7 +459,14 @@ export class ProductList {
                 });
             });
 
-            const topLevelCollections = data.collections.map((col) => col.title);
+            const topLevelCollections = data.collections.map((col) => (()=>{
+                const language_data=col.language_data
+                if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
+                    return  (language_data as any)[Language.getLanguage()].title
+                }else{
+                    return col.title
+                }
+            })());
             return flattenCollections(data.collections, [], topLevelCollections);
         }
 

@@ -33,9 +33,10 @@ router.get('/config', async (req: express.Request, resp: express.Response) => {
             result: true,
             value:
                 ((
-                    await new Manager(req.body.token).getConfig({
+                    await  Manager.getConfig({
                         appName: req.get('g-app') as string,
                         key: req.query.key as string,
+                        language:req.headers['language'] as any
                     })
                 )[0] ?? {})['value'] ?? '',
         });

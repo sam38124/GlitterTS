@@ -2,6 +2,7 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { PdClass, Product, FileList } from './pd-class.js';
+import {Language} from "../../glitter-base/global/language.js";
 
 /*
  * Page: product_show_widget
@@ -40,7 +41,7 @@ export class ProductDetail {
                             <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
                         </div>`;
                     } else {
-                        return html` <div
+                        return html`<div
                             style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
                             onclick="${gvc.event(() => {
                                 callback(dd.key);
@@ -92,7 +93,7 @@ export class ProductDetail {
         function spinner() {
             return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
                 <div class="spinner-border" role="status"></div>
-                <span class="mt-3">載入中</span>
+                <span class="mt-3">${Language.text('loading')}</span>
             </div>`;
         }
         gvc.addMtScript(
@@ -172,7 +173,7 @@ export class ProductDetail {
                                     bind: id,
                                     view: () => {
                                         return this.tab(
-                                            [{ title: '商品描述', key: 'default' }].concat(
+                                            [{ title: Language.text('product_description'), key: 'default' }].concat(
                                                 vm.content_manager
                                                     .filter((cont) => {
                                                         return prod.content_array.includes(cont.id);
@@ -217,8 +218,7 @@ export class ProductDetail {
                                                 html`<span
                                                     style="font-size: ${cssStyle?.font_size ?? 16}px; color: ${cssStyle?.font_color ?? '${titleFontColor}'}; background: ${cssStyle?.font_bgr ??
                                                     '#fff'};"
-                                                    >${data.value}</span
-                                                >`
+                                                    >${data.value}</span>`
                                             );
                                         });
                                     }
@@ -239,7 +239,7 @@ export class ProductDetail {
                         })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${gvc.bindView(() => {
+                    ${prod.relative_product.length ? gvc.bindView(() => {
                         const swipID = gvc.glitter.getUUID();
                         return {
                             bind: gvc.glitter.getUUID(),
@@ -253,7 +253,6 @@ export class ProductDetail {
                                         })
                                     ).response.data;
                                     setTimeout(() => {
-                                     
                                         const swiper = new (window as any).Swiper('#' + swipID, {
                                             slidesPerView: glitter.ut.frSize(
                                                 {
@@ -280,7 +279,7 @@ export class ProductDetail {
                                                 <div
                                                     style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
                                                 >
-                                                    相關商品
+                                                    ${Language.text('related_products')}
                                                 </div>
                                                 <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
                                             </div>
@@ -325,7 +324,7 @@ export class ProductDetail {
                             },
                             onCreate: () => {},
                         };
-                    })}
+                    }):''}
                     <div style="margin-top: 100px;"></div>
                 </div>`;
             },

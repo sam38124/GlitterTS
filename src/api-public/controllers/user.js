@@ -406,25 +406,24 @@ router.post('/fcm', async (req, resp) => {
     }
 });
 router.get('/public/config', async (req, resp) => {
-    var _a, _b, _c, _d;
     try {
         const post = new user_1.User(req.get('g-app'), req.body.token);
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, {
                 result: true,
-                value: (_b = ((_a = (await post.getConfig({
+                value: await post.getConfigV2({
                     key: req.query.key,
                     user_id: req.query.user_id,
-                }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : '',
+                }),
             });
         }
         else {
             return response_1.default.succ(resp, {
                 result: true,
-                value: filter_protect_data_js_1.FilterProtectData.filter(req.query.key, (_d = ((_c = (await post.getConfig({
+                value: filter_protect_data_js_1.FilterProtectData.filter(req.query.key, await post.getConfigV2({
                     key: req.query.key,
                     user_id: req.query.user_id,
-                }))[0]) !== null && _c !== void 0 ? _c : {})['value']) !== null && _d !== void 0 ? _d : ''),
+                })),
             });
         }
     }

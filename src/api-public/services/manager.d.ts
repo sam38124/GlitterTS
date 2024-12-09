@@ -6,9 +6,11 @@ export declare class Manager {
         key: string;
         value: any;
     }): Promise<void>;
-    getConfig(config: {
+    static getConfig(config: {
         appName: string;
         key: string;
-    }): Promise<any>;
+        language: 'zh-TW' | 'zh-CN' | 'en-US';
+    }): Promise<any[]>;
+    static checkData(data: any[], language: 'zh-TW' | 'zh-CN' | 'en-US'): Promise<any[]>;
     constructor(token: IToken);
 }

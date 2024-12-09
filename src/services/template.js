@@ -251,9 +251,6 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                         return 'page_config';
                 }
             })();
-            if (config.tag === 'index') {
-                console.log(`page_db==>`, page_db);
-            }
             let sql = `select ${config.tag || config.id ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
                        where ${(() => {
@@ -295,7 +292,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 }
             }
             const page_data = await database_1.default.query(sql, []);
-            if (page_db !== 'page_config' && page_data.length === 0) {
+            if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
                 config.language = 'zh-TW';
                 return await this.getPage(config);
             }

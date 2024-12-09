@@ -1,5 +1,6 @@
 import { FtClass } from './ft-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
+import { Language } from "../../glitter-base/global/language.js";
 const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
@@ -139,7 +140,7 @@ export class Footer02 {
                             if (loading) {
                                 ApiUser.getPublicConfig('footer-setting', 'manager').then((data) => {
                                     if (data.result && data.response.value) {
-                                        footer.list = data.response.value;
+                                        footer.list = data.response.value[Language.getLanguage()];
                                     }
                                     loading = false;
                                     gvc.notifyDataChange(id);

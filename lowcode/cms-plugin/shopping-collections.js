@@ -4,6 +4,16 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { Language } from "../glitter-base/global/language.js";
+function getEmptyLanguageData() {
+    return {
+        title: '', seo: {
+            domain: '',
+            title: '',
+            content: '',
+        }
+    };
+}
 export class ShoppingCollections {
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -23,6 +33,11 @@ export class ShoppingCollections {
                 seo_image: '',
                 code: '',
                 checked: false,
+                language_data: {
+                    "zh-CN": getEmptyLanguageData(),
+                    "zh-TW": getEmptyLanguageData(),
+                    "en-US": getEmptyLanguageData()
+                }
             },
             dataList: undefined,
             query: '',
@@ -53,7 +68,7 @@ export class ShoppingCollections {
             const flattenCollections = (collections, parentTitles = [], topLevelCollections = []) => {
                 let flattened = [];
                 collections.forEach((col) => {
-                    const { title, array, product_id, seo_title, seo_content, seo_image, code } = col;
+                    const { title, array, product_id, seo_title, seo_content, seo_image, code, language_data } = col;
                     const flattenedCol = {
                         title,
                         array: [],
@@ -64,6 +79,7 @@ export class ShoppingCollections {
                         subCollections: array.map((subCol) => subCol.title),
                         seo_title: seo_title,
                         seo_content: seo_content,
+                        language_data: language_data,
                         seo_image: seo_image,
                         code: code,
                     };
@@ -169,20 +185,27 @@ export class ShoppingCollections {
                                                 return '';
                                             }
                                             else {
-                                                return html `<div class="d-flex">
-                                                                            <div class="parent-container">
-                                                                                <div class="tx_title text-center mb-2">父層類別</div>
-                                                                                <ul class="ul-style" id="parent-list">
-                                                                                    <!-- TS 生成的父層類別列表 -->
-                                                                                </ul>
-                                                                            </div>
-                                                                            <div class="child-container">
-                                                                                <div class="tx_title text-center mb-2">子層類別</div>
-                                                                                <ul class="ul-style" id="child-list">
-                                                                                    <!-- TS 生成的子層類別列表 -->
-                                                                                </ul>
-                                                                            </div>
-                                                                        </div>`;
+                                                return html `
+                                                                                    <div class="d-flex">
+                                                                                        <div class="parent-container">
+                                                                                            <div class="tx_title text-center mb-2">
+                                                                                                父層類別
+                                                                                            </div>
+                                                                                            <ul class="ul-style"
+                                                                                                id="parent-list">
+                                                                                                <!-- TS 生成的父層類別列表 -->
+                                                                                            </ul>
+                                                                                        </div>
+                                                                                        <div class="child-container">
+                                                                                            <div class="tx_title text-center mb-2">
+                                                                                                子層類別
+                                                                                            </div>
+                                                                                            <ul class="ul-style"
+                                                                                                id="child-list">
+                                                                                                <!-- TS 生成的子層類別列表 -->
+                                                                                            </ul>
+                                                                                        </div>
+                                                                                    </div>`;
                                             }
                                         },
                                         divCreate: {},
@@ -200,7 +223,8 @@ export class ShoppingCollections {
                                                             gvc.notifyDataChange(id);
                                                         }
                                                     }, 300);
-                                                }, () => { });
+                                                }, () => {
+                                                });
                                             }
                                             else {
                                                 function createListItem(item, index) {
@@ -270,6 +294,11 @@ export class ShoppingCollections {
                                 checked: false,
                                 seo_title: '',
                                 seo_content: '',
+                                language_data: {
+                                    "zh-CN": getEmptyLanguageData(),
+                                    "zh-TW": getEmptyLanguageData(),
+                                    "en-US": getEmptyLanguageData()
+                                },
                                 seo_image: '',
                                 code: '',
                                 allCollections: vm.allParents,
@@ -304,19 +333,22 @@ export class ShoppingCollections {
                                                             return [
                                                                 {
                                                                     key: '標題',
-                                                                    value: html `<span class="fs-7"
-                                                                                        >${(() => {
+                                                                    value: html `<span
+                                                                                                    class="fs-7"
+                                                                                            >${(() => {
                                                                         if (dd.parentTitles && dd.parentTitles.length > 0) {
-                                                                            return html `<i class="fa-solid fa-arrow-turn-down-right me-2"></i>${dd.parentTitles.join(' / ')} /
+                                                                            return html `<i
+                                                                                                            class="fa-solid fa-arrow-turn-down-right me-2"></i>${dd.parentTitles.join(' / ')} /
                                                                                                     ${dd.title}`;
                                                                         }
                                                                         return dd.title;
                                                                     })()}</span
-                                                                                    >`,
+                                                                                            >`,
                                                                 },
                                                                 {
                                                                     key: '商品數量',
-                                                                    value: html `<span class="fs-7">${dd.product_id ? dd.product_id.length : 0}</span>`,
+                                                                    value: html `<span
+                                                                                                    class="fs-7">${dd.product_id ? dd.product_id.length : 0}</span>`,
                                                                 },
                                                             ];
                                                         });
@@ -399,30 +431,153 @@ export class ShoppingCollections {
         const vm = obj.vm;
         const original = JSON.parse(JSON.stringify(vm.data));
         const dialog = new ShareDialog(gvc.glitter);
+        let select_lan = window.parent.store_info.language_setting.def;
         return gvc.bindView(() => {
             const viewID = gvc.glitter.getUUID();
+            function refresh() {
+                gvc.notifyDataChange(viewID);
+            }
             return {
                 bind: viewID,
                 view: () => {
-                    var _a, _b, _c;
-                    const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/collections/`;
+                    var _a, _b, _c, _d;
+                    if (obj.type === 'replace') {
+                        vm.data.language_data = (_a = vm.data.language_data) !== null && _a !== void 0 ? _a : {
+                            "zh-TW": {
+                                title: '',
+                                seo: {
+                                    title: vm.data.seo_title,
+                                    content: vm.data.seo_content,
+                                    domain: vm.data.code
+                                }
+                            },
+                            "zh-CN": getEmptyLanguageData(),
+                            "en-US": getEmptyLanguageData(),
+                        };
+                    }
+                    const language_data = vm.data.language_data[select_lan];
+                    const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, select_lan)}collections/`;
                     return BgWidget.container([
-                        html ` <div class="title-container">
-                                ${BgWidget.goBack(gvc.event(() => {
+                        html `
+                                <div class="title-container">
+                                    ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
-                            </div>`,
+                                    ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
+                                    <div class="flex-fill"></div>
+                                    <div class="me-2 ">
+                                        ${BgWidget.grayButton(`<div class="d-flex align-items-center" style="gap:5px;">
+<i class="fa-duotone fa-solid fa-earth-americas"></i>${Language.getLanguageText({
+                            local: true,
+                            compare: select_lan
+                        })}
+</div>`, gvc.event(() => {
+                            BgWidget.settingDialog({
+                                gvc: gvc,
+                                innerHTML: (gvc) => {
+                                    return gvc.bindView((() => {
+                                        const id = gvc.glitter.getUUID();
+                                        const glitter = gvc.glitter;
+                                        const html = String.raw;
+                                        let img = '';
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return html `
+                                                                            <div style="position: relative;word-break: break-all;white-space: normal;">
+                                                                                ${BgWidget.grayNote('前往商店設定->商店訊息中，設定支援的語言。')}
+                                                                                ${gvc.bindView(() => {
+                                                    const html = String.raw;
+                                                    return {
+                                                        bind: glitter.getUUID(),
+                                                        view: () => {
+                                                            const sup = [
+                                                                {
+                                                                    key: 'en-US',
+                                                                    value: '英文'
+                                                                },
+                                                                {
+                                                                    key: 'zh-CN',
+                                                                    value: '簡體中文'
+                                                                },
+                                                                {
+                                                                    key: 'zh-TW',
+                                                                    value: '繁體中文'
+                                                                }
+                                                            ].filter((dd) => {
+                                                                return window.parent.store_info.language_setting.support.includes(dd.key);
+                                                            }).sort((dd) => {
+                                                                return dd.key === select_lan ? -1 : 1;
+                                                            });
+                                                            return html `
+                                                                                                <div class="d-flex mt-3 flex-wrap align-items-center justify-content-center"
+                                                                                                     style="gap:15px;">
+                                                                                                    ${sup.map((dd) => {
+                                                                return html `
+                                                                                                            <div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
+                                                                                                                 style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;"
+                                                                                                                 onclick="${gvc.event(() => {
+                                                                    select_lan = dd.key;
+                                                                    gvc.closeDialog();
+                                                                    refresh();
+                                                                })}">
+                                                                                                                ${dd.value}
+                                                                                                                <div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== select_lan ? `d-none` : ``}"
+                                                                                                                     style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">
+                                                                                                                    已選擇
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        `;
+                                                            }).join('')}
+                                                                                                </div>`;
+                                                        }
+                                                    };
+                                                })}
+                                                                            </div>`;
+                                            },
+                                            divCreate: {},
+                                            onCreate: () => {
+                                            },
+                                        };
+                                    })());
+                                },
+                                title: '切換語系',
+                                footer_html: (gvc) => {
+                                    return ``;
+                                },
+                                width: 300
+                            });
+                        }))}
+                                    </div>
+                                </div>`,
                         BgWidget.container1x2({
                             html: [
-                                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">分類標題</div>
+                                BgWidget.mainCard(html `
+                                            <div class="tx_700" style="margin-bottom: 18px">分類標籤
+                                            </div>
                                             ${EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '',
                                     default: vm.data.title,
-                                    placeHolder: '請輸入分類名稱',
+                                    placeHolder: '請輸入分類標籤',
                                     callback: (text) => {
                                         vm.data.title = text;
+                                    },
+                                })}`),
+                                BgWidget.mainCard(html `
+                                            <div class="d-flex flex-column" style="margin-bottom: 18px;gap:5px;">
+                                                <div class="tx_700">前台分類顯示名稱
+                                                    ${BgWidget.languageInsignia(select_lan)}
+                                                </div>
+                                                ${BgWidget.grayNote(`未設定則參照分類標籤顯示`)}
+                                            </div>
+                                            ${EditorElem.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: language_data.title,
+                                    placeHolder: vm.data.title || '',
+                                    callback: (text) => {
+                                        language_data.title = text;
                                     },
                                 })}`),
                                 gvc.bindView(() => {
@@ -430,52 +585,56 @@ export class ShoppingCollections {
                                     return {
                                         bind: viewID,
                                         view: () => {
-                                            var _a;
                                             return BgWidget.mainCard([
-                                                html ` <div class="tx_normal fw-normal mb-2">連結網址</div>`,
-                                                html ` <div
-                                                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                                html `
+                                                                <div class="tx_normal fw-normal mb-2">連結網址
+                                                                    ${BgWidget.languageInsignia(select_lan)}
+                                                                </div>`,
+                                                html `
+                                                                <div
+                                                                        style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                                     .body.clientWidth > 768
                                                     ? 'gap: 18px; '
                                                     : 'flex-direction: column; gap: 0px; '}"
-                                                                class="w-100"
-                                                            >
-                                                                <div
-                                                                    class="${document.body.clientWidth < 800 ? `w-100` : ``} justify-content-start justify-content-lg-center"
-                                                                    style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex"
+                                                                        class="w-100"
                                                                 >
-                                                                    <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                        ${prefixURL}
+                                                                    <div
+                                                                            class="${document.body.clientWidth < 800 ? `w-100` : ``} justify-content-start justify-content-lg-center"
+                                                                            style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex"
+                                                                    >
+                                                                        <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                            ${prefixURL}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <input
-                                                                    class="flex-fill ${document.body.clientWidth < 800 ? `w-100` : ``}"
-                                                                    style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                                                                    <input
+                                                                            class="flex-fill ${document.body.clientWidth < 800 ? `w-100` : ``}"
+                                                                            style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
                                                     .body.clientWidth > 768
                                                     ? ''
                                                     : 'padding: 9px 18px;'}"
-                                                                    placeholder="請輸入連結網址"
-                                                                    value="${vm.data.code || ''}"
-                                                                    onchange="${gvc.event((e) => {
+                                                                            placeholder="請輸入連結網址"
+                                                                            value="${language_data.seo.domain || ''}"
+                                                                            onchange="${gvc.event((e) => {
                                                     let text = e.value;
                                                     if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                                     }
                                                     else {
-                                                        vm.data.code = text;
+                                                        language_data.seo.domain = text;
                                                     }
                                                     gvc.notifyDataChange(viewID);
                                                 })}"
-                                                                />
-                                                            </div>`,
-                                                html ` <div class="mt-2 mb-1">
-                                                                <span class="tx_normal me-1">網址預覽</span>
-                                                                ${BgWidget.greenNote(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''), gvc.event(() => {
+                                                                    />
+                                                                </div>`,
+                                                html `
+                                                                <div class="mt-2 mb-1">
+                                                                    <span class="tx_normal me-1">網址預覽</span>
+                                                                    ${BgWidget.greenNote(prefixURL + language_data.seo.domain, gvc.event(() => {
                                                     var _a;
-                                                    gvc.glitter.openNewTab(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''));
+                                                    gvc.glitter.openNewTab(prefixURL + ((_a = language_data.seo.domain) !== null && _a !== void 0 ? _a : ''));
                                                 }))}
-                                                            </div>`,
+                                                                </div>`,
                                             ].join(''));
                                         },
                                         divCreate: {
@@ -485,7 +644,8 @@ export class ShoppingCollections {
                                         },
                                     };
                                 }),
-                                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">商品</div>
+                                BgWidget.mainCard(html `
+                                            <div class="tx_700" style="margin-bottom: 18px">商品</div>
                                             ${(() => {
                                     const pvm = {
                                         id: gvc.glitter.getUUID(),
@@ -495,7 +655,8 @@ export class ShoppingCollections {
                                     };
                                     return html `
                                                     <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                        <div class="d-flex align-items-center gray-bottom-line-18" style="justify-content: space-between;">
+                                                        <div class="d-flex align-items-center gray-bottom-line-18"
+                                                             style="justify-content: space-between;">
                                                             <div class="form-check-label c_updown_label">
                                                                 <div class="tx_normal">商品名稱</div>
                                                             </div>
@@ -517,6 +678,8 @@ export class ShoppingCollections {
                                                     ApiShop.getProduct({
                                                         page: 0,
                                                         limit: 99999,
+                                                        productType: 'product',
+                                                        filter_visible: "true",
                                                         search: data.query,
                                                         orderBy: (() => {
                                                             switch (data.orderString) {
@@ -554,17 +717,21 @@ export class ShoppingCollections {
                                             }
                                             return gvc.map(pvm.productList.map((opt, index) => {
                                                 var _a;
-                                                return html ` <div
-                                                                            class="form-check-label c_updown_label"
-                                                                            style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
-                                                                        >
-                                                                            <span class="tx_normal">${index + 1} .</span>
-                                                                            <div style="line-height: 40px;">
-                                                                                <img class="rounded border me-1" src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}" style="width:40px; height:40px;" />
-                                                                            </div>
-                                                                            <span class="tx_normal">${opt.value}</span>
-                                                                            ${opt.note ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                                                        </div>`;
+                                                return html `
+                                                                                <div
+                                                                                        class="form-check-label c_updown_label"
+                                                                                        style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
+                                                                                >
+                                                                                    <span class="tx_normal">${index + 1} .</span>
+                                                                                    <div style="line-height: 40px;">
+                                                                                        <img class="rounded border me-1"
+                                                                                             src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}"
+                                                                                             style="width:40px; height:40px;"/>
+                                                                                    </div>
+                                                                                    <span class="tx_normal">${opt.value}</span>
+                                                                                    ${opt.note ? html ` <span
+                                                                                            class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                                                                </div>`;
                                             }));
                                         },
                                         onCreate: () => {
@@ -599,47 +766,58 @@ export class ShoppingCollections {
                                                 `;
                                 })()}`),
                                 BgWidget.mainCard([
-                                    html ` <div class="tx_700" style="margin-bottom: 18px">SEO 標題</div>
+                                    html `
+                                                    <div style="font-weight: 700;" class="mb-3">
+                                                        搜尋引擎列表
+                                                        ${BgWidget.languageInsignia(select_lan, 'margin-left:5px;')}
+                                                    </div>
+                                                    <div class="tx_normal fw-normal" style="margin: 18px 0 8px;">SEO
+                                                        標題
+                                                    </div>
                                                     ${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: '',
-                                        default: (_a = vm.data.seo_title) !== null && _a !== void 0 ? _a : '',
+                                        default: (_b = language_data.seo.title) !== null && _b !== void 0 ? _b : '',
                                         placeHolder: '請輸入 SEO 標題',
                                         callback: (text) => {
-                                            vm.data.seo_title = text;
+                                            language_data.seo.title = text;
                                         },
                                     })}`,
                                     ,
-                                    html ` <div class="tx_700" style="margin-bottom: 18px">SEO 描述</div>
+                                    html `
+                                                    <div class="tx_normal fw-normal" style="">SEO 描述</div>
                                                     ${EditorElem.editeText({
                                         gvc: gvc,
                                         title: '',
-                                        default: (_b = vm.data.seo_content) !== null && _b !== void 0 ? _b : '',
+                                        default: (_c = language_data.seo.content) !== null && _c !== void 0 ? _c : '',
                                         placeHolder: '請輸入 SEO 描述',
                                         callback: (text) => {
-                                            vm.data.seo_content = text;
+                                            language_data.seo.content = text;
                                         },
                                     })}`,
                                     ,
-                                    html ` <div class="tx_700" style="margin-bottom: 18px">SEO 圖片</div>
+                                    html `
+                                                    <div class="tx_normal fw-normal" style="">SEO 圖片</div>
                                                     ${EditorElem.uploadImageContainer({
                                         gvc: gvc,
                                         title: '',
-                                        def: (_c = vm.data.seo_image) !== null && _c !== void 0 ? _c : '',
+                                        def: (_d = vm.data.seo_image) !== null && _d !== void 0 ? _d : '',
                                         callback: (text) => {
                                             vm.data.seo_image = text;
                                         },
                                     })}`,
                                     ,
-                                ].join(BgWidget.mbContainer(18))),
-                            ].join(html ` <div style="margin-top: 24px;"></div>`),
+                                ].join(BgWidget.mbContainer(10))),
+                            ].join(html `
+                                        <div style="margin-top: 24px;"></div>`),
                             ratio: 75,
                         }, {
                             html: [
                                 BgWidget.summaryCard((() => {
                                     var _a;
                                     if ((vm.data.allCollections && vm.data.allCollections.length > 0 && vm.data.parentTitles && vm.data.parentTitles.length > 0) || vm.type === 'add') {
-                                        return html ` <div class="tx_700" style="margin-bottom: 18px">父層</div>
+                                        return html `
+                                                        <div class="tx_700" style="margin-bottom: 18px">父層</div>
                                                         ${BgWidget.select({
                                             gvc: gvc,
                                             callback: (text) => {
@@ -659,26 +837,29 @@ export class ShoppingCollections {
                                         bind: id,
                                         view: () => {
                                             return gvc.map(vm.data.subCollections.map((item) => {
-                                                return html ` <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                                                                        ${item}<i
-                                                                            class="fa-regular fa-trash cursor_pointer"
-                                                                            onclick="${gvc.event(() => {
+                                                return html `
+                                                                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                                                                                ${item}<i
+                                                                                    class="fa-regular fa-trash cursor_pointer"
+                                                                                    onclick="${gvc.event(() => {
                                                     vm.data.subCollections = vm.data.subCollections.filter((sub) => item !== sub);
                                                     gvc.notifyDataChange(id);
                                                 })}"
-                                                                        ></i>
-                                                                    </div>`;
+                                                                            ></i>
+                                                                            </div>`;
                                             }));
                                         },
                                     })}
                                                 `;
                                 })()),
-                            ].join(html ` <div style="margin-top: 24px;"></div>`),
+                            ].join(html `
+                                        <div style="margin-top: 24px;"></div>`),
                             ratio: 25,
                         }),
                         BgWidget.mbContainer(240),
-                        html ` <div class="update-bar-container">
-                                ${obj.type === 'replace'
+                        html `
+                                <div class="update-bar-container">
+                                    ${obj.type === 'replace'
                             ? BgWidget.redButton('刪除類別', gvc.event(() => {
                                 dialog.checkYesOrNot({
                                     text: '確定要刪除商品類別嗎？<br/>（若此類別包含子類別，也將一併刪除）',
@@ -703,10 +884,10 @@ export class ShoppingCollections {
                                 });
                             }))
                             : ''}
-                                ${BgWidget.cancel(gvc.event(() => {
+                                    ${BgWidget.cancel(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                ${BgWidget.save(gvc.event(() => {
+                                    ${BgWidget.save(gvc.event(() => {
                             if (CheckInput.isEmpty(vm.data.title)) {
                                 dialog.infoMessage({ text: '標題不可為空' });
                                 return;
@@ -714,6 +895,15 @@ export class ShoppingCollections {
                             const regexTitle = /[\s,\/\\]+/g;
                             if (regexTitle.test(vm.data.title)) {
                                 dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
+                                return;
+                            }
+                            const no_fill_language = window.parent.store_info.language_setting.support.find((dd) => {
+                                return !vm.data.language_data[dd].seo.domain;
+                            });
+                            if (no_fill_language) {
+                                select_lan = no_fill_language;
+                                refresh();
+                                dialog.infoMessage({ text: '未設定導向網址' });
                                 return;
                             }
                             if (CheckInput.isEmpty(vm.data.code)) {
@@ -744,7 +934,7 @@ export class ShoppingCollections {
                                 }
                             });
                         }))}
-                            </div>`,
+                                </div>`,
                     ].join(BgWidget.mbContainer(24)));
                 },
             };

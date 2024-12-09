@@ -4,19 +4,37 @@ import {App} from "./app.js";
 import {Template} from "./template.js";
 
 export class Seo {
-    public static async getPageInfo(appName: string, query_page: string) {
+    public static async getPageInfo(appName: string, query_page: string,language:any):Promise<any> {
         let page = await Template.getRealPage(query_page, appName);
-        return (await db.execute(`SELECT page_config,
+        const page_db=(()=>{
+            switch (language){
+                case 'zh-TW':
+                    return 'page_config';
+                case 'en-US':
+                    return 'page_config_en';
+                case 'zh-CN':
+                    return 'page_config_rcn';
+                default:
+                    return 'page_config';
+            }
+        })();
+        const page_data=(await db.execute(`SELECT page_config,
                                          \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,
                                          tag,
                                          page_type,
                                          tag
-                                  FROM \`${saasConfig.SAAS_NAME}\`.page_config,
+                                  FROM \`${saasConfig.SAAS_NAME}\`.${page_db},
                                        \`${saasConfig.SAAS_NAME}\`.app_config
-                                  where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
+                                  where \`${saasConfig.SAAS_NAME}\`.${page_db}.appName = ${db.escape(appName)}
                                     and tag = ${db.escape(page)}
-                                    and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
+                                    and \`${saasConfig.SAAS_NAME}\`.${page_db}.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
         `, []))[0]
+        if(!page_data && (language!='zh-TW')){
+            return await Seo.getPageInfo(appName,query_page,'zh-TW')
+        }else{
+            return page_data
+        }
+
     }
 
 
@@ -50,7 +68,7 @@ export class Seo {
                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)} limit 0,1
             `, []))[0]['tag']
         }
-        let data = await Seo.getPageInfo(appName, redirect);
+        let data = await Seo.getPageInfo(appName, redirect,'zh-TW');
 
         let query_stack=[]
         if (req.query.type) {

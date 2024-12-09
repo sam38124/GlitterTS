@@ -86,7 +86,7 @@ export class Sy03 {
                                 data: [],
                             };
                             ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then((res) => {
-                                vm.data = res.response.value;
+                                vm.data = res.response.value[Language.getLanguage()];
                                 gvc.notifyDataChange(id);
                             });
                             return {
@@ -202,7 +202,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                 data: [],
             };
             ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then((res) => {
-                vm.data = res.response.value;
+                vm.data = res.response.value[Language.getLanguage()];
                 gvc.notifyDataChange(id);
             });
             return {

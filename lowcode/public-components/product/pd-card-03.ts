@@ -154,15 +154,7 @@ export class ProductCard03 {
             class="card mb-7 card-border"
             style="cursor: pointer"
             onclick="${gvc.event(() => {
-                let path = '';
-                if (!(prod.seo && prod.seo.domain)) {
-                    glitter.setUrlParameter('product_id', subData.id);
-                    path = 'products';
-                } else {
-                    glitter.setUrlParameter('product_id', undefined);
-                    path = `products/${prod.seo.domain}`;
-                }
-                changePage(path, 'page', {});
+                PdClass.changePage(prod,gvc)
             })}"
         >
             <div class="card-img-top parent card-image position-relative">

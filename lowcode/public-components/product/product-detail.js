@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { PdClass } from './pd-class.js';
+import { Language } from "../../glitter-base/global/language.js";
 const html = String.raw;
 export class ProductDetail {
     static tab(data, gvc, select, callback, style) {
@@ -32,7 +33,7 @@ export class ProductDetail {
                         </div>`;
             }
             else {
-                return html ` <div
+                return html `<div
                             style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
                             onclick="${gvc.event(() => {
                     callback(dd.key);
@@ -81,7 +82,7 @@ export class ProductDetail {
         function spinner() {
             return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
                 <div class="spinner-border" role="status"></div>
-                <span class="mt-3">載入中</span>
+                <span class="mt-3">${Language.text('loading')}</span>
             </div>`;
         }
         gvc.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }], () => { }, () => { });
@@ -153,7 +154,7 @@ export class ProductDetail {
                     return {
                         bind: id,
                         view: () => {
-                            return this.tab([{ title: '商品描述', key: 'default' }].concat(vm.content_manager
+                            return this.tab([{ title: Language.text('product_description'), key: 'default' }].concat(vm.content_manager
                                 .filter((cont) => {
                                 return prod.content_array.includes(cont.id);
                             })
@@ -190,8 +191,7 @@ export class ProductDetail {
                                     const regex = new RegExp(`@{{${data.key}}}`, 'g');
                                     htmlString = htmlString.replace(regex, html `<span
                                                     style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
-                                                    >${data.value}</span
-                                                >`);
+                                                    >${data.value}</span>`);
                                 });
                             }
                             return htmlString.replace(/@{{[^}]+}}/g, '');
@@ -211,7 +211,7 @@ export class ProductDetail {
                 })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${gvc.bindView(() => {
+                    ${prod.relative_product.length ? gvc.bindView(() => {
                     const swipID = gvc.glitter.getUUID();
                     return {
                         bind: gvc.glitter.getUUID(),
@@ -243,7 +243,7 @@ export class ProductDetail {
                                                 <div
                                                     style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
                                                 >
-                                                    相關商品
+                                                    ${Language.text('related_products')}
                                                 </div>
                                                 <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
                                             </div>
@@ -285,7 +285,7 @@ export class ProductDetail {
                         },
                         onCreate: () => { },
                     };
-                })}
+                }) : ''}
                     <div style="margin-top: 100px;"></div>
                 </div>`;
             },

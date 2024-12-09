@@ -40,7 +40,6 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         req.query.language=language;
         const result = (await (new Template(req.body.token).getPage(req.query as any)));
         let redirect = '';
-        console.log(`language===>`,language)
         if (result.length === 0) {
             try {
                 const config = (await db.execute(`SELECT \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`

@@ -13,6 +13,7 @@ import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Ad } from '../public/ad.js';
+import { Language } from "../../glitter-base/global/language.js";
 const html = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
@@ -197,6 +198,26 @@ export class PdClass {
             }
         `);
     }
+    static changePage(prod, gvc) {
+        const glitter = gvc.glitter;
+        let path = '';
+        if (!(prod.seo && prod.seo.domain)) {
+            glitter.setUrlParameter('product_id', prod.id);
+            path = 'products';
+        }
+        else {
+            glitter.setUrlParameter('product_id', undefined);
+            if (prod.language_data && prod.language_data[Language.getLanguage()].seo) {
+                path = `products/${prod.language_data[Language.getLanguage()].seo.domain}`;
+            }
+            else {
+                path = `products/${prod.seo.domain}`;
+            }
+        }
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
+            cl.changePage(path, 'page', {});
+        });
+    }
     static selectSpec(obj) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
@@ -226,7 +247,7 @@ export class PdClass {
             </h2>
             ${gvc.map(prod.specs.map((spec, index1) => {
             return html `<div>
-                            <h5>${spec.title}</h5>
+                            <h5>${(spec.language_title && spec.language_title[Language.getLanguage()]) || spec.title}</h5>
                             <div class="d-flex gap-2 flex-wrap">
                                 ${gvc.map(spec.option.map((opt) => {
                 return html `<div
@@ -252,7 +273,7 @@ export class PdClass {
                     gvc.notifyDataChange(ids.addCartButton);
                 })}"
                                         >
-                                            <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;">${opt.title}</span>
+                                            <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;">${(opt.language_title && opt.language_title[Language.getLanguage()]) || opt.title}</span>
                                         </div>`;
             }))}
                             </div>
@@ -261,7 +282,7 @@ export class PdClass {
         }))}
             <div class="d-flex gap-3" style="${document.body.clientWidth > 768 ? 'height: 46px;' : 'flex-direction: column;'} ">
                 <div class=" gap-2 align-items-center ${(obj.with_qty === false) ? `d-none` : `d-flex`}">
-                    <span>數量</span>
+                    <span>${Language.text('quantity')}</span>
                     <select
                         class="form-select custom-select"
                         style="border-radius: 5px; color: #575757; width: 100px;"
@@ -308,7 +329,7 @@ export class PdClass {
                     currency: 'TWD',
                 });
                 if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) && `${variant.show_understocking}` !== 'false') {
-                    return html `<button class="no-stock" disabled>庫存不足</button>`;
+                    return html `<button class="no-stock" disabled>${Language.text('out_of_stock')}</button>`;
                 }
                 return html `<button
                             class="add-cart-btn"
@@ -322,7 +343,7 @@ export class PdClass {
                         gvc.glitter.recreateView('.shopping-cart');
                         PdClass.jumpAlert({
                             gvc,
-                            text: html `${prod.title} ${vm.specs.length > 0 ? `(${vm.specs.join('/')})` : ''}<br />加入成功`,
+                            text: html `${Language.text('add_to_cart_success')}`,
                             justify: 'top',
                             align: 'center',
                             width: 300,
@@ -331,7 +352,7 @@ export class PdClass {
                     }
                 })}"
                         >
-                            加入購物車
+                            ${Language.text('add_to_cart')}
                         </button>`;
             },
             divCreate: {
@@ -407,11 +428,11 @@ export class PdClass {
             view: () => {
                 if (vm.wishStatus) {
                     return html ` <i class="fa-solid fa-heart"></i>
-                                    <span>從心願單移除</span>`;
+                                    <span>${Language.text('remove_to_wishlist')}</span>`;
                 }
                 else {
                     return html ` <i class="fa-regular fa-heart"></i>
-                                    <span>添加至心願單</span>`;
+                                    <span>${Language.text('add_to_wishlist')}</span>`;
                 }
             },
         })}

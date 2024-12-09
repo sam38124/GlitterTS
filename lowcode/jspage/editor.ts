@@ -182,7 +182,7 @@ export class Editor {
                                         onclick="${gvc.event(() => {
                                             Editor.languageSwitch(gvc)
                                         })}">
-                                    ${Language.getLanguageText()}
+                                    ${Language.getLanguageText({})}
                                 </div>
                                 ${[
                                     ...(() => {

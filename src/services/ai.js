@@ -10,18 +10,22 @@ const tool_js_1 = __importDefault(require("../modules/tool.js"));
 const process_1 = __importDefault(require("process"));
 class Ai {
     static async initial() {
-        const jsonStringQA = JSON.stringify(this.defaultQA);
-        const file1 = tool_js_1.default.randomString(10) + '.json';
-        const openai = new openai_1.default({
-            apiKey: process_1.default.env.OPENAI_API_KEY,
-        });
-        fs_1.default.writeFileSync(file1, jsonStringQA);
-        const file = await openai.files.create({
-            file: fs_1.default.createReadStream(file1),
-            purpose: 'assistants',
-        });
-        Ai.files.guide = file.id;
-        fs_1.default.rmSync(file1);
+        try {
+            const jsonStringQA = JSON.stringify(this.defaultQA);
+            const file1 = tool_js_1.default.randomString(10) + '.json';
+            const openai = new openai_1.default({
+                apiKey: process_1.default.env.OPENAI_API_KEY,
+            });
+            fs_1.default.writeFileSync(file1, jsonStringQA);
+            const file = await openai.files.create({
+                file: fs_1.default.createReadStream(file1),
+                purpose: 'assistants',
+            });
+            Ai.files.guide = file.id;
+            fs_1.default.rmSync(file1);
+        }catch (e) {
+
+        }
     }
 }
 exports.Ai = Ai;

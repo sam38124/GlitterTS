@@ -12,8 +12,8 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
-import { ApiUser } from '../../glitter-base/route/user.js';
-import { Language } from '../../glitter-base/global/language.js';
+import { ApiUser } from "../../glitter-base/route/user.js";
+import { Language } from "../../glitter-base/global/language.js";
 const html = String.raw;
 export class ProductCard02 {
     static main(gvc, widget, subData) {
@@ -149,16 +149,7 @@ export class ProductCard02 {
             class="card mb-7 card-border"
             style="cursor: pointer"
             onclick="${gvc.event(() => {
-            let path = '';
-            if (!(prod.seo && prod.seo.domain)) {
-                glitter.setUrlParameter('product_id', subData.id);
-                path = 'products';
-            }
-            else {
-                glitter.setUrlParameter('product_id', undefined);
-                path = `products/${prod.seo.domain}`;
-            }
-            changePage(path, 'page', {});
+            PdClass.changePage(prod, gvc);
         })}"
         >
             <div class="card-img-top parent card-image position-relative">

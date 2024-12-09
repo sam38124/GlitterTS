@@ -31,9 +31,10 @@ router.get('/config', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
             result: true,
-            value: (_b = ((_a = (await new manager_js_1.Manager(req.body.token).getConfig({
+            value: (_b = ((_a = (await manager_js_1.Manager.getConfig({
                 appName: req.get('g-app'),
                 key: req.query.key,
+                language: req.headers['language']
             }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : '',
         });
     }

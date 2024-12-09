@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -65,6 +67,7 @@ const ai_js_1 = require("./services/ai.js");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
+const manager_js_1 = require("./api-public/services/manager.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -116,7 +119,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -185,7 +187,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -255,13 +257,13 @@ async function createAPP(dd) {
                         key: 'login_config',
                         user_id: 'manager',
                     }));
-                    let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
+                    let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
-                            return await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
+                            return await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
                         }
                         else {
-                            return await seo_js_1.Seo.getPageInfo(appName, 'index');
+                            return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                         }
                     })();
                     if (data && data.page_config) {
@@ -274,23 +276,26 @@ async function createAPP(dd) {
                                     page: 0,
                                     limit: 1,
                                     domain: decodeURIComponent(product_domain),
+                                    language: language
                                 }
                                 : {
                                     page: 0,
                                     limit: 1,
                                     id: req.query.product_id,
+                                    language: language
                                 });
                             if (pd.data.content) {
-                                const productSeo = (_c = pd.data.content.seo) !== null && _c !== void 0 ? _c : {};
-                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
-                                data.page_config = (_d = data.page_config) !== null && _d !== void 0 ? _d : {};
-                                data.page_config.seo = (_e = data.page_config.seo) !== null && _e !== void 0 ? _e : {};
+                                pd.data.content.language_data = (_c = pd.data.content.language_data) !== null && _c !== void 0 ? _c : {};
+                                const productSeo = (pd.data.content.language_data[language].seo) || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
+                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
+                                data.page_config = (_e = data.page_config) !== null && _e !== void 0 ? _e : {};
+                                data.page_config.seo = (_f = data.page_config.seo) !== null && _f !== void 0 ? _f : {};
                                 data.page_config.seo.title = productSeo.title;
                                 data.page_config.seo.image = pd.data.content.preview_image[0];
                                 data.page_config.seo.content = productSeo.content;
                             }
                             else {
-                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
+                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
                             }
                         }
                         else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
@@ -300,9 +305,9 @@ async function createAPP(dd) {
                                 page: 0,
                                 limit: 1,
                             });
-                            data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
-                            data.page_config = (_f = data.page_config) !== null && _f !== void 0 ? _f : {};
-                            data.page_config.seo = (_g = data.page_config.seo) !== null && _g !== void 0 ? _g : {};
+                            data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
+                            data.page_config = (_g = data.page_config) !== null && _g !== void 0 ? _g : {};
+                            data.page_config.seo = (_h = data.page_config.seo) !== null && _h !== void 0 ? _h : {};
                             if (article.data[0]) {
                                 data.page_config.seo.title = article.data[0].content.seo.title;
                                 data.page_config.seo.content = article.data[0].content.seo.content;
@@ -313,8 +318,8 @@ async function createAPP(dd) {
                             data = home_page_data;
                         }
                         const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page, language);
-                        data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
-                        data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
+                        data.page_config = (_j = data.page_config) !== null && _j !== void 0 ? _j : {};
+                        data.page_config.seo = (_k = data.page_config.seo) !== null && _k !== void 0 ? _k : {};
                         const seo_detail = await getSeoDetail(appName, req);
                         if (seo_detail) {
                             Object.keys(seo_detail).map((dd) => {
@@ -359,10 +364,11 @@ async function createAPP(dd) {
                             }
                         }
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
-                            const cols = (_k = (await database_2.default.query(`SELECT *
-                                             FROM \`${appName}\`.public_config
-                                             WHERE \`key\` = 'collection';
-                                            `, []))[0]) !== null && _k !== void 0 ? _k : {};
+                            const cols = (_l = (await manager_js_1.Manager.getConfig({
+                                appName: appName,
+                                key: 'collection',
+                                language: language
+                            }))[0]) !== null && _l !== void 0 ? _l : {};
                             const colJson = extractCols(cols);
                             const urlCode = decodeURI(req.query.page.split('/')[1]);
                             const colData = colJson.find((item) => item.code === urlCode);
@@ -372,7 +378,6 @@ async function createAPP(dd) {
                                 data.page_config.seo.keywords = colData.seo_keywords;
                             }
                         }
-                        console.log(`wait_return==>`, (new Date().getTime() - start) / 1000);
                         return html `${(() => {
                             var _a;
                             const d = data.page_config.seo;
@@ -468,7 +473,7 @@ async function createAPP(dd) {
                                 `;
                         })()}
                             <script>
-                                ${(_l = d.custom_script) !== null && _l !== void 0 ? _l : ''};
+                                ${(_m = d.custom_script) !== null && _m !== void 0 ? _m : ''};
                                 window.login_config = ${JSON.stringify(login_config)};
                                 window.appName = '${appName}';
                                 window.glitterBase = '${brandAndMemberType.brand}';
@@ -497,7 +502,7 @@ async function createAPP(dd) {
                                                     type="${dd.type}"></script>`;
                         })
                             .join('')}
-                            ${((_m = preload.event) !== null && _m !== void 0 ? _m : [])
+                            ${((_o = preload.event) !== null && _o !== void 0 ? _o : [])
                             .filter((dd) => {
                             return dd;
                         })
@@ -716,10 +721,15 @@ async function createAPP(dd) {
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
+                const robots = await (new user_js_1.User(appName).getConfigV2({
+                    key: 'robots_text',
+                    user_id: 'manager'
+                }));
+                robots.text = (robots.text || '');
                 const domain = (await database_2.default.query(`select \`domain\`
                              from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                              where appName = ?`, [appName]))[0]['domain'];
-                return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
+                return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html `User-agent: * \nSitemap: ${domain}/sitemap.xml`;
             },
             tw_shop: async (req, resp) => {
                 let appName = dd.appName;
@@ -773,7 +783,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

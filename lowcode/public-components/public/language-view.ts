@@ -98,7 +98,9 @@ export class LanguageView {
             })}"
         >
             <i class="fa-duotone fa-solid fa-earth-americas"></i>
-            <div class="fw-bold" style="font-size:13px;">${Language.getLanguageText(true)}</div>
+            <div class="fw-bold" style="font-size:13px;">${Language.getLanguageText({
+                local:true
+            })}</div>
         </div>`;
     }
 }

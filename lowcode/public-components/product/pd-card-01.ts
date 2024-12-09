@@ -1,11 +1,11 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { CheckInput } from '../../modules/checkInput.js';
-import { PdClass } from './pd-class.js';
-import { Tool } from '../../modules/tool.js';
-import { ApiUser } from '../../glitter-base/route/user.js';
-import { Language } from '../../glitter-base/global/language.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {ApiShop} from '../../glitter-base/route/shopping.js';
+import {GlobalUser} from '../../glitter-base/global/global-user.js';
+import {CheckInput} from '../../modules/checkInput.js';
+import {PdClass} from './pd-class.js';
+import {Tool} from '../../modules/tool.js';
+import {ApiUser} from "../../glitter-base/route/user.js";
+import {Language} from "../../glitter-base/global/language.js";
 
 const html = String.raw;
 
@@ -150,25 +150,17 @@ export class ProductCard01 {
         return html` <div
             class="card mb-7 card-border"
             onclick="${gvc.event(() => {
-                let path = '';
-                if (!(prod.seo && prod.seo.domain)) {
-                    glitter.setUrlParameter('product_id', subData.id);
-                    path = 'products';
-                } else {
-                    glitter.setUrlParameter('product_id', undefined);
-                    path = `products/${prod.seo.domain}`;
-                }
-                changePage(path, 'page', {});
-            })}"
+                PdClass.changePage(prod,gvc)
+        })}"
         >
             <div class="card-img-top parent card-image position-relative" style="overflow: hidden;">
                 ${gvc.bindView({
-                    bind: labelID,
-                    view: () => {
-                        if (prod.label && !loading) {
-                            ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
-                                label = data.response.value.find((item: { id: number }) => {
-                                    return item.id == prod.label;
+            bind: labelID,
+            view: () => {
+                if (prod.label && !loading) {
+                    ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
+                        label = data.response.value.find((item: { id: number }) => {
+                            return item.id == prod.label;
                                 });
                                 loading = true;
                                 gvc.notifyDataChange(labelID);

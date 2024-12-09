@@ -16,6 +16,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
+import { Language } from "../glitter-base/global/language.js";
 const html = String.raw;
 const css = String.raw;
 export class BgWidget {
@@ -331,6 +332,25 @@ export class BgWidget {
     static leftLineBar() {
         return html `
             <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
+    }
+    static languageInsignia(language, style) {
+        switch (language) {
+            case "zh-TW":
+                return `  <div class="insignia " style="background: #ffe9b2;${style || ''};">${Language.getLanguageText({
+                    local: true,
+                    compare: language
+                })}</div>`;
+            case "en-US":
+                return `  <div class="insignia " style="background: #D8E7EC;${style || ''};">${Language.getLanguageText({
+                    local: true,
+                    compare: language
+                })}</div>`;
+            case "zh-CN":
+                return `  <div class="insignia " style="background: #FFD5D0;${style || ''};">${Language.getLanguageText({
+                    local: true,
+                    compare: language
+                })}</div>`;
+        }
     }
     static horizontalLine(css) {
         var _a, _b, _c;

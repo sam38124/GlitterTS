@@ -1,19 +1,15 @@
 export class Language {
     static getLanguage() {
-        let last_select = localStorage.getItem('select_language') || navigator.language;
+        let last_select = localStorage.getItem('select_language_' + window.appName) || navigator.language;
         if (!window.store_info.language_setting.support.includes(last_select)) {
             last_select = window.store_info.language_setting.def;
         }
         return last_select;
     }
-    static getLanguageLinkPrefix(pre = true) {
+    static getLanguageLinkPrefix(pre = true, compare) {
         const lan = (() => {
-            let last_select = localStorage.getItem('select_language') || navigator.language;
-            if (!window.store_info.language_setting.support.includes(last_select)) {
-                last_select = window.store_info.language_setting.def;
-            }
-            if (last_select !== window.store_info.language_setting.def) {
-                switch (last_select) {
+            if ((compare || Language.getLanguage()) !== (window.store_info.language_setting.def)) {
+                switch ((compare || Language.getLanguage())) {
                     case 'en-US':
                         return `en`;
                     case 'zh-CN':
@@ -36,33 +32,37 @@ export class Language {
             return ``;
         }
     }
-    static getLanguageText(local = false) {
+    static getLanguageText(cf) {
         var _a;
         const sup = [
             {
                 key: 'en-US',
-                value: local ? 'English' : '英',
+                value: cf.local ? 'English' : '英'
             },
             {
                 key: 'zh-CN',
-                value: local ? '简体中文' : '简',
+                value: cf.local ? '简体中文' : '简'
             },
             {
                 key: 'zh-TW',
-                value: local ? '繁體中文' : '繁',
-            },
+                value: cf.local ? '繁體中文' : '繁'
+            }
         ];
         return (_a = sup.find((dd) => {
-            return dd.key === Language.getLanguage();
+            return dd.key === (cf.compare || Language.getLanguage());
         })) === null || _a === void 0 ? void 0 : _a.value;
     }
     static setLanguage(value) {
-        localStorage.setItem('select_language', value);
+        localStorage.setItem('select_language_' + window.appName, value);
     }
     static text(key) {
-        return this.languageDataList().find((dd) => {
+        const find_ = this.languageDataList().find((dd) => {
             return dd.key === key;
-        })[(() => {
+        });
+        if (!find_) {
+            return undefined;
+        }
+        return (find_)[(() => {
             switch (Language.getLanguage()) {
                 case 'zh-TW':
                     return 'tw';
@@ -92,6 +92,17 @@ export class Language {
     }
     static languageDataList() {
         return [
+            { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery` },
+            { key: 'ship_OKMARTC2C', tw: 'OK超商店到店', cn: 'OK超商店到店', en: `OK Mart Store-to-Store Delivery` },
+            { key: 'ship_UNIMARTC2C', tw: '7-ELEVEN超商交貨便', cn: '7-ELEVEN便利店送货便', en: `7-ELEVEN Store Delivery Service` },
+            { key: 'ship_shop', tw: '實體門市取貨', cn: '实体门市取货', en: `In-Store Pickup` },
+            { key: 'ship_FAMIC2C', tw: '全家店到店', cn: '全家店到店', en: `FamilyMart Store-to-Store Delivery` },
+            { key: 'ship_black_cat', tw: '黑貓到府', cn: '黑猫到府', en: `Black Cat Home Delivery` },
+            { key: 'ship_normal', tw: '中華郵政', cn: '中华邮政', en: `Chunghwa Post` },
+            { key: 'next', tw: '下一步', cn: '下一步', en: `Next` },
+            { key: 'please_wait', tw: '請稍候...', cn: '請稍候...', en: `Please wait...` },
+            { key: 'related_products', tw: '相關商品', cn: '相關商品', en: 'Related Products' },
+            { key: 'product_description', tw: '商品描述', cn: '商品描述', en: 'Product Description' },
             { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: 'Switch language' },
             { key: 'shopping_details', tw: '購物明細', cn: '购物明细', en: 'Shopping details' },
             { key: 'your_shopping_cart', tw: '您的購物車', cn: '您的购物车', en: 'Your shopping cart' },
@@ -101,6 +112,7 @@ export class Language {
             { key: 'quantity', tw: '數量', cn: '数量', en: 'Quantity' },
             { key: 'subtotal', tw: '小計', cn: '小计', en: 'Subtotal' },
             { key: 'total', tw: '合計', cn: '合计', en: 'Total' },
+            { key: 'out_of_stock', tw: '庫存不足', cn: '庫存不足', en: 'Out of Stock' },
             { key: 'total_products', tw: '商品總計', cn: '商品总计', en: 'Total products' },
             { key: 'shipping_fee', tw: '運費', cn: '运费', en: 'Shipping fee' },
             { key: 'discount_coupon', tw: '優惠券折抵', cn: '优惠券折抵', en: 'Discount coupon' },
@@ -127,6 +139,7 @@ export class Language {
             { key: 'send_to_user_email', tw: '傳送至用戶信箱', cn: '传送至用户邮箱', en: 'Send to user email' },
             { key: 'mobile_barcode_device', tw: '手機條碼載具', cn: '手机条码载具', en: 'Mobile barcode device' },
             { key: 'add_to_cart', tw: '加入購物車', cn: '加入购物车', en: 'Add to Cart' },
+            { key: 'add_to_cart_success', tw: '加入成功', cn: '加入成功', en: 'Added successfully' },
             {
                 key: 'empty_cart_message',
                 tw: '購物車是空的，趕快前往挑選您心儀的商品',
@@ -216,6 +229,8 @@ export class Language {
             { key: 'my_coupons', tw: '我的優惠券', cn: '我的优惠券', en: 'Coupons' },
             { key: 'order_history', tw: '訂單記錄', cn: '订单记录', en: 'Order History' },
             { key: 'wishlist', tw: '心願單', cn: '心愿单', en: 'Wishlist' },
+            { key: 'add_to_wishlist', tw: '添加至心願單', cn: '添加至心愿单', en: 'Add to Wishlist' },
+            { key: 'remove_to_wishlist', tw: '從心願單移除', cn: '從心願单移除', en: 'Remove from Wishlist' },
             { key: 'reset_password', tw: '重設密碼', cn: '重设密码', en: 'Reset Password' },
             { key: 'logout', tw: '登出', cn: '登出', en: 'Logout' },
             { key: 'reset_password_event', tw: '重設密碼事件', cn: '重设密码事件', en: 'Reset Password Event' },

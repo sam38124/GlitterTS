@@ -43,6 +43,7 @@ const template_js_1 = require("./template.js");
 const tool_1 = __importDefault(require("./tool"));
 const path_1 = __importDefault(require("path"));
 const app_initial_js_1 = require("./app-initial.js");
+const user_js_1 = require("../api-public/services/user.js");
 class App {
     static getAdConfig(app, key) {
         return new Promise(async (resolve, reject) => {
@@ -481,6 +482,7 @@ class App {
                             const pageData = (await new template_js_1.Template(undefined).getPage({
                                 appName: dd.data.refer_app || appName,
                                 tag: dd.data.tag,
+                                language: language
                             }))[0];
                             if (pageData && pageData.config) {
                                 preloadData.component.push(pageData);
@@ -812,6 +814,20 @@ server {
     }
     constructor(token) {
         this.token = token;
+    }
+    static async getSupportLanguage(appName) {
+        let store_info = await new user_js_1.User(appName).getConfigV2({
+            key: 'store-information',
+            user_id: 'manager',
+        });
+        return store_info.language_setting.support;
+    }
+    static async getDefLanguage(appName) {
+        let store_info = await new user_js_1.User(appName).getConfigV2({
+            key: 'store-information',
+            user_id: 'manager',
+        });
+        return store_info.language_setting.def;
     }
 }
 exports.App = App;

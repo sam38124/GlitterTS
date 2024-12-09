@@ -123,7 +123,7 @@ router.delete('/rebate', async (req, resp) => {
 router.post('/checkout', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-            lineItems: req.body.line_items,
+            line_items: req.body.line_items,
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,
@@ -143,6 +143,7 @@ router.post('/checkout', async (req, resp) => {
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
             give_away: req.body.give_away,
+            language: req.headers['language']
         }));
     }
     catch (err) {
@@ -162,7 +163,7 @@ router.post('/checkout/repay', async (req, resp) => {
 router.post('/checkout/preview', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-            lineItems: req.body.line_items,
+            line_items: req.body.line_items,
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,
@@ -179,6 +180,7 @@ router.post('/checkout/preview', async (req, resp) => {
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
             give_away: req.body.give_away,
+            language: req.headers['language']
         }, 'preview'));
     }
     catch (err) {
@@ -189,7 +191,7 @@ router.post('/manager/checkout', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-                lineItems: req.body.lineItems,
+                line_items: req.body.line_items,
                 email: req.body.customer_info.email,
                 return_url: req.body.return_url,
                 user_info: req.body.user_info,
@@ -214,7 +216,7 @@ router.post('/manager/checkout/preview', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-                lineItems: req.body.line_items,
+                line_items: req.body.line_items,
                 email: (req.body.token && req.body.token.account) || req.body.email,
                 return_url: req.body.return_url,
                 user_info: req.body.user_info,
@@ -797,6 +799,7 @@ router.get('/product', async (req, resp) => {
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
+            language: req.headers['language']
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -934,7 +937,7 @@ router.get('/check-login-for-order', async (req, resp) => {
 router.post('/pos/checkout', async (req, resp) => {
     async function checkoutPos() {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-            lineItems: req.body.lineItems,
+            line_items: req.body.lineItems,
             email: req.body.customer_info.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,

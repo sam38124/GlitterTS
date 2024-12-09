@@ -387,23 +387,18 @@ router.get('/public/config', async (req: express.Request, resp: express.Response
         if (await UtPermission.isManager(req)) {
             return response.succ(resp, {
                 result: true,
-                value:
-                    ((
-                        await post.getConfig({
-                            key: req.query.key as string,
-                            user_id: req.query.user_id as string,
-                        })
-                    )[0] ?? {})['value'] ?? '',
+                value: await post.getConfigV2({
+                        key: req.query.key as string,
+                        user_id: req.query.user_id as string,
+                    }),
             });
         } else {
             return response.succ(resp, {
                 result: true,
-                value: FilterProtectData.filter(req.query.key as string, ((
-                    await post.getConfig({
-                        key: req.query.key as string,
-                        user_id: req.query.user_id as string,
-                    })
-                )[0] ?? {})['value'] ?? ''),
+                value: FilterProtectData.filter(req.query.key as string,   await post.getConfigV2({
+                    key: req.query.key as string,
+                    user_id: req.query.user_id as string,
+                })),
             });
         }
     } catch (err) {

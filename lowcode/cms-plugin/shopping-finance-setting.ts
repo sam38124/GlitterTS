@@ -4,6 +4,11 @@ import {EditorElem} from '../glitterBundle/plugins/editor-elem.js';
 import {ShareDialog} from '../glitterBundle/dialog/ShareDialog.js';
 import {ApiPageConfig} from '../api/pageConfig.js';
 import {CheckInput} from '../modules/checkInput.js';
+import {Language} from "../glitter-base/global/language.js";
+import {LanguageBackend} from "./language-backend.js";
+import {Tool} from "../modules/tool.js";
+import {ProductAi} from "./ai-generator/product-ai.js";
+import {imageLibrary} from "../modules/image-library.js";
 
 const html = String.raw;
 
@@ -116,7 +121,7 @@ export class ShoppingFinanceSetting {
                                                             let array = [];
                                                             keyData.newWebPay.toggle && array.push('newWebPay');
                                                             keyData.ecPay.toggle && array.push('ecPay');
-                                                            keyData.paypal.toggle &&  array.push('paypal');
+                                                            keyData.paypal.toggle && array.push('paypal');
                                                             return array
                                                         })(),
                                                         (data) => {
@@ -572,6 +577,7 @@ export class ShoppingFinanceSetting {
             loading: boolean;
             data: any;
             delivery: any;
+            language: any
         } = {
             id: gvc.glitter.getUUID(),
             loading: true,
@@ -585,6 +591,7 @@ export class ShoppingFinanceSetting {
                 MERCHANT_ID: '',
                 SenderCellPhone: '',
             },
+            language: (window.parent as any).store_info.language_setting.def
         };
         saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r: {
             response: any;
@@ -594,6 +601,13 @@ export class ShoppingFinanceSetting {
                 vm.data = r.response.result[0].value;
             }
             vm.loading = false;
+            if (!vm.data.language_data) {
+                vm.data.language_data = {
+                    'en-US': {info: ''},
+                    'zh-CN': {info: ''},
+                    'zh-TW': {info: vm.data.info || ''}
+                }
+            }
             gvc.notifyDataChange(vm.id);
         });
 
@@ -609,6 +623,7 @@ export class ShoppingFinanceSetting {
                         return BgWidget.spinner();
                     }
                     vm.data.support = vm.data.support || [];
+                    const language_data = vm.data.language_data[vm.language]
                     vm.data.info = vm.data.info || '';
                     vm.data.form = vm.data.form || [];
                     return BgWidget.container(
@@ -957,9 +972,14 @@ export class ShoppingFinanceSetting {
                                     view: () => {
                                         return [
                                             {
-                                                title: '黑貓 / 郵政',
+                                                title: '中華郵政',
                                                 value: 'normal',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734353666-truck-light 1 (1).svg',
+                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Chunghwa_Post_Logo.svg.png',
+                                            },
+                                            {
+                                                title: '黑貓到府',
+                                                value: 'black_cat',
+                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
                                             },
                                             {
                                                 title: '7-ELEVEN超商交貨便',
@@ -985,7 +1005,7 @@ export class ShoppingFinanceSetting {
                                                 title: '實體門市取貨',
                                                 value: 'shop',
                                                 type: 'font_awesome',
-                                                src: `<i class="fa-duotone fa-solid fa-shop" style="font-size: 40px;"></i>`,
+                                                src: `<i class="fa-duotone fa-solid fa-shop" style="font-size: 35px;color:#319e49;"></i>`,
                                             },
                                         ]
                                                 .concat(
@@ -1109,7 +1129,9 @@ export class ShoppingFinanceSetting {
                                         html`
                                             <div class="title-container px-0">
                                                 <div class="d-flex d-md-block gap-2 align-items-center">
-                                                    <div class="tx_700">配送說明</div>
+                                                    <div class="tx_700">
+                                                            配送說明${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                                                    </div>
                                                     ${document.body.clientWidth > 768
                                                             ? BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項')
                                                             : BgWidget.iconButton({
@@ -1126,23 +1148,153 @@ export class ShoppingFinanceSetting {
                                                             })}
                                                 </div>
                                                 <div class="flex-fill"></div>
-                                                ${BgWidget.aiChatButton({
-                                                    gvc,
-                                                    select: 'writer',
+                                                ${LanguageBackend.switchBtn({
+                                                    gvc: gvc,
+                                                    language: vm.language,
+                                                    callback: (language) => {
+                                                        vm.language = language
+                                                        gvc.notifyDataChange(vm.id)
+                                                    }
                                                 })}
                                             </div>`,
                                         ,
                                         BgWidget.mbContainer(18),
                                         html`
                                             <div class="guide3-4">
-                                                ${EditorElem.richText({
-                                                    gvc: gvc,
-                                                    def: vm.data.info,
-                                                    callback: (text) => {
-                                                        vm.data.info = text;
-                                                        save();
-                                                    },
-                                                })}
+                                                ${gvc.bindView(
+                                                        (() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    EditorElem.richText({
+                                                                        gvc: gvc,
+                                                                        def: language_data.info,
+                                                                        callback: (text) => {
+                                                                            language_data.info = text;
+                                                                            save();
+                                                                        },
+                                                                    })
+                                                                    return html`
+                                                                        <div
+                                                                                class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                                                                style="cursor: pointer;"
+                                                                                onclick="${gvc.event(() => {
+
+                                                                                    const originContent = `${language_data.info}`;
+                                                                                    BgWidget.fullDialog({
+                                                                                        gvc: gvc,
+                                                                                        title: (gvc2) => {
+                                                                                            return `<div class="d-flex align-items-center" style="gap:10px;">${'商品描述' + BgWidget.aiChatButton({
+                                                                                                gvc: gvc2,
+                                                                                                select: 'writer',
+                                                                                                click: () => {
+                                                                                                    ProductAi.generateRichText(gvc, (text) => {
+                                                                                                        language_data.info += text;
+                                                                                                        gvc.notifyDataChange(vm.id)
+                                                                                                        gvc2.recreateView()
+                                                                                                    })
+                                                                                                }
+                                                                                            })}</div>`
+                                                                                        },
+                                                                                        innerHTML: (gvc2) => {
+                                                                                            return html`
+                                                                                                <div>
+                                                                                                    ${EditorElem.richText({
+                                                                                                        gvc: gvc2,
+                                                                                                        def: language_data.info,
+                                                                                                        setHeight: '100vh',
+                                                                                                        hiddenBorder: true,
+                                                                                                        insertImageEvent: (editor) => {
+                                                                                                            const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                            editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                            editor.html.insert(mark);
+                                                                                                            editor.undo.saveStep();
+                                                                                                            imageLibrary.selectImageLibrary(
+                                                                                                                    gvc,
+                                                                                                                    (urlArray) => {
+                                                                                                                        if (urlArray.length > 0) {
+                                                                                                                            const imgHTML = urlArray
+                                                                                                                                    .map((url) => {
+                                                                                                                                        return html`
+                                                                                                                                            <img src="${url.data}"/>`;
+                                                                                                                                    })
+                                                                                                                                    .join('');
+                                                                                                                            editor.html.set(
+                                                                                                                                    editor.html
+                                                                                                                                            .get(0)
+                                                                                                                                            .replace(
+                                                                                                                                                    mark,
+                                                                                                                                                    html`
+                                                                                                                                                        <div class="d-flex flex-column">
+                                                                                                                                                            ${imgHTML}
+                                                                                                                                                        </div>`
+                                                                                                                                            )
+                                                                                                                            );
+                                                                                                                            editor.undo.saveStep();
+                                                                                                                        } else {
+                                                                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                            dialog.errorMessage({text: '請選擇至少一張圖片'});
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                    html`
+                                                                                                                        <div
+                                                                                                                                class="d-flex flex-column"
+                                                                                                                                style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                        >
+                                                                                                                            圖片庫
+                                                                                                                        </div>`,
+                                                                                                                    {
+                                                                                                                        mul: true,
+                                                                                                                        cancelEvent: () => {
+                                                                                                                            editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                            editor.undo.saveStep();
+                                                                                                                        },
+                                                                                                                    }
+                                                                                                            );
+                                                                                                        },
+                                                                                                        callback: (text) => {
+                                                                                                            language_data.info = text;
+                                                                                                        },
+                                                                                                        rich_height: `calc(${
+                                                                                                                (window.parent as any).innerHeight
+                                                                                                        }px - 70px - 58px - 49px - 64px - 40px + ${
+                                                                                                                document.body.clientWidth < 800 ? `70` : `0`
+                                                                                                        }px)`,
+                                                                                                    })}
+                                                                                                </div>`;
+                                                                                        },
+                                                                                        footer_html: (gvc2: GVC) => {
+                                                                                            return [
+                                                                                                BgWidget.cancel(
+                                                                                                        gvc2.event(() => {
+                                                                                                            language_data.info = originContent;
+                                                                                                            gvc2.closeDialog();
+                                                                                                        })
+                                                                                                ),
+                                                                                                BgWidget.save(
+                                                                                                        gvc2.event(() => {
+                                                                                                            gvc2.closeDialog();
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        })
+                                                                                                ),
+                                                                                            ].join('');
+                                                                                        },
+                                                                                        closeCallback: () => {
+                                                                                            language_data.info = originContent;
+                                                                                        },
+                                                                                    });
+                                                                                })}"
+                                                                        >
+                                                                            ${(() => {
+                                                                                const text = gvc.glitter.utText.removeTag(language_data.info);
+                                                                                return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                            })()}
+                                                                        </div>`;
+                                                                },
+                                                            };
+                                                        })()
+                                                )}
                                             </div>`,
                                     ].join('')
                             )}
@@ -1214,199 +1366,199 @@ export class ShoppingFinanceSetting {
                         ${BgWidget.container(
                                 [
                                     BgWidget.mainCard(
-                                        gvc.bindView(() => {
-                                            const id = gvc.glitter.getUUID();
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    return new Promise(async (resolve, reject) => {
-                                                        const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
-                                                        if (data.response.result[0]) {
-                                                            vm.data = data.response.result[0].value;
-                                                        }
-                                                        if (vm.data.point === 'beta') {
-                                                            vm.data.whiteList = vm.data.whiteList ?? [];
-                                                            vm.data.whiteListExpand = vm.data.whiteListExpand ?? {};
-                                                        }
-                                                        resolve(
-                                                                gvc.bindView(() => {
-                                                                    vm.data.fincial = vm.data.fincial ?? 'ezpay';
-                                                                    vm.data.point = vm.data.point ?? 'beta';
-                                                                    const id = gvc.glitter.getUUID();
-                                                                    return {
-                                                                        bind: id,
-                                                                        view: () => {
-                                                                            return html`
-                                                                                <div class="d-flex flex-column"
-                                                                                     style="gap:18px;">
-                                                                                    <div class="tx_normal fw-bold">
-                                                                                        服務商選擇
+                                            gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return new Promise(async (resolve, reject) => {
+                                                            const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
+                                                            if (data.response.result[0]) {
+                                                                vm.data = data.response.result[0].value;
+                                                            }
+                                                            if (vm.data.point === 'beta') {
+                                                                vm.data.whiteList = vm.data.whiteList ?? [];
+                                                                vm.data.whiteListExpand = vm.data.whiteListExpand ?? {};
+                                                            }
+                                                            resolve(
+                                                                    gvc.bindView(() => {
+                                                                        vm.data.fincial = vm.data.fincial ?? 'ezpay';
+                                                                        vm.data.point = vm.data.point ?? 'beta';
+                                                                        const id = gvc.glitter.getUUID();
+                                                                        return {
+                                                                            bind: id,
+                                                                            view: () => {
+                                                                                return html`
+                                                                                    <div class="d-flex flex-column"
+                                                                                         style="gap:18px;">
+                                                                                        <div class="tx_normal fw-bold">
+                                                                                            服務商選擇
+                                                                                        </div>
+                                                                                        ${[
+                                                                                            // {
+                                                                                            //     title: html` <div class="d-flex flex-column">
+                                                                                            //         藍新發票
+                                                                                            //         <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                            //     </div>`,
+                                                                                            //     value: 'ezpay',
+                                                                                            // },
+                                                                                            {
+                                                                                                title: html`
+                                                                                                    <div class="d-flex flex-column">
+                                                                                                        綠界發票
+                                                                                                        <span class=""
+                                                                                                              style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                                    </div>`,
+                                                                                                value: 'ecpay',
+                                                                                            },
+                                                                                            {
+                                                                                                title: html`
+                                                                                                    <div class="d-flex flex-column">
+                                                                                                        線下開立
+                                                                                                        <span class=""
+                                                                                                              style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                                    </div>`,
+                                                                                                value: 'off_line',
+                                                                                            },
+                                                                                            {
+                                                                                                title: html`
+                                                                                                    <div class="d-flex flex-column">
+                                                                                                        不開立電子發票
+                                                                                                        <span class=""
+                                                                                                              style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+                                                                                                    </div>`,
+                                                                                                value: 'nouse',
+                                                                                            },
+                                                                                        ]
+                                                                                                .map((dd) => {
+                                                                                                    return html`
+                                                                                                        <div>
+                                                                                                            ${[
+                                                                                                                html`
+                                                                                                                    <div
+                                                                                                                            class="d-flex align-items-center cursor_pointer"
+                                                                                                                            style="gap:8px;"
+                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                                vm.data.fincial = dd.value;
+                                                                                                                                gvc.notifyDataChange(id);
+                                                                                                                            })}"
+                                                                                                                    >
+                                                                                                                        ${vm.data.fincial === dd.value
+                                                                                                                                ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
+                                                                                                                                : ` <div class="c_39_checkbox"></div>`}
+                                                                                                                        <div class="tx_normal fw-normal">
+                                                                                                                            ${dd.title}
+                                                                                                                        </div>
+                                                                                                                    </div>`,
+                                                                                                                html`
+                                                                                                                    <div class="d-flex position-relative mt-2"
+                                                                                                                         style="">
+                                                                                                                        <div class="ms-2 border-end position-absolute h-100"
+                                                                                                                             style="left: 0px;"></div>
+                                                                                                                        <div class="flex-fill "
+                                                                                                                             style="margin-left:30px;max-width: 518px;">
+                                                                                                                            ${(() => {
+                                                                                                                                if (
+                                                                                                                                        vm.data.fincial === 'nouse' ||
+                                                                                                                                        vm.data.fincial === 'off_line' ||
+                                                                                                                                        vm.data.fincial !== dd.value
+                                                                                                                                ) {
+                                                                                                                                    return [].join('');
+                                                                                                                                } else {
+                                                                                                                                    return [
+                                                                                                                                        BgWidget.inlineCheckBox({
+                                                                                                                                            title: '站點',
+                                                                                                                                            gvc: gvc,
+                                                                                                                                            def: vm.data.point,
+                                                                                                                                            array: [
+                                                                                                                                                {
+                                                                                                                                                    title: '測試區',
+                                                                                                                                                    value: 'beta',
+                                                                                                                                                },
+                                                                                                                                                {
+                                                                                                                                                    title: '正式區',
+                                                                                                                                                    value: 'official',
+                                                                                                                                                },
+                                                                                                                                            ],
+                                                                                                                                            callback: (text) => {
+                                                                                                                                                vm.data.point = text;
+                                                                                                                                                if (vm.data.point == 'beta') {
+                                                                                                                                                    vm.data.hashkey = vm.data.bhashkey;
+                                                                                                                                                    vm.data.hashiv = vm.data.bhashiv;
+                                                                                                                                                } else {
+                                                                                                                                                    vm.data.hashkey = vm.data.ohashkey;
+                                                                                                                                                    vm.data.hashiv = vm.data.ohashiv;
+                                                                                                                                                }
+                                                                                                                                                gvc.notifyDataChange(id);
+                                                                                                                                            },
+                                                                                                                                        }),
+                                                                                                                                        BgWidget.editeInput({
+                                                                                                                                            gvc: gvc,
+                                                                                                                                            title: '特店編號',
+                                                                                                                                            default: vm.data.merchNO ?? '',
+                                                                                                                                            type: 'text',
+                                                                                                                                            placeHolder: '請輸入特店編號',
+                                                                                                                                            callback: (text) => {
+                                                                                                                                                vm.data.merchNO = text;
+                                                                                                                                            },
+                                                                                                                                        }),
+                                                                                                                                        BgWidget.editeInput({
+                                                                                                                                            gvc: gvc,
+                                                                                                                                            title: 'HashKey',
+                                                                                                                                            default: vm.data.hashkey ?? '',
+                                                                                                                                            type: 'text',
+                                                                                                                                            placeHolder: '請輸入HashKey',
+                                                                                                                                            callback: (text) => {
+                                                                                                                                                vm.data.hashkey = text;
+                                                                                                                                                if (vm.data.point == 'beta') {
+                                                                                                                                                    vm.data.bhashkey = text;
+                                                                                                                                                } else {
+                                                                                                                                                    vm.data.ohashkey = text;
+                                                                                                                                                }
+                                                                                                                                            },
+                                                                                                                                        }),
+                                                                                                                                        BgWidget.editeInput({
+                                                                                                                                            gvc: gvc,
+                                                                                                                                            title: 'HashIV',
+                                                                                                                                            default: vm.data.hashiv ?? '',
+                                                                                                                                            type: 'text',
+                                                                                                                                            placeHolder: '請輸入HashIV',
+                                                                                                                                            callback: (text) => {
+                                                                                                                                                vm.data.hashiv = text;
+                                                                                                                                                if (vm.data.point == 'beta') {
+                                                                                                                                                    vm.data.bhashiv = text;
+                                                                                                                                                } else {
+                                                                                                                                                    vm.data.ohashiv = text;
+                                                                                                                                                }
+                                                                                                                                            },
+                                                                                                                                        }),
+                                                                                                                                    ].join(BgWidget.mbContainer(12));
+                                                                                                                                }
+                                                                                                                            })()}
+                                                                                                                        </div>
+                                                                                                                    </div>`,
+                                                                                                            ].join('')}
+                                                                                                        </div>`;
+                                                                                                })
+                                                                                                .join('')}
                                                                                     </div>
-                                                                                    ${[
-                                                                                        // {
-                                                                                        //     title: html` <div class="d-flex flex-column">
-                                                                                        //         藍新發票
-                                                                                        //         <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                        //     </div>`,
-                                                                                        //     value: 'ezpay',
-                                                                                        // },
-                                                                                        {
-                                                                                            title: html`
-                                                                                                <div class="d-flex flex-column">
-                                                                                                    綠界發票
-                                                                                                    <span class=""
-                                                                                                          style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                                </div>`,
-                                                                                            value: 'ecpay',
-                                                                                        },
-                                                                                        {
-                                                                                            title: html`
-                                                                                                <div class="d-flex flex-column">
-                                                                                                    線下開立
-                                                                                                    <span class=""
-                                                                                                          style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
-                                                                                                </div>`,
-                                                                                            value: 'off_line',
-                                                                                        },
-                                                                                        {
-                                                                                            title: html`
-                                                                                                <div class="d-flex flex-column">
-                                                                                                    不開立電子發票
-                                                                                                    <span class=""
-                                                                                                          style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
-                                                                                                </div>`,
-                                                                                            value: 'nouse',
-                                                                                        },
-                                                                                    ]
-                                                                                            .map((dd) => {
-                                                                                                return html`
-                                                                                                    <div>
-                                                                                                        ${[
-                                                                                                            html`
-                                                                                                                <div
-                                                                                                                        class="d-flex align-items-center cursor_pointer"
-                                                                                                                        style="gap:8px;"
-                                                                                                                        onclick="${gvc.event(() => {
-                                                                                                                            vm.data.fincial = dd.value;
-                                                                                                                            gvc.notifyDataChange(id);
-                                                                                                                        })}"
-                                                                                                                >
-                                                                                                                    ${vm.data.fincial === dd.value
-                                                                                                                            ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
-                                                                                                                            : ` <div class="c_39_checkbox"></div>`}
-                                                                                                                    <div class="tx_normal fw-normal">
-                                                                                                                        ${dd.title}
-                                                                                                                    </div>
-                                                                                                                </div>`,
-                                                                                                            html`
-                                                                                                                <div class="d-flex position-relative mt-2"
-                                                                                                                     style="">
-                                                                                                                    <div class="ms-2 border-end position-absolute h-100"
-                                                                                                                         style="left: 0px;"></div>
-                                                                                                                    <div class="flex-fill "
-                                                                                                                         style="margin-left:30px;max-width: 518px;">
-                                                                                                                        ${(() => {
-                                                                                                                            if (
-                                                                                                                                    vm.data.fincial === 'nouse' ||
-                                                                                                                                    vm.data.fincial === 'off_line' ||
-                                                                                                                                    vm.data.fincial !== dd.value
-                                                                                                                            ) {
-                                                                                                                                return [].join('');
-                                                                                                                            } else {
-                                                                                                                                return [
-                                                                                                                                    BgWidget.inlineCheckBox({
-                                                                                                                                        title: '站點',
-                                                                                                                                        gvc: gvc,
-                                                                                                                                        def: vm.data.point,
-                                                                                                                                        array: [
-                                                                                                                                            {
-                                                                                                                                                title: '測試區',
-                                                                                                                                                value: 'beta',
-                                                                                                                                            },
-                                                                                                                                            {
-                                                                                                                                                title: '正式區',
-                                                                                                                                                value: 'official',
-                                                                                                                                            },
-                                                                                                                                        ],
-                                                                                                                                        callback: (text) => {
-                                                                                                                                            vm.data.point = text;
-                                                                                                                                            if (vm.data.point == 'beta') {
-                                                                                                                                                vm.data.hashkey = vm.data.bhashkey;
-                                                                                                                                                vm.data.hashiv = vm.data.bhashiv;
-                                                                                                                                            } else {
-                                                                                                                                                vm.data.hashkey = vm.data.ohashkey;
-                                                                                                                                                vm.data.hashiv = vm.data.ohashiv;
-                                                                                                                                            }
-                                                                                                                                            gvc.notifyDataChange(id);
-                                                                                                                                        },
-                                                                                                                                    }),
-                                                                                                                                    BgWidget.editeInput({
-                                                                                                                                        gvc: gvc,
-                                                                                                                                        title: '特店編號',
-                                                                                                                                        default: vm.data.merchNO ?? '',
-                                                                                                                                        type: 'text',
-                                                                                                                                        placeHolder: '請輸入特店編號',
-                                                                                                                                        callback: (text) => {
-                                                                                                                                            vm.data.merchNO = text;
-                                                                                                                                        },
-                                                                                                                                    }),
-                                                                                                                                    BgWidget.editeInput({
-                                                                                                                                        gvc: gvc,
-                                                                                                                                        title: 'HashKey',
-                                                                                                                                        default: vm.data.hashkey ?? '',
-                                                                                                                                        type: 'text',
-                                                                                                                                        placeHolder: '請輸入HashKey',
-                                                                                                                                        callback: (text) => {
-                                                                                                                                            vm.data.hashkey = text;
-                                                                                                                                            if (vm.data.point == 'beta') {
-                                                                                                                                                vm.data.bhashkey = text;
-                                                                                                                                            } else {
-                                                                                                                                                vm.data.ohashkey = text;
-                                                                                                                                            }
-                                                                                                                                        },
-                                                                                                                                    }),
-                                                                                                                                    BgWidget.editeInput({
-                                                                                                                                        gvc: gvc,
-                                                                                                                                        title: 'HashIV',
-                                                                                                                                        default: vm.data.hashiv ?? '',
-                                                                                                                                        type: 'text',
-                                                                                                                                        placeHolder: '請輸入HashIV',
-                                                                                                                                        callback: (text) => {
-                                                                                                                                            vm.data.hashiv = text;
-                                                                                                                                            if (vm.data.point == 'beta') {
-                                                                                                                                                vm.data.bhashiv = text;
-                                                                                                                                            } else {
-                                                                                                                                                vm.data.ohashiv = text;
-                                                                                                                                            }
-                                                                                                                                        },
-                                                                                                                                    }),
-                                                                                                                                ].join(BgWidget.mbContainer(12));
-                                                                                                                            }
-                                                                                                                        })()}
-                                                                                                                    </div>
-                                                                                                                </div>`,
-                                                                                                        ].join('')}
-                                                                                                    </div>`;
-                                                                                            })
-                                                                                            .join('')}
-                                                                                </div>
-                                                                            `;
-                                                                        },
-                                                                        divCreate: {
-                                                                            style: ``,
-                                                                            class: `w-100`,
-                                                                        },
-                                                                    };
-                                                                })
-                                                        );
-                                                    });
-                                                },
-                                                divCreate: {
-                                                    class: 'd-flex flex-column flex-column-reverse flex-md-row px-0',
-                                                    style: 'gap:10px;',
-                                                },
-                                            };
-                                        })
+                                                                                `;
+                                                                            },
+                                                                            divCreate: {
+                                                                                style: ``,
+                                                                                class: `w-100`,
+                                                                            },
+                                                                        };
+                                                                    })
+                                                            );
+                                                        });
+                                                    },
+                                                    divCreate: {
+                                                        class: 'd-flex flex-column flex-column-reverse flex-md-row px-0',
+                                                        style: 'gap:10px;',
+                                                    },
+                                                };
+                                            })
                                     ),
                                     BgWidget.mbContainer(240),
                                     html`

@@ -67,7 +67,7 @@ export declare class SharePermission {
         redirect_url: any;
         email: string;
         config: any;
-        status?: number | undefined;
+        status?: number;
         saas: string | undefined;
         brand: any;
         domain: any;

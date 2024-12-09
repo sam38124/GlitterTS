@@ -8,19 +8,37 @@ const database_js_1 = __importDefault(require("../modules/database.js"));
 const config_js_1 = require("../config.js");
 const template_js_1 = require("./template.js");
 class Seo {
-    static async getPageInfo(appName, query_page) {
+    static async getPageInfo(appName, query_page, language) {
         let page = await template_js_1.Template.getRealPage(query_page, appName);
-        return (await database_js_1.default.execute(`SELECT page_config,
+        const page_db = (() => {
+            switch (language) {
+                case 'zh-TW':
+                    return 'page_config';
+                case 'en-US':
+                    return 'page_config_en';
+                case 'zh-CN':
+                    return 'page_config_rcn';
+                default:
+                    return 'page_config';
+            }
+        })();
+        const page_data = (await database_js_1.default.execute(`SELECT page_config,
                                          \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,
                                          tag,
                                          page_type,
                                          tag
-                                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config,
+                                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.${page_db},
                                        \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                  where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}
+                                  where \`${config_js_1.saasConfig.SAAS_NAME}\`.${page_db}.appName = ${database_js_1.default.escape(appName)}
                                     and tag = ${database_js_1.default.escape(page)}
-                                    and \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName;
+                                    and \`${config_js_1.saasConfig.SAAS_NAME}\`.${page_db}.appName = \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName;
         `, []))[0];
+        if (!page_data && (language != 'zh-TW')) {
+            return await Seo.getPageInfo(appName, query_page, 'zh-TW');
+        }
+        else {
+            return page_data;
+        }
     }
     static async getAppConfig(appName) {
         return (await database_js_1.default.execute(`SELECT \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,
@@ -54,7 +72,7 @@ class Seo {
                                           where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
             `, []))[0]['tag'];
         }
-        let data = await Seo.getPageInfo(appName, redirect);
+        let data = await Seo.getPageInfo(appName, redirect, 'zh-TW');
         let query_stack = [];
         if (req.query.type) {
             query_stack.push(`type=${req.query.type}`);

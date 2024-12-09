@@ -51,6 +51,7 @@ const line_message_1 = require("./line-message");
 const EcInvoice_1 = require("./EcInvoice");
 const app_1 = __importDefault(require("../../app"));
 const glitter_finance_js_1 = require("../models/glitter-finance.js");
+const app_js_1 = require("../../services/app.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -92,9 +93,10 @@ class Shopping {
         }
     }
     async getProduct(query) {
-        var _a;
+        var _a, _b;
         try {
-            query.show_hidden = (_a = query.show_hidden) !== null && _a !== void 0 ? _a : 'true';
+            query.language = (_a = query.language) !== null && _a !== void 0 ? _a : (await app_js_1.App.getDefLanguage(this.app));
+            query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -125,7 +127,12 @@ class Shopping {
                 }
             }
             if (query.domain) {
-                querySql.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                let sql_join_search = [];
+                sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
+                querySql.push(`(${sql_join_search.map(((dd) => {
+                    return `(${dd})`;
+                })).join(' or ')})`);
             }
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
@@ -170,7 +177,7 @@ class Shopping {
                     .map((dd) => {
                     function loop(array, prefix) {
                         const find = array.find((d1) => {
-                            return d1.code === dd;
+                            return (d1.language_data[query.language].seo.domain === dd) || (d1.code === dd);
                         });
                         if (find) {
                             prefix.push(find.title);
@@ -192,6 +199,8 @@ class Shopping {
                 })
                     .join(',');
             }
+            ;
+            console.log(`query.collection=>`, query.collection);
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -219,7 +228,10 @@ class Shopping {
                                     JSON_EXTRACT(content, '$.status') = 'active'
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
+                                            (
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
                                                 OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
@@ -356,6 +368,15 @@ class Shopping {
                     return dd;
                 });
             }
+            (Array.isArray(products.data) ? products.data : [products.data]).map((dd) => {
+                if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
+                    dd.content.seo = dd.content.language_data[`${query.language}`].seo;
+                    dd.content.title = (dd.content.language_data[`${query.language}`].title) || dd.content.title;
+                    dd.content.content = (dd.content.language_data[`${query.language}`].content) || dd.content.content;
+                    dd.content.content_array = (dd.content.language_data[`${query.language}`].content_array) || dd.content.content_array;
+                    dd.content.content_json = (dd.content.language_data[`${query.language}`].content_json) || dd.content.content_json;
+                }
+            });
             if (query.domain && products.data[0]) {
                 products.data = products.data[0];
             }
@@ -393,7 +414,7 @@ class Shopping {
         }
     }
     async querySqlBySEO(querySql, query) {
-        let sql = `SELECT id, content->>'$.title' as title, content->>'$.seo' as seo
+        let sql = `SELECT id, content ->>'$.title' as title, content->>'$.seo' as seo
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
@@ -407,9 +428,9 @@ class Shopping {
         else {
             return {
                 data: await database_js_1.default.query(`SELECT *
-                         FROM (${sql}) as subqyery
-                             limit ${query.page * query.limit}
-                            , ${query.limit}`, []),
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`, []),
                 total: (await database_js_1.default.query(`SELECT count(1)
                          FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
@@ -497,8 +518,9 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
+            data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_checkout
@@ -509,7 +531,7 @@ class Shopping {
                          FROM \`${this.app}\`.t_checkout
                          WHERE cart_token = ?
                            AND status = 0;`, [replace_order_id]);
-                    data.lineItems = orderData.orderData.lineItems;
+                    data.line_items = orderData.orderData.lineItems;
                     data.email = orderData.email;
                     data.user_info = orderData.orderData.user_info;
                     data.code = orderData.orderData.code;
@@ -607,7 +629,7 @@ class Shopping {
                     resolve([]);
                 }
             });
-            shipment_setting.custom_delivery = (_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : [];
+            shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
                     (await new user_js_1.User(this.app).getConfigV2({
@@ -615,12 +637,13 @@ class Shopping {
                         key: `form_delivery_${form.id}`,
                     })).list || [];
             }
-            shipment_setting.support = (_b = shipment_setting.support) !== null && _b !== void 0 ? _b : [];
+            shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
+            shipment_setting.info = (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
+                email: (_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -630,8 +653,12 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 shipment_selector: [
                     {
-                        name: '一般宅配',
+                        name: '中華郵政',
                         value: 'normal',
+                    },
+                    {
+                        name: '黑貓到府',
+                        value: 'black_cat',
                     },
                     {
                         name: '全家店到店',
@@ -654,7 +681,7 @@ class Shopping {
                         value: 'shop',
                     },
                 ]
-                    .concat(((_d = shipment_setting.custom_delivery) !== null && _d !== void 0 ? _d : []).map((dd) => {
+                    .concat(((_f = shipment_setting.custom_delivery) !== null && _f !== void 0 ? _f : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
@@ -668,7 +695,7 @@ class Shopping {
                 }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_g = data.email) !== null && _g !== void 0 ? _g : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -699,7 +726,7 @@ class Shopping {
             }
             const add_on_items = [];
             let gift_product = [];
-            for (const b of data.lineItems) {
+            for (const b of data.line_items) {
                 try {
                     const pdDqlData = (await this.getProduct({
                         page: 0,
@@ -708,6 +735,7 @@ class Shopping {
                         status: 'inRange',
                         channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                     })).data;
+                    console.log(`pdDqlData=>`, pdDqlData);
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd) => {
@@ -718,6 +746,8 @@ class Shopping {
                                 b.count = variant.stock;
                             }
                             if (variant && b.count > 0) {
+                                b.specs = pd.specs;
+                                b.language_data = pd.language_data;
                                 b.preview_image = variant.preview_image || pd.preview_image[0];
                                 b.title = pd.title;
                                 b.sale_price = variant.sale_price;
@@ -779,7 +809,8 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -839,7 +870,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 let can_add_gift = [];
@@ -874,15 +906,15 @@ class Shopping {
                     return dd.reBackType === 'giveaway';
                 })) {
                     let index = -1;
-                    for (const b of (_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []) {
+                    for (const b of (_h = dd.add_on_products) !== null && _h !== void 0 ? _h : []) {
                         index++;
-                        const pdDqlData = ((_g = (await this.getProduct({
+                        const pdDqlData = ((_j = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? 'pos' : undefined,
-                        })).data) !== null && _g !== void 0 ? _g : { content: {} }).content;
+                        })).data) !== null && _j !== void 0 ? _j : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
@@ -953,7 +985,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_h = data.total) !== null && _h !== void 0 ? _h : 0;
+                carData.total = (_k = data.total) !== null && _k !== void 0 ? _k : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -2177,7 +2209,7 @@ class Shopping {
                 SELECT mac_address, created_time
                 FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                 WHERE app_name = ${database_js_1.default.escape(this.app)}
-                AND ip != 'ffff:127.0.0.1'
+                  AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
                 GROUP BY id, mac_address
@@ -2640,9 +2672,11 @@ class Shopping {
                     SELECT orderData
                     FROM \`${this.app}\`.t_checkout
                     WHERE
-                        MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${monthInterval} MONTH))
-                        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${monthInterval} MONTH))
-                        AND status = 1;
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${monthInterval} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${monthInterval} MONTH))
+                      AND status = 1;
                 `;
                 formatJsonData.push({ sql: orderCountSQL, data: [] });
             }
@@ -2789,6 +2823,7 @@ class Shopping {
                 seo_title: replace.seo_title,
                 seo_content: replace.seo_content,
                 seo_image: replace.seo_image,
+                language_data: replace.language_data
             };
             if (original.title.length === 0) {
                 const parentIndex = config.value.findIndex((col) => {
@@ -3417,10 +3452,10 @@ class Shopping {
     async allowanceInvoice(obj) {
         const config = await app_1.default.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await database_js_1.default.query(`
-            SELECT *
-            FROM \`${this.app}\`.t_invoice_memory
-            WHERE invoice_no = "${obj.invoiceID}"
-        `, []);
+                SELECT *
+                FROM \`${this.app}\`.t_invoice_memory
+                WHERE invoice_no = "${obj.invoiceID}"
+            `, []);
         invoiceData = invoiceData[0];
         const passData = {
             MerchantID: config.merchNO,

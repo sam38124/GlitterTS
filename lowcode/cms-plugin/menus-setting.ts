@@ -2,6 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import {LanguageBackend} from "./language-backend.js";
 
 const html = String.raw;
 
@@ -21,11 +22,13 @@ export class MenusSetting {
             index: number;
             dataList: any;
             query?: string;
+
         } = {
             type: 'list',
             index: 0,
             dataList: undefined,
-            query: '',
+            query: ''
+
         };
         const filterID = gvc.glitter.getUUID();
         let vmi: any = undefined;
@@ -43,6 +46,9 @@ export class MenusSetting {
 
         return gvc.bindView(() => {
             const id = glitter.getUUID();
+            function refresh(){
+                gvc.notifyDataChange(id)
+            }
             return {
                 bind: id,
                 dataList: [{ obj: vm, key: 'type' }],
@@ -122,21 +128,31 @@ export class MenusSetting {
     public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: 'menu-setting' | 'footer-setting' | 'text-manager'; title: string }) {
         const vm: {
             id: string;
-            link: MenuItem[];
+            link: {
+                "en-US":MenuItem[],
+                "zh-CN":MenuItem[],
+                "zh-TW":MenuItem[]
+            };
             loading: boolean;
             selected: boolean;
+            language:'en-US'|'zh-CN'|'zh-TW'
         } = {
             id: cf.gvc.glitter.getUUID(),
-            link: [],
+            link: {
+                "en-US":[],
+                "zh-CN":[],
+                "zh-TW":[]
+            },
             selected: false,
             loading: true,
+            language:(window.parent as any).store_info.language_setting.def
         };
 
         ApiUser.getPublicConfig(cf.key, 'manager').then((data: any) => {
             if (data.response.value) {
                 vm.link = data.response.value;
-                gvc.notifyDataChange(vm.id);
             }
+            gvc.notifyDataChange(vm.id);
         });
 
         function clearNoNeedData(items: MenuItem[]) {
@@ -146,7 +162,10 @@ export class MenusSetting {
             });
         }
         function save() {
-            clearNoNeedData(vm.link);
+            for (const a of ["en-US",'zh-CN','zh-TW']){
+                clearNoNeedData((vm.link as any)[a]);
+            }
+
             cf.widget.event('loading', {
                 title: '儲存中...',
             });
@@ -204,16 +223,29 @@ export class MenusSetting {
         }
 
         const gvc = cf.gvc;
+        function refresh(){
+            gvc.notifyDataChange(vm.id)
+        }
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
                 view: () => {
-                    return html` <div class="title-container">
+                    const link=vm.link[vm.language];
+                    return html`<div class="title-container" style="width: 856px; max-width: 100%;">
                             ${BgWidget.goBack(
                                 cf.gvc.event(() => {
                                     cf.goBack();
                                 })
                             )}${BgWidget.title(cf.title ?? '選單設定')}
+                        <div class="flex-fill"></div>
+                        ${LanguageBackend.switchBtn({
+                            gvc:gvc,
+                            language:vm.language,
+                            callback:(language)=>{
+                                vm.language=language
+                                refresh()
+                            }
+                        })}
                         </div>
                         ${BgWidget.container(
                             html`<div
@@ -223,7 +255,7 @@ export class MenusSetting {
                                     <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
                                         <div
                                             class="w-100  ${getSelectCount({
-                                                items: vm.link,
+                                                items: link,
                                             }) > 0
                                                 ? ``
                                                 : `d-none`}"
@@ -231,7 +263,7 @@ export class MenusSetting {
                                         >
                                             <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                                 已選取${getSelectCount({
-                                                    items: vm.link,
+                                                    items: link,
                                                 })}項
                                             </div>
                                             <div
@@ -240,7 +272,7 @@ export class MenusSetting {
                                                 <div
                                                     style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
                                                     onclick="${gvc.event(() => {
-                                                        vm.link = deleteSelect(vm.link);
+                                                        vm.link[vm.language] = deleteSelect(link);
                                                         gvc.notifyDataChange(vm.id);
                                                     })}"
                                                 >
@@ -251,8 +283,8 @@ export class MenusSetting {
                                         <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
                                             <div
                                                 class="${allSelect({
-                                                    items: vm.link,
-                                                    selected: !vm.link.find((dd) => {
+                                                    items: link,
+                                                    selected: !link.find((dd) => {
                                                         return !(dd as any).selected;
                                                     }),
                                                 })
@@ -263,22 +295,22 @@ export class MenusSetting {
                                                     event.stopPropagation();
 
                                                     if (
-                                                        vm.link.find((dd) => {
+                                                        link.find((dd) => {
                                                             return !(dd as any).selected;
                                                         })
                                                     ) {
                                                         selectAll({
-                                                            items: vm.link,
+                                                            items: link,
                                                         } as any);
                                                     } else {
                                                         clearAll({
-                                                            items: vm.link,
+                                                            items: link,
                                                         } as any);
                                                     }
                                                     gvc.notifyDataChange(vm.id);
                                                 })}"
                                             ></div>
-                                            <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱</div>
+                                            <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱 ${BgWidget.languageInsignia(vm.language,'margin-left:5px;')}</div>
                                         </div>
                                         <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
                                             ${(() => {
@@ -479,7 +511,7 @@ export class MenusSetting {
                                                     );
                                                 }
 
-                                                return renderItems(vm.link);
+                                                return renderItems(link);
                                             })()}
                                         </div>
                                     </div>

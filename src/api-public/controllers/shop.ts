@@ -126,7 +126,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
-                lineItems: req.body.line_items as any,
+                line_items: req.body.line_items as any,
                 email: (req.body.token && req.body.token.account) || req.body.email,
                 return_url: req.body.return_url,
                 user_info: req.body.user_info,
@@ -145,6 +145,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 distribution_code: req.body.distribution_code,
                 code_array: req.body.code_array,
                 give_away: req.body.give_away,
+                language:req.headers['language'] as any
             })
         );
     } catch (err) {
@@ -173,7 +174,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
-                    lineItems: req.body.line_items as any,
+                    line_items: req.body.line_items as any,
                     email: (req.body.token && req.body.token.account) || req.body.email,
                     return_url: req.body.return_url,
                     user_info: req.body.user_info,
@@ -189,6 +190,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
                     give_away: req.body.give_away,
+                    language:req.headers['language'] as any
                 },
                 'preview'
             )
@@ -204,7 +206,7 @@ router.post('/manager/checkout', async (req: express.Request, resp: express.Resp
                 resp,
                 await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                     {
-                        lineItems: req.body.lineItems as any,
+                        line_items: req.body.line_items as any,
                         email: req.body.customer_info.email,
                         return_url: req.body.return_url,
                         user_info: req.body.user_info,
@@ -233,7 +235,7 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
                 resp,
                 await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                     {
-                        lineItems: req.body.line_items as any,
+                        line_items: req.body.line_items as any,
                         email: (req.body.token && req.body.token.account) || req.body.email,
                         return_url: req.body.return_url,
                         user_info: req.body.user_info,
@@ -881,6 +883,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
             filter_visible: req.query.filter_visible as any,
+            language:req.headers['language'] as string
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -1011,7 +1014,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
-                    lineItems: req.body.lineItems as any,
+                    line_items: req.body.lineItems as any,
                     email: req.body.customer_info.email,
                     return_url: req.body.return_url,
                     user_info: req.body.user_info,

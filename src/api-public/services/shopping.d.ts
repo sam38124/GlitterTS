@@ -53,6 +53,14 @@ interface ProductItem {
     status: number;
     total_sales?: number;
 }
+interface seo {
+    "title": string;
+    "seo": {
+        "domain": string;
+        "title": string;
+        "content": string;
+    };
+}
 type Collection = {
     title: string;
     array: Collection[];
@@ -65,6 +73,11 @@ type Collection = {
     seo_content: string;
     seo_image: string;
     code: string;
+    language_data: {
+        "en-US": seo;
+        "zh-CN": seo;
+        "zh-TW": seo;
+    };
 };
 type CartItem = {
     id: string;
@@ -159,6 +172,7 @@ export declare class Shopping {
         show_hidden?: string;
         productType?: string;
         filter_visible?: string;
+        language?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -223,7 +237,7 @@ export declare class Shopping {
     private generateOrderID;
     linePay(data: any): Promise<unknown>;
     toCheckout(data: {
-        lineItems: {
+        line_items: {
             id: string;
             spec: string[];
             count: number;
@@ -260,6 +274,7 @@ export declare class Shopping {
             count: number;
             voucher_id: string;
         }[];
+        language?: 'en-US' | 'zh-CN' | 'zh-TW';
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         orderId: any;
         approveLink: any;

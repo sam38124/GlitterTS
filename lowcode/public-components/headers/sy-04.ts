@@ -92,7 +92,8 @@ export class Sy04 {
                                                                 data: [],
                                                             };
                                                             ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then((res) => {
-                                                                vm.data = res.response.value;
+                                                                vm.data = res.response.value[Language.getLanguage()];
+                                                                
                                                                 gvc.notifyDataChange(id);
                                                             });
                                                             return {
@@ -219,7 +220,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                     data: [],
                                 };
                                 ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then((res) => {
-                                    vm.data = res.response.value;
+                                    vm.data = res.response.value[Language.getLanguage()];
                                     gvc.notifyDataChange(id);
                                 });
                                 return {

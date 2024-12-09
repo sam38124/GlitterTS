@@ -1,4 +1,5 @@
 import { init } from '../GVController.js';
+import {Language} from "../../glitter-base/global/language.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
@@ -63,10 +64,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             `);
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return html` <div class="dialog-box">
+                    return html`<div class="dialog-box">
                         <div class="dialog-content">
                             <div class="spinner-border fs-1"></div>
-                            <div class="mt-3 fs-6 fw-500">${gBundle.obj.text ?? '請稍候...'}</div>
+                            <div class="mt-3 fs-6 fw-500">${gBundle.obj.text ?? Language.text('please_wait')}</div>
                         </div>
                     </div>`;
                 case 'infoMessage':

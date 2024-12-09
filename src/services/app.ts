@@ -15,6 +15,7 @@ import { Template } from './template.js';
 import Tool from './tool';
 import path from 'path';
 import { AppInitial } from './app-initial.js';
+import {User} from "../api-public/services/user.js";
 
 export class App {
     public token?: IToken;
@@ -617,6 +618,7 @@ export class App {
                                 await new Template(undefined).getPage({
                                     appName: dd.data.refer_app || appName,
                                     tag: dd.data.tag,
+                                    language:language
                                 })
                             )[0];
                             if (pageData && pageData.config) {
@@ -1023,6 +1025,21 @@ server {
 
     constructor(token?: IToken) {
         this.token = token;
+    }
+
+    public static async getSupportLanguage(appName:string){
+        let store_info = await new User(appName).getConfigV2({
+            key: 'store-information',
+            user_id: 'manager',
+        });
+        return store_info.language_setting.support
+    }
+    public static async getDefLanguage(appName:string){
+        let store_info = await new User(appName).getConfigV2({
+            key: 'store-information',
+            user_id: 'manager',
+        });
+        return store_info.language_setting.def
     }
 }
 
