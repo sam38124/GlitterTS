@@ -143,7 +143,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -275,50 +275,7 @@ export declare class Shopping {
             voucher_id: string;
         }[];
         language?: 'en-US' | 'zh-CN' | 'zh-TW';
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
-        orderId: any;
-        approveLink: any;
-    } | {
-        data: Cart;
-        result?: undefined;
-        message?: undefined;
-        is_free?: undefined;
-        return_url?: undefined;
-        form?: undefined;
-        off_line?: undefined;
-    } | {
-        result: string;
-        message: string;
-        data: Cart;
-        is_free?: undefined;
-        return_url?: undefined;
-        form?: undefined;
-        off_line?: undefined;
-    } | {
-        is_free: boolean;
-        return_url: string;
-        data?: undefined;
-        result?: undefined;
-        message?: undefined;
-        form?: undefined;
-        off_line?: undefined;
-    } | {
-        form: any;
-        data?: undefined;
-        result?: undefined;
-        message?: undefined;
-        is_free?: undefined;
-        return_url?: undefined;
-        off_line?: undefined;
-    } | {
-        off_line: boolean;
-        return_url: string;
-        data?: undefined;
-        result?: undefined;
-        message?: undefined;
-        is_free?: undefined;
-        form?: undefined;
-    }>;
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
         limit: number;

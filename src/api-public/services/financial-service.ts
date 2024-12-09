@@ -69,15 +69,6 @@ export default class FinancialService {
         method: string;
     }) {
         orderData.method = orderData.method || 'ALL';
-//todo 修改付款方式 to paypal and to LinePay
-//         return await new LinePay(this.appName,{
-//             ReturnURL:this.keyData.ReturnURL,
-//             NotifyURL:this.keyData.NotifyURL,
-//             LinePay_CLIENT_ID:"",
-//             LinePay_SECRET:"",
-//             BETA:true
-//         }).createOrder(orderData);
-//         return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {

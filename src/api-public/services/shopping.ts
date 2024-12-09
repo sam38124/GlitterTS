@@ -1,8 +1,8 @@
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, { PayPal } from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import FinancialService, {LinePay, PayPal} from './financial-service.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import { User } from './user.js';
 import Tool from '../../modules/tool.js';
@@ -265,6 +265,7 @@ export class Shopping {
                         querySql.push(
                             `(${[
                                 `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                                `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
                                 `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                                 `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                             ].join(' or ')})`
@@ -1518,11 +1519,11 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
+                let kd = keyData[carData.customer_info.payment_select];
                 // 線下付款
                 switch (carData.customer_info.payment_select) {
                     case 'ecPay':
                     case 'newWebPay':
-                        let kd = keyData[carData.customer_info.payment_select];
                         const subMitData = await new FinancialService(this.app, {
                             HASH_IV: kd.HASH_IV,
                             HASH_KEY: kd.HASH_KEY,
@@ -1536,10 +1537,13 @@ export class Shopping {
                             form: subMitData,
                         };
                     case 'paypal':
-                        let kid: any = keyData[carData.customer_info.payment_select];
-                        kid.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kid.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        return await new PayPal(this.app, kid).checkout(carData);
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        return await new PayPal(this.app, kd).checkout(carData);
+                    case 'line_pay':
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        return await new LinePay(this.app, kd).createOrder(carData);
                     default:
                         carData.method = 'off_line';
                         // 訂單成立信件通知

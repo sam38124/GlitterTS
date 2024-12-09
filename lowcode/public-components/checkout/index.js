@@ -2319,12 +2319,27 @@ export class CheckoutIndex {
                                 give_away: ApiCart.cart.give_away,
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });
-                                console.log('res -- ', res);
                                 if (res.response.off_line || res.response.is_free) {
                                     ApiCart.clearCart();
                                     location.href = res.response.return_url;
                                 }
                                 else {
+                                    ApiCart.clearCart();
+                                    if (res.response.returnCode == "0000" && vm.cartData.customer_info.payment_select == "line_pay") {
+                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.info.paymentUrl.web);
+                                        location.href = res.response.info.paymentUrl.web;
+                                    }
+                                    else if (res.response.approveLink) {
+                                        location.href = res.response.approveLink;
+                                    }
+                                    else {
+                                        const id = gvc.glitter.getUUID();
+                                        $('body').append(html `
+                                                                        <div id="${id}" style="display: none;">
+                                                                            ${res.response.form}
+                                                                        </div>`);
+                                        document.querySelector(`#${id} #submit`).click();
+                                    }
                                 }
                             });
                         }))}"
@@ -2565,6 +2580,12 @@ export class CheckoutIndex {
                         value: 'paypal',
                     });
                     break;
+                case 'line_pay':
+                    array.push({
+                        name: 'Line Pay',
+                        value: 'line_pay',
+                    });
+                    break;
             }
         });
         cartData.off_line_support = (_a = cartData.off_line_support) !== null && _a !== void 0 ? _a : {};
@@ -2575,7 +2596,7 @@ export class CheckoutIndex {
             });
         cartData.off_line_support.line &&
             array.push({
-                name: 'Line Pay 付款',
+                name: 'Line轉帳',
                 value: 'line',
             });
         cartData.off_line_support.cash_on_delivery &&

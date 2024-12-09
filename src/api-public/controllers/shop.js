@@ -523,7 +523,6 @@ async function redirect_link(req, resp) {
                 BETA: true
             });
             const data = linePay.confirmAndCaptureOrder(check_id);
-            console.log("data -- ", data);
             if (data.returnCode == "0000") {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }

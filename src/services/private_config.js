@@ -120,6 +120,14 @@ class Private_config {
                         toggle: false
                     };
                 }
+                if (!keyData.line_pay) {
+                    keyData.line_pay = {
+                        CLIENT_ID: '',
+                        SECRET: '',
+                        BETA: false,
+                        toggle: false
+                    };
+                }
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
                     if (keyData[dd].toggle) {
                         keyData.TYPE = dd;

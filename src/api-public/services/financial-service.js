@@ -41,13 +41,6 @@ class FinancialService {
     }
     async createOrderPage(orderData) {
         orderData.method = orderData.method || 'ALL';
-        return await new LinePay(this.appName, {
-            ReturnURL: this.keyData.ReturnURL,
-            NotifyURL: this.keyData.NotifyURL,
-            LinePay_CLIENT_ID: "",
-            LinePay_SECRET: "",
-            BETA: true
-        }).createOrder(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         }

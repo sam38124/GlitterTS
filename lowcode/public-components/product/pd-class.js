@@ -265,7 +265,7 @@ export class PdClass {
                     });
                     if (v === null || v === void 0 ? void 0 : v.preview_image) {
                         let index = prod.preview_image.findIndex((variant) => { return variant == v.preview_image; });
-                        if (index) {
+                        if (index >= 0) {
                             vm.swiper.slideTo(index);
                         }
                     }

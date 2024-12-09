@@ -32,10 +32,11 @@ export class ShoppingFinanceSetting {
             { key: 'newWebPay', name: '藍新金流' },
             { key: 'ecPay', name: '綠界金流' },
             { key: 'paypal', name: 'PayPal' },
+            { key: 'line_pay', name: 'Line Pay' },
         ];
         const offlinePayArray = [
             { key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3' },
-            { key: 'line', name: 'LINE Pay' },
+            { key: 'line', name: 'LINE 轉帳' },
             { key: 'cash_on_delivery', name: '貨到付款' },
         ];
         const redDot = html ` <span class="red-dot">*</span>`;
@@ -68,6 +69,7 @@ export class ShoppingFinanceSetting {
                                 keyData.newWebPay.toggle && array.push('newWebPay');
                                 keyData.ecPay.toggle && array.push('ecPay');
                                 keyData.paypal.toggle && array.push('paypal');
+                                keyData.line_pay.toggle && array.push('line_pay');
                                 return array;
                             })(), (data) => {
                                 onlinePayArray.map((dd) => {
@@ -246,6 +248,52 @@ export class ShoppingFinanceSetting {
                                                             }),
                                                         ].join(''),
                                                     })}`;
+                                                case 'line_pay':
+                                                    return html `
+                                                                            ${BgWidget.openBoxContainer({
+                                                        gvc,
+                                                        tag: 'detail',
+                                                        title: payData.name + redDot,
+                                                        openOnInit: false,
+                                                        insideHTML: [
+                                                            BgWidget.inlineCheckBox({
+                                                                title: '串接路徑',
+                                                                gvc: gvc,
+                                                                def: `${keyData.line_pay.BETA}`,
+                                                                array: [
+                                                                    {
+                                                                        title: '正式站',
+                                                                        value: `true`,
+                                                                    },
+                                                                    {
+                                                                        title: '測試站',
+                                                                        value: `false`,
+                                                                    },
+                                                                ],
+                                                                callback: (text) => {
+                                                                    keyData.line_pay.BETA = text;
+                                                                },
+                                                            }),
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: 'CLIENT_ID',
+                                                                default: keyData.line_pay.CLIENT_ID,
+                                                                callback: (text) => {
+                                                                    keyData.line_pay.CLIENT_ID = text;
+                                                                },
+                                                                placeHolder: '請輸入CLIENT_ID',
+                                                            }),
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: 'SECRET',
+                                                                default: keyData.line_pay.SECRET,
+                                                                callback: (text) => {
+                                                                    keyData.line_pay.SECRET = text;
+                                                                },
+                                                                placeHolder: '請輸入SECRET',
+                                                            }),
+                                                        ].join(''),
+                                                    })}`;
                                             }
                                         }).join('<div class="my-2"></div>')
                                     ].join('');
@@ -297,7 +345,7 @@ export class ShoppingFinanceSetting {
                                             return BgWidget.openBoxContainer({
                                                 gvc,
                                                 tag: 'detail',
-                                                title: 'LINE Pay' + redDot,
+                                                title: 'LINE 轉帳' + redDot,
                                                 insideHTML: ShoppingFinanceSetting.line_pay(gvc, keyData),
                                                 height: 700,
                                             });

@@ -586,7 +586,6 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             });
 
             const data:any = linePay.confirmAndCaptureOrder(check_id as string)
-            console.log("data -- " , data)
             if (data.returnCode == "0000"){
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
