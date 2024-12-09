@@ -2326,7 +2326,11 @@ export class CheckoutIndex {
                                 }
                                 else {
                                     ApiCart.clearCart();
-                                    if (res.response.approveLink) {
+                                    if (res.response.form.returnCode == "0000") {
+                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.form.info.paymentUrl.web);
+                                        location.href = res.response.form.info.paymentUrl.web;
+                                    }
+                                    else if (res.response.approveLink) {
                                         location.href = res.response.approveLink;
                                     }
                                     else {
@@ -2577,6 +2581,12 @@ export class CheckoutIndex {
                         value: 'paypal',
                     });
                     break;
+                case 'line_pay':
+                    array.push({
+                        name: 'Line Pay',
+                        value: 'line_pay',
+                    });
+                    break;
             }
         });
         cartData.off_line_support = (_a = cartData.off_line_support) !== null && _a !== void 0 ? _a : {};
@@ -2587,7 +2597,7 @@ export class CheckoutIndex {
             });
         cartData.off_line_support.line &&
             array.push({
-                name: 'Line Pay 付款',
+                name: 'Line轉帳',
                 value: 'line',
             });
         cartData.off_line_support.cash_on_delivery &&

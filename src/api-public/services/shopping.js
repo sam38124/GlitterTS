@@ -1110,10 +1110,10 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
+                let kd = keyData[carData.customer_info.payment_select];
                 switch (carData.customer_info.payment_select) {
                     case 'ecPay':
                     case 'newWebPay':
-                        let kd = keyData[carData.customer_info.payment_select];
                         const subMitData = await new financial_service_js_1.default(this.app, {
                             HASH_IV: kd.HASH_IV,
                             HASH_KEY: kd.HASH_KEY,
@@ -1127,10 +1127,13 @@ class Shopping {
                             form: subMitData,
                         };
                     case 'paypal':
-                        let kid = keyData[carData.customer_info.payment_select];
-                        kid.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kid.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        return await new financial_service_js_1.PayPal(this.app, kid).checkout(carData);
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        return await new financial_service_js_1.PayPal(this.app, kd).checkout(carData);
+                    case 'line_pay':
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     default:
                         carData.method = 'off_line';
                         new notify_js_1.ManagerNotify(this.app).checkout({

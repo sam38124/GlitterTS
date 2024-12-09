@@ -551,14 +551,14 @@ class PayPal {
 exports.PayPal = PayPal;
 class LinePay {
     constructor(appName, keyData) {
+        this.LinePay_RETURN_HOST = '';
+        this.LinePay_RETURN_CONFIRM_URL = '';
+        this.LinePay_RETURN_CANCEL_URL = '';
         this.keyData = keyData;
         this.appName = appName;
-        this.LinePay_CLIENT_ID = "2006615995";
-        this.LinePay_SECRET = "05231f46428525ee68c2816f16635145";
-        this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me";
-        this.LinePay_RETURN_HOST = '';
-        this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
-        this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
+        this.LinePay_CLIENT_ID = keyData.CLIENT_ID;
+        this.LinePay_SECRET = keyData.SECRET;
+        this.LinePay_BASE_URL = (keyData.BETA) ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me";
     }
     async createOrder(orderData) {
         var _a;

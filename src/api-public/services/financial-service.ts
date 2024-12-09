@@ -732,19 +732,19 @@ export class LinePay {
     LinePay_CLIENT_ID:string;
     LinePay_SECRET:string;
     LinePay_BASE_URL:string
-    LinePay_RETURN_HOST:string
-    LinePay_RETURN_CONFIRM_URL:string
-    LinePay_RETURN_CANCEL_URL:string
+    LinePay_RETURN_HOST:string=''
+    LinePay_RETURN_CONFIRM_URL:string=''
+    LinePay_RETURN_CANCEL_URL:string=''
     //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
-    constructor(appName: string, keyData: KeyData) {
+    constructor(appName: string, keyData: any) {
         this.keyData = keyData;
         this.appName = appName;
-        this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
-        this.LinePay_SECRET = "05231f46428525ee68c2816f16635145"; // 替換為您的 Secret Key
-        this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me"; // 沙箱環境
-        this.LinePay_RETURN_HOST = '';
-        this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
-        this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
+        this.LinePay_CLIENT_ID = keyData.CLIENT_ID; // 替換為您的 Client ID
+        this.LinePay_SECRET = keyData.SECRET; // 替換為您的 Secret Key
+        this.LinePay_BASE_URL = (keyData.BETA) ? "https://sandbox-api-pay.line.me":"https://api-pay.line.me"; // 沙箱環境
+        // this.LinePay_RETURN_HOST = '';
+        // this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
+        // this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
     async createOrder(orderData: {

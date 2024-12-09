@@ -5,5 +5,6 @@ exports.onlinePayArray = [
     { key: 'newWebPay', name: '藍新金流' },
     { key: 'ecPay', name: '綠界金流' },
     { key: 'paypal', name: 'PayPal' },
+    { key: 'line_pay', name: 'Line Pay' },
 ];
 //# sourceMappingURL=glitter-finance.js.map
