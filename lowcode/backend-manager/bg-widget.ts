@@ -2162,9 +2162,9 @@ ${obj.default ?? ''}</textarea
         return this.mainCard(htmlString);
     }
 
-    static mainCard(htmlString: string) {
+    static mainCard(htmlString: string , customerClass?:string) {
         return html`
-            <div class="main-card">${htmlString}</div>`;
+            <div class="main-card ${customerClass??''}">${htmlString}</div>`;
     }
 
     static summaryCard(htmlString: string) {

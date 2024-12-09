@@ -204,7 +204,7 @@ export class ShoppingInformation {
                             });
                         };
                         return BgWidget.mainCard(html `
-                                <div class="d-flex flex-column" style="gap:18px;">
+                                <div class="d-flex flex-column " style="gap:18px;">
                                     <div style="font-size: 16px;font-weight: 700;">商店基本資訊</div>
                                     <div class="d-flex w-100" style="gap:24px;">
                                         ${BgWidget.editeInput({
@@ -229,7 +229,6 @@ export class ShoppingInformation {
                             style: 'width:100%;margin: 8px 0;',
                         })}
                                         </div>
-
                                     </div>
                                     <div class="d-flex w-100" style="gap:24px;">
                                         ${BgWidget.editeInput({
@@ -420,7 +419,7 @@ export class ShoppingInformation {
                         })}
                                     </div>
                                 </div>
-                            `);
+                            `, `guide6-3`);
                     }, divCreate: {}
                 })}
                     <div style="margin-top: 24px;"></div>
@@ -592,7 +591,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                             }), '申請')}
                                         </div>
                                     </div>
-                                `);
+                                `, 'guide6-5');
                         }
                     };
                 })}

@@ -1003,7 +1003,6 @@ export class imageLibrary {
                 return html `
                     <div class="w-100 d-flex flex-column">
                         <div style="font-size: 13px;">您只能選擇圖片當作子類媒體</div>
-
                         <div class="d-flex flex-wrap w-100" style="gap: 0.5rem;margin-top:1rem;">
                             ${gvc.bindView({
                     bind: "imageArray",

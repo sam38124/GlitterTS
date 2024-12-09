@@ -1786,9 +1786,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return this.mainCard(htmlString);
     }
-    static mainCard(htmlString) {
+    static mainCard(htmlString, customerClass) {
         return html `
-            <div class="main-card">${htmlString}</div>`;
+            <div class="main-card ${customerClass !== null && customerClass !== void 0 ? customerClass : ''}">${htmlString}</div>`;
     }
     static summaryCard(htmlString) {
         return html `

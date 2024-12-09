@@ -1726,7 +1726,7 @@ export class BgGuide {
                             }, 500);
                             return ``
                         }
-                        return this.drawSecondRowBG(BG, vm, `.guide6-2`, viewID, '商店訊息', 5);
+                        return this.drawSecondRowBG(BG, vm, `.guide6-2`, viewID, '商店訊息', 4);
                     }
                     case 3: {
                         let target = this.findIframeDom(`.guide6-3`);
@@ -1746,7 +1746,7 @@ export class BgGuide {
                             '.guide6-3',
                             viewID,
                             3,
-                            5,
+                            4,
                             {
                                 width: 332,
                                 height: 209,
@@ -1758,6 +1758,31 @@ export class BgGuide {
                         );
                     }
                     case 4: {
+                        let target = this.findIframeDom(`.guide6-5`);
+                        target.parentElement.scrollIntoView({});
+
+                        return this.drawBGwithBelowWindow(
+                            BG,
+                            vm,
+                            '.guide6-5',
+                            viewID,
+                            4,
+                            4,
+                            {
+                                width: 332,
+                                height: 209,
+                                title: '網域設定',
+                                content: '您可以選擇使用免費的子網域，或是額外付費申請獨立網域',
+                                btnText: '完成',
+                            },
+                            () => {
+                                this.leaveGuide(vm, 0);
+                                this.finGuide('shop_information');
+
+                            }
+                        );
+                    }
+                    case -4: {
                         let target = this.findIframeDom(`.guide6-4`);
                         if (!target) {
                             const timer = setInterval(() => {
@@ -1775,33 +1800,8 @@ export class BgGuide {
                             content: '完善SEO系統，提升網站的曝光度。',
                         });
                     }
-                    case 5: {
-                        let target = this.findIframeDom(`.guide6-5`);
-                        target.parentElement.scrollIntoView({});
-
-                        return this.drawBGwithBelowWindow(
-                            BG,
-                            vm,
-                            '.guide6-5',
-                            viewID,
-                            5,
-                            5,
-                            {
-                                width: 332,
-                                height: 209,
-                                title: '網域設定',
-                                content: '您可以選擇使用免費的子網域，或是額外付費申請獨立網域',
-                                btnText: '完成',
-                            },
-                            () => {
-                                this.leaveGuide(vm, 0);
-                                this.finGuide('shop_information');
-
-                            }
-                        );
-                    }
                     default: {
-                        return this.drawMainRowBG(BG, vm, `.mainRow1`, viewID, 5);
+                        return this.drawMainRowBG(BG, vm, `.mainRow1`, viewID, 4);
                     }
                 }
             },
