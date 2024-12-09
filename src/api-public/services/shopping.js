@@ -2199,6 +2199,7 @@ class Shopping {
     async getActiveRecentYear() {
         const formatJsonData = [];
         const result = await new Promise((resolve, reject) => {
+            let pass = 0;
             for (let index = 0; index < 12; index++) {
                 const startDate = new Date();
                 startDate.setMonth(startDate.getMonth() - index, 1);
@@ -2217,15 +2218,14 @@ class Shopping {
                 `;
                 database_js_1.default.query(sql, []).then((data) => {
                     formatJsonData.push({ index, data });
+                    pass++;
+                    if (pass === 12) {
+                        resolve(formatJsonData.sort((a, b) => {
+                            return a.index > b.index ? 1 : -1;
+                        }));
+                    }
                 });
             }
-            setInterval(() => {
-                if (formatJsonData.length === 12) {
-                    resolve(formatJsonData.sort((a, b) => {
-                        return a.index > b.index ? 1 : -1;
-                    }));
-                }
-            }, 200);
         });
         const countArray = [];
         result.forEach((d) => {
@@ -2247,6 +2247,7 @@ class Shopping {
     async getActiveRecent2Weak() {
         const formatJsonData = [];
         const result = await new Promise((resolve) => {
+            let pass = 0;
             for (let index = 0; index < 14; index++) {
                 const tw = this.generateTimeRange(index);
                 const sql = `
@@ -2260,15 +2261,14 @@ class Shopping {
                 `;
                 database_js_1.default.query(sql, []).then((data) => {
                     formatJsonData.push({ index, data });
+                    pass++;
+                    if (pass === 14) {
+                        resolve(formatJsonData.sort((a, b) => {
+                            return a.index > b.index ? 1 : -1;
+                        }));
+                    }
                 });
             }
-            setInterval(() => {
-                if (formatJsonData.length === 14) {
-                    resolve(formatJsonData.sort((a, b) => {
-                        return a.index > b.index ? 1 : -1;
-                    }));
-                }
-            }, 200);
         });
         const countArray = [];
         result.forEach((d, index) => {

@@ -2858,6 +2858,7 @@ export class Shopping {
         const formatJsonData: { index: number; data: any }[] = [];
 
         const result = await new Promise<any[]>((resolve, reject) => {
+            let pass = 0;
             for (let index = 0; index < 12; index++) {
                 const startDate = new Date();
                 startDate.setMonth(startDate.getMonth() - index, 1); // 設定當月的第一天
@@ -2879,17 +2880,16 @@ export class Shopping {
 
                 db.query(sql, []).then((data) => {
                     formatJsonData.push({ index, data });
+                    pass++;
+                    if (pass === 12) {
+                        resolve(
+                            formatJsonData.sort((a, b) => {
+                                return a.index > b.index ? 1 : -1;
+                            })
+                        );
+                    }
                 });
             }
-            setInterval(() => {
-                if (formatJsonData.length === 12) {
-                    resolve(
-                        formatJsonData.sort((a, b) => {
-                            return a.index > b.index ? 1 : -1;
-                        })
-                    );
-                }
-            }, 200);
         });
 
         const countArray: number[] = [];
@@ -2919,9 +2919,9 @@ export class Shopping {
         const formatJsonData: { index: number; data: any }[] = [];
 
         const result = await new Promise<any[]>((resolve) => {
+            let pass = 0;
             for (let index = 0; index < 14; index++) {
                 const tw = this.generateTimeRange(index);
-
                 const sql = `
                     SELECT mac_address, created_time
                     FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
@@ -2934,17 +2934,16 @@ export class Shopping {
 
                 db.query(sql, []).then((data) => {
                     formatJsonData.push({ index, data });
+                    pass++;
+                    if (pass === 14) {
+                        resolve(
+                            formatJsonData.sort((a, b) => {
+                                return a.index > b.index ? 1 : -1;
+                            })
+                        );
+                    }
                 });
             }
-            setInterval(() => {
-                if (formatJsonData.length === 14) {
-                    resolve(
-                        formatJsonData.sort((a, b) => {
-                            return a.index > b.index ? 1 : -1;
-                        })
-                    );
-                }
-            }, 200);
         });
 
         const countArray: number[] = [];
