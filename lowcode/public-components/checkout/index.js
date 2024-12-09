@@ -2325,10 +2325,6 @@ export class CheckoutIndex {
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    if (res.response.form.returnCode == "0000") {
-                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.form.info.paymentUrl.web);
-                                        location.href = res.response.form.info.paymentUrl.web;
-                                    }
                                 }
                             });
                         }))}"
