@@ -4,6 +4,8 @@ import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { AiSearch } from '../ai/ai-search.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Color } from '../public/color.js';
+import { LanguageView } from '../public/language-view.js';
 
 const html = String.raw;
 
@@ -15,6 +17,7 @@ export class Sy02 {
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
+        const colors = Color.getTheme(gvc, widget.formData);
 
         return html`
             <div style="height: 76px;"></div>
@@ -71,6 +74,7 @@ export class Sy02 {
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
                                                             <div class="position-relative">
                                                                 <input
                                                                     class="form-control fw-500 "

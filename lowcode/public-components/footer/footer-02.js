@@ -1,12 +1,13 @@
-import { FtClass } from './ft-class.js';
+import { Color } from '../public/color.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { Language } from "../../glitter-base/global/language.js";
+import { Language } from '../../glitter-base/global/language.js';
+import { LanguageView } from '../public/language-view.js';
 const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
         var _a;
         const formData = widget.formData;
-        const colors = FtClass.getColor(gvc, formData);
+        const colors = Color.getTheme(gvc, formData);
         const footer = {
             list: [],
         };
@@ -155,7 +156,13 @@ export class Footer02 {
             }
         })()}
                         </div>
+                        ${window.store_info.language_setting.support.length > 1 && document.body.clientWidth < 800
+            ? html `<div class="col-12 d-flex justify-content-center mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
+            : ``}
                         <div class="col-12 col-md-3 col-lg-6 f-title-container d-flex flex-column ms-auto">
+                            ${window.store_info.language_setting.support.length > 1 && document.body.clientWidth >= 800
+            ? html `<div class="d-flex justify-content-end mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
+            : ``}
                             <div class="d-flex gap-2 p-0 pb-3 justify-content-${document.body.clientWidth > 768 ? 'end' : 'center'}">
                                 ${(() => {
             try {
