@@ -41,6 +41,13 @@ class FinancialService {
     }
     async createOrderPage(orderData) {
         orderData.method = orderData.method || 'ALL';
+        return await new LinePay(this.appName, {
+            ReturnURL: this.keyData.ReturnURL,
+            NotifyURL: this.keyData.NotifyURL,
+            LinePay_CLIENT_ID: "",
+            LinePay_SECRET: "",
+            BETA: true
+        }).createOrder(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
         }
@@ -556,14 +563,39 @@ class LinePay {
         this.LinePay_CLIENT_ID = "2006615995";
         this.LinePay_SECRET = "05231f46428525ee68c2816f16635145";
         this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me";
-        this.LinePay_RETURN_HOST = '';
-        this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
-        this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
+    }
+    async confirmAndCaptureOrder(transactionId) {
+        var _a;
+        const body = {};
+        const uri = `/payments/requests/${transactionId}/check`;
+        const nonce = new Date().getTime() / 1000;
+        const head = `${this.LinePay_SECRET}/v3${uri}${nonce}`;
+        const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const config = {
+            method: "GET",
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                "X-LINE-ChannelId": this.LinePay_CLIENT_ID,
+                "X-LINE-Authorization-Nonce": nonce,
+                "X-LINE-Authorization": signature
+            },
+        };
+        try {
+            const response = await axios_1.default.request(config);
+            console.log("response -- ", response);
+            return response;
+        }
+        catch (error) {
+            console.error("Error linePay:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            throw error;
+        }
     }
     async createOrder(orderData) {
         var _a;
-        this.LinePay_RETURN_CONFIRM_URL = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
-        this.LinePay_RETURN_CANCEL_URL = `${this.keyData.ReturnURL}&payment=false`;
+        const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`;
+        const cancel_url = `${this.keyData.ReturnURL}&payment=false`;
         const body = {
             "amount": orderData.total,
             "currency": "TWD",
@@ -585,8 +617,8 @@ class LinePay {
                 };
             }),
             "redirectUrls": {
-                "confirmUrl": this.LinePay_RETURN_CONFIRM_URL,
-                "cancelUrl": this.LinePay_RETURN_CANCEL_URL
+                "confirmUrl": confirm_url,
+                "cancelUrl": cancel_url
             }
         };
         body.packages.push({
@@ -620,6 +652,9 @@ class LinePay {
         };
         try {
             const response = await axios_1.default.request(config);
+            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `, [orderData.orderID, 0, orderData.user_email, orderData]);
+            await redis_1.default.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
             return response.data;
         }
         catch (error) {

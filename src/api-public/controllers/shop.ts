@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import { EcPay, EzPay, PayPal } from '../services/financial-service.js';
+import {EcPay, EzPay, LinePay, PayPal} from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -568,7 +568,30 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
-            await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+
+            const check_id = await redis.getValue(`linepay` + req.query.orderID);
+            const keyData = (
+                await Private_config.getConfig({
+                    appName: req.query.appName as string,
+                    key: 'glitter_finance',
+                })
+            )[0].value.paypal;
+            console.log("check_id -- " , check_id);
+            const linePay = new LinePay(req.query.appName as string, {
+                ReturnURL:"",
+                NotifyURL:"",
+                LinePay_CLIENT_ID:"",
+                LinePay_SECRET:"",
+                BETA:true
+            });
+
+            const data:any = linePay.confirmAndCaptureOrder(check_id as string)
+            console.log("data -- " , data)
+            if (data.returnCode == "0000"){
+                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            }
+
+
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis.getValue(`paypal` + req.query.orderID);

@@ -70,7 +70,13 @@ export default class FinancialService {
     }) {
         orderData.method = orderData.method || 'ALL';
 //todo 修改付款方式 to paypal and to LinePay
-//         return await new LinePay(this.appName,this.keyData).createOrder(orderData);
+//         return await new LinePay(this.appName,{
+//             ReturnURL:this.keyData.ReturnURL,
+//             NotifyURL:this.keyData.NotifyURL,
+//             LinePay_CLIENT_ID:"",
+//             LinePay_SECRET:"",
+//             BETA:true
+//         }).createOrder(orderData);
 //         return await new PayPal(this.appName, this.keyData).checkout(orderData);
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).createOrderPage(orderData);
@@ -727,25 +733,60 @@ export class PayPal {
 
 // LinePay金流
 export class LinePay {
-    keyData: KeyData;
+    keyData: {
+        ReturnURL?:string,
+        NotifyURL?:string,
+        LinePay_CLIENT_ID:string,
+        LinePay_SECRET:string,
+        BETA:boolean
+    };
     appName: string;
     LinePay_CLIENT_ID:string;
     LinePay_SECRET:string;
     LinePay_BASE_URL:string
-    LinePay_RETURN_HOST:string
-    LinePay_RETURN_CONFIRM_URL:string
-    LinePay_RETURN_CANCEL_URL:string
     //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
-    constructor(appName: string, keyData: KeyData) {
+    constructor(appName: string, keyData: {
+        ReturnURL?:string,
+        NotifyURL?:string,
+        LinePay_CLIENT_ID:string,
+        LinePay_SECRET:string,
+        BETA:boolean
+    }) {
         this.keyData = keyData;
         this.appName = appName;
         this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
+        // this.LinePay_CLIENT_ID = this.keyData.LinePay_CLIENT_ID;
         this.LinePay_SECRET = "05231f46428525ee68c2816f16635145"; // 替換為您的 Secret Key
+        // this.LinePay_SECRET = keyData.LinePay_SECRET;
         this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me"; // 沙箱環境
-        this.LinePay_RETURN_HOST = '';
-        this.LinePay_RETURN_CANCEL_URL = 'https://pay-store.example.com/order/payment/cancel';
-        this.LinePay_RETURN_CONFIRM_URL = 'https://pay-store.example.com/order/payment/authorize';
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
+    }
+
+    async confirmAndCaptureOrder(transactionId:string){
+        const body:any={};
+        const uri = `/payments/requests/${transactionId}/check`;
+        const nonce = new Date().getTime() / 1000;
+        const head = `${this.LinePay_SECRET}/v3${uri}${nonce}`;
+        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const config: AxiosRequestConfig = {
+            method: "GET",
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                "X-LINE-ChannelId" : this.LinePay_CLIENT_ID,
+                "X-LINE-Authorization-Nonce" : nonce,
+                "X-LINE-Authorization" : signature
+            },
+        };
+        try {
+            const response = await axios.request(config);
+            console.log("response -- " , response);
+            return response;
+        } catch (error:any) {
+            console.error("Error linePay:", error.response?.data.data || error.message);
+            throw error;
+        }
     }
     async createOrder(orderData: {
         lineItems: {
@@ -763,8 +804,8 @@ export class LinePay {
         user_email: string;
         method: string;
     }) {
-        this.LinePay_RETURN_CONFIRM_URL = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`
-        this.LinePay_RETURN_CANCEL_URL = `${this.keyData.ReturnURL}&payment=false`
+        const confirm_url = `${this.keyData.ReturnURL}&LinePay=true&appName=${this.appName}&orderID=${orderData.orderID}`
+        const cancel_url = `${this.keyData.ReturnURL}&payment=false`
         const body = {
             "amount": orderData.total,
             "currency": "TWD",
@@ -786,8 +827,8 @@ export class LinePay {
                 }
             }),
             "redirectUrls": {
-                "confirmUrl": this.LinePay_RETURN_CONFIRM_URL,
-                "cancelUrl": this.LinePay_RETURN_CANCEL_URL
+                "confirmUrl": confirm_url,
+                "cancelUrl": cancel_url
             }
         };
         body.packages.push({
@@ -807,9 +848,9 @@ export class LinePay {
         const nonce = new Date().getTime() / 1000;
 
         const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
+        //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-
 
         const config: AxiosRequestConfig = {
             method: "POST",
@@ -824,6 +865,12 @@ export class LinePay {
         };
         try {
             const response = await axios.request(config);
+            await db.execute(
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `,
+                [orderData.orderID, 0, orderData.user_email, orderData]
+            );
+            await redis.setValue('linepay'+orderData.orderID,response.data.info.transactionId)
             return response.data;
         } catch (error:any) {
             console.error("Error linePay:", error.response?.data || error.message);

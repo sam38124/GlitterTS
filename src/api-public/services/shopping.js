@@ -200,7 +200,6 @@ class Shopping {
                     .join(',');
             }
             ;
-            console.log(`query.collection=>`, query.collection);
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -272,7 +271,6 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            console.log('Product Query SQL ==>', querySql.join(' AND '));
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
@@ -735,7 +733,6 @@ class Shopping {
                         status: 'inRange',
                         channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                     })).data;
-                    console.log(`pdDqlData=>`, pdDqlData);
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd) => {

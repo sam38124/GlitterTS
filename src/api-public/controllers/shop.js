@@ -509,7 +509,24 @@ async function redirect_link(req, resp) {
         console.log(`req.query=>`, req.query);
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         if (req.query.LinePay && req.query.LinePay === 'true') {
-            await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            const check_id = await redis_js_1.default.getValue(`linepay` + req.query.orderID);
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: req.query.appName,
+                key: 'glitter_finance',
+            }))[0].value.paypal;
+            console.log("check_id -- ", check_id);
+            const linePay = new financial_service_js_1.LinePay(req.query.appName, {
+                ReturnURL: "",
+                NotifyURL: "",
+                LinePay_CLIENT_ID: "",
+                LinePay_SECRET: "",
+                BETA: true
+            });
+            const data = linePay.confirmAndCaptureOrder(check_id);
+            console.log("data -- ", data);
+            if (data.returnCode == "0000") {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis_js_1.default.getValue(`paypal` + req.query.orderID);

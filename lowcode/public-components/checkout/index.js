@@ -2325,17 +2325,9 @@ export class CheckoutIndex {
                                     location.href = res.response.return_url;
                                 }
                                 else {
-                                    ApiCart.clearCart();
-                                    if (res.response.approveLink) {
-                                        location.href = res.response.approveLink;
-                                    }
-                                    else {
-                                        const id = gvc.glitter.getUUID();
-                                        $('body').append(html `
-                                                                        <div id="${id}" style="display: none;">
-                                                                            ${res.response.form}
-                                                                        </div>`);
-                                        document.querySelector(`#${id} #submit`).click();
+                                    if (res.response.form.returnCode == "0000") {
+                                        console.log("res.response.form.info.paymentUrl.web -- ", res.response.form.info.paymentUrl.web);
+                                        location.href = res.response.form.info.paymentUrl.web;
                                     }
                                 }
                             });

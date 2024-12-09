@@ -2456,28 +2456,28 @@ export class CheckoutIndex {
                                                                 location.href = res.response.return_url;
                                                             } else {
                                                                 // todo  如果他是linepay的key值
-                                                                // if (res.response.form.returnCode == "0000"){
-                                                                //     console.log("res.response.form.info.paymentUrl.web -- " , res.response.form.info.paymentUrl.web)
-                                                                //     location.href = res.response.form.info.paymentUrl.web;
+                                                                if (res.response.form.returnCode == "0000"){
+                                                                    console.log("res.response.form.info.paymentUrl.web -- " , res.response.form.info.paymentUrl.web)
+                                                                    location.href = res.response.form.info.paymentUrl.web;
                                                                 // todo 手機跳轉用這個
                                                                 //     location.href = res.response.form.info.paymentUrl.app;
-                                                                // }
+                                                                }
                                                                 // todo if 他是paypal的key值 上面應該有select之類的值傳進來 然後做轉址
                                                                 //     if (res.response.form.approveLink || 付款方式是PayPal){
                                                                 //         location.href = res.response.form.approveLink;
                                                                 //     }else{
-                                                                ApiCart.clearCart();
+                                                                // ApiCart.clearCart();
                                                                 // todo if 他是paypal的key值 上面應該有select之類的
-                                                                if (res.response.approveLink) {
-                                                                    location.href = res.response.approveLink;
-                                                                } else {
-                                                                    const id = gvc.glitter.getUUID();
-                                                                    $('body').append(html`
-                                                                        <div id="${id}" style="display: none;">
-                                                                            ${res.response.form}
-                                                                        </div>`);
-                                                                    (document.querySelector(`#${id} #submit`) as any).click();
-                                                                }
+                                                                // if (res.response.approveLink) {
+                                                                //     location.href = res.response.approveLink;
+                                                                // } else {
+                                                                //     const id = gvc.glitter.getUUID();
+                                                                //     $('body').append(html`
+                                                                //         <div id="${id}" style="display: none;">
+                                                                //             ${res.response.form}
+                                                                //         </div>`);
+                                                                //     (document.querySelector(`#${id} #submit`) as any).click();
+                                                                // }
                                                             }
                                                         });
                                                     })}"
