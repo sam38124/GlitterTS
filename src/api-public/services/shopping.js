@@ -177,7 +177,7 @@ class Shopping {
                     .map((dd) => {
                     function loop(array, prefix) {
                         const find = array.find((d1) => {
-                            return (d1.language_data[query.language].seo.domain === dd) || (d1.code === dd);
+                            return (d1.language_data) && (d1.language_data[query.language].seo.domain === dd) || (d1.code === dd);
                         });
                         if (find) {
                             prefix.push(find.title);

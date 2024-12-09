@@ -329,7 +329,7 @@ export class Shopping {
                     .map((dd) => {
                         function loop(array: any, prefix: string[]) {
                             const find = array.find((d1: any) => {
-                                return (d1.language_data[query.language as any].seo.domain === dd) || (d1.code === dd);
+                                return (d1.language_data) && (d1.language_data[query.language as any].seo.domain === dd) || (d1.code === dd);
                             });
                             if (find) {
                                 prefix.push(find.title);
