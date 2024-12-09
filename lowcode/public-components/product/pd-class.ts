@@ -412,13 +412,9 @@ export class PdClass {
                                                     return PdClass.ObjCompare(variant.spec, vm.specs);
                                                 });
                                                 if (v?.preview_image){
-                                                    let index = prod.preview_image.findIndex((variant) => {return variant == v.preview_image})
-                                          
-                                                    if (index){
-                                                        vm.swiper.slideTo(index);
-                                                    }
+                                                    let index = prod.preview_image.findIndex((variant) => {return variant == v.preview_image});
+                                                    if (index>=0){vm.swiper.slideTo(index);}
                                                 }
-                                                
                                                 gvc.notifyDataChange(ids.price);
                                                 gvc.notifyDataChange(ids.addCartButton);
                                             })}"

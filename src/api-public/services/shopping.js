@@ -120,6 +120,7 @@ class Shopping {
                     default:
                         querySql.push(`(${[
                             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                            `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
                             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                             `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                         ].join(' or ')})`);
