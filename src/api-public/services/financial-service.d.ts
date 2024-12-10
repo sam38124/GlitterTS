@@ -1,4 +1,6 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
+import axios from "axios";
 interface KeyData {
     MERCHANT_ID: string;
     HASH_KEY: string;
@@ -162,7 +164,7 @@ export declare class LinePay {
     LinePay_SECRET: string;
     LinePay_BASE_URL: string;
     constructor(appName: string, keyData: any);
-    confirmAndCaptureOrder(transactionId: string): Promise<import("axios").AxiosResponse<any, any>>;
+    confirmAndCaptureOrder(transactionId: string): Promise<axios.AxiosResponse<any, any>>;
     createOrder(orderData: {
         lineItems: {
             id: string;

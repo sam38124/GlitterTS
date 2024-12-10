@@ -809,8 +809,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -870,8 +869,7 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
                 let can_add_gift = [];
@@ -2235,7 +2233,7 @@ class Shopping {
         });
         const result = dataList.map((data) => data.unique_count);
         return {
-            count_array: result
+            count_array: result,
         };
     }
     async getActiveRecent2Weak() {
@@ -2307,9 +2305,11 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2346,7 +2346,9 @@ class Shopping {
             });
             return {
                 today: order[0]['count(1)'],
-                count_register: Object.keys(countArray).sort().map((dd) => {
+                count_register: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
                 }),
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
@@ -2548,9 +2550,11 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2584,9 +2588,11 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2624,9 +2630,12 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                }).reverse()
+                })
+                    .reverse(),
             };
         }
         catch (e) {
@@ -2666,9 +2675,11 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2705,9 +2716,11 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2751,9 +2764,13 @@ class Shopping {
                     });
                 }
             });
-            return { countArray: Object.keys(countArray).sort().map((dd) => {
+            return {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                }) };
+                }),
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
