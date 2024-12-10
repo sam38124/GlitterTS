@@ -553,9 +553,9 @@ class LinePay {
     constructor(appName, keyData) {
         this.keyData = keyData;
         this.appName = appName;
-        this.LinePay_CLIENT_ID = "2006615995";
-        this.LinePay_SECRET = "05231f46428525ee68c2816f16635145";
-        this.LinePay_BASE_URL = "https://sandbox-api-pay.line.me";
+        this.LinePay_CLIENT_ID = keyData.CLIENT_ID;
+        this.LinePay_SECRET = keyData.SECRET;
+        this.LinePay_BASE_URL = (keyData.BETA) ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me";
     }
     async confirmAndCaptureOrder(transactionId) {
         var _a;

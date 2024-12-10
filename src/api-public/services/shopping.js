@@ -810,7 +810,8 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -870,7 +871,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 let can_add_gift = [];
@@ -2178,7 +2180,7 @@ class Shopping {
                         .sort((a, b) => b.value - a.value);
                     return sortedEntries.slice(0, n);
                 }
-                console.log('AnalyzeTimer ==>', wasteTimeRank(timer, 5));
+                console.log('AnalyzeTimer ==>', timer);
                 return result;
             }
             return { result: false };
@@ -2209,7 +2211,7 @@ class Shopping {
             SELECT mac_address, created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-                AND ip != 'ffff:127.0.0.1'
+              AND ip != 'ffff:127.0.0.1'
             AND req_type = 'file'
             AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
             GROUP BY id, mac_address
@@ -2234,7 +2236,7 @@ class Shopping {
         });
         const result = dataList.map((data) => data.unique_count);
         return {
-            count_array: result.reverse(),
+            count_array: result
         };
     }
     async getActiveRecent2Weak() {
@@ -2246,7 +2248,7 @@ class Shopping {
             SELECT mac_address, created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-                AND ip != 'ffff:127.0.0.1'
+              AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
             GROUP BY id, mac_address
@@ -2280,33 +2282,36 @@ class Shopping {
     async getRegister2weak() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthCheckoutSQL = `
-                    SELECT count(1)
-                    FROM \`${this.app}\`.t_user
-                    WHERE
-                        DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND status = 1;
-                `;
-                formatJsonData.push({
-                    sql: monthCheckoutSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 7,
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 14; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT count(1)
+                        FROM \`${this.app}\`.t_user
+                        WHERE
+                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                        countArray[`${index}`] = data['count(1)'];
+                        pass++;
+                        if (pass === 14) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.map((data) => {
-                countArray.unshift(data[0]['count(1)']);
-            });
-            return { countArray };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                })
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2315,35 +2320,36 @@ class Shopping {
     async getRegisterRecent() {
         try {
             const formatJsonData = [];
-            const countArray = [];
+            const countArray = {};
             const order = await database_js_1.default.query(`SELECT count(1)
                  FROM \`${this.app}\`.t_user
                  WHERE DATE (created_time) = CURDATE()`, []);
-            for (let index = 0; index < 12; index++) {
-                const monthRegisterSQL = `
-                    SELECT count(1)
-                    FROM \`${this.app}\`.t_user
-                    WHERE
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH));
-                `;
-                formatJsonData.push({
-                    sql: monthRegisterSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
-            });
-            result.queryData.map((data) => {
-                countArray.unshift(data[0]['count(1)']);
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 12; index++) {
+                    const monthRegisterSQL = `
+                        SELECT count(1)
+                        FROM \`${this.app}\`.t_user
+                        WHERE
+                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH));
+                    `;
+                    database_js_1.default.query(monthRegisterSQL, []).then((data) => {
+                        pass++;
+                        countArray[`${index}`] = data[0]['count(1)'];
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
             return {
                 today: order[0]['count(1)'],
-                count_register: countArray,
+                count_register: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                }),
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
         }
@@ -2516,34 +2522,37 @@ class Shopping {
     async getOrdersPerMonth2Weak() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const orderCountSQL = `
-                    SELECT count(1) as c
-                    FROM \`${this.app}\`.t_checkout
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 14; index++) {
+                    const orderCountSQL = `
+                        SELECT count(1) as c
+                        FROM \`${this.app}\`.t_checkout
 
-                    WHERE
-                        DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND status = 1;
-                `;
-                formatJsonData.push({
-                    sql: orderCountSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 7,
+                        WHERE
+                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(orderCountSQL, []).then((data) => {
+                        countArray[`${index}`] = data[0].c;
+                        pass++;
+                        if (pass === 14) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.map((data) => {
-                countArray.unshift(data[0].c);
-            });
-            return { countArray };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                })
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2552,31 +2561,34 @@ class Shopping {
     async getOrdersPerMonth1Year() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const orderCountSQL = `
-                    SELECT count(1) as c
-                    FROM \`${this.app}\`.t_checkout
-                    WHERE
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                      AND status = 1;
-                `;
-                formatJsonData.push({
-                    sql: orderCountSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 12; index++) {
+                    const orderCountSQL = `
+                        SELECT count(1) as c
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(orderCountSQL, []).then((data) => {
+                        pass++;
+                        countArray[`${index}`] = data[0].c;
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.map((data) => {
-                countArray.unshift(data[0].c);
-            });
-            return { countArray };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                })
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2585,35 +2597,38 @@ class Shopping {
     async getSalesPerMonth1Year() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const monthCheckoutSQL = `
-                    SELECT orderData
-                    FROM \`${this.app}\`.t_checkout
-                    WHERE
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} MONTH))
-                      AND status = 1;
-                `;
-                formatJsonData.push({
-                    sql: monthCheckoutSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
+            const countArray = {};
+            await new Promise((resolve, reject) => {
+                let pass = 0;
+                for (let index = 0; index < 12; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} MONTH))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        data.map((checkout) => {
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArray[`${index}`] = total;
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.map((data) => {
-                let total = 0;
-                data.map((checkout) => {
-                    total += parseInt(checkout.orderData.total, 10);
-                });
-                countArray.unshift(total);
-            });
-            return { countArray };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                }).reverse()
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2622,37 +2637,40 @@ class Shopping {
     async getSalesPerMonth2Weak() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthCheckoutSQL = `
-                    SELECT orderData
-                    FROM \`${this.app}\`.t_checkout
-                    WHERE
-                        DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND status = 1;
-                `;
-                formatJsonData.push({
-                    sql: monthCheckoutSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 7,
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 14; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        data.map((checkout) => {
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArray[`${index}`] = total;
+                        if (pass === 14) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.map((data) => {
-                let total = 0;
-                data.map((checkout) => {
-                    total += parseInt(checkout.orderData.total, 10);
-                });
-                countArray.unshift(total);
-            });
-            return { countArray };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                })
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2661,31 +2679,37 @@ class Shopping {
     async getOrderAvgSalePriceYear() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 12; index++) {
-                const monthInterval = index;
-                const orderCountSQL = `
-                    SELECT orderData
-                    FROM \`${this.app}\`.t_checkout
-                    WHERE
-                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${monthInterval} MONTH))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${monthInterval} MONTH))
-                      AND status = 1;
-                `;
-                formatJsonData.push({ sql: orderCountSQL, data: [] });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 6,
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 12; index++) {
+                    const monthInterval = index;
+                    const orderCountSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${monthInterval} MONTH))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${monthInterval} MONTH))
+                          AND status = 1;
+                    `;
+                    database_js_1.default.query(orderCountSQL, []).then((data) => {
+                        pass++;
+                        const total = data.reduce((sum, checkout) => sum + parseInt(checkout.orderData.total, 10), 0);
+                        const average = data.length ? (total / data.length).toFixed(2) : '0.00';
+                        countArray[`${index}`] = parseFloat(average);
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
             });
-            result.queryData.forEach((data) => {
-                const total = data.reduce((sum, checkout) => sum + parseInt(checkout.orderData.total, 10), 0);
-                const average = data.length ? (total / data.length).toFixed(2) : '0.00';
-                countArray.push(parseFloat(average));
-            });
-            return { countArray: countArray.reverse() };
+            return {
+                countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                })
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -2694,9 +2718,11 @@ class Shopping {
     async getOrderAvgSalePrice() {
         try {
             const formatJsonData = [];
-            const countArray = [];
-            for (let index = 0; index < 14; index++) {
-                const monthCheckoutSQL = `
+            const countArray = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 14; index++) {
+                    const monthCheckoutSQL = `
                     SELECT orderData
                     FROM \`${this.app}\`.t_checkout
                     WHERE
@@ -2708,28 +2734,27 @@ class Shopping {
                         , INTERVAL ${index} DAY))
                       AND status = 1;
                 `;
-                formatJsonData.push({
-                    sql: monthCheckoutSQL,
-                    data: [],
-                });
-            }
-            const result = await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 7,
-            });
-            result.queryData.map((data) => {
-                let total = 0;
-                data.map((checkout) => {
-                    total += parseInt(checkout.orderData.total, 10);
-                });
-                if (data.length == 0) {
-                    countArray.unshift(0);
-                }
-                else {
-                    countArray.unshift(Math.floor((total / data.length) * 100) / 100);
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        data.map((checkout) => {
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        if (data.length == 0) {
+                            countArray[`${index}`] = 0;
+                        }
+                        else {
+                            countArray[`${index}`] = Math.floor((total / data.length) * 100) / 100;
+                        }
+                        if (pass === 14) {
+                            resolve(true);
+                        }
+                    });
                 }
             });
-            return { countArray };
+            return { countArray: Object.keys(countArray).sort().map((dd) => {
+                    return countArray[dd];
+                }) };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);

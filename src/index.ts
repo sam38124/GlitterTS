@@ -166,7 +166,8 @@ function extractProds(data: any) {
     });
     return items;
 }
-
+// 信任代理
+app.set('trust proxy', true);
 export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
@@ -182,6 +183,7 @@ export async function createAPP(dd: any) {
                 root_path: '/' + encodeURI(dd.appName) + '/',
                 seoManager: async (req) => {
                     try {
+                        console.log(`req.headers=>`,req.headers);
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';
                         }

@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -117,7 +119,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -174,6 +175,7 @@ function extractProds(data) {
     });
     return items;
 }
+exports.app.set('trust proxy', true);
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
@@ -188,6 +190,7 @@ async function createAPP(dd) {
             seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
                 try {
+                    console.log(`req.headers=>`, req.headers);
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
                     }
@@ -783,7 +786,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

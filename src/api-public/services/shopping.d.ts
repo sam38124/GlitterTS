@@ -143,7 +143,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -414,7 +414,7 @@ export declare class Shopping {
         countArray: any[];
     }>;
     getOrderAvgSalePriceYear(): Promise<{
-        countArray: number[];
+        countArray: any[];
     }>;
     getOrderAvgSalePrice(): Promise<{
         countArray: any[];

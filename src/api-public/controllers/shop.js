@@ -513,15 +513,9 @@ async function redirect_link(req, resp) {
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: req.query.appName,
                 key: 'glitter_finance',
-            }))[0].value.paypal;
+            }))[0].value.line_pay;
             console.log("check_id -- ", check_id);
-            const linePay = new financial_service_js_1.LinePay(req.query.appName, {
-                ReturnURL: "",
-                NotifyURL: "",
-                LinePay_CLIENT_ID: "",
-                LinePay_SECRET: "",
-                BETA: true
-            });
+            const linePay = new financial_service_js_1.LinePay(req.query.appName, keyData);
             const data = linePay.confirmAndCaptureOrder(check_id);
             if (data.returnCode == "0000") {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
@@ -541,28 +535,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <title>Title</title>
+        </head>
+        <body>
+        <script>
+            try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                        JSON.stringify({
+                            functionName: 'check_out_finish',
+                            callBackId: 0,
+                            data: {
+                                redirect: '${return_url.href}',
+                            },
+                        })
+                );
+            } catch (e) {}
+            location.href = '${return_url.href}';
+        </script>
+        </body>
+        </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
