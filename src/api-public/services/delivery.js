@@ -40,7 +40,7 @@ class EcPay {
             .map(([key, value]) => html `<input type="hidden" name="${key}" id="${key}" value="${value}" />`)
             .join('\n');
         return html `
-            <form id="${formId}" action="${json.actionURL}" method="post">
+            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded" accept="text/html">
                 ${inputHTML} ${json.checkMacValue ? html `<input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${json.checkMacValue}" />` : ''}
                 <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
             </form>
@@ -164,7 +164,7 @@ class Delivery {
             data: getJSON,
         };
     }
-    async printOrderInfo(json) {
+    async getOrderInfo(json) {
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_delivery',
@@ -185,11 +185,13 @@ class Delivery {
             ? `https://logistics.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`
             : `https://logistics-stage.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`;
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
-        return EcPay.generateForm({
+        const random_id = tool_js_1.default.randomString(6);
+        await redis_js_1.default.setValue('delivery_' + random_id, JSON.stringify({
             actionURL,
             params,
             checkMacValue,
-        });
+        }));
+        return random_id;
     }
     async notify(json) {
         try {

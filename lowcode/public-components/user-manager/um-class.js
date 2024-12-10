@@ -241,10 +241,29 @@ export class UmClass {
             },
         });
     }
-    static spinner(height) {
-        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height !== null && height !== void 0 ? height : '100vh'}">
-            <div class="spinner-border" role="status"></div>
-            <span class="mt-3">${Language.text('loading')}</span>
+    static spinner(obj) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        const container = {
+            class: `${(_b = (_a = obj === null || obj === void 0 ? void 0 : obj.container) === null || _a === void 0 ? void 0 : _a.class) !== null && _b !== void 0 ? _b : ''}`,
+            style: `margin-top: 2rem ;${(_c = obj === null || obj === void 0 ? void 0 : obj.container) === null || _c === void 0 ? void 0 : _c.style}`,
+        };
+        const circleAttr = {
+            visible: ((_d = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _d === void 0 ? void 0 : _d.visible) === false ? false : true,
+            width: (_f = (_e = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _e === void 0 ? void 0 : _e.width) !== null && _f !== void 0 ? _f : 20,
+            borderSize: (_h = (_g = obj === null || obj === void 0 ? void 0 : obj.circle) === null || _g === void 0 ? void 0 : _g.borderSize) !== null && _h !== void 0 ? _h : 16,
+        };
+        const textAttr = {
+            value: (_k = (_j = obj === null || obj === void 0 ? void 0 : obj.text) === null || _j === void 0 ? void 0 : _j.value) !== null && _k !== void 0 ? _k : Language.text('loading'),
+            visible: ((_l = obj === null || obj === void 0 ? void 0 : obj.text) === null || _l === void 0 ? void 0 : _l.visible) === false ? false : true,
+            fontSize: (_o = (_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.fontSize) !== null && _o !== void 0 ? _o : 16,
+        };
+        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
+            <div
+                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                role="status"
+            ></div>
+            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
         </div>`;
     }
     static dialog(obj) {
@@ -697,5 +716,88 @@ export class UmClass {
                 element.remove();
             }
         }, (_b = obj.timeout) !== null && _b !== void 0 ? _b : 2000);
+    }
+    static validImageBox(obj) {
+        var _a, _b;
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
+        };
+        const wh = `
+            display: flex;
+            min-width: ${obj.width}px;
+            min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+            max-width: ${obj.width}px;
+            max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        `;
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                if (imageVM.loading) {
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return UmClass.spinner({
+                                    container: { class: 'mt-0' },
+                                    text: { visible: false },
+                                });
+                            },
+                            divCreate: {
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                            },
+                        };
+                    });
+                }
+                else {
+                    return obj.gvc.bindView(() => {
+                        var _a, _b;
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return '';
+                            },
+                            divCreate: {
+                                elem: 'img',
+                                style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
+                                class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
+                                option: [
+                                    {
+                                        key: 'src',
+                                        value: imageVM.url,
+                                    },
+                                ],
+                            },
+                        };
+                    });
+                }
+            },
+            onCreate: () => {
+                function isImageUrlValid(url) {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = url;
+                    });
+                }
+                if (imageVM.loading) {
+                    isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
+        });
     }
 }

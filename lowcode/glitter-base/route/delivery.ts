@@ -1,4 +1,3 @@
-import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 
 export class ApiDelivery {
@@ -16,7 +15,7 @@ export class ApiDelivery {
 
     static getOrderInfo(json: { brand: string; logisticsId: string; paymentNo: string; validationNo: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/printOrderInfo`,
+            url: getBaseUrl() + `/api-public/v1/delivery/orderInfo`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,6 +24,10 @@ export class ApiDelivery {
             },
             data: JSON.stringify(json),
         });
+    }
+
+    public static getFormURL(id: string) {
+        return getBaseUrl() + `/api-public/v1/delivery/formView?id=${id}&g-app=${getConfig().config.appName}`;
     }
 }
 

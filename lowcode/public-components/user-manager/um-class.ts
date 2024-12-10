@@ -234,10 +234,43 @@ export class UmClass {
         });
     }
 
-    static spinner(height?: string): string {
-        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto" style="height: ${height ?? '100vh'}">
-            <div class="spinner-border" role="status"></div>
-            <span class="mt-3">${Language.text('loading')}</span>
+    static spinner(obj?: {
+        container?: {
+            class?: string;
+            style?: string;
+        };
+        circle?: {
+            visible?: boolean;
+            width?: number;
+            borderSize?: number;
+        };
+        text?: {
+            value?: string;
+            visible?: boolean;
+            fontSize?: number;
+        };
+    }) {
+        const container = {
+            class: `${obj?.container?.class ?? ''}`,
+            style: `margin-top: 2rem ;${obj?.container?.style}`,
+        };
+        const circleAttr = {
+            visible: obj?.circle?.visible === false ? false : true,
+            width: obj?.circle?.width ?? 20,
+            borderSize: obj?.circle?.borderSize ?? 16,
+        };
+        const textAttr = {
+            value: obj?.text?.value ?? Language.text('loading'),
+            visible: obj?.text?.visible === false ? false : true,
+            fontSize: obj?.text?.fontSize ?? 16,
+        };
+        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
+            <div
+                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                role="status"
+            ></div>
+            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
         </div>`;
     }
 
@@ -691,5 +724,86 @@ export class UmClass {
                 element.remove();
             }
         }, obj.timeout ?? 2000);
+    }
+
+    static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
+        };
+        const wh = `
+            display: flex;
+            min-width: ${obj.width}px;
+            min-height: ${obj.height ?? obj.width}px;
+            max-width: ${obj.width}px;
+            max-height: ${obj.height ?? obj.width}px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        `;
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                if (imageVM.loading) {
+                    return obj.gvc.bindView(() => {
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return UmClass.spinner({
+                                    container: { class: 'mt-0' },
+                                    text: { visible: false },
+                                });
+                            },
+                            divCreate: {
+                                style: `${wh}${obj.style ?? ''}`,
+                                class: obj.class ?? '',
+                            },
+                        };
+                    });
+                } else {
+                    return obj.gvc.bindView(() => {
+                        return {
+                            bind: obj.gvc.glitter.getUUID(),
+                            view: () => {
+                                return '';
+                            },
+                            divCreate: {
+                                elem: 'img',
+                                style: `${wh}${obj.style ?? ''}`,
+                                class: obj.class ?? '',
+                                option: [
+                                    {
+                                        key: 'src',
+                                        value: imageVM.url,
+                                    },
+                                ],
+                            },
+                        };
+                    });
+                }
+            },
+            onCreate: () => {
+                function isImageUrlValid(url: string): Promise<boolean> {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = url;
+                    });
+                }
+
+                if (imageVM.loading) {
+                    isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
+        });
     }
 }

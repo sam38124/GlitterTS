@@ -57,15 +57,45 @@ router.post('/storeMaps', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/printOrderInfo', async (req, resp) => {
+router.post('/orderInfo', async (req, resp) => {
     try {
-        const formString = await new delivery_js_1.Delivery(req.get('g-app')).printOrderInfo({
+        const id = await new delivery_js_1.Delivery(req.get('g-app')).getOrderInfo({
             LogisticsSubType: req.body.brand,
             AllPayLogisticsID: req.body.logisticsId,
             CVSPaymentNo: req.body.paymentNo,
             CVSValidationNo: req.body.validationNo,
         });
-        return response_1.default.succ(resp, { form: formString });
+        return response_1.default.succ(resp, { id });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/formView', async (req, resp) => {
+    try {
+        const html = String.raw;
+        const key = 'delivery_' + req.query.id;
+        const data = await redis_js_1.default.getValue(key);
+        setTimeout(() => {
+            redis_js_1.default.deleteKey(key);
+        }, 1000);
+        const formString = delivery_js_1.EcPay.generateForm(JSON.parse(data));
+        return resp.send(html `<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    ${formString}
+                </body>
+                <script>
+                    const myForm = document.getElementById('submit');
+                    if (myForm) {
+                        myForm.click();
+                    }
+                </script>
+            </html>`);
     }
     catch (err) {
         return response_1.default.fail(resp, err);

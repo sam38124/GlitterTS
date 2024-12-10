@@ -13,7 +13,7 @@ export class ApiDelivery {
     }
     static getOrderInfo(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/printOrderInfo`,
+            url: getBaseUrl() + `/api-public/v1/delivery/orderInfo`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -22,6 +22,9 @@ export class ApiDelivery {
             },
             data: JSON.stringify(json),
         });
+    }
+    static getFormURL(id) {
+        return getBaseUrl() + `/api-public/v1/delivery/formView?id=${id}&g-app=${getConfig().config.appName}`;
     }
 }
 function getConfig() {

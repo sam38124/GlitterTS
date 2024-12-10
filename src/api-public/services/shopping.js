@@ -202,7 +202,6 @@ class Shopping {
                 })
                     .join(',');
             }
-            ;
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -1053,7 +1052,7 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_delivery',
             }))[0];
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.toggle === 'true') {
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.value.toggle === 'true') {
                 const keyData = del_config.value;
                 console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
                 const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
