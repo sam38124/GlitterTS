@@ -509,7 +509,7 @@ export class PayPal {
         NotifyURL?:string,
         PAYPAL_CLIENT_ID:string,
         PAYPAL_SECRET:string,
-        BETA:boolean
+        BETA:string
     };
     appName: string;
     PAYPAL_CLIENT_ID:string;
@@ -521,13 +521,13 @@ export class PayPal {
         NotifyURL?:string,
         PAYPAL_CLIENT_ID:string,
         PAYPAL_SECRET:string,
-        BETA:boolean
+        BETA:string
     }) {
         this.keyData = keyData;
         this.appName = appName;
         this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
         this.PAYPAL_SECRET = keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
-        this.PAYPAL_BASE_URL = (keyData.BETA) ? "https://api-m.sandbox.paypal.com":"https://api-m.paypal.com"; // 沙箱環境
+        this.PAYPAL_BASE_URL = (keyData.BETA == 'true') ? "https://api-m.sandbox.paypal.com":"https://api-m.paypal.com"; // 沙箱環境
         // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
     }
 
@@ -729,7 +729,7 @@ export class LinePay {
         NotifyURL?:string,
         LinePay_CLIENT_ID:string,
         LinePay_SECRET:string,
-        BETA:boolean
+        BETA:string
     };
     appName: string;
     LinePay_CLIENT_ID:string;
@@ -741,7 +741,7 @@ export class LinePay {
         this.appName = appName;
         this.LinePay_CLIENT_ID = keyData.CLIENT_ID; // 替換為您的 Client ID
         this.LinePay_SECRET = keyData.SECRET; // 替換為您的 Secret Key
-        this.LinePay_BASE_URL = (keyData.BETA) ? "https://sandbox-api-pay.line.me":"https://api-pay.line.me"; // 沙箱環境
+        this.LinePay_BASE_URL = (keyData.BETA == 'true') ? "https://sandbox-api-pay.line.me":"https://api-pay.line.me"; // 沙箱環境
         // this.LinePay_RETURN_HOST = '';
         // this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
         // this.LinePay_CLIENT_ID = this.keyData.LinePay_CLIENT_ID;
@@ -840,7 +840,7 @@ export class LinePay {
         //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-
+        console.log("url -- " , url)
         const config: AxiosRequestConfig = {
             method: "POST",
             url: url,

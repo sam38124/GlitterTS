@@ -279,11 +279,11 @@ export class ShoppingFinanceSetting {
                                                                                         array: [
                                                                                             {
                                                                                                 title: '正式站',
-                                                                                                value: `true`,
+                                                                                                value: `false`,
                                                                                             },
                                                                                             {
                                                                                                 title: '測試站',
-                                                                                                value: `false`,
+                                                                                                value: `true`,
                                                                                             },
                                                                                         ],
                                                                                         callback: (text: any) => {
@@ -325,11 +325,11 @@ export class ShoppingFinanceSetting {
                                                                                     array: [
                                                                                         {
                                                                                             title: '正式站',
-                                                                                            value: `true`,
+                                                                                            value: `false`,
                                                                                         },
                                                                                         {
                                                                                             title: '測試站',
-                                                                                            value: `false`,
+                                                                                            value: `true`,
                                                                                         },
                                                                                     ],
                                                                                     callback: (text: any) => {
@@ -466,6 +466,7 @@ export class ShoppingFinanceSetting {
                     ${BgWidget.save(
                             gvc.event(() => {
                                 dialog.dataLoading({visible: true});
+                                console.log("keydata -- " , keyData);
                                 saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r: {
                                     response: any;
                                     result: boolean

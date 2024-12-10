@@ -514,7 +514,6 @@ async function redirect_link(req, resp) {
                 appName: req.query.appName,
                 key: 'glitter_finance',
             }))[0].value.line_pay;
-            console.log("check_id -- ", check_id);
             const linePay = new financial_service_js_1.LinePay(req.query.appName, keyData);
             const data = linePay.confirmAndCaptureOrder(check_id);
             if (data.returnCode == "0000") {

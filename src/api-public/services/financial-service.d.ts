@@ -1,4 +1,6 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
+import axios from "axios";
 interface KeyData {
     MERCHANT_ID: string;
     HASH_KEY: string;
@@ -111,7 +113,7 @@ export declare class PayPal {
         NotifyURL?: string;
         PAYPAL_CLIENT_ID: string;
         PAYPAL_SECRET: string;
-        BETA: boolean;
+        BETA: string;
     };
     appName: string;
     PAYPAL_CLIENT_ID: string;
@@ -122,7 +124,7 @@ export declare class PayPal {
         NotifyURL?: string;
         PAYPAL_CLIENT_ID: string;
         PAYPAL_SECRET: string;
-        BETA: boolean;
+        BETA: string;
     });
     getAccessToken(): Promise<string>;
     checkout(orderData: any): Promise<{
@@ -155,14 +157,14 @@ export declare class LinePay {
         NotifyURL?: string;
         LinePay_CLIENT_ID: string;
         LinePay_SECRET: string;
-        BETA: boolean;
+        BETA: string;
     };
     appName: string;
     LinePay_CLIENT_ID: string;
     LinePay_SECRET: string;
     LinePay_BASE_URL: string;
     constructor(appName: string, keyData: any);
-    confirmAndCaptureOrder(transactionId: string): Promise<import("axios").AxiosResponse<any, any>>;
+    confirmAndCaptureOrder(transactionId: string): Promise<axios.AxiosResponse<any, any>>;
     createOrder(orderData: {
         lineItems: {
             id: string;

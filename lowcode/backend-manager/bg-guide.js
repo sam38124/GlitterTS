@@ -2450,6 +2450,7 @@ export class BgGuide {
                             }, 500);
                             return ``;
                         }
+                        target.scrollIntoView();
                         this.detectClickThrough(target, () => {
                             BG.classList.remove('guide2-4');
                             vm.step = 5;

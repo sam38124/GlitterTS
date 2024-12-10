@@ -377,7 +377,7 @@ class PayPal {
         this.appName = appName;
         this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID;
         this.PAYPAL_SECRET = keyData.PAYPAL_SECRET;
-        this.PAYPAL_BASE_URL = (keyData.BETA) ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com";
+        this.PAYPAL_BASE_URL = (keyData.BETA == 'true') ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com";
     }
     async getAccessToken() {
         var _a;
@@ -555,7 +555,7 @@ class LinePay {
         this.appName = appName;
         this.LinePay_CLIENT_ID = keyData.CLIENT_ID;
         this.LinePay_SECRET = keyData.SECRET;
-        this.LinePay_BASE_URL = (keyData.BETA) ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me";
+        this.LinePay_BASE_URL = (keyData.BETA == 'true') ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me";
     }
     async confirmAndCaptureOrder(transactionId) {
         var _a;
@@ -632,6 +632,7 @@ class LinePay {
         const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
         const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        console.log("url -- ", url);
         const config = {
             method: "POST",
             url: url,
