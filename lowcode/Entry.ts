@@ -6,19 +6,18 @@ import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
-import {EditorElem} from "./glitterBundle/plugins/editor-elem.js";
-import {Language} from "./glitter-base/global/language.js";
+import { Language } from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-Language.getLanguage()
-        if((window as any).language !== Language.getLanguage()){
-            const url=new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}`)
-            if(glitter.getUrlParameter('appName')){
-                url.searchParams.set('appName',glitter.getUrlParameter('appName'))
+        Language.getLanguage();
+        if ((window as any).language !== Language.getLanguage()) {
+            const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}`);
+            if (glitter.getUrlParameter('appName')) {
+                url.searchParams.set('appName', glitter.getUrlParameter('appName'));
             }
-            location.href=url.href;
-            return
+            location.href = url.href;
+            return;
         }
         glitter.share.reload = (page: string, app_name: string) => {
             (window as any).appName = app_name || (window as any).appName;
@@ -63,19 +62,19 @@ Language.getLanguage()
 
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
-        @media (prefers-reduced-motion: no-preference) {
+            @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
-            
-        .hide-elem {
-            display: none !important;
-        }
-        
-        .hy-drawer-left {
-           left:-1000px !important;
-        }
+
+            .hide-elem {
+                display: none !important;
+            }
+
+            .hy-drawer-left {
+                left: -1000px !important;
+            }
         `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
@@ -511,7 +510,7 @@ Language.getLanguage()
             );
 
             function authPass() {
-                function next(){
+                function next() {
                     glitter.htmlGenerate.setHome({
                         app_config: vm.appConfig,
                         page_config: data.response.result[0].page_config,
@@ -521,23 +520,25 @@ Language.getLanguage()
                     });
                     callback();
                 }
-                const login_config=((window as any).login_config)
-                if(login_config.password_to_see && (localStorage.getItem('password_to_see') !== login_config.shop_pwd)){
+                const login_config = (window as any).login_config;
+                if (login_config.password_to_see && localStorage.getItem('password_to_see') !== login_config.shop_pwd) {
                     const pwd = window.prompt('請輸入網站密碼', '');
-                    localStorage.setItem('password_to_see',pwd ?? '');
-                    if(login_config.shop_pwd===pwd){
-                        next()
-                    }else{
-                        glitter.closeDiaLog()
-                        const dialog=new ShareDialog(glitter)
-                        dialog.checkYesOrNot({text:'網站密碼輸入錯誤',callback:()=>{
-                                authPass()
-                            }})
+                    localStorage.setItem('password_to_see', pwd ?? '');
+                    if (login_config.shop_pwd === pwd) {
+                        next();
+                    } else {
+                        glitter.closeDiaLog();
+                        const dialog = new ShareDialog(glitter);
+                        dialog.checkYesOrNot({
+                            text: '網站密碼輸入錯誤',
+                            callback: () => {
+                                authPass();
+                            },
+                        });
                     }
-                }else{
-                    next()
+                } else {
+                    next();
                 }
-
             }
 
             function authError(message: string) {
@@ -673,7 +674,7 @@ Language.getLanguage()
             function loopVersion() {
                 ApiPageConfig.getGlitterVersion().then((res) => {
                     console.log('glitterVersion:', res.response.result);
-                    if (res.result && (!glitter.share.editerVersion.includes(res.response.result))) {
+                    if (res.result && !glitter.share.editerVersion.includes(res.response.result)) {
                         const dialog = new ShareDialog(glitter);
                         dialog.checkYesOrNot({
                             text: '新版本已發佈，是否進行更新?',

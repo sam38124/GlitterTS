@@ -2199,98 +2199,82 @@ class Shopping {
         return { startISO, endISO };
     }
     async getActiveRecentYear() {
-        const formatJsonData = [];
-        const result = await new Promise((resolve, reject) => {
-            let pass = 0;
-            for (let index = 0; index < 12; index++) {
-                const startDate = new Date();
-                startDate.setMonth(startDate.getMonth() - index, 1);
-                startDate.setUTCHours(16, 0, 0, 0);
-                const endDate = new Date(startDate);
-                endDate.setMonth(endDate.getMonth() + 1);
-                endDate.setUTCHours(16, 0, 0, 0);
-                const sql = `
-                    SELECT mac_address, created_time
-                    FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)}
-                      AND ip != 'ffff:127.0.0.1'
-                    AND req_type = 'file'
-                    AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
-                    GROUP BY id, mac_address
-                `;
-                database_js_1.default.query(sql, []).then((data) => {
-                    formatJsonData.push({ index, data });
-                    pass++;
-                    if (pass === 12) {
-                        resolve(formatJsonData.sort((a, b) => {
-                            return a.index > b.index ? 1 : -1;
-                        }));
-                    }
-                });
-            }
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 1, 1);
+        endDate.setUTCHours(16, 0, 0, 0);
+        const startDate = new Date(endDate);
+        startDate.setMonth(endDate.getMonth() - 12);
+        startDate.setUTCHours(16, 0, 0, 0);
+        const sql = `
+            SELECT mac_address, created_time
+            FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${database_js_1.default.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+            AND req_type = 'file'
+            AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            GROUP BY id, mac_address
+        `;
+        const queryData = await database_js_1.default.query(sql, []);
+        const now = new Date();
+        const dataList = Array.from({ length: 12 }, (_, index) => {
+            const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const filteredData = queryData.filter((item) => {
+                const date = new Date(item.created_time);
+                return date.getFullYear() === year && date.getMonth() + 1 === month;
+            });
+            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
+            return {
+                year,
+                month,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
         });
-        const countArray = [];
-        result.forEach((d) => {
-            const data = d.data;
-            const uniqueMacSet = new Set();
-            const uniqueCount = data.reduce((count, dd) => {
-                if (!uniqueMacSet.has(dd.mac_address)) {
-                    uniqueMacSet.add(dd.mac_address);
-                    return count + 1;
-                }
-                return count;
-            }, 0);
-            countArray.push(uniqueCount);
-        });
+        const result = dataList.map((data) => data.unique_count);
         return {
-            count_array: countArray.reverse(),
+            count_array: result.reverse(),
         };
     }
     async getActiveRecent2Weak() {
-        const formatJsonData = [];
-        const result = await new Promise((resolve) => {
-            let pass = 0;
-            for (let index = 0; index < 14; index++) {
-                const tw = this.generateTimeRange(index);
-                const sql = `
-                    SELECT mac_address, created_time
-                    FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = ${database_js_1.default.escape(this.app)}
-                    AND ip != 'ffff:127.0.0.1'
-                    AND req_type = 'file'
-                    AND created_time BETWEEN '${tw.startISO}' AND '${tw.endISO}'
-                    GROUP BY id, mac_address
-                `;
-                database_js_1.default.query(sql, []).then((data) => {
-                    formatJsonData.push({ index, data });
-                    pass++;
-                    if (pass === 14) {
-                        resolve(formatJsonData.sort((a, b) => {
-                            return a.index > b.index ? 1 : -1;
-                        }));
-                    }
-                });
-            }
+        const endDate = new Date();
+        endDate.setUTCHours(16, 0, 0, 0);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 14);
+        const sql = `
+            SELECT mac_address, created_time
+            FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${database_js_1.default.escape(this.app)}
+                AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            GROUP BY id, mac_address
+        `;
+        const queryData = await database_js_1.default.query(sql, []);
+        const now = new Date();
+        const dataList = Array.from({ length: 14 }, (_, index) => {
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() - index);
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth() + 1;
+            const day = targetDate.getDate();
+            const filteredData = queryData.filter((item) => {
+                const date = new Date(item.created_time);
+                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+            });
+            const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
+            return {
+                year,
+                month,
+                day,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
         });
-        const countArray = [];
-        result.forEach((d, index) => {
-            const data = d.data;
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - index);
-            const uniqueMacSet = new Set();
-            const uniqueCount = data.reduce((count, dd) => {
-                const recordDate = new Date(dd.created_time);
-                if (!uniqueMacSet.has(dd.mac_address) &&
-                    recordDate.getDate() === targetDate.getDate()) {
-                    uniqueMacSet.add(dd.mac_address);
-                    return count + 1;
-                }
-                return count;
-            }, 0);
-            countArray.push(uniqueCount);
-        });
+        const result = dataList.map((data) => data.unique_count);
         return {
-            count_array: countArray.reverse(),
+            count_array: result.reverse(),
         };
     }
     async getRegister2weak() {
