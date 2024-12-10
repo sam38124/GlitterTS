@@ -146,7 +146,11 @@ export class UMInfo {
                                         bind: id,
                                         view: () => {
                                             if (loading) {
-                                                return UmClass.spinner('100%');
+                                                return UmClass.spinner({
+                                                    container: {
+                                                        style: 'height: 100%;',
+                                                    },
+                                                });
                                             }
                                             else {
                                                 return html ` <div style="text-align: center; vertical-align: middle;">

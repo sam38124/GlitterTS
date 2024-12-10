@@ -1,6 +1,6 @@
 import express from 'express';
 import response from '../../modules/response';
-import { Delivery } from '../services/delivery.js';
+import { Delivery, EcPay } from '../services/delivery.js';
 import redis from '../../modules/redis.js';
 
 const router: express.Router = express.Router();
@@ -58,15 +58,46 @@ router.post('/storeMaps', async (req: express.Request, resp: express.Response) =
     }
 });
 
-router.post('/printOrderInfo', async (req: express.Request, resp: express.Response) => {
+router.post('/orderInfo', async (req: express.Request, resp: express.Response) => {
     try {
-        const formString = await new Delivery(req.get('g-app') as string).printOrderInfo({
+        const id = await new Delivery(req.get('g-app') as string).getOrderInfo({
             LogisticsSubType: req.body.brand,
             AllPayLogisticsID: req.body.logisticsId,
             CVSPaymentNo: req.body.paymentNo,
             CVSValidationNo: req.body.validationNo,
         });
-        return response.succ(resp, { form: formString });
+        return response.succ(resp, { id });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/formView', async (req: express.Request, resp: express.Response) => {
+    try {
+        const html = String.raw;
+        const key = 'delivery_' + req.query.id;
+        const data = await redis.getValue(key);
+        setTimeout(() => {
+            redis.deleteKey(key);
+        }, 1000);
+        const formString = EcPay.generateForm(JSON.parse(data as string)); // 限制綠界物流表單
+
+        return resp.send(html`<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    ${formString}
+                </body>
+                <script>
+                    const myForm = document.getElementById('submit');
+                    if (myForm) {
+                        myForm.click();
+                    }
+                </script>
+            </html>`);
     } catch (err) {
         return response.fail(resp, err);
     }

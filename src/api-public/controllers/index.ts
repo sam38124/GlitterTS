@@ -30,7 +30,7 @@ import recommend = require('./recommend');
 import { Live_source } from '../../live_source.js';
 import { IToken } from '../models/Auth.js';
 import { ApiPublic } from '../services/public-table-check.js';
-import {Monitor} from "../services/monitor.js";
+import { Monitor } from '../services/monitor.js';
 /*********SET UP Router*************/
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
@@ -55,14 +55,12 @@ router.use(config.getRoute(config.public_route.recommend, 'public'), recommend);
 router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config.getRoute(config.public_route.ai_chat, 'public'), require('./ai-chat'));
 router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./ai-points'));
-
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 /******************************/
 const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },
-
     { url: config.getRoute(config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.chat, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.invoice + '/invoice-type', 'public'), method: 'GET' },
@@ -119,6 +117,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.manager + '/config', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.article, 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.article + '/manager', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.delivery + '/formView', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.delivery + '/c2cRedirect', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/c2cNotify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.delivery + '/storeMaps', 'public'), method: 'POST' },
@@ -127,15 +126,15 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'DELETE' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PATCH' },
-    { url: config.getRoute(config.public_route.ai_chat+'/ask-order', 'public'), method: 'GET' },
-    { url: config.getRoute(config.public_route.ai_chat+'/search-product', 'public'), method: 'POST' }
+    { url: config.getRoute(config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' },
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next_step: express.NextFunction) {
     //將請求紀錄插入SQL，監測用戶數量與避免DDOS攻擊。
-    async function next(){
-        await Monitor.insertHistory({req:req,token:req.body.token,req_type:'api'});
-        next_step()
+    async function next() {
+        await Monitor.insertHistory({ req: req, token: req.body.token, req_type: 'api' });
+        next_step();
     }
     if (Live_source.liveAPP.indexOf(`${(req.get('g-app') as any) ?? req.query['g-app']}`) === -1) {
         return response.fail(resp, exception.PermissionError('INVALID_APP', 'invalid app'));

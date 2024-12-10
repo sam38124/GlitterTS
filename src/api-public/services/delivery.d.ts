@@ -64,7 +64,7 @@ export declare class Delivery {
         data: DeliveryData;
         message?: undefined;
     }>;
-    printOrderInfo(json: {
+    getOrderInfo(json: {
         LogisticsSubType: StoreBrand;
         AllPayLogisticsID: string;
         CVSPaymentNo: string;
