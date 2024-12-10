@@ -576,8 +576,8 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                     key: 'glitter_finance',
                 })
             )[0].value.paypal;
-            console.log("check_id -- " , check_id);
-            const linePay = new LinePay(req.query.appName as string, {
+            //todo 補上linepay資料
+            const linepay = new LinePay(req.query.appName as string, {
                 ReturnURL:"",
                 NotifyURL:"",
                 LinePay_CLIENT_ID:"",
@@ -585,7 +585,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                 BETA:true
             });
 
-            const data:any = linePay.confirmAndCaptureOrder(check_id as string)
+            const data:any = linepay.confirmAndCaptureOrder(check_id as string)
             if (data.returnCode == "0000"){
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }

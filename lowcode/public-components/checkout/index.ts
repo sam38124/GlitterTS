@@ -2457,7 +2457,6 @@ export class CheckoutIndex {
                                                             } else {
                                                                 
                                                                 ApiCart.clearCart();
-                                                                // todo if 他是paypal的key值 上面應該有select之類的
                                                                 if (res.response.returnCode == "0000" && vm.cartData.customer_info.payment_select == "line_pay"){
                                                                     console.log("res.response.form.info.paymentUrl.web -- " , res.response.info.paymentUrl.web)
                                                                     location.href = res.response.info.paymentUrl.web;
