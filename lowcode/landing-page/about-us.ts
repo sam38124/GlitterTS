@@ -5,6 +5,7 @@ const html = String.raw
 export class AboutUs {
     public static main(gvc: GVC) {
         const css = String.raw
+
         gvc.addStyle(css`
             .f_40 {
                 color: #393939;
