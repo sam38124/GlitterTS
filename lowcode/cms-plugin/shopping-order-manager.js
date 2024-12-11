@@ -2827,21 +2827,21 @@ export class ShoppingOrderManager {
         if (orderData.orderSource === 'POS') {
             return `門市POS付款`;
         }
-        switch (key) {
+        switch (orderData.customer_info.payment_select) {
             case 'off_line':
-                switch (orderData.customer_info.payment_select) {
-                    case 'atm':
-                        return `銀行轉帳`;
-                    case 'line':
-                        return `Line Pay`;
-                    case 'cash_on_delivery':
-                        return `貨到付款`;
-                }
                 return `線下付款`;
             case 'newWebPay':
                 return `藍新金流`;
             case 'ecPay':
                 return `綠界金流`;
+            case 'line_pay':
+                return 'Line Pay';
+            case 'atm':
+                return `銀行轉帳`;
+            case 'line':
+                return `Line 轉帳`;
+            case 'cash_on_delivery':
+                return `貨到付款`;
             default:
                 return `線下付款`;
         }

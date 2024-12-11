@@ -508,7 +508,9 @@ export class CheckoutIndex {
         }
 
         refreshCartData();
-
+        glitter.share.reloadCartData=()=>{
+            refreshCartData();
+        }
         return gvc.bindView(
             (() => {
                 return {
@@ -2402,7 +2404,9 @@ export class CheckoutIndex {
                             return ``;
                         }
                     },
-                    divCreate: {},
+                    divCreate: {
+                        class:`check_out_cart_data`
+                    },
                     onCreate: () => {
                         Ad.gtagEvent('view_cart', {
                             currency: 'TWD',

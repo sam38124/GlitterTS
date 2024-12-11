@@ -34,10 +34,8 @@ export interface LanguageData {
         content: string;
         keywords: string;
     },
-    content: string,
-    content_array: string[]
-    content_json: any[]
 }
+
 
 export class ShoppingProductSetting {
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
@@ -1832,7 +1830,7 @@ export class ShoppingProductSetting {
                 bind: vm.id,
                 view: () => {
                     //如果沒有塞入預設值
-                    const language_data: LanguageData = ((postMD.language_data as any)[vm.language]);
+                    const language_data: any = ((postMD.language_data as any)[vm.language]);
                     (language_data).content = (language_data).content ?? postMD.content;
                     (language_data).content_array = (language_data).content_array ?? postMD.content_array;
                     (language_data).content_json = (language_data).content_json ?? postMD.content_json;
@@ -2078,7 +2076,7 @@ export class ShoppingProductSetting {
                                                                                                                                                                         onclick="${gvc.event(() => {
                                                                                                                 if (language_data.content_array.includes(dd.id)) {
                                                                                                                     language_data.content_array = language_data.content_array.filter(
-                                                                                                                        (d) => d !== dd.id
+                                                                                                                        (d:any) => d !== dd.id
                                                                                                                     );
                                                                                                                 } else {
                                                                                                                     language_data.content_array.push(dd.id);
@@ -2333,7 +2331,7 @@ export class ShoppingProductSetting {
                                                                                                         title: tag.title,
                                                                                                         default: (() => {
                                                                                                             const docIndex = language_data.content_json.findIndex(
-                                                                                                                (c) => c.id === item.id
+                                                                                                                (c:any) => c.id === item.id
                                                                                                             );
                                                                                                             if (docIndex === -1) {
                                                                                                                 return '';
@@ -2351,7 +2349,7 @@ export class ShoppingProductSetting {
                                                                                                         })(),
                                                                                                         callback: (text) => {
                                                                                                             const docIndex = language_data.content_json.findIndex(
-                                                                                                                (c) => c.id === item.id
+                                                                                                                (c:any) => c.id === item.id
                                                                                                             );
                                                                                                             if (docIndex === -1) {
                                                                                                                 language_data.content_json.push({
@@ -2424,7 +2422,7 @@ export class ShoppingProductSetting {
                                                                                             view: () => {
                                                                                                 const content = item.data.content || '';
                                                                                                 const tags = item.data.tags;
-                                                                                                const jsonData = language_data.content_json.find((c) => c.id === item.id);
+                                                                                                const jsonData = language_data.content_json.find((c:any) => c.id === item.id);
                                                                                                 return html`
                                                                                                                                 <div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
                                                                                                                                     ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
@@ -2451,10 +2449,10 @@ export class ShoppingProductSetting {
                                                                     if(!Array.isArray(vm.documents)){
                                                                         vm.documents=[]
                                                                     }
-                                                                    language_data.content_array = language_data.content_array.filter((id) => {
+                                                                    language_data.content_array = language_data.content_array.filter((id:any) => {
                                                                         return vm.documents.some((item: any) => item.id === id);
                                                                     });
-                                                                    language_data.content_json = language_data.content_json.filter((d) => {
+                                                                    language_data.content_json = language_data.content_json.filter((d:any) => {
                                                                         return vm.documents.some((item: any) => item.id === d.id);
                                                                     });
                                                                     vm.loading = false;

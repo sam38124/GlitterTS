@@ -1222,14 +1222,6 @@ export class ShoppingFinanceSetting {
                                                             return {
                                                                 bind: id,
                                                                 view: () => {
-                                                                    EditorElem.richText({
-                                                                        gvc: gvc,
-                                                                        def: language_data.info,
-                                                                        callback: (text) => {
-                                                                            language_data.info = text;
-                                                                            save();
-                                                                        },
-                                                                    })
                                                                     return html`
                                                                         <div
                                                                                 class="d-flex justify-content-between align-items-center gap-3 mb-1"

@@ -83,6 +83,7 @@ export class ApiCart {
                 updated_cart.line_items.push(product);
             }
         });
+        (window.parent as any).glitter.share.reloadCartData();
     }
     //設定商品與數量至購物車
     static serToCart(id: any, spec: string[], count: any) {

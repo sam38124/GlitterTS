@@ -28,7 +28,17 @@ router.get('/', async (req, resp) => {
             ||
              (UPPER(JSON_EXTRACT(page_config, '$.meta_article.title')) LIKE UPPER('%${req.query.search}%'))`);
         }
-        const data = await new ut_database_js_1.UtDatabase(process.env.GLITTER_DB, `page_config`).querySql(query, req.query);
+        const data = (await new ut_database_js_1.UtDatabase(process.env.GLITTER_DB, `page_config`).querySql(query, req.query));
+        data.data.map((dd) => {
+            const content = dd.content;
+            if (content.language_data && content.language_data[req.headers['language']]) {
+                const lang_ = content.language_data[req.headers['language']];
+                content.name = lang_.name || content.name;
+                content.seo = lang_.seo || content.seo;
+                content.text = lang_.text || content.text;
+                content.config = lang_.config || content.config;
+            }
+        });
         return response_js_1.default.succ(resp, data);
     }
     catch (err) {
@@ -84,6 +94,16 @@ router.get('/manager', async (req, resp) => {
                     return d2 === d1.link;
                 });
             });
+            const content = dd.content;
+            if (content.language_data && content.language_data[req.headers['language']]) {
+                const lang_ = content.language_data[req.headers['language']];
+                content.name = lang_.name || content.name;
+                content.seo = lang_.seo || content.seo;
+                content.text = lang_.text || content.text;
+                content.config = lang_.config || content.config;
+                content.description = lang_.description || content.description;
+                content.title = lang_.title || content.title;
+            }
         });
         return response_js_1.default.succ(resp, data);
     }
@@ -121,9 +141,9 @@ router.delete('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             await database_js_1.default.query(`delete
-                            FROM \`${process.env.GLITTER_DB}\`.page_config
-                            where id in (?)
-                              and userID = ?`, [req.body.id.split(','), req.body.token.userID]);
+                 FROM \`${process.env.GLITTER_DB}\`.page_config
+                 where id in (?)
+                   and userID = ?`, [req.body.id.split(','), req.body.token.userID]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {
@@ -138,8 +158,8 @@ router.delete('/manager', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             await database_js_1.default.query(`delete
-                            FROM \`${req.get('g-app')}\`.t_manager_post
-                            where id in (?)`, [req.body.id.split(',')]);
+                 FROM \`${req.get('g-app')}\`.t_manager_post
+                 where id in (?)`, [req.body.id.split(',')]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {

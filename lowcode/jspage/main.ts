@@ -129,6 +129,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
         }
     `);
+    glitter.share.is_blog_editor=()=>{
+        return glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('hidden/') || glitter.getUrlParameter('page').startsWith('shop/')
+    }
     Storage.lastSelect = ''
     const viewModel: {
         dataList: any;
@@ -241,13 +244,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             tag: glitter.getUrlParameter('page'),
                             appName: gBundle.appName
                         }, (d2: any) => {
-                            if (glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('shop/') || glitter.getUrlParameter('page').startsWith('hidden/')) {
+                            if (glitter.share.is_blog_editor()) {
                                 Article.get({
                                     page: 0,
                                     limit: 1,
                                     tag: glitter.getUrlParameter('page').split('/')[1]
                                 }).then(async (data) => {
-                                    d2.response.result[0].config = data.response.data[0].content.config
+                                    const content=data.response.data[0].content
+                                    if(content.language_data && content.language_data[glitter.getUrlParameter('language')] && content.language_data[glitter.getUrlParameter('language')].config){
+                                        content.config=content.language_data[glitter.getUrlParameter('language')].config
+                                    }
+                                    d2.response.result[0].config = content.config
                                     resolve(d2.response.result[0])
                                 })
                             } else {
@@ -449,13 +456,37 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         } else {
                             return new Promise(async (resolve) => {
                                 let result = true;
-                                if (glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('hidden/') || glitter.getUrlParameter('page').startsWith('shop/')) {
+                                if (glitter.share.is_blog_editor()) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
                                         tag: glitter.getUrlParameter('page').split('/')[1]
                                     }).then(async (data) => {
-                                        data.response.data[0].content.config = config
+                                        const content=data.response.data[0].content
+                                        function empty(){
+                                            return {
+                                                name: '',
+                                                seo: {
+                                                    domain: '',
+                                                    title: '',
+                                                    content: '',
+                                                    keywords: '',
+                                                },
+                                                text:'',
+                                                config:''
+                                            }
+                                        }
+                                        content.language_data=content.language_data ?? {
+                                            'en-US': empty(),
+                                            'zh-CN': empty(),
+                                            'zh-TW': {
+                                                name: content.name,
+                                                seo:content.seo,
+                                                text:content.text,
+                                                config:content.config
+                                            }
+                                        }
+                                        content.language_data[glitter.getUrlParameter('language')].config=config;
                                         Article.put(data.response.data[0]).then((response) => {
                                             resolve(response && response.result);
                                         })

@@ -176,7 +176,7 @@ export class Editor {
                             <div style="background:#f1f1f1;border-radius:10px;"
                                  class="d-flex align-items-center justify-content-center p-1 ">
                                 <div
-                                        class="d-flex align-items-center justify-content-center  text-white me-1 fw-500"
+                                        class="${glitter.share.is_blog_editor() ? `d-none` : `d-flex`} align-items-center justify-content-center  text-white me-1 fw-500"
                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;background:linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
                                         onclick="${gvc.event(() => {
                             Editor.languageSwitch(gvc);

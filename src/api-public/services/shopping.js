@@ -2233,7 +2233,11 @@ class Shopping {
         });
         const result = dataList.map((data) => data.unique_count);
         return {
+<<<<<<< HEAD
             count_array: result,
+=======
+            count_array: result.reverse()
+>>>>>>> d43fe1cc ([update] : glitter version.)
         };
     }
     async getActiveRecent2Weak() {
@@ -2295,8 +2299,9 @@ class Shopping {
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
+                    console.log(`monthCheckoutSQL=>`, monthCheckoutSQL);
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[`${index}`] = data['count(1)'];
+                        countArray[`${index}`] = data[0]['count(1)'];
                         pass++;
                         if (pass === 14) {
                             resolve(true);
@@ -2309,7 +2314,11 @@ class Shopping {
                     .sort()
                     .map((dd) => {
                     return countArray[dd];
+<<<<<<< HEAD
                 }),
+=======
+                }).reverse()
+>>>>>>> d43fe1cc ([update] : glitter version.)
             };
         }
         catch (e) {
@@ -2350,7 +2359,7 @@ class Shopping {
                     .sort()
                     .map((dd) => {
                     return countArray[dd];
-                }),
+                }).reverse(),
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
         }
@@ -2592,7 +2601,11 @@ class Shopping {
                     .sort()
                     .map((dd) => {
                     return countArray[dd];
+<<<<<<< HEAD
                 }),
+=======
+                }).reverse()
+>>>>>>> d43fe1cc ([update] : glitter version.)
             };
         }
         catch (e) {
