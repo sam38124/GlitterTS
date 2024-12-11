@@ -1837,7 +1837,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
-            console.log("sql -- ", sql);
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
                      FROM \`${this.app}\`.t_checkout
