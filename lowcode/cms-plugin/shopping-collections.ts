@@ -1055,12 +1055,15 @@ export class ShoppingCollections {
                                                     dialog.infoMessage({text: '未設定導向網址'});
                                                     return;
                                                 }
-                                                if (CheckInput.isEmpty(vm.data.code)) {
-                                                    dialog.infoMessage({text: '請輸入分類連結'});
-                                                    return;
-                                                }
-
-                                                if (!CheckInput.isChineseEnglishNumberHyphen(vm.data.code)) {
+                                                if ((window.parent as any).store_info.language_setting.support.find((dd: any) => {
+                                                    if(!CheckInput.isChineseEnglishNumberHyphen((vm.data.language_data as any)[dd].seo.domain)){
+                                                        select_lan=dd
+                                                        return true
+                                                    }else{
+                                                        return false
+                                                    }
+                                                })) {
+                                                    refresh()
                                                     dialog.infoMessage({text: '連結僅限使用中英文數字與連接號'});
                                                     return;
                                                 }

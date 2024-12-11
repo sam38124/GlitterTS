@@ -1705,6 +1705,14 @@ class User {
             if ((data[0] && data[0].value)) {
                 data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
             }
+            else if (config.key === 'store-information') {
+                return {
+                    language_setting: {
+                        def: 'zh-TW',
+                        support: ['zh-TW']
+                    }
+                };
+            }
             return (data[0] && data[0].value) || {};
         }
         catch (e) {

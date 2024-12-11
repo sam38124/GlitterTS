@@ -183,7 +183,6 @@ export async function createAPP(dd: any) {
                 root_path: '/' + encodeURI(dd.appName) + '/',
                 seoManager: async (req) => {
                     try {
-                        console.log(`req.headers=>`,req.headers);
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';
                         }
