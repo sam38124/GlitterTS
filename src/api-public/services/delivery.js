@@ -135,7 +135,9 @@ class Delivery {
             key: 'glitter_delivery',
         }))[0].value;
         const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
-        const params = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), LogisticsType: 'CVS', ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
+        const originParams = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
+        const params = Object.fromEntries(Object.entries(originParams).filter(([_, value]) => value !== undefined));
+        console.log(params);
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const response = await EcPay.axiosRequest({
             actionURL,
@@ -175,12 +177,18 @@ class Delivery {
             CVSPaymentNo: json.CVSPaymentNo,
             CVSValidationNo: json.CVSValidationNo,
         };
+        console.log(json.LogisticsSubType);
         const storePath = {
             FAMIC2C: 'PrintFAMIC2COrderInfo',
             UNIMARTC2C: 'PrintUniMartC2COrderInfo',
             HILIFEC2C: 'PrintHILIFEC2COrderInfo',
             OKMARTC2C: 'PrintOKMARTC2COrderInfo',
+            TCAT: 'PrintOKMARTC2COrderInfo',
+            POST: 'PrintOKMARTC2COrderInfo',
         };
+        if (storePath[json.LogisticsSubType] === undefined) {
+            return '000';
+        }
         const actionURL = keyData.Action === 'main'
             ? `https://logistics.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`
             : `https://logistics-stage.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`;

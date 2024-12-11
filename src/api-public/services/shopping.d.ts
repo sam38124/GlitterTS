@@ -236,6 +236,7 @@ export declare class Shopping {
     }>;
     private generateOrderID;
     linePay(data: any): Promise<unknown>;
+    getPostAddressData(address: string): Promise<any>;
     toCheckout(data: {
         line_items: {
             id: string;

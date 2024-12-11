@@ -955,7 +955,7 @@ export class ShoppingOrderManager {
                                                 return dd.value === orderData.orderData.user_info.shipment;
                                             }) || { name: '門市取貨' }).name}
                                                                     </div>
-                                                                    ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(orderData.orderData.user_info.shipment)
+                                                                    ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'normal', 'black_cat'].includes(orderData.orderData.user_info.shipment)
                                                 ? BgWidget.customButton({
                                                     button: {
                                                         color: 'gray',

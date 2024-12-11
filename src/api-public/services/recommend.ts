@@ -45,7 +45,7 @@ export class Recommend {
 
             function calculatePercentage(numerator: number, denominator: number, decimalPlaces: number = 2): string {
                 if (denominator === 0) {
-                    throw new Error('分母不能為 0');
+                    return '0%';
                 }
                 const percentage = (numerator / denominator) * 100;
                 return `${percentage.toFixed(decimalPlaces)}%`;
