@@ -18,7 +18,7 @@ export class Monitor{
             }
             await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.t_monitor set ?`,[
                 {
-                    ip:req.ip,
+                    ip:req.headers['x-real-ip'] || req.ip ,
                     app_name:req.get('g-app') || 'unknown',
                     user_id: obj.token ? obj.token.userID : 'guest',
                     mac_address:req.get('mac_address') || mac_address,

@@ -62,7 +62,9 @@ export class ApiCart {
                 updated_cart.line_items.push(product);
             }
         });
-        window.parent.glitter.share.reloadCartData();
+        if (window.parent.glitter.share.reloadCartData) {
+            window.parent.glitter.share.reloadCartData();
+        }
     }
     static serToCart(id, spec, count) {
         count = parseInt(count, 10);

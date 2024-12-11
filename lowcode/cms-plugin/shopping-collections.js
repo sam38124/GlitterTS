@@ -906,11 +906,16 @@ export class ShoppingCollections {
                                 dialog.infoMessage({ text: '未設定導向網址' });
                                 return;
                             }
-                            if (CheckInput.isEmpty(vm.data.code)) {
-                                dialog.infoMessage({ text: '請輸入分類連結' });
-                                return;
-                            }
-                            if (!CheckInput.isChineseEnglishNumberHyphen(vm.data.code)) {
+                            if (window.parent.store_info.language_setting.support.find((dd) => {
+                                if (!CheckInput.isChineseEnglishNumberHyphen(vm.data.language_data[dd].seo.domain)) {
+                                    select_lan = dd;
+                                    return true;
+                                }
+                                else {
+                                    return false;
+                                }
+                            })) {
+                                refresh();
                                 dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                 return;
                             }
