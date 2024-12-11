@@ -2723,7 +2723,7 @@ export class BgGuide {
                                 gvc.notifyDataChange(`financeInit`);
                             });
                         }
-
+                        target.scrollIntoView();
                         return this.drawBGwithBelowWindow(
                             BG,
                             vm,
@@ -2811,8 +2811,8 @@ export class BgGuide {
                             let iframe = this.findPageIframe();
                             let iframeRect = iframe.getBoundingClientRect();
                             let rect = target.getBoundingClientRect();
-                            let left = rect.left + iframeRect.left - 24;
-                            let top = iframeRect.top + 4;
+                            let left = rect.left + iframeRect.left - 30;
+                            let top = iframeRect.top + 10;
                             let right = rect.right + iframeRect.left + 24;
                             let bottom = iframeRect.bottom - 230;
                             const scrollEvent = this.disableScroll();
