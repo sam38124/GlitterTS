@@ -2233,11 +2233,7 @@ class Shopping {
         });
         const result = dataList.map((data) => data.unique_count);
         return {
-<<<<<<< HEAD
-            count_array: result,
-=======
             count_array: result.reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
         };
     }
     async getActiveRecent2Weak() {
@@ -2310,15 +2306,9 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
+                countArray: Object.keys(countArray).sort().map((dd) => {
                     return countArray[dd];
-<<<<<<< HEAD
-                }),
-=======
                 }).reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
             };
         }
         catch (e) {
@@ -2355,9 +2345,7 @@ class Shopping {
             });
             return {
                 today: order[0]['count(1)'],
-                count_register: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
+                count_register: Object.keys(countArray).sort().map((dd) => {
                     return countArray[dd];
                 }).reverse(),
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
@@ -2597,15 +2585,9 @@ class Shopping {
                 }
             });
             return {
-                countArray: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
+                countArray: Object.keys(countArray).sort().map((dd) => {
                     return countArray[dd];
-<<<<<<< HEAD
-                }),
-=======
                 }).reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
             };
         }
         catch (e) {

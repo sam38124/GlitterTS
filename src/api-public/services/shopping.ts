@@ -2901,11 +2901,7 @@ export class Shopping {
         const result = dataList.map((data) => data.unique_count);
 
         return {
-<<<<<<< HEAD
-            count_array: result,
-=======
             count_array: result.reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
         };
     }
 
@@ -2981,13 +2977,8 @@ export class Shopping {
                     `;
                     console.log(`monthCheckoutSQL=>`,monthCheckoutSQL)
                     db.query(monthCheckoutSQL, []).then((data) => {
-<<<<<<< HEAD
-                        countArray[`${index}`] = data['count(1)'];
-                        pass++;
-=======
                         countArray[`${index}`] = data[0]['count(1)']
                         pass++
->>>>>>> d43fe1cc ([update] : glitter version.)
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -2995,17 +2986,9 @@ export class Shopping {
                 }
             });
             return {
-<<<<<<< HEAD
-                countArray: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-=======
                 countArray: Object.keys(countArray).sort().map((dd) => {
                     return countArray[dd]
                 }).reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -3049,17 +3032,9 @@ export class Shopping {
                 //用戶總數
                 today: order[0]['count(1)'],
                 //每月紀錄
-<<<<<<< HEAD
-                count_register: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-=======
                 count_register: Object.keys(countArray).sort().map((dd)=>{
                     return countArray[dd]
                 }).reverse(),
->>>>>>> d43fe1cc ([update] : glitter version.)
                 //兩週紀錄
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
@@ -3322,17 +3297,9 @@ export class Shopping {
             });
 
             return {
-<<<<<<< HEAD
-                countArray: Object.keys(countArray)
-                    .sort()
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-=======
                 countArray: Object.keys(countArray).sort().map((dd) => {
                     return countArray[dd]
                 }).reverse()
->>>>>>> d43fe1cc ([update] : glitter version.)
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
