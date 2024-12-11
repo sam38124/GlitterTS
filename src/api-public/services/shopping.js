@@ -1824,7 +1824,8 @@ class Shopping {
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
-                    querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+                    querySql.push(`(orderData->>'$.archived'="${query.archived}") AND (JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL 
+OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 else {
                     querySql.push(`((orderData->>'$.archived'="${query.archived}") or (orderData->>'$.archived' is null))`);
@@ -1836,6 +1837,7 @@ class Shopping {
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
+            console.log("sql -- ", sql);
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
                      FROM \`${this.app}\`.t_checkout

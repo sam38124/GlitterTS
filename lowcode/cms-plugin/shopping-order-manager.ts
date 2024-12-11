@@ -1604,6 +1604,38 @@ export class ShoppingOrderManager {
                                         };
                                     })}
                                 </div>
+                                ${(orderData.orderData.archived === 'true')?BgWidget.redButton('刪除',gvc.event(()=>{
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    function deleteOrder(){
+                                        orderData.orderData.orderStatus = '-99';
+                                        
+                                        dialog.dataLoading({ text: '刪除中', visible: true });
+                                        ApiShop.putOrder({
+                                            id: `${orderData.id}`,
+                                            order_data: orderData.orderData,
+                                            status: orderData.status,
+                                        }).then((response) => {
+                                            dialog.dataLoading({ text: '刪除中', visible: false });
+                                            if (response.result) {
+                                                dialog.infoMessage({
+                                                    text:"刪除成功!"
+                                                })
+                                                
+                                                vm.type='list'
+                                            } else {
+                                                dialog.errorMessage({ text: '刪除異常!' });
+                                            }
+                                        });
+                                    }
+                                    dialog.checkYesOrNot({
+                                        callback:(response)=>{
+                                            if (response){
+                                                deleteOrder();
+                                            }
+                                        },
+                                        text:"是否要刪除訂單"
+                                    })
+                                })):``}
                                 ${BgWidget.cancel(
                                     gvc.event(() => {
                                         vm.type = 'list';
