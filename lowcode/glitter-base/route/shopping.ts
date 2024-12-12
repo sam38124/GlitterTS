@@ -336,8 +336,8 @@ export class ApiShop {
                     json.minPrice && par.push(`min_price=${json.minPrice}`);
                     json.status && par.push(`status=${json.status}`);
                     json.channel && par.push(`channel=${json.channel}`);
-                    if(json.schedule === true || json.schedule === false){
-                        par.push(`schedule=${json.schedule}`)
+                    if (json.schedule === true || json.schedule === false) {
+                        par.push(`schedule=${json.schedule}`);
                     }
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
@@ -903,7 +903,7 @@ export class ApiShop {
         });
     }
 
-    static proofPurchase(order_id: string, text: string) {
+    static proofPurchase(order_id: string, text: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/proof-purchase`,
             type: 'PUT',

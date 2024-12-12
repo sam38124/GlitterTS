@@ -79,6 +79,9 @@ export declare class Delivery {
         CVSPaymentNo: string;
         CVSValidationNo: string;
     }): Promise<string>;
+    static removeUndefined(originParams: any): {
+        [k: string]: unknown;
+    };
     notify(json: any): Promise<string>;
 }
 export {};

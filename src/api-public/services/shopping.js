@@ -1125,7 +1125,6 @@ class Shopping {
                         SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
                         SenderAddress: keyData.SenderAddress,
                     });
-                    console.log(delivery);
                     if (delivery.result) {
                         carData.deliveryData = delivery.data;
                         console.info('綠界物流單 郵政/黑貓 建立成功');
@@ -1893,7 +1892,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
-            console.log("sql -- ", sql);
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
                      FROM \`${this.app}\`.t_checkout
