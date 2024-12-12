@@ -878,7 +878,7 @@ export class UMOrder {
                                                                 dialog.dataLoading({ visible: false });
                                                                 try {
                                                                     if (data.result && data.response.data) {
-                                                                        location.href = `.${Language.getLanguageLinkPrefix(true)}/products/${data.response.data.content.seo.domain}`;
+                                                                        location.href = `.${Language.getLanguageLinkPrefix(false)}/products/${data.response.data.content.seo.domain}`;
                                                                     }
                                                                 } catch (error) {
                                                                     dialog.errorMessage({ text: Language.text('product_not_found') });
@@ -1239,7 +1239,7 @@ export class UMOrder {
                             class="m-auto d-flex align-items-center justify-content-center my-5"
                             style="cursor: pointer;"
                             onclick="${gvc.event(() => {
-                                location.href = '.${Language.getLanguageLinkPrefix(true)}/order_list';
+                                location.href = `.${Language.getLanguageLinkPrefix(true)}/order_list`;
                             })}"
                         >
                             <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
