@@ -222,6 +222,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                 return await Template.getRealPage(page.redirect.substring(1), appName);
             }
             catch (error) {
+                console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
                 page = '';
             }
         }

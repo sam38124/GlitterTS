@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -58,7 +60,6 @@ const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const schedule_js_1 = require("./api-public/services/schedule.js");
 const private_config_js_1 = require("./services/private_config.js");
-const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
@@ -66,6 +67,8 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
 const manager_js_1 = require("./api-public/services/manager.js");
+const sitemap_1 = require("sitemap");
+const stream_1 = require("stream");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -117,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -361,9 +363,7 @@ async function createAPP(dd) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
                             const rec = await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
                                     `, [req.query.page.split('/')[1]]);
-                            console.log(rec);
                             const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
-                            console.log([page.status, isCurrentTimeWithinRange(page)]);
                             if (page.status && isCurrentTimeWithinRange(page)) {
                                 distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
@@ -626,78 +626,41 @@ async function createAPP(dd) {
                          FROM \`${appName}\`.t_manager_post
                          WHERE JSON_EXTRACT(content, '$.type') = 'product';
                         `, []);
-                const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-                        ${(await database_2.default.query(`select page_config, tag, updated_time
+                const stream = new sitemap_1.SitemapStream({ hostname: `https://${domain}` });
+                const xml = await (0, sitemap_1.streamToPromise)(stream_1.Readable.from([
+                    ...(await database_2.default.query(`select page_config, tag, updated_time
                              from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                              where appName = ?
                                and page_config ->>'$.seo.type'='custom'
-                            `, [appName]))
-                    .map((d2) => {
-                    if (d2.tag === 'index') {
-                        return `<url>
-                                    <loc>${`https://${domain}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                    }
-                    else {
-                        return `<url>
-                                    <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                    }
-                })
-                    .join('')}
-                        ${article.data
-                    .map((d2) => {
-                    if (!d2.content.template) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                })
-                    .join('')}
-                        ${(site_map || [])
-                    .map((d2) => {
-                    return `<url>
-                                    <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url> `;
-                })
-                    .join('')}
-                        ${extractCols(cols)
-                    .map((item) => {
-                    if (!item.code) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>https://${domain}/collections/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
-                })
-                    .join('')}
-                        ${extractProds(products)
-                    .map((item) => {
-                    if (!item.code) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>https://${domain}/products/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
-                })
-                    .join('')}
-                    </urlset> `;
-                return (0, xml_formatter_1.default)(sitemap, {
-                    indentation: '  ',
-                    filter: (node) => node.type !== 'Comment',
-                    collapseContent: true,
-                });
+                            `, [appName])).map((d2) => {
+                        return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };
+                    }),
+                    ...(article.data
+                        .filter((d2) => {
+                        return d2.content.template;
+                    }).map((d2) => {
+                        return { url: `https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`, changefreq: 'weekly', lastmod: formatDateToISO(new Date(d2.updated_time)) };
+                    })),
+                    ...(site_map || [])
+                        .map((d2) => {
+                        return { url: `https://${domain}/${d2.url}`, changefreq: 'weekly' };
+                    }),
+                    ...extractCols(cols)
+                        .filter((item) => {
+                        return item.code;
+                    })
+                        .map((item) => {
+                        return { url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly' };
+                    }),
+                    ...extractProds(products)
+                        .filter((item) => {
+                        return item.code;
+                    })
+                        .map((item) => {
+                        return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly' };
+                    })
+                ]).pipe(stream)).then((data) => data.toString());
+                return xml;
             },
             sitemap_list: async (req, resp) => {
                 let appName = dd.appName;
@@ -728,7 +691,8 @@ async function createAPP(dd) {
                 const domain = (await database_2.default.query(`select \`domain\`
                              from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                              where appName = ?`, [appName]))[0]['domain'];
-                return robots.text.replace(/\s+/g, '').replace(/\n/g, '') ? robots.text : html `User-agent: * Sitemap: ${domain}/sitemap.xml`;
+                return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html `User-agent: * 
+Sitemap: https://${domain}/sitemap.xml`;
             },
             tw_shop: async (req, resp) => {
                 let appName = dd.appName;
@@ -782,7 +746,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,
@@ -866,5 +829,8 @@ async function getSeoSiteMap(appName, req) {
         const myFunction = new Function(evalString);
         return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
     });
+}
+function formatDateToISO(date) {
+    return `${date.toISOString().substring(0, date.toISOString().length - 5)}+00:00`;
 }
 //# sourceMappingURL=index.js.map

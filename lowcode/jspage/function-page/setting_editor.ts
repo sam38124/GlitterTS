@@ -684,7 +684,6 @@ export class Setting_editor {
             if ((window as any).memberType === 'noLimit') {
                 menuItems = menuItems.concat(this.noLimitMenuItems());
             }
-
             menuItems.map((dd, index) => {
                 if (dd.page === glitter.getUrlParameter('tab')) {
                     Storage.select_item = index;
@@ -761,7 +760,6 @@ export class Setting_editor {
                                 function renderHTML(items: any) {
                                     const authConfig = permissionData.config.auth;
                                     let list: any = [];
-
                                     async function click_item(index: any) {
                                         if (glitter.share.checkData && (!glitter.share.checkData())) {
                                             const dialog = new ShareDialog(glitter)

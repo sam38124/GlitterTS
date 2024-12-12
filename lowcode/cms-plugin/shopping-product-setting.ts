@@ -16,6 +16,7 @@ import {ProductExcel, Variant, RowInitData} from './module/product-excel.js';
 import {Language} from "../glitter-base/global/language.js";
 import {ProductService} from "./product-service.js";
 import {LanguageBackend} from "./language-backend.js";
+import {ProductConfig} from "./product-config.js";
 
 type ActiveSchedule = {
     start_ISO_Date?: string;
@@ -111,6 +112,12 @@ export class ShoppingProductSetting {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         vm.filter = ListComp.getFilterObject();
 
+        //AI快速生成
+        if(localStorage.getItem('add_product')){
+            vm.ai_initial=JSON.parse(localStorage.getItem('add_product') as string)
+            vm.type='ai-initial'
+            localStorage.removeItem('add_product')
+        }
         return gvc.bindView(() => {
             return {
                 dataList: [{obj: vm, key: 'type'}],
@@ -891,6 +898,7 @@ export class ShoppingProductSetting {
                     callback: (response) => {
                         if (response) {
                             (postMD.variants as any)[index] = variant;
+                            next();
                         }
                         if (cancel) {
                             cancel();
@@ -1497,18 +1505,7 @@ export class ShoppingProductSetting {
         initial_data?: any;
         product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden'
     }) {
-        function getEmptyLanguageData() {
-            return {
-                title: '', seo: {
-                    domain: '',
-                    title: '',
-                    content: '',
-                    keywords: '',
-                },
-                content: '',
-                content_array: []
-            }
-        }
+
 
         let postMD: {
             label: any;
@@ -1556,47 +1553,7 @@ export class ShoppingProductSetting {
             }[];
             active_schedule: ActiveSchedule;
             channel: ('normal' | 'pos')[];
-        } = obj.initial_data || {
-            title: '',
-            ai_description: '',
-            language_data: {
-                "en-US": getEmptyLanguageData(),
-                "zh-CN": getEmptyLanguageData(),
-                "zh-TW": {
-                    title: (obj.defData && obj.defData.title) || '', seo: (obj.defData && obj.defData.seo) || {}
-                }
-            },
-            productType: {
-                product: true,
-                addProduct: false,
-                giveaway: false,
-            },
-            content: '',
-            visible: 'true',
-            status: 'active',
-            collection: [],
-            hideIndex: 'false',
-            preview_image: [],
-            specs: [],
-            variants: [],
-            seo: {
-                title: '',
-                content: '',
-                keywords: '',
-                domain: '',
-            },
-            relative_product: [],
-            template: '',
-            content_array: [],
-            content_json: [],
-            active_schedule: {
-                startDate: this.getDateTime().date,
-                startTime: this.getDateTime().time,
-                endDate: this.getDateTime(7).date,
-                endTime: this.getDateTime(7).time,
-            },
-            channel: ['normal', 'pos'],
-        };
+        } = obj.initial_data || ProductConfig.getInitial(obj);
 
         function setProductType() {
             switch (obj.product_type) {
@@ -1900,10 +1857,18 @@ export class ShoppingProductSetting {
                                                     }).then((data) => {
                                                         dialog.dataLoading({visible: false});
                                                         if (data.result && data.response.data && data.response.data.content) {
+                                                            const copy=data.response.data.content
                                                             postMD = {
                                                                 ...postMD,
-                                                                ...data.response.data.content,
+                                                                ...copy,
                                                             };
+                                                            if(!copy.language_data){
+                                                                const language_data: any = postMD.language_data['zh-TW'];
+                                                                (language_data).title =  copy.title;
+                                                                (language_data).content =  copy.content;
+                                                                (language_data).content_array =  copy.content_array;
+                                                                (language_data).content_json = copy.content_json;
+                                                            }
                                                             postMD.id = undefined;
                                                             setProductType();
                                                             gvc.notifyDataChange(vm.id);

@@ -249,6 +249,16 @@ router.get('/check/email/exists', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/check/phone/exists', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            result: await new user_1.User(req.get('g-app')).checkPhoneExists(req.query.phone),
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/forget', async (req, resp) => {
     try {
         const sql = `select *

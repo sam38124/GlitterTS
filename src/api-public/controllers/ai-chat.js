@@ -101,7 +101,6 @@ router.post('/sync-data', async (req, resp) => {
                     note: (_b = orderData.user_info.note) !== null && _b !== void 0 ? _b : '',
                 });
             });
-            console.log(`exportData=>`, JSON.stringify(exportData));
             const json2csvParser = new json2csv_1.Parser();
             const csv = json2csvParser.parse(exportData);
             fs_1.default.writeFileSync(file1, csv);

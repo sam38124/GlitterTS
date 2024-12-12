@@ -31,9 +31,13 @@ export class ThirdPartyGoggle {
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                 vm.loading = false;
-                dd.response.value && (vm.data = dd.response.value);
+                if (Object.keys(dd.response.value).length) {
+                    dd.response.value && (vm.data = dd.response.value);
+                }
                 ApiUser.getPublicConfig('ga4_config', 'manager').then((res) => {
-                    res.response.value && (vm.ga = res.response.value);
+                    if (Object.keys(res.response.value).length) {
+                        res.response.value && (vm.ga = res.response.value);
+                    }
                     gvc.notifyDataChange(id);
                 });
             });

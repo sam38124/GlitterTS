@@ -1256,7 +1256,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                             });
                         })(),
                     ].join(''),
-                    ratio: 70,
+                    ratio: 75,
                 }, {
                     html: BgWidget.summaryCard(gvc.bindView(() => {
                         var _a;
@@ -1515,7 +1515,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                             },
                         };
                     })),
-                    ratio: 30,
+                    ratio: 25,
                 })}
                     ${BgWidget.mbContainer(240)}
                     <div class="update-bar-container">

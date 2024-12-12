@@ -37,7 +37,7 @@ export class ShoppingInformation {
                 "address": "",
                 "category": "",
                 "pos_type": "retails",
-                "ai_search": true,
+                "ai_search": false,
                 "shop_name": "",
                 "support_pos_payment": [
                     "cash",
@@ -179,7 +179,7 @@ export class ShoppingInformation {
                             "address": data.address ?? "",
                             "category": data.category ?? "",
                             "pos_type": data.pos_type ?? "retails",
-                            "ai_search": data.ai_search ?? true,
+                            "ai_search": data.ai_search ?? false,
                             "shop_name": data.shop_name ?? "",
                             "support_pos_payment": data.support_pos_payment ?? [
                                 "cash",

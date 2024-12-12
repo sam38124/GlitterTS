@@ -35,9 +35,11 @@ import { SystemSchedule } from './services/system-schedule';
 import { Ai } from './services/ai.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { Monitor } from './api-public/services/monitor.js';
-import { UpdateScript } from './update-script.js';
-import { Manager } from './api-public/services/manager.js';
+import {Monitor} from './api-public/services/monitor.js';
+import {UpdateScript} from "./update-script.js";
+import {Manager} from "./api-public/services/manager.js";
+import {SitemapStream, streamToPromise} from "sitemap";
+import {Readable} from "stream";
 
 export const app = express();
 const logger = new Logger();
@@ -639,83 +641,51 @@ export async function createAPP(dd: any) {
                         `,
                         []
                     );
+                    // 創建 SitemapStream
+                    const stream = new SitemapStream({ hostname: `https://${domain}` });
 
-                    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-                        ${(
-                            await db.query(
-                                `select page_config, tag, updated_time
+                    // 將 links 添加到 stream
+                    const xml = await streamToPromise(Readable.from([
+                        ...(await db.query(
+                            `select page_config, tag, updated_time
                              from \`${saasConfig.SAAS_NAME}\`.page_config
                              where appName = ?
                                and page_config ->>'$.seo.type'='custom'
                             `,
-                                [appName]
-                            )
-                        )
+                            [appName]
+                        )).map((d2: any) => {
+                            return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly'}
+                        }),
+                        ...(article.data
+                            .filter((d2:any)=>{
+                                return d2.content.template
+                            }).map((d2: any) => {
+                                return { url: `https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`, changefreq: 'weekly',lastmod:formatDateToISO(new Date(d2.updated_time))}
+                            })),
+                        ...(site_map || [])
                             .map((d2: any) => {
-                                if (d2.tag === 'index') {
-                                    return `<url>
-                                    <loc>${`https://${domain}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                                } else {
-                                    return `<url>
-                                    <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                                }
+                                return { url: `https://${domain}/${d2.url}`, changefreq: 'weekly'}
+                            }),
+                        ...extractCols(cols)
+                            .filter((item:any)=>{
+                                return item.code
                             })
-                            .join('')}
-                        ${article.data
-                            .map((d2: any) => {
-                                if (!d2.content.template) {
-                                    return ``;
-                                }
-                                return `<url>
-                                    <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                            })
-                            .join('')}
-                        ${(site_map || [])
-                            .map((d2: any) => {
-                                return `<url>
-                                    <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url> `;
-                            })
-                            .join('')}
-                        ${extractCols(cols)
                             .map((item: { code: string; updated_at: string }) => {
-                                if (!item.code) {
-                                    return ``;
-                                }
-                                return `<url>
-                                    <loc>https://${domain}/collections/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
+                                return { url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly'}
+                            }),
+                        ...extractProds(products)
+                            .filter((item:any)=>{
+                                return item.code
                             })
-                            .join('')}
-                        ${extractProds(products)
                             .map((item: { code: string; updated_at: string }) => {
-                                if (!item.code) {
-                                    return ``;
-                                }
-                                return `<url>
-                                    <loc>https://${domain}/products/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
+                                return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly'}
                             })
-                            .join('')}
-                    </urlset> `;
-                    return xmlFormatter(sitemap, {
-                        indentation: '  ', // 使用兩個空格進行縮進
-                        filter: (node) => node.type !== 'Comment', // 選擇性過濾節點
-                        collapseContent: true, // 折疊內部文本
-                    });
+                    ]).pipe(stream)).then((data) =>
+                        data.toString()
+                    );
+
+                    return xml
+
                 },
                 sitemap_list: async (req, resp) => {
                     let appName = dd.appName;
@@ -756,7 +726,8 @@ export async function createAPP(dd: any) {
                             [appName]
                         )
                     )[0]['domain'];
-                    return robots.text.replace(/\s+/g, '').replace(/\n/g, '') ? robots.text : html`User-agent: * Sitemap: ${domain}/sitemap.xml`;
+                    return  (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: * 
+Sitemap: https://${domain}/sitemap.xml`;
                 },
                 tw_shop: async (req, resp) => {
                     let appName = dd.appName;
@@ -915,4 +886,8 @@ async function getSeoSiteMap(appName: string, req: any) {
             return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
         }
     );
+}
+
+function formatDateToISO(date:Date) {
+    return `${date.toISOString().substring(0,date.toISOString().length-5)}+00:00`;
 }

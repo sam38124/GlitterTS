@@ -28,6 +28,7 @@ type ViewModel = {
     orderString?: string;
     filter_type: string;
     filter?: any;
+    initial_data?:any
 };
 
 export class UserList {
@@ -53,6 +54,7 @@ export class UserList {
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
+            initial_data:{}
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -101,6 +103,12 @@ export class UserList {
             });
         }
 
+        //AI快速生成
+        if(localStorage.getItem('add_member')){
+            vm.type='create'
+            vm.initial_data=JSON.parse(localStorage.getItem('add_member') as string)
+            localStorage.removeItem('add_member')
+        }
         return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
@@ -1426,7 +1434,7 @@ export class UserList {
     public static createUser(gvc: GVC, vm: any) {
         const viewID = gvc.glitter.getUUID();
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-        let userData: any = {
+        let userData: any = vm.initial_data || {
             name: '',
             email: '',
             phone: '',
@@ -1434,6 +1442,7 @@ export class UserList {
             address: '',
             managerNote: '',
         };
+
         return gvc.bindView({
             bind: viewID,
             view: () => {
@@ -1462,7 +1471,7 @@ export class UserList {
                                             bind: id,
                                             view: () => {
                                                 return BgWidget.mainCard(
-                                                    html` <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                    html`<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                                         <span class="tx_700">顧客資訊</span>
                                                     </div>` +
                                                         gvc.bindView(() => {
@@ -1492,7 +1501,6 @@ export class UserList {
                                                                                                     placeHolder: `請輸入${item.title}`,
                                                                                                     callback: (text) => {
                                                                                                         refer_obj[item.key] = text;
-                                                                                                        gvc.notifyDataChange(id);
                                                                                                     },
                                                                                                     readonly: vmi.mode !== 'edit',
                                                                                                 })}
@@ -1509,7 +1517,6 @@ export class UserList {
                                                                                                 placeHolder: `請輸入${item.title}`,
                                                                                                 callback: (text) => {
                                                                                                     refer_obj[item.key] = text;
-                                                                                                    gvc.notifyDataChange(id);
                                                                                                 },
                                                                                                 readonly: vmi.mode !== 'edit',
                                                                                             })}
@@ -1555,7 +1562,7 @@ export class UserList {
                                             })
                                         )}
                                         ${BgWidget.save(
-                                            gvc.event(() => {
+                                            gvc.event(async () => {
                                                 const dialog = new ShareDialog(gvc.glitter);
 
                                                 if (CheckInput.isEmpty(userData.name)) {
@@ -1577,23 +1584,30 @@ export class UserList {
                                                     dialog.infoMessage({ text: html` <div class="text-center">生日日期無效，請確認年月日是否正確<br />(ex: 19950107)</div> ` });
                                                     return;
                                                 }
-
-                                                ApiUser.getEmailCount(userData.email).then((r) => {
-                                                    if (r.response.result) {
-                                                        dialog.errorMessage({ text: '此信箱已被註冊' });
-                                                    } else {
-                                                        dialog.dataLoading({ visible: true });
-                                                        ApiUser.quickRegister({
-                                                            account: userData.email,
-                                                            pwd: gvc.glitter.getUUID(),
-                                                            userData: userData,
-                                                        }).then((r) => {
+                                                dialog.dataLoading({ visible: true });
+                                                if( (await ApiUser.getPhoneCount(userData.phone)).response.result){
+                                                    dialog.dataLoading({ visible: false });
+                                                    dialog.errorMessage({ text: '此電話號碼已被註冊' });
+                                                }else  if( (await ApiUser.getEmailCount(userData.email)).response.result){
+                                                    dialog.dataLoading({ visible: false });
+                                                    dialog.errorMessage({ text: '此信箱已被註冊' });
+                                                }else{
+                                                    ApiUser.quickRegister({
+                                                        account: userData.email,
+                                                        pwd: gvc.glitter.getUUID(),
+                                                        userData: userData,
+                                                    }).then((r) => {
+                                                        if (r.result) {
                                                             dialog.dataLoading({ visible: false });
                                                             dialog.infoMessage({ text: '成功新增會員' });
                                                             vm.type = 'list';
-                                                        });
-                                                    }
-                                                });
+                                                        }else{
+                                                            dialog.dataLoading({ visible: false });
+                                                            dialog.errorMessage({ text: '會員建立失敗' });
+                                                        }
+
+                                                    });
+                                                }
                                             })
                                         )}
                                     </div>`,

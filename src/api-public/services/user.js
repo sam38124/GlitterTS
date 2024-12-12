@@ -1747,6 +1747,17 @@ class User {
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
+    async checkPhoneExists(phone) {
+        try {
+            const count = (await database_1.default.query(`select count(1)
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.phone' = ?`, [phone]))[0]['count(1)'];
+            return count;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
+        }
+    }
     async getUnreadCount() {
         var _a, _b;
         try {
