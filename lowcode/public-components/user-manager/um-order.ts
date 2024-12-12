@@ -5,6 +5,7 @@ import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Ad } from '../public/ad.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
+import { Language } from '../../glitter-base/global/language.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -310,6 +311,7 @@ export class UMOrder {
                 font-weight: 500;
                 color: #fe5541;
                 margin-bottom: 0.25rem;
+                cursor: pointer;
             }
             .o-item-spec {
                 font-size: 16px;
@@ -409,7 +411,7 @@ export class UMOrder {
 
     static repay(gvc: GVC, id: string) {
         const dialog = new ShareDialog(gvc.glitter);
-        dialog.dataLoading({ visible: true, text: '取得結帳連結中' });
+        dialog.dataLoading({ visible: true, text: Language.text('loading') });
 
         const redirect = gvc.glitter.root_path + 'order_detail' + location.search;
         const l = new URL(redirect as any, location.href);
@@ -432,7 +434,7 @@ export class UMOrder {
             page: 'input',
             type: 'form_plugin_v2',
             group: '',
-            title: '付款時間*',
+            title: Language.text('payment_time'),
             col_sm: '12',
             appName: 'cms_system',
             require: 'true',
@@ -464,7 +466,7 @@ export class UMOrder {
                 title: '',
                 input_style: {},
                 title_style: {},
-                place_holder: '請輸入付款時間',
+                place_holder: '',
             },
         },
         {
@@ -473,7 +475,7 @@ export class UMOrder {
             page: 'input',
             type: 'form_plugin_v2',
             group: '',
-            title: '我的銀行名稱*',
+            title: Language.text('my_bank_name'),
             col_sm: '12',
             appName: 'cms_system',
             require: 'true',
@@ -505,7 +507,7 @@ export class UMOrder {
                 title: '',
                 input_style: {},
                 title_style: {},
-                place_holder: '請輸入我的銀行名稱',
+                place_holder: Language.text('enter_your_bank_name'),
             },
         },
         {
@@ -514,7 +516,7 @@ export class UMOrder {
             page: 'input',
             type: 'form_plugin_v2',
             group: '',
-            title: '我的銀行戶名*',
+            title: Language.text('my_bank_account_name'),
             col_sm: '12',
             appName: 'cms_system',
             require: 'true',
@@ -546,7 +548,7 @@ export class UMOrder {
                 title: '',
                 input_style: {},
                 title_style: {},
-                place_holder: '請輸入我的銀行戶名',
+                place_holder: Language.text('enter_your_bank_account_name'),
             },
         },
         {
@@ -555,7 +557,7 @@ export class UMOrder {
             page: 'input',
             type: 'form_plugin_v2',
             group: '',
-            title: '銀行帳號後五碼*',
+            title: Language.text('last_five_digits_of_bank_account'),
             col_sm: '12',
             appName: 'cms_system',
             require: 'true',
@@ -587,7 +589,7 @@ export class UMOrder {
                 title: '',
                 input_style: {},
                 title_style: {},
-                place_holder: '請輸入銀行帳號後五碼',
+                place_holder: Language.text('enter_five_digits'),
             },
         },
     ];
@@ -605,7 +607,7 @@ export class UMOrder {
             require: 'true',
             readonly: 'write',
             formFormat: '{}',
-            moduleName: '檔案上傳',
+            moduleName: Language.text('file_upload'),
             style_data: {
                 input: {
                     list: [],
@@ -631,7 +633,7 @@ export class UMOrder {
                 title: '',
                 input_style: {},
                 title_style: {},
-                place_holder: '請輸入銀行帳號後五碼',
+                place_holder: '',
             },
         },
     ];
@@ -665,7 +667,7 @@ export class UMOrder {
                     }
 
                     if (!vm.data || !vm.data.orderData || !vm.data.cart_token) {
-                        return html` <section class="o-h2">查無此訂單</section> `;
+                        return html` <section class="o-h2">${Language.text('order_not_found')}</section> `;
                     }
 
                     const orderData = vm.data.orderData;
@@ -675,41 +677,41 @@ export class UMOrder {
                         if (orderData.customer_info.payment_select === 'atm') {
                             arr = [
                                 {
-                                    title: '銀行名稱',
+                                    title: Language.text('bank_name'),
                                     value: orderData.payment_info_atm.bank_name,
                                 },
                                 {
-                                    title: '銀行代碼',
+                                    title: Language.text('bank_code'),
                                     value: orderData.payment_info_atm.bank_code,
                                 },
                                 {
-                                    title: '匯款戶名',
+                                    title: Language.text('remittance_account_name'),
                                     value: orderData.payment_info_atm.bank_user,
                                 },
                                 {
-                                    title: '匯款帳號',
-                                    value: orderData.payment_info_atm.bank_code,
+                                    title: Language.text('remittance_account_number'),
+                                    value: orderData.payment_info_atm.bank_account,
                                 },
                                 {
-                                    title: '匯款金額',
+                                    title: Language.text('remittance_amount'),
                                     value: orderData.total.toLocaleString(),
                                 },
                                 {
-                                    title: '付款說明',
+                                    title: Language.text('payment_instructions'),
                                     value: orderData.payment_info_atm.text,
                                 },
                             ];
                         } else if (orderData.customer_info.payment_select === 'line') {
                             arr = [
                                 {
-                                    title: '付款說明',
+                                    title: Language.text('payment_instructions'),
                                     value: orderData.payment_info_line_pay.text,
                                 },
                             ];
                         } else {
                             arr = [
                                 {
-                                    title: '付款說明',
+                                    title: Language.text('payment_instructions'),
                                     value: orderData.payment_info_text,
                                 },
                             ];
@@ -717,7 +719,7 @@ export class UMOrder {
                         return gvc.map(
                             arr.map((item) => {
                                 return html`
-                                    <div class="o-title-container ${item.title === '付款說明' ? 'align-items-start mt-2' : ''}">
+                                    <div class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}">
                                         <div class="o-title me-1">${item.title}：</div>
                                         <div class="o-title">${item.value}</div>
                                     </div>
@@ -732,62 +734,54 @@ export class UMOrder {
                         const accountName = data.bank_account;
                         const accountLastFive = data.trasaction_code;
 
-                        let isValid = true;
-                        let errorMessage = '';
-
                         // 檢查付款時間
                         if (!paymentTime) {
-                            isValid = false;
-                            errorMessage += '付款時間未填寫<br/>';
+                            dialog.errorMessage({ text: Language.text('payment_time_not_filled') });
+                            return false;
                         }
 
                         // 檢查銀行名稱
                         if (!bankName) {
-                            isValid = false;
-                            errorMessage += '銀行名稱未填寫<br/>';
+                            dialog.errorMessage({ text: Language.text('bank_name_not_filled') });
+                            return false;
                         }
 
                         // 檢查銀行戶名
                         if (!accountName) {
-                            isValid = false;
-                            errorMessage += '銀行戶名未填寫<br/>';
+                            dialog.errorMessage({ text: Language.text('bank_account_name_not_filled') });
+                            return false;
                         }
 
                         // 檢查銀行帳號後五碼
                         if (!/^\d{5}$/.test(accountLastFive)) {
-                            isValid = false;
-                            errorMessage += '銀行帳號後五碼需為五位數字<br/>';
+                            dialog.errorMessage({ text: Language.text('last_five_digits_five_digits') });
+                            return false;
                         }
 
-                        // 顯示錯誤訊息或提交表單
-                        if (!isValid) {
-                            dialog.errorMessage({ text: html`<div class="text-center">${errorMessage}</div>` });
-                        }
-
-                        return isValid; // 若驗證成功，返回 true；失敗則返回 false
+                        return true;
                     }
 
                     if (vm.type === 'upload') {
                         let formData = {};
                         return html`
-                            <section class="o-h1">訂單編號<br />#${vm.data.cart_token}</section>
+                            <section class="o-h1">${Language.text('order_number')}<br />#${vm.data.cart_token}</section>
                             <section class="o-card-row" style="max-width: 100%;">
                                 <div class="col-12 col-md-6 px-2">
-                                    <h3 class="mb-3 text-center">付款資訊</h3>
+                                    <h3 class="mb-3 text-center">${Language.text('payment_info')}</h3>
                                     <div class="o-gray-line"></div>
                                     ${payInfo()}
                                 </div>
                                 <div class="col-12 col-md-6 px-2">
-                                    <h3 class="mb-3 text-center">付款證明</h3>
+                                    <h3 class="mb-3 text-center">${Language.text('payment_proof')}</h3>
                                     <div class="o-gray-line"></div>
                                     <span class="o-gray-text"
                                         >${(() => {
                                             if (orderData.customer_info.payment_select === 'atm') {
-                                                return html`＊請確認您的匯款銀行帳戶資料是否正確，以確保付款順利完成`;
+                                                return html`＊${Language.text('please_confirm_bank_account_details')}`;
                                             } else if (orderData.customer_info.payment_select === 'line') {
-                                                return html`＊請上傳截圖，以便我們進行核款。`;
+                                                return html`＊${Language.text('upload_screenshot_for_verification')}`;
                                             }
-                                            return html`＊請確認您的匯款銀行帳戶資料是否正確，以確保付款順利完成<br />＊請上傳截圖或輸入轉帳證明，例如:帳號末五碼，與付款人資訊。`;
+                                            return html`＊${Language.text('please_confirm_bank_account_details')}<br />＊${Language.text('upload_screenshot_or_transfer_proof')}`;
                                         })()}</span
                                     >
                                     ${gvc.bindView(
@@ -827,14 +821,14 @@ export class UMOrder {
                                             if (!validateForm(formData)) {
                                                 return;
                                             }
-                                            dialog.dataLoading({ visible: true, text: '資料送出中' });
-                                            ApiShop.proofPurchase(vm.data.cart_token, formData).then((result) => {
+                                            dialog.dataLoading({ visible: true, text: Language.text('data_submitting') });
+                                            ApiShop.proofPurchase(vm.data.cart_token, formData).then(() => {
                                                 dialog.dataLoading({ visible: false });
                                                 location.reload();
                                             });
                                         })}"
                                     >
-                                        <span class="o-button-text">確認送出</span>
+                                        <span class="o-button-text">${Language.text('confirm')}</span>
                                     </div>
                                 </div>
                             </section>
@@ -849,15 +843,15 @@ export class UMOrder {
                                 })}"
                             >
                                 <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
-                                <span class="go-back-text">返回訂單詳情</span>
+                                <span class="go-back-text">${Language.text('return_to_order_details')}</span>
                             </section>
                         `;
                     }
 
                     return html`
-                        <section class="o-h1">訂單編號<br />#${vm.data.cart_token}</section>
+                        <section class="o-h1">${Language.text('order_number')}<br />#${vm.data.cart_token}</section>
                         <section class="o-card">
-                            <h3 class="mb-3">訂單明細</h3>
+                            <h3 class="mb-3">${Language.text('order_details')}</h3>
                             ${gvc.map(
                                 orderData.lineItems.map((item) => {
                                     return html`
@@ -872,8 +866,31 @@ export class UMOrder {
                                                     })}
                                                 </div>
                                                 <div>
-                                                    <p class="o-item-title">${item.title}</p>
-                                                    <p class="o-item-spec">${item.spec.length > 0 ? `規格：${item.spec.join(' / ')}` : '單一規格'}</p>
+                                                    <p
+                                                        class="o-item-title"
+                                                        onclick="${gvc.event(() => {
+                                                            dialog.dataLoading({ visible: true, text: Language.text('loading') });
+                                                            ApiShop.getProduct({
+                                                                page: 0,
+                                                                limit: 1,
+                                                                id: `${item.id}`,
+                                                            }).then((data) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                try {
+                                                                    if (data.result && data.response.data) {
+                                                                        location.href = `.${Language.getLanguageLinkPrefix(true)}/products/${data.response.data.content.seo.domain}`;
+                                                                    }
+                                                                } catch (error) {
+                                                                    dialog.errorMessage({ text: Language.text('product_not_found') });
+                                                                }
+                                                            });
+                                                        })}"
+                                                    >
+                                                        ${item.title}
+                                                    </p>
+                                                    <p class="o-item-spec">
+                                                        ${item.spec.length > 0 ? `${Language.text('specification')}：${item.spec.join(' / ')}` : Language.text('single_specification')}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div class="d-flex">
@@ -886,30 +903,30 @@ export class UMOrder {
                             )}
                             <div class="o-total-container">
                                 <div class="o-total-item">
-                                    <span>小計總額(合計)</span>
+                                    <span>${Language.text('subtotal_amount')}</span>
                                     <span class="o-subtotal">NT$ ${(orderData.total - orderData.shipment_fee + orderData.discount + orderData.use_rebate).toLocaleString()}</span>
                                 </div>
                                 <div class="o-total-item">
-                                    <span>回饋金折抵</span>
+                                    <span>${Language.text('shopping_credit_offset')}</span>
                                     <span class="o-subtotal">− NT$ ${orderData.use_rebate.toLocaleString()}</span>
                                 </div>
                                 <div class="o-total-item">
-                                    <span>優惠折扣</span>
+                                    <span>${Language.text('discount_coupon')}</span>
                                     <span class="o-subtotal">− NT$ ${orderData.discount.toLocaleString()}</span>
                                 </div>
                                 <div class="o-total-item">
-                                    <span>運費</span>
+                                    <span>${Language.text('shipping_fee')}</span>
                                     <span class="o-subtotal">NT$ ${orderData.shipment_fee.toLocaleString()}</span>
                                 </div>
                                 <div class="o-total-item">
-                                    <span class="o-total-text">總付款金額</span>
+                                    <span class="o-total-text">${Language.text('total_amount')}</span>
                                     <span class="o-total">NT$ ${orderData.total.toLocaleString()}</span>
                                 </div>
                             </div>
                         </section>
                         ${orderData.method === 'off_line' && orderData.customer_info.payment_select !== 'cash_on_delivery'
                             ? html`<section class="o-card">
-                                  <h3 class="mb-3">付款資訊</h3>
+                                  <h3 class="mb-3">${Language.text('payment_info')}</h3>
                                   ${payInfo()}
                                   <div
                                       class="o-button"
@@ -920,13 +937,13 @@ export class UMOrder {
                                           vm.type = 'upload';
                                       })}"
                                   >
-                                      <span class="o-button-text">${orderData.proof_purchase ? '重新上傳結帳證明' : '上傳結帳證明'}</span>
+                                      <span class="o-button-text">${orderData.proof_purchase ? Language.text('reupload_checkout_proof') : Language.text('upload_checkout_proof')}</span>
                                   </div>
                               </section>`
                             : ''}
                         <section class="o-card-row">
                             <div class="col-12 col-md-6 mb-3 px-0">
-                                <h3 class="mb-3">訂單資訊</h3>
+                                <h3 class="mb-3">${Language.text('order_information')}</h3>
                                 ${(() => {
                                     function checkAndRemoveURLParameter() {
                                         // 獲取當前 URL
@@ -983,39 +1000,39 @@ export class UMOrder {
 
                                     const arr = [
                                         {
-                                            title: '訂單號碼',
+                                            title: Language.text('order_number'),
                                             value: vm.data.cart_token,
                                         },
                                         {
-                                            title: '訂單日期',
+                                            title: Language.text('order_date'),
                                             value: gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd'),
                                         },
                                         {
-                                            title: '訂單狀態',
+                                            title: Language.text('order_status'),
                                             value: (() => {
                                                 switch (orderData.orderStatus) {
                                                     case '-1':
-                                                        return '已取消';
+                                                        return Language.text('cancelled');
                                                     case '1':
-                                                        return '已完成';
+                                                        return Language.text('completed');
                                                     case '-99':
-                                                        return '已刪除';
+                                                        return Language.text('deleted');
                                                     default:
-                                                        return '處理中';
+                                                        return Language.text('processing');
                                                 }
                                             })(),
                                         },
                                         {
-                                            title: '付款狀態',
+                                            title: Language.text('payment_status'),
                                             value: (() => {
                                                 if (orderData.customer_info.payment_select === 'cash_on_delivery') {
-                                                    return '貨到付款';
+                                                    return Language.text('cash_on_delivery');
                                                 }
                                                 switch (vm.data.status) {
                                                     case 0:
                                                         return orderData.proof_purchase
-                                                            ? '等待核款'
-                                                            : `尚未付款${
+                                                            ? Language.text('awaiting_verification')
+                                                            : `${Language.text('unpaid')}${
                                                                   orderData.method === 'off_line'
                                                                       ? ''
                                                                       : html`<div
@@ -1024,15 +1041,15 @@ export class UMOrder {
                                                                                 UMOrder.repay(gvc, vm.data.cart_token);
                                                                             })}"
                                                                         >
-                                                                            <div class="go-to-checkout-text">前往結帳</div>
+                                                                            <div class="go-to-checkout-text">${Language.text('proceed_to_checkout')}</div>
                                                                         </div>`
                                                               }`;
                                                     case 1:
-                                                        return '已付款';
+                                                        return Language.text('paid');
                                                     case -1:
-                                                        return '付款失敗';
+                                                        return Language.text('payment_failed');
                                                     case -2:
-                                                        return '已退款';
+                                                        return Language.text('refunded');
                                                 }
                                             })(),
                                         },
@@ -1051,19 +1068,19 @@ export class UMOrder {
                                 })()}
                             </div>
                             <div class="col-12 col-md-6 mb-3 px-0">
-                                <h3 class="mb-3">顧客資訊</h3>
+                                <h3 class="mb-3">${Language.text('customer_information')}</h3>
                                 ${(() => {
                                     const arr = [
                                         {
-                                            title: '姓名',
+                                            title: Language.text('name'),
                                             value: orderData.customer_info.name,
                                         },
                                         {
-                                            title: '電話',
+                                            title: Language.text('contact_number'),
                                             value: orderData.customer_info.phone,
                                         },
                                         {
-                                            title: '信箱',
+                                            title: Language.text('email'),
                                             value: orderData.customer_info.email,
                                         },
                                     ].concat(
@@ -1092,33 +1109,31 @@ export class UMOrder {
                                 })()}
                             </div>
                             <div class="col-12 col-md-6 mb-3 px-0">
-                                <h3 class="mb-3">配送資訊</h3>
+                                <h3 class="mb-3">${Language.text('shipping_information')}</h3>
                                 ${(() => {
                                     const selector = orderData.shipment_selector.find((dd) => {
                                         return dd.value === orderData.user_info.shipment;
                                     });
                                     let arr = [
                                         {
-                                            title: '配送方式',
+                                            title: Language.text('shipping_method'),
                                             value: (() => {
                                                 if (selector) {
                                                     return selector.name;
                                                 }
                                                 switch (orderData.user_info.shipment) {
                                                     case 'FAMIC2C':
-                                                        return '全家店到店';
+                                                        return Language.text('ship_FAMIC2C');
                                                     case 'HILIFEC2C':
-                                                        return '萊爾富店到店';
-                                                    case 'normal':
-                                                        return '宅配到府';
+                                                        return Language.text('ship_HILIFEC2C');
                                                     case 'OKMARTC2C':
-                                                        return 'OK超商店到店';
+                                                        return Language.text('ship_OKMARTC2C');
                                                     case 'UNIMARTC2C':
-                                                        return '7-ELEVEN超商交貨便';
+                                                        return Language.text('ship_UNIMARTC2C');
                                                     case 'shop':
-                                                        return '實體門市取貨';
+                                                        return Language.text('ship_shop');
                                                     default:
-                                                        return '宅配到府';
+                                                        return Language.text('ship_normal');
                                                 }
                                             })(),
                                         },
@@ -1131,40 +1146,64 @@ export class UMOrder {
                                         arr = [
                                             ...arr,
                                             ...[
-                                                { title: '門市店號', value: decodeURI(orderData.user_info.CVSStoreID) },
-                                                { title: '門市名稱', value: decodeURI(orderData.user_info.CVSStoreName) },
-                                                { title: '門市地址', value: decodeURI(orderData.user_info.CVSAddress) },
+                                                {
+                                                    title: Language.text('store_number'),
+                                                    value: decodeURI(orderData.user_info.CVSStoreID),
+                                                },
+                                                {
+                                                    title: Language.text('store_name'),
+                                                    value: decodeURI(orderData.user_info.CVSStoreName),
+                                                },
+                                                {
+                                                    title: Language.text('store_address'),
+                                                    value: decodeURI(orderData.user_info.CVSAddress),
+                                                },
                                             ],
                                         ];
                                     } else if (orderData.user_info.address) {
-                                        arr.push({ title: '收件地址', value: orderData.user_info.address });
+                                        arr.push({
+                                            title: Language.text('receiving_address'),
+                                            value: orderData.user_info.address,
+                                        });
                                     }
                                     arr.push({
-                                        title: '配送狀態',
+                                        title: Language.text('shipping_status'),
                                         value: (() => {
                                             switch (orderData.progress) {
                                                 case 'shipping':
-                                                    return '已出貨';
+                                                    return Language.text('shipped');
                                                 case 'finish':
-                                                    return '已取貨';
+                                                    return Language.text('delivered');
                                                 case 'arrived':
-                                                    return '已送達';
+                                                    return Language.text('picked_up');
                                                 case 'returns':
-                                                    return '已退貨';
+                                                    return Language.text('returned');
                                                 default:
-                                                    return '揀貨中';
+                                                    return Language.text('picking');
                                             }
                                         })(),
                                     });
                                     if (orderData.user_info.shipment_info) {
-                                        arr.push({ title: '配送說明', value: orderData.user_info.shipment_info });
+                                        arr.push({
+                                            title: Language.text('shipping_instructions'),
+                                            value: orderData.user_info.shipment_info,
+                                        });
                                     }
                                     arr = [
                                         ...arr,
                                         ...[
-                                            { title: '收件人姓名', value: orderData.user_info.name },
-                                            { title: '收件人信箱', value: orderData.user_info.email },
-                                            { title: '收件人電話', value: orderData.user_info.phone },
+                                            {
+                                                title: Language.text('recipient_name'),
+                                                value: orderData.user_info.name,
+                                            },
+                                            {
+                                                title: Language.text('recipient_phone'),
+                                                value: orderData.user_info.email,
+                                            },
+                                            {
+                                                title: Language.text('recipient_email'),
+                                                value: orderData.user_info.phone,
+                                            },
                                         ],
                                     ];
                                     if (selector && selector.form) {
@@ -1178,7 +1217,10 @@ export class UMOrder {
                                         );
                                     }
                                     if (orderData.user_info.note) {
-                                        arr.push({ title: '配送備註', value: orderData.user_info.note });
+                                        arr.push({
+                                            title: Language.text('shipping_notes'),
+                                            value: orderData.user_info.note,
+                                        });
                                     }
                                     return gvc.map(
                                         arr.map((item) => {
@@ -1197,11 +1239,11 @@ export class UMOrder {
                             class="m-auto d-flex align-items-center justify-content-center my-5"
                             style="cursor: pointer;"
                             onclick="${gvc.event(() => {
-                                location.href = './order_list';
+                                location.href = '.${Language.getLanguageLinkPrefix(true)}/order_list';
                             })}"
                         >
                             <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
-                            <span class="go-back-text">返回訂單列表</span>
+                            <span class="go-back-text">${Language.text('return_to_order_list')}</span>
                         </section>
                     `;
                 },

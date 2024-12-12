@@ -1,16 +1,16 @@
 export class Language {
     public static getLanguage() {
-        let last_select = localStorage.getItem('select_language_'+(window as any).appName) || navigator.language;
+        let last_select = localStorage.getItem('select_language_' + (window as any).appName) || navigator.language;
         if (!(window as any).store_info.language_setting.support.includes(last_select)) {
             last_select = (window as any).store_info.language_setting.def;
         }
         return last_select;
     }
 
-    public static getLanguageLinkPrefix(pre:boolean=true,compare?:string) {
-        const lan=(()=>{
-            if ((compare || Language.getLanguage()) !== ((window as any).store_info.language_setting.def)) {
-                switch ((compare || Language.getLanguage())){
+    public static getLanguageLinkPrefix(pre: boolean = true, compare?: string) {
+        const lan = (() => {
+            if ((compare || Language.getLanguage()) !== (window as any).store_info.language_setting.def) {
+                switch (compare || Language.getLanguage()) {
                     case 'en-US':
                         return `en`;
                     case 'zh-CN':
@@ -32,43 +32,38 @@ export class Language {
         }
     }
 
-    public static getLanguageText(cf:{
-        local?:boolean,
-        compare?:string
-    }) {
+    public static getLanguageText(cf: { local?: boolean; compare?: string }) {
         const sup = [
             {
                 key: 'en-US',
-                value: cf.local ? 'English':'英'
+                value: cf.local ? 'English' : '英',
             },
             {
                 key: 'zh-CN',
-                value: cf.local ? '简体中文':'简'
+                value: cf.local ? '简体中文' : '简',
             },
             {
                 key: 'zh-TW',
-                value: cf.local ? '繁體中文':'繁'
-            }
+                value: cf.local ? '繁體中文' : '繁',
+            },
         ];
         return sup.find((dd) => {
-            return dd.key === (cf.compare || Language.getLanguage())
-        })?.value
+            return dd.key === (cf.compare || Language.getLanguage());
+        })?.value;
     }
 
-
-
     public static setLanguage(value: any) {
-        localStorage.setItem('select_language_'+(window as any).appName, value);
+        localStorage.setItem('select_language_' + (window as any).appName, value);
     }
 
     public static text(key: string) {
-        const find_= this.languageDataList().find((dd) => {
+        const find_ = this.languageDataList().find((dd) => {
             return dd.key === key;
         }) as any;
-        if(!find_){return  undefined}
-        return (
-            find_
-        )[
+        if (!find_) {
+            return undefined;
+        }
+        return find_[
             (() => {
                 switch (Language.getLanguage()) {
                     case 'zh-TW':
@@ -328,6 +323,76 @@ export class Language {
             { key: 'enter_website_password', tw: '請輸入網站密碼', cn: '请输入网站密码', en: 'Please enter website password' },
             { key: 'incorrect_website_password', tw: '網站密碼輸入錯誤', cn: '网站密码输入错误', en: 'Incorrect website password entered' },
             { key: 'no_access_permission', tw: '無訪問權限', cn: '无访问权限', en: 'No access permission' },
+            { key: 'payment_time', tw: '付款時間', cn: '付款时间', en: 'Payment Time' },
+            { key: 'my_bank_name', tw: '我的銀行名稱', cn: '我的银行名称', en: 'My Bank Name' },
+            { key: 'enter_your_bank_name', tw: '請輸入您的銀行名稱', cn: '请输入您的银行名称', en: 'Please enter your bank name' },
+            { key: 'my_bank_account_name', tw: '我的銀行戶名', cn: '我的银行户名', en: 'My Bank Account Name' },
+            { key: 'enter_your_bank_account_name', tw: '請輸入您的銀行戶名', cn: '请输入您的银行户名', en: 'Please enter your bank account name' },
+            { key: 'last_five_digits_of_bank_account', tw: '銀行帳號後五碼', cn: '银行账号后五码', en: 'Last Five Digits of Bank Account' },
+            { key: 'enter_five_digits', tw: '請輸入五位數字', cn: '请输入五位数字', en: 'Please enter five digits' },
+            { key: 'bank_name', tw: '銀行名稱', cn: '银行名称', en: 'Bank Name' },
+            { key: 'bank_code', tw: '銀行代碼', cn: '银行代码', en: 'Bank Code' },
+            { key: 'remittance_account_name', tw: '匯款戶名', cn: '汇款户名', en: 'Remittance Account Name' },
+            { key: 'remittance_account_number', tw: '匯款帳號', cn: '汇款帐号', en: 'Remittance Account Number' },
+            { key: 'remittance_amount', tw: '匯款金額', cn: '汇款金额', en: 'Remittance Amount' },
+            { key: 'payment_instructions', tw: '付款說明', cn: '付款说明', en: 'Payment Instructions' },
+            { key: 'payment_time_not_filled', tw: '付款時間未填寫', cn: '付款时间未填写', en: 'Payment time not filled' },
+            { key: 'bank_name_not_filled', tw: '銀行名稱未填寫', cn: '银行名称未填写', en: 'Bank name not filled' },
+            { key: 'bank_account_name_not_filled', tw: '銀行戶名未填寫', cn: '银行户名未填写', en: 'Bank account name not filled' },
+            { key: 'last_five_digits_five_digits', tw: '銀行帳號後五碼需為五位數字', cn: '银行账号后五码需为五位数字', en: 'Last five digits of bank account must be five digits' },
+            { key: 'file_upload', tw: '檔案上傳', cn: '文件上传', en: 'File Upload' },
+            { key: 'payment_info', tw: '付款資訊', cn: '付款信息', en: 'Payment Information' },
+            { key: 'payment_proof', tw: '付款證明', cn: '付款凭证', en: 'Payment Proof' },
+            {
+                key: 'please_confirm_bank_account_details',
+                tw: '請確認您的匯款銀行帳戶資料是否正確，以確保付款順利完成',
+                cn: '请确认您的汇款银行账户资料是否正确，以确保付款顺利完成',
+                en: 'Please confirm that your remittance bank account details are correct to ensure successful payment',
+            },
+            { key: 'upload_screenshot_for_verification', tw: '請上傳截圖，以便我們進行核款', cn: '请上传截图，以便我们进行核款', en: 'Please upload a screenshot for verification' },
+            {
+                key: 'upload_screenshot_or_transfer_proof',
+                tw: '請上傳截圖或輸入轉帳證明，例如: 帳號末五碼，與付款人資訊',
+                cn: '请上传截图或输入转账证明，例如: 账号末五码，与付款人信息',
+                en: 'Please upload a screenshot or enter transfer proof, e.g., last five digits of the account, along with payer information',
+            },
+            { key: 'data_submitting', tw: '資料送出中', cn: '数据提交中', en: 'Data submitting' },
+            { key: 'return_to_order_details', tw: '返回訂單詳情', cn: '返回订单详情', en: 'Return to order details' },
+            { key: 'order_details', tw: '訂單明細', cn: '订单明细', en: 'Order Details' },
+            { key: 'product_not_found', tw: '找不到此產品', cn: '找不到此产品', en: 'Product not found' },
+            { key: 'single_specification', tw: '單一規格', cn: '单一规格', en: 'Single Specification' },
+            { key: 'subtotal_amount', tw: '小計總額', cn: '小计总额', en: 'Subtotal amount' },
+            { key: 'shopping_credit_offset', tw: '購物金折抵', cn: '购物金折抵', en: 'Shopping credit offset' },
+            { key: 'special_discount', tw: '優惠折扣', cn: '优惠折扣', en: 'Discount' },
+            { key: 'reupload_checkout_proof', tw: '重新上傳結帳證明', cn: '重新上传结账证明', en: 'Reupload checkout proof' },
+            { key: 'upload_checkout_proof', tw: '上傳結帳證明', cn: '上传结账证明', en: 'Upload checkout proof' },
+            { key: 'order_information', tw: '訂單資訊', cn: '订单信息', en: 'Order Information' },
+            { key: 'payment_status', tw: '付款狀態', cn: '付款状态', en: 'Payment Status' },
+            { key: 'cancelled', tw: '已取消', cn: '已取消', en: 'Cancelled' },
+            { key: 'completed', tw: '已完成', cn: '已完成', en: 'Completed' },
+            { key: 'deleted', tw: '已刪除', cn: '已删除', en: 'Deleted' },
+            { key: 'processing', tw: '處理中', cn: '处理中', en: 'Processing' },
+            { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: 'Cash on Delivery' },
+            { key: 'awaiting_verification', tw: '等待核款', cn: '等待核款', en: 'Awaiting Verification' },
+            { key: 'paid', tw: '已付款', cn: '已付款', en: 'Paid' },
+            { key: 'payment_failed', tw: '付款失敗', cn: '付款失败', en: 'Payment Failed' },
+            { key: 'refunded', tw: '已退款', cn: '已退款', en: 'Refunded' },
+            { key: 'proceed_to_checkout', tw: '前往結帳', cn: '前往结账', en: 'Proceed to Checkout' },
+            { key: 'customer_information', tw: '顧客資訊', cn: '顾客信息', en: 'Customer Information' },
+            { key: 'shipping_information', tw: '配送資訊', cn: '配送信息', en: 'Shipping Information' },
+            { key: 'store_number', tw: '門市店號', cn: '门市店号', en: 'Store Number' },
+            { key: 'store_name', tw: '門市名稱', cn: '门市名称', en: 'Store Name' },
+            { key: 'store_address', tw: '門市地址', cn: '门市地址', en: 'Store Address' },
+            { key: 'receiving_address', tw: '收件地址', cn: '收件地址', en: 'Shipping Address' },
+            { key: 'shipping_status', tw: '配送狀態', cn: '配送状态', en: 'Shipping status' },
+            { key: 'shipped', tw: '已出貨', cn: '已出货', en: 'Shipped' },
+            { key: 'picked_up', tw: '已取貨', cn: '已取货', en: 'Picked Up' },
+            { key: 'returned', tw: '已退貨', cn: '已退货', en: 'Returned' },
+            { key: 'picking', tw: '揀貨中', cn: '拣货中', en: 'Picking' },
+            { key: 'shipping_instructions', tw: '配送說明', cn: '配送说明', en: 'Shipping Instructions' },
+            { key: 'shipping_notes', tw: '配送備註', cn: '配送备注', en: 'Shipping Notes' },
+            { key: 'return_to_order_list', tw: '返回訂單列表', cn: '返回订单列表', en: 'Return to Order List' },
+            { key: 'order_not_found', tw: '查無此訂單', cn: '查无此订单', en: 'Order not found' },
         ];
     }
 }

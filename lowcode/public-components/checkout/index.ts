@@ -508,9 +508,9 @@ export class CheckoutIndex {
         }
 
         refreshCartData();
-        glitter.share.reloadCartData=()=>{
+        glitter.share.reloadCartData = () => {
             refreshCartData();
-        }
+        };
         return gvc.bindView(
             (() => {
                 return {
@@ -1064,7 +1064,7 @@ export class CheckoutIndex {
                                                                             let tempRebate: number = 0;
                                                                             const dialog = new ShareDialog(gvc.glitter);
                                                                             return html` <div class="${gClass(['price-row', 'text-2'])}">
-                                                                                    <div>${Language.text('discount')} : ${vm.rebateConfig.title}</div>
+                                                                                    <div>${Language.text('special_discount')} : ${vm.rebateConfig.title}</div>
                                                                                     <div>- NT. ${vm.cartData.use_rebate.toLocaleString()}</div>
                                                                                 </div>
 
@@ -2405,7 +2405,7 @@ export class CheckoutIndex {
                         }
                     },
                     divCreate: {
-                        class:`check_out_cart_data`
+                        class: `check_out_cart_data`,
                     },
                     onCreate: () => {
                         Ad.gtagEvent('view_cart', {

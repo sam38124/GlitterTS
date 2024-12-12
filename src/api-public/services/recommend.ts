@@ -51,25 +51,35 @@ export class Recommend {
                 return `${percentage.toFixed(decimalPlaces)}%`;
             }
 
-            for (const data of links) {
-                const shopping = new Shopping(this.app, this.token);
-                const orders = await shopping.getCheckOut({
-                    page: 0,
-                    limit: 5000,
-                    distribution_code: data.code,
-                });
+            const shopping = new Shopping(this.app, this.token);
+            const orderList = await shopping.getCheckOut({
+                page: 0,
+                limit: 5000,
+                distribution_code: links.map((data: any) => data.code).join(','),
+            });
 
-                const monitor = await db.query(
-                    `SELECT id, mac_address 
-                     FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-                     WHERE app_name = ? AND base_url = ?`,
-                    [this.app, `/${this.app}/distribution/${data.content.link}`]
-                );
+            const monitors = await db.query(
+                `SELECT id, mac_address, base_url 
+                 FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+                 WHERE app_name = "${this.app}"
+                 AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})`,
+                []
+            );
+
+            for (const data of links) {
+                const orders = orderList.data.filter((d: any) => {
+                    try {
+                        return d.orderData.distribution_info.code === data.code;
+                    } catch (error) {
+                        return false;
+                    }
+                });
+                const monitor = monitors.filter((d: any) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
 
                 const monitorLength = monitor.length;
                 const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
-                const totalOrders = orders.data.length;
-                const totalPrice = orders.data.reduce((sum: number, order: any) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
+                const totalOrders = orders.length;
+                const totalPrice = orders.reduce((sum: number, order: any) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
 
                 data.orders = totalOrders;
                 data.click_times = monitorLength;

@@ -40,20 +40,30 @@ class Recommend {
                 const percentage = (numerator / denominator) * 100;
                 return `${percentage.toFixed(decimalPlaces)}%`;
             }
+            const shopping = new shopping_js_1.Shopping(this.app, this.token);
+            const orderList = await shopping.getCheckOut({
+                page: 0,
+                limit: 5000,
+                distribution_code: links.map((data) => data.code).join(','),
+            });
+            const monitors = await database_1.default.query(`SELECT id, mac_address, base_url 
+                 FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                 WHERE app_name = "${this.app}"
+                 AND base_url in (${links.map((data) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})`, []);
             for (const data of links) {
-                const shopping = new shopping_js_1.Shopping(this.app, this.token);
-                const orders = await shopping.getCheckOut({
-                    page: 0,
-                    limit: 5000,
-                    distribution_code: data.code,
+                const orders = orderList.data.filter((d) => {
+                    try {
+                        return d.orderData.distribution_info.code === data.code;
+                    }
+                    catch (error) {
+                        return false;
+                    }
                 });
-                const monitor = await database_1.default.query(`SELECT id, mac_address 
-                     FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                     WHERE app_name = ? AND base_url = ?`, [this.app, `/${this.app}/distribution/${data.content.link}`]);
+                const monitor = monitors.filter((d) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
                 const monitorLength = monitor.length;
                 const macAddrSize = new Set(monitor.map((item) => item.mac_address)).size;
-                const totalOrders = orders.data.length;
-                const totalPrice = orders.data.reduce((sum, order) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
+                const totalOrders = orders.length;
+                const totalPrice = orders.reduce((sum, order) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
                 data.orders = totalOrders;
                 data.click_times = monitorLength;
                 data.mac_address_count = macAddrSize;
