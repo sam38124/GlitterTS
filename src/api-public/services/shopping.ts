@@ -772,6 +772,23 @@ export class Shopping {
         });
     }
 
+    public async getPostAddressData(address: string) {
+        try {
+            const url = `http://zip5.5432.tw/zip5json.py?adrs=${encodeURIComponent(address)}`;
+            const response = await axios.get(url);
+
+            // 確保回應包含 JSON 資料
+            if (response && response.data) {
+                return response.data; // 返回 JSON 資料
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null;
+        }
+    }
+
     public async toCheckout(
         data: {
             line_items: {
@@ -1452,36 +1469,78 @@ export class Shopping {
                     key: 'glitter_delivery',
                 })
             )[0];
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.value.toggle === 'true') {
+
+            if (del_config && del_config.value.toggle === 'true') {
                 const keyData = del_config.value;
-                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
 
-                const delivery = await new Delivery(this.app).postStoreOrder({
-                    LogisticsSubType: carData.user_info.LogisticsSubType,
-                    GoodsAmount: carData.total,
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverStoreID:
-                        keyData.Action === 'main'
-                            ? carData.user_info.CVSStoreID // 正式門市
-                            : (() => {
-                                  // 測試門市（萊爾富不開放測試）
-                                  if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                      return '1328'; // OK超商
-                                  }
-                                  if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                      return '006598'; // 全家
-                                  }
-                                  return '131386'; // 7-11
-                              })(),
-                });
+                if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
+                    const delivery = await new Delivery(this.app).postStoreOrder({
+                        LogisticsType: 'CVS',
+                        LogisticsSubType: carData.user_info.LogisticsSubType,
+                        GoodsAmount: carData.total,
+                        CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
+                        IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
+                        GoodsName: `訂單編號 ${carData.orderID}`,
+                        ReceiverName: carData.user_info.name,
+                        ReceiverCellPhone: carData.user_info.phone,
+                        ReceiverStoreID:
+                            keyData.Action === 'main'
+                                ? carData.user_info.CVSStoreID // 正式門市
+                                : (() => {
+                                      // 測試門市（萊爾富不開放測試）
+                                      if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                          return '1328'; // OK超商
+                                      }
+                                      if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                          return '006598'; // 全家
+                                      }
+                                      return '131386'; // 7-11
+                                  })(),
+                    });
 
-                if (delivery.result) {
-                    carData.deliveryData = delivery.data;
-                    console.info('綠界物流訂單 建立成功');
-                } else {
-                    console.info(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                    if (delivery.result) {
+                        carData.deliveryData = delivery.data;
+                        console.info('綠界物流單 四大超商 建立成功');
+                    } else {
+                        console.info(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
+                    }
+                }
+
+                if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
+                    const receiverPostData = await this.getPostAddressData(carData.user_info.address);
+                    const senderPostData = await new Promise<any>((resolve) => {
+                        setTimeout(() => {
+                            resolve(this.getPostAddressData(keyData.SenderAddress));
+                        }, 2000);
+                    });
+                    let goodsWeight = 0;
+                    carData.lineItems.map((item) => {
+                        if (item.shipment_obj.type === 'weight') {
+                            goodsWeight += item.shipment_obj.value;
+                        }
+                    });
+
+                    const delivery = await new Delivery(this.app).postStoreOrder({
+                        LogisticsType: 'HOME',
+                        LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
+                        GoodsAmount: carData.total,
+                        GoodsName: `訂單編號 ${carData.orderID}`,
+                        GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
+                        ReceiverName: carData.user_info.name,
+                        ReceiverCellPhone: carData.user_info.phone,
+                        ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
+                        ReceiverAddress: carData.user_info.address,
+                        SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
+                        SenderAddress: keyData.SenderAddress,
+                    });
+
+                    if (delivery.result) {
+                        carData.deliveryData = delivery.data;
+                        console.info('綠界物流單 郵政/黑貓 建立成功');
+                    } else {
+                        console.info(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
+                    }
                 }
             }
 
@@ -2907,7 +2966,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const result = dataList.map((data) => data.unique_count);
 
         return {
-            count_array: result.reverse()
+            count_array: result.reverse(),
         };
     }
 
@@ -2981,10 +3040,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    console.log(`monthCheckoutSQL=>`,monthCheckoutSQL)
+                    console.log(`monthCheckoutSQL=>`, monthCheckoutSQL);
                     db.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[`${index}`] = data[0]['count(1)']
-                        pass++
+                        countArray[`${index}`] = data[0]['count(1)'];
+                        pass++;
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -2992,9 +3051,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
-                    return countArray[dd]
-                }).reverse()
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
+                        return countArray[dd];
+                    })
+                    .reverse(),
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
@@ -3038,9 +3100,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 //用戶總數
                 today: order[0]['count(1)'],
                 //每月紀錄
-                count_register: Object.keys(countArray).sort().map((dd)=>{
-                    return countArray[dd]
-                }).reverse(),
+                count_register: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
+                        return countArray[dd];
+                    })
+                    .reverse(),
                 //兩週紀錄
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
@@ -3303,9 +3368,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
 
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
-                    return countArray[dd]
-                }).reverse()
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
+                        return countArray[dd];
+                    })
+                    .reverse(),
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);

@@ -112,6 +112,16 @@ export class ApiUser {
             },
         });
     }
+    public static getPhoneCount(phone: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/check/phone/exists?phone=${phone}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+        });
+    }
 
 
     public static getSaasUserData(token: string, type: 'list' | 'me') {

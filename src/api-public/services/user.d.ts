@@ -185,6 +185,7 @@ export declare class User {
         "zh-CN": never[];
     } | undefined;
     checkEmailExists(email: string): Promise<any>;
+    checkPhoneExists(phone: string): Promise<any>;
     getUnreadCount(): Promise<{
         count: any;
     }>;

@@ -119,132 +119,123 @@ export class ProductAi {
 
     public static setProduct(gvc: GVC, product_data: any, refresh: () => void) {
         const dialog = new ShareDialog(gvc.glitter)
-        BgWidget.settingDialog({
-            gvc: gvc,
-            title: 'AI 商品生成',
-            innerHTML: (gvc: GVC) => {
-                const html = String.raw
-                let message = '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。'
-                return html`
-                    <div class="">
-                        ${[
-                            html`
-                                <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"
-                                               speed="1"
-                                               style="max-width: 100%;width: 250px;height:250px;" loop
-                                               autoplay></lottie-player>`,
-                            `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('透過 AI 可以幫你新增或調整商品內容', `font-weight: 500;`)}</div>`,
-                            html`
-                                <div class="w-100" ">
-                                ${BgWidget.textArea({
-                                    gvc: gvc,
-                                    title: '',
-                                    default: message,
-                                    placeHolder: `商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。`,
-                                    callback: (text) => {
-                                        message = text;
-                                    },
-                                    style: `min-height:100px;`
-                                })}
-                                </div>`,
-                            `<div class="w-100 d-flex align-items-center justify-content-end">
+        const html = String.raw
+        //當前預設語言
+        const language=(window.parent as any).store_info.language_setting.def;
+        let message = '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。'
+        return html`
+            <div class="">
+                ${[
+                    html`
+                        <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"
+                                       speed="1"
+                                       style="max-width: 100%;width: 250px;height:250px;" loop
+                                       autoplay></lottie-player>`,
+                    `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('透過 AI 可以幫你快速新增商品', `font-weight: 500;`)}</div>`,
+                    html`
+                        <div class="w-100" ">
+                        ${BgWidget.textArea({
+                            gvc: gvc,
+                            title: '',
+                            default: message,
+                            placeHolder: html`商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。`,
+                            callback: (text) => {
+                                message = text;
+                            },
+                            style: `min-height:100px;`
+                        })}
+                        </div>`,
+                    `<div class="w-100 d-flex align-items-center justify-content-end">
 ${BgWidget.save(gvc.event(() => {
-                                const dialog = new ShareDialog(gvc.glitter)
-                                dialog.dataLoading({visible: true})
-                                AiChat.editorHtml({
-                                    text: message,
-                                    format: ProductAi.schema,
-                                    assistant: `你是後台商品上架小幫手，幫我過濾出要調整的項目和內容，另外一點請你非常注意，variants中的規格標題不要包含規格單位，像是『顏色:灰色，尺寸:XS』這樣是錯誤的，請顯示成這樣這樣就好["灰色","XS"]`,
-                                    token: (window.parent as any).saasConfig.config.token
-                                }).then((res) => {
-                                    dialog.dataLoading({visible: false})
-                                    const obj = res.response.data && res.response.data.obj
-                                    if (obj) {
-                                        const usage = res.response.data.usage
-                                        if (usage) {
-                                            //替換標題
-                                            (obj.name) && (product_data.title = obj.name);
-                                            //替換內文
-                                            (obj.content) && (product_data.content = obj.content);
-                                            //替換規格列表
-                                            if (obj.spec_define && obj.spec_define.length > 1) {
-                                                product_data.specs = obj.spec_define.map((dd: any) => {
+                        const dialog = new ShareDialog(gvc.glitter)
+                        dialog.dataLoading({visible: true})
+                        AiChat.editorHtml({
+                            text: message,
+                            format: ProductAi.schema,
+                            assistant: `你是後台商品上架小幫手，幫我過濾出要調整的項目和內容，另外一點請你非常注意，variants中的規格標題不要包含規格單位，像是『顏色:灰色，尺寸:XS』這樣是錯誤的，請顯示成這樣這樣就好["灰色","XS"]`,
+                            token: (window.parent as any).saasConfig.config.token
+                        }).then((res) => {
+                            dialog.dataLoading({visible: false})
+                            const obj = res.response.data && res.response.data.obj
+                            if (obj) {
+                                const usage = res.response.data.usage
+                                if (usage) {
+                                    const language_data: any = ((product_data.language_data as any)[language]);
+                                    //替換標題
+                                    (obj.name) && (language_data.title = obj.name);
+                                    //替換內文
+                                    (obj.content) && (language_data.content = obj.content);
+                                    //替換規格列表
+                                    if (obj.spec_define && obj.spec_define.length > 1) {
+                                        product_data.specs = obj.spec_define.map((dd: any) => {
+                                            return {
+                                                "title": dd.value,
+                                                "option": dd.spec_define.map((dd: any) => {
                                                     return {
-                                                        "title": dd.value,
-                                                        "option": dd.spec_define.map((dd: any) => {
-                                                            return {
-                                                                "title": dd.value
-                                                            }
-                                                        })
+                                                        "title": dd.value
                                                     }
                                                 })
+                                            }
+                                        })
 
-                                            }
-                                            //變體列表
-                                            if (obj.spec && obj.spec.length) {
-                                                product_data.variants = obj.spec.map((dd: any) => {
-                                                    return {
-                                                        "sku": "",
-                                                        "cost": 0,
-                                                        "spec": (obj.spec.length === 1) ? [] : dd.value.map((dd: any) => {
-                                                            if (dd.value.includes(':')) {
-                                                                return dd.value.split(':')[1]
-                                                            }
-                                                            return dd.value
-                                                        }),
-                                                        "type": "variants",
-                                                        "stock": 0,
-                                                        "profit": 0,
-                                                        "weight": "1",
-                                                        "barcode": "",
-                                                        "v_width": 0,
-                                                        "editable": false,
-                                                        "v_height": 0,
-                                                        "v_length": 0,
-                                                        "sale_price": dd.sale_price,
-                                                        "compare_price": (dd.original_price === dd.sale_price) ? 0 : dd.original_price,
-                                                        "preview_image": "",
-                                                        "shipment_type": "weight",
-                                                        "shipment_weight": 0,
-                                                        "show_understocking": "false"
-                                                    }
-                                                })
-                                            }
-                                            //seo_title
-                                            (obj.seo_title) && (product_data.seo.title = obj.seo_title);
-                                            //seo_content
-                                            (obj.seo_content) && (product_data.seo.content = obj.seo_content);
-                                            //ai描述語句
-                                            obj.ai_description && (product_data.ai_description = obj.ai_description);
-                                            //
-                                            console.log(`obj.ai_description==>`, obj.ai_description)
-                                            dialog.successMessage({text: `生成成功，消耗了『${usage}』點 AI-Points`})
-                                            refresh()
-                                            gvc.closeDialog()
-                                        } else {
-                                            dialog.errorMessage({text: 'AI Points 點數不足'})
-                                        }
-                                    } else {
-                                        dialog.errorMessage({text: '發生錯誤'})
                                     }
-                                })
-                            }), "確認生成", "w-100 mt-3 py-2")}
+                                    //變體列表
+                                    if (obj.spec && obj.spec.length) {
+                                        product_data.variants = obj.spec.map((dd: any) => {
+                                            return {
+                                                "sku": "",
+                                                "cost": 0,
+                                                "spec": (obj.spec.length === 1) ? [] : dd.value.map((dd: any) => {
+                                                    if (dd.value.includes(':')) {
+                                                        return dd.value.split(':')[1]
+                                                    }
+                                                    return dd.value
+                                                }),
+                                                "type": "variants",
+                                                "stock": 0,
+                                                "profit": 0,
+                                                "weight": "1",
+                                                "barcode": "",
+                                                "v_width": 0,
+                                                "editable": false,
+                                                "v_height": 0,
+                                                "v_length": 0,
+                                                "sale_price": dd.sale_price,
+                                                "compare_price": (dd.original_price === dd.sale_price) ? 0 : dd.original_price,
+                                                "preview_image": "",
+                                                "shipment_type": "weight",
+                                                "shipment_weight": 0,
+                                                "show_understocking": "false"
+                                            }
+                                        })
+                                    }
+                                    //seo_title
+                                    (obj.seo_title) && (language_data.seo.title = obj.seo_title);
+                                    //seo_content
+                                    (obj.seo_content) && (language_data.seo.content = obj.seo_content);
+                                    //ai描述語句
+                                    obj.ai_description && (product_data.ai_description = obj.ai_description);
+                                    dialog.successMessage({text: `生成成功，消耗了『${usage}』點 AI-Points`})
+                                    refresh()
+                                    gvc.closeDialog()
+                                } else {
+                                    dialog.errorMessage({text: 'AI Points 點數不足'})
+                                }
+                            } else {
+                                dialog.errorMessage({text: '發生錯誤'})
+                            }
+                        })
+                    }), "確認生成", "w-100 mt-3 py-4 fs-6")}
 </div>`
-                        ].join('<div class="my-2"></div>')}
-                    </div>`
-            },
-            footer_html: (gvc: GVC) => {
-                return ``
-            },
-            width: 500
-        });
+                ].join('<div class="my-2"></div>')}
+            </div>`
     }
 
-    public static generateRichText(gvc: GVC, callback: (text:string) => void) {
+    public static generateRichText(gvc: GVC, callback: (text: string) => void) {
         const dialog = new ShareDialog(gvc.glitter)
         BgWidget.settingDialog({
             gvc: gvc,
-            title: 'AI 商品生成',
+            title: 'AI 內容生成',
             innerHTML: (gvc: GVC) => {
                 const html = String.raw
                 let message = ''
@@ -256,14 +247,14 @@ ${BgWidget.save(gvc.event(() => {
                                                speed="1"
                                                style="max-width: 100%;width: 250px;height:250px;" loop
                                                autoplay></lottie-player>`,
-                            `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('透過 AI 可以幫你生成商品描述', `font-weight: 500;`)}</div>`,
+                            `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('透過 AI 可以快速幫您生成內文', `font-weight: 500;`)}</div>`,
                             html`
                                 <div class="w-100" ">
                                 ${BgWidget.textArea({
                                     gvc: gvc,
                                     title: '',
                                     default: message,
-                                    placeHolder: `幫我生成一個有關保健食品4*3的表格`,
+                                    placeHolder: `幫我生成一個4*3的說明表格，內容是針對健康保健。`,
                                     callback: (text) => {
                                         message = text;
                                     },
@@ -276,7 +267,7 @@ ${BgWidget.save(gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter)
                                         dialog.dataLoading({visible: true})
                                         AiChat.generateHtml({
-                                            token:(window.parent as any).saasConfig.config.token,
+                                            token: (window.parent as any).saasConfig.config.token,
                                             app_name: (window.parent as any).appName,
                                             text: message
                                         }).then((res) => {

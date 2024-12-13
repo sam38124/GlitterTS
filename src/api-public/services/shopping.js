@@ -517,6 +517,22 @@ class Shopping {
             });
         });
     }
+    async getPostAddressData(address) {
+        try {
+            const url = `http://zip5.5432.tw/zip5json.py?adrs=${encodeURIComponent(address)}`;
+            const response = await axios_1.default.get(url);
+            if (response && response.data) {
+                return response.data;
+            }
+            else {
+                return null;
+            }
+        }
+        catch (error) {
+            console.error('Error fetching data:', error);
+            return null;
+        }
+    }
     async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
@@ -1051,33 +1067,72 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_delivery',
             }))[0];
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config && del_config.value.toggle === 'true') {
+            if (del_config && del_config.value.toggle === 'true') {
                 const keyData = del_config.value;
-                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
-                const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
-                    LogisticsSubType: carData.user_info.LogisticsSubType,
-                    GoodsAmount: carData.total,
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverStoreID: keyData.Action === 'main'
-                        ? carData.user_info.CVSStoreID
-                        : (() => {
-                            if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                return '1328';
-                            }
-                            if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                return '006598';
-                            }
-                            return '131386';
-                        })(),
-                });
-                if (delivery.result) {
-                    carData.deliveryData = delivery.data;
-                    console.info('綠界物流訂單 建立成功');
+                console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
+                    const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
+                        LogisticsType: 'CVS',
+                        LogisticsSubType: carData.user_info.LogisticsSubType,
+                        GoodsAmount: carData.total,
+                        CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
+                        IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
+                        GoodsName: `訂單編號 ${carData.orderID}`,
+                        ReceiverName: carData.user_info.name,
+                        ReceiverCellPhone: carData.user_info.phone,
+                        ReceiverStoreID: keyData.Action === 'main'
+                            ? carData.user_info.CVSStoreID
+                            : (() => {
+                                if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                    return '1328';
+                                }
+                                if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                    return '006598';
+                                }
+                                return '131386';
+                            })(),
+                    });
+                    if (delivery.result) {
+                        carData.deliveryData = delivery.data;
+                        console.info('綠界物流單 四大超商 建立成功');
+                    }
+                    else {
+                        console.info(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
+                    }
                 }
-                else {
-                    console.info(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
+                    const receiverPostData = await this.getPostAddressData(carData.user_info.address);
+                    const senderPostData = await new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve(this.getPostAddressData(keyData.SenderAddress));
+                        }, 2000);
+                    });
+                    let goodsWeight = 0;
+                    carData.lineItems.map((item) => {
+                        if (item.shipment_obj.type === 'weight') {
+                            goodsWeight += item.shipment_obj.value;
+                        }
+                    });
+                    const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
+                        LogisticsType: 'HOME',
+                        LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
+                        GoodsAmount: carData.total,
+                        GoodsName: `訂單編號 ${carData.orderID}`,
+                        GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
+                        ReceiverName: carData.user_info.name,
+                        ReceiverCellPhone: carData.user_info.phone,
+                        ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
+                        ReceiverAddress: carData.user_info.address,
+                        SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
+                        SenderAddress: keyData.SenderAddress,
+                    });
+                    if (delivery.result) {
+                        carData.deliveryData = delivery.data;
+                        console.info('綠界物流單 郵政/黑貓 建立成功');
+                    }
+                    else {
+                        console.info(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
+                    }
                 }
             }
             if (carData.use_wallet === carData.total) {
@@ -2236,7 +2291,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         });
         const result = dataList.map((data) => data.unique_count);
         return {
-            count_array: result.reverse()
+            count_array: result.reverse(),
         };
     }
     async getActiveRecent2Weak() {
@@ -2309,9 +2364,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                }).reverse()
+                })
+                    .reverse(),
             };
         }
         catch (e) {
@@ -2348,9 +2406,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 today: order[0]['count(1)'],
-                count_register: Object.keys(countArray).sort().map((dd) => {
+                count_register: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                }).reverse(),
+                })
+                    .reverse(),
                 count_2_weak_register: (await this.getRegister2weak()).countArray,
             };
         }
@@ -2588,9 +2649,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             });
             return {
-                countArray: Object.keys(countArray).sort().map((dd) => {
+                countArray: Object.keys(countArray)
+                    .sort()
+                    .map((dd) => {
                     return countArray[dd];
-                }).reverse()
+                })
+                    .reverse(),
             };
         }
         catch (e) {

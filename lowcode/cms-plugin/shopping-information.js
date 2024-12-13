@@ -28,7 +28,7 @@ export class ShoppingInformation {
                 "address": "",
                 "category": "",
                 "pos_type": "retails",
-                "ai_search": true,
+                "ai_search": false,
                 "shop_name": "",
                 "support_pos_payment": [
                     "cash",
@@ -171,7 +171,7 @@ export class ShoppingInformation {
                             "address": (_d = data.address) !== null && _d !== void 0 ? _d : "",
                             "category": (_e = data.category) !== null && _e !== void 0 ? _e : "",
                             "pos_type": (_f = data.pos_type) !== null && _f !== void 0 ? _f : "retails",
-                            "ai_search": (_g = data.ai_search) !== null && _g !== void 0 ? _g : true,
+                            "ai_search": (_g = data.ai_search) !== null && _g !== void 0 ? _g : false,
                             "shop_name": (_h = data.shop_name) !== null && _h !== void 0 ? _h : "",
                             "support_pos_payment": (_j = data.support_pos_payment) !== null && _j !== void 0 ? _j : [
                                 "cash",

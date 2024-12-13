@@ -3955,6 +3955,7 @@ ${obj.default ?? ''}</textarea
                             let form_keys = key;
                             for (const b of form_keys) {
                                 form_formats[b.key] = (await ApiUser.getPublicConfig(b.key, 'manager')).response.value || {list: []};
+                                form_formats[b.key].list =form_formats[b.key].list || [];
                                 //判斷是註冊表單，必須帶入必要值
                                 if (b.key === 'custom_form_register') {
                                     FormCheck.initialRegisterForm(form_formats[b.key].list);

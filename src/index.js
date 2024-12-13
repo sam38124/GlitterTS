@@ -58,7 +58,6 @@ const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const schedule_js_1 = require("./api-public/services/schedule.js");
 const private_config_js_1 = require("./services/private_config.js");
-const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
@@ -66,6 +65,8 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
 const manager_js_1 = require("./api-public/services/manager.js");
+const sitemap_1 = require("sitemap");
+const stream_1 = require("stream");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -175,6 +176,18 @@ function extractProds(data) {
     return items;
 }
 exports.app.set('trust proxy', true);
+function isCurrentTimeWithinRange(data) {
+    const now = new Date();
+    const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
+    const hasEnd = data.endDate && data.endTime;
+    const endDateTime = hasEnd ? new Date(`${data.endDate}T${data.endTime}`) : null;
+    if (hasEnd) {
+        return now >= startDateTime && now <= endDateTime;
+    }
+    else {
+        return now >= startDateTime;
+    }
+}
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
@@ -217,7 +230,7 @@ async function createAPP(dd) {
                             return store_info.language_setting.support.includes(lan);
                         }
                         function checkEqual(lan) {
-                            return (`${req.query.page}`.startsWith(`${lan}/`)) || (req.query.page === lan);
+                            return `${req.query.page}`.startsWith(`${lan}/`) || req.query.page === lan;
                         }
                         function replace(lan) {
                             if (req.query.page === lan) {
@@ -227,15 +240,15 @@ async function createAPP(dd) {
                                 req.query.page = `${req.query.page}`.replace(lan + '/', '');
                             }
                         }
-                        if (checkEqual('en') && checkIncludes("en-US")) {
+                        if (checkEqual('en') && checkIncludes('en-US')) {
                             replace('en');
                             return `en-US`;
                         }
-                        else if (checkEqual('cn') && checkIncludes("zh-CN")) {
+                        else if (checkEqual('cn') && checkIncludes('zh-CN')) {
                             replace('cn');
                             return `zh-CN`;
                         }
-                        else if (checkEqual('tw') && checkIncludes("zh-TW")) {
+                        else if (checkEqual('tw') && checkIncludes('zh-TW')) {
                             replace('tw');
                             return `zh-TW`;
                         }
@@ -253,10 +266,10 @@ async function createAPP(dd) {
                     console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
-                    const login_config = await (new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                    const login_config = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
                         key: 'login_config',
                         user_id: 'manager',
-                    }));
+                    });
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -276,17 +289,17 @@ async function createAPP(dd) {
                                     page: 0,
                                     limit: 1,
                                     domain: decodeURIComponent(product_domain),
-                                    language: language
+                                    language: language,
                                 }
                                 : {
                                     page: 0,
                                     limit: 1,
                                     id: req.query.product_id,
-                                    language: language
+                                    language: language,
                                 });
                             if (pd.data.content) {
                                 pd.data.content.language_data = (_c = pd.data.content.language_data) !== null && _c !== void 0 ? _c : {};
-                                const productSeo = (pd.data.content.language_data[language].seo) || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
+                                const productSeo = pd.data.content.language_data[language].seo || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
                                 data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
                                 data.page_config = (_e = data.page_config) !== null && _e !== void 0 ? _e : {};
                                 data.page_config.seo = (_f = data.page_config.seo) !== null && _f !== void 0 ? _f : {};
@@ -347,11 +360,10 @@ async function createAPP(dd) {
                         }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
-                            const page = (await database_2.default.query(`SELECT *
-                                         FROM \`${appName}\`.t_recommend_links
-                                         WHERE content ->>'$.link' = ?;
-                                        `, [req.query.page.split('/')[1]]))[0].content;
-                            if (page.status) {
+                            const rec = await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
+                                    `, [req.query.page.split('/')[1]]);
+                            const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
+                            if (page.status && isCurrentTimeWithinRange(page)) {
                                 distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
                                         location.href = '${page.redirect}${redURL.search}';
@@ -367,7 +379,7 @@ async function createAPP(dd) {
                             const cols = (_l = (await manager_js_1.Manager.getConfig({
                                 appName: appName,
                                 key: 'collection',
-                                language: language
+                                language: language,
                             }))[0]) !== null && _l !== void 0 ? _l : {};
                             const colJson = extractCols(cols);
                             const urlCode = decodeURI(req.query.page.split('/')[1]);
@@ -388,35 +400,34 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                                <link rel="canonical" href="/index"/>
-                                                <meta name="keywords" content="SHOPNEX,電商平台"/>
-                                                <link
+                                                    <link rel="canonical" href="/index" />
+                                                    <meta name="keywords" content="SHOPNEX,電商平台" />
+                                                    <link
                                                         id="appImage"
                                                         rel="shortcut icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/x-icon"
-                                                />
-                                                <link
+                                                    />
+                                                    <link
                                                         rel="icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/png"
                                                         sizes="128x128"
-                                                />
-                                                <meta property="og:image"
-                                                      content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
-                                                <meta property="og:title" content="SHOPNEX後台系統"/>
-                                                <meta
+                                                    />
+                                                    <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+                                                    <meta property="og:title" content="SHOPNEX後台系統" />
+                                                    <meta
                                                         name="description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />
-                                                <meta
+                                                    />
+                                                    <meta
                                                         name="og:description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />`;
+                                                    />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                                <link
+                                                    <link
                                                         rel="canonical"
                                                         href="${(() => {
                                         if (data.tag === 'index') {
@@ -426,19 +437,14 @@ async function createAPP(dd) {
                                             return `https://${brandAndMemberType.domain}/${data.tag}`;
                                         }
                                     })()}"
-                                                />
-                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                                <link id="appImage" rel="shortcut icon"
-                                                      href="${d.logo || home_seo.logo || ''}" type="image/x-icon"/>
-                                                <link rel="icon" href="${d.logo || home_seo.logo || ''}"
-                                                      type="image/png" sizes="128x128"/>
-                                                <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
-                                                <meta property="og:title"
-                                                      content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}"/>
-                                                <meta name="description"
-                                                      content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}"/>
-                                                <meta name="og:description"
-                                                      content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}"/>`;
+                                                    />
+                                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                                    <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
+                                                    <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
+                                                    <meta property="og:image" content="${d.image || home_seo.image || ''}" />
+                                                    <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}" />
+                                                    <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}" />
+                                                    <meta name="og:description" content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}" />`;
                                 }
                             })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -452,14 +458,13 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html `
-                                                                        <link
-                                                                                type="text/css"
-                                                                                rel="stylesheet"
-                                                                                href="${dd.data.attr.find((dd) => {
+                                                return html ` <link
+                                                                    type="text/css"
+                                                                    rel="stylesheet"
+                                                                    href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                                        />`;
+                                                                />`;
                                             }
                                         }
                                         catch (e) {
@@ -497,9 +502,7 @@ async function createAPP(dd) {
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html `
-                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
-                                                    type="${dd.type}"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
                             ${((_o = preload.event) !== null && _o !== void 0 ? _o : [])
@@ -511,9 +514,7 @@ async function createAPP(dd) {
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html `
-                                            <script src="/${link_prefix && `${link_prefix}/`}${dd}"
-                                                    type="module"></script>`;
+                            return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                         })
                             .join('')}
                             </head>
@@ -526,8 +527,7 @@ async function createAPP(dd) {
                                         ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                                    <script async
-                                                            src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                    <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                     <script>
                                                         window.dataLayer = window.dataLayer || [];
 
@@ -550,11 +550,11 @@ async function createAPP(dd) {
                                                             w[l] = w[l] || [];
                                                             w[l].push({
                                                                 'gtm.start': new Date().getTime(),
-                                                                event: 'gtm.js'
+                                                                event: 'gtm.js',
                                                             });
                                                             var f = d.getElementsByTagName(s)[0],
-                                                                    j = d.createElement(s),
-                                                                    dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                                j = d.createElement(s),
+                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
                                                             j.async = true;
                                                             j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                             f.parentNode.insertBefore(j, f);
@@ -565,30 +565,28 @@ async function createAPP(dd) {
                                     .join('')}
                                         ${FBCode && FBCode.pixel
                                     ? html `<!-- Meta Pixel Code -->
-                                                <script>
-                                                    !(function (f, b, e, v, n, t, s) {
-                                                        if (f.fbq) return;
-                                                        n = f.fbq = function () {
-                                                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                                                        };
-                                                        if (!f._fbq) f._fbq = n;
-                                                        n.push = n;
-                                                        n.loaded = !0;
-                                                        n.version = '2.0';
-                                                        n.queue = [];
-                                                        t = b.createElement(e);
-                                                        t.async = !0;
-                                                        t.src = v;
-                                                        s = b.getElementsByTagName(e)[0];
-                                                        s.parentNode.insertBefore(t, s);
-                                                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                                                    fbq('init', '${FBCode.pixel}');
-                                                    fbq('track', 'PageView');
-                                                </script>
-                                                <noscript><img height="1" width="1" style="display:none"
-                                                               src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"/>
-                                                </noscript>
-                                                <!-- End Meta Pixel Code -->`
+                                                  <script>
+                                                      !(function (f, b, e, v, n, t, s) {
+                                                          if (f.fbq) return;
+                                                          n = f.fbq = function () {
+                                                              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+                                                          };
+                                                          if (!f._fbq) f._fbq = n;
+                                                          n.push = n;
+                                                          n.loaded = !0;
+                                                          n.version = '2.0';
+                                                          n.queue = [];
+                                                          t = b.createElement(e);
+                                                          t.async = !0;
+                                                          t.src = v;
+                                                          s = b.getElementsByTagName(e)[0];
+                                                          s.parentNode.insertBefore(t, s);
+                                                      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                                                      fbq('init', '${FBCode.pixel}');
+                                                      fbq('track', 'PageView');
+                                                  </script>
+                                                  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1" /> </noscript>
+                                                  <!-- End Meta Pixel Code -->`
                                     : ''}
                                     `;
                             }
@@ -627,78 +625,41 @@ async function createAPP(dd) {
                          FROM \`${appName}\`.t_manager_post
                          WHERE JSON_EXTRACT(content, '$.type') = 'product';
                         `, []);
-                const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-                        ${(await database_2.default.query(`select page_config, tag, updated_time
+                const stream = new sitemap_1.SitemapStream({ hostname: `https://${domain}` });
+                const xml = await (0, sitemap_1.streamToPromise)(stream_1.Readable.from([
+                    ...(await database_2.default.query(`select page_config, tag, updated_time
                              from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                              where appName = ?
                                and page_config ->>'$.seo.type'='custom'
-                            `, [appName]))
-                    .map((d2) => {
-                    if (d2.tag === 'index') {
-                        return `<url>
-                                    <loc>${`https://${domain}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                    }
-                    else {
-                        return `<url>
-                                    <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                    }
-                })
-                    .join('')}
-                        ${article.data
-                    .map((d2) => {
-                    if (!d2.content.template) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-                                </url> `;
-                })
-                    .join('')}
-                        ${(site_map || [])
-                    .map((d2) => {
-                    return `<url>
-                                    <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-                                    <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url> `;
-                })
-                    .join('')}
-                        ${extractCols(cols)
-                    .map((item) => {
-                    if (!item.code) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>https://${domain}/collections/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
-                })
-                    .join('')}
-                        ${extractProds(products)
-                    .map((item) => {
-                    if (!item.code) {
-                        return ``;
-                    }
-                    return `<url>
-                                    <loc>https://${domain}/products/${item.code}</loc>
-                                    <lastmod>${item.updated_at}</lastmod>
-                                    <changefreq>weekly</changefreq>
-                                </url>`;
-                })
-                    .join('')}
-                    </urlset> `;
-                return (0, xml_formatter_1.default)(sitemap, {
-                    indentation: '  ',
-                    filter: (node) => node.type !== 'Comment',
-                    collapseContent: true,
-                });
+                            `, [appName])).map((d2) => {
+                        return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };
+                    }),
+                    ...(article.data
+                        .filter((d2) => {
+                        return d2.content.template;
+                    }).map((d2) => {
+                        return { url: `https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`, changefreq: 'weekly', lastmod: formatDateToISO(new Date(d2.updated_time)) };
+                    })),
+                    ...(site_map || [])
+                        .map((d2) => {
+                        return { url: `https://${domain}/${d2.url}`, changefreq: 'weekly' };
+                    }),
+                    ...extractCols(cols)
+                        .filter((item) => {
+                        return item.code;
+                    })
+                        .map((item) => {
+                        return { url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly' };
+                    }),
+                    ...extractProds(products)
+                        .filter((item) => {
+                        return item.code;
+                    })
+                        .map((item) => {
+                        return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly' };
+                    })
+                ]).pipe(stream)).then((data) => data.toString());
+                return xml;
             },
             sitemap_list: async (req, resp) => {
                 let appName = dd.appName;
@@ -721,16 +682,16 @@ async function createAPP(dd) {
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
-                const robots = await (new user_js_1.User(appName).getConfigV2({
+                const robots = await new user_js_1.User(appName).getConfigV2({
                     key: 'robots_text',
-                    user_id: 'manager'
-                }));
-                robots.text = (robots.text || '');
+                    user_id: 'manager',
+                });
+                robots.text = robots.text || '';
                 const domain = (await database_2.default.query(`select \`domain\`
                              from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                              where appName = ?`, [appName]))[0]['domain'];
                 return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html `User-agent: * 
-                    Sitemap: ${domain}/sitemap.xml`;
+Sitemap: https://${domain}/sitemap.xml`;
             },
             tw_shop: async (req, resp) => {
                 let appName = dd.appName;
@@ -868,5 +829,8 @@ async function getSeoSiteMap(appName, req) {
         const myFunction = new Function(evalString);
         return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
     });
+}
+function formatDateToISO(date) {
+    return `${date.toISOString().substring(0, date.toISOString().length - 5)}+00:00`;
 }
 //# sourceMappingURL=index.js.map

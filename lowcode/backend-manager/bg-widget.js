@@ -3374,6 +3374,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             let form_keys = key;
                             for (const b of form_keys) {
                                 form_formats[b.key] = (yield ApiUser.getPublicConfig(b.key, 'manager')).response.value || { list: [] };
+                                form_formats[b.key].list = form_formats[b.key].list || [];
                                 if (b.key === 'custom_form_register') {
                                     FormCheck.initialRegisterForm(form_formats[b.key].list);
                                 }

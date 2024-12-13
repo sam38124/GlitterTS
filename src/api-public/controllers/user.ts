@@ -235,6 +235,16 @@ router.get('/check/email/exists', async (req: express.Request, resp: express.Res
     }
 });
 
+router.get('/check/phone/exists', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {
+            result: await new User(req.get('g-app') as string).checkPhoneExists(req.query.phone as string),
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.post('/forget', async (req: express.Request, resp: express.Response) => {
     try {
         const sql = `select *

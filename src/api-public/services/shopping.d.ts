@@ -143,7 +143,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -236,6 +236,7 @@ export declare class Shopping {
     }>;
     private generateOrderID;
     linePay(data: any): Promise<unknown>;
+    getPostAddressData(address: string): Promise<any>;
     toCheckout(data: {
         line_items: {
             id: string;

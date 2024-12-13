@@ -216,9 +216,15 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
                                    where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='hidden';`, []))[0].content.template;
         }
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
-            const page = (await database_1.default.query(`SELECT *
-                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
-            return await Template.getRealPage(page.redirect.substring(1), appName);
+            try {
+                const page = (await database_1.default.query(`SELECT *
+                                       from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
+                return await Template.getRealPage(page.redirect.substring(1), appName);
+            }
+            catch (error) {
+                console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
+                page = '';
+            }
         }
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';

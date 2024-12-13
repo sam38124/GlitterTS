@@ -1381,7 +1381,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                         });
                                     })(),
                                 ].join(''),
-                                ratio: 70,
+                                ratio: 75,
                             },
                             {
                                 html: BgWidget.summaryCard(
@@ -1655,7 +1655,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                             };
                                         })
                                 ),
-                                ratio: 30,
+                                ratio: 25,
                             }
                     )}
                     ${BgWidget.mbContainer(240)}

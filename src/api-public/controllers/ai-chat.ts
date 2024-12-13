@@ -111,7 +111,6 @@ return {
 
 
             });
-            console.log(`exportData=>`,JSON.stringify(exportData))
             const json2csvParser = new Parser();
             const csv = json2csvParser.parse(exportData);
             //寫入

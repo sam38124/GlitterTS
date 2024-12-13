@@ -9,7 +9,24 @@ import moment from 'moment-timezone';
 
 const html = String.raw;
 
-type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'TCAT' | 'POST';
+
+type EcPayOrder = {
+    LogisticsType: 'CVS' | 'HOME';
+    LogisticsSubType: StoreBrand;
+    GoodsAmount: number;
+    GoodsName: string;
+    GoodsWeight?: number;
+    ReceiverName: string;
+    ReceiverCellPhone: string;
+    ReceiverStoreID?: string;
+    CollectionAmount?: number;
+    IsCollection?: 'N' | 'Y';
+    ReceiverZipCode?: string;
+    ReceiverAddress?: string;
+    SenderZipCode?: string;
+    SenderAddress?: string;
+};
 
 export type DeliveryData = {
     AllPayLogisticsID: string;
@@ -176,7 +193,7 @@ export class Delivery {
         });
     }
 
-    async postStoreOrder(json?: { LogisticsSubType: StoreBrand; GoodsAmount: number; GoodsName: string; ReceiverName: string; ReceiverCellPhone: string; ReceiverStoreID: string }) {
+    async postStoreOrder(json?: EcPayOrder) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,
@@ -186,15 +203,16 @@ export class Delivery {
 
         const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
 
-        const params = {
+        const originParams = {
             MerchantID: keyData.MERCHANT_ID,
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
-            LogisticsType: 'CVS',
             ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`,
             SenderName: keyData.SenderName,
             SenderCellPhone: keyData.SenderCellPhone,
             ...json,
         };
+
+        const params = Delivery.removeUndefined(originParams);
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
@@ -239,24 +257,25 @@ export class Delivery {
             })
         )[0].value;
 
-        const params = {
+        const originParams = {
             MerchantID: keyData.MERCHANT_ID,
             AllPayLogisticsID: json.AllPayLogisticsID,
             CVSPaymentNo: json.CVSPaymentNo,
             CVSValidationNo: json.CVSValidationNo,
         };
 
+        const params = Delivery.removeUndefined(originParams);
+
         const storePath: Record<StoreBrand, string> = {
-            FAMIC2C: 'PrintFAMIC2COrderInfo',
-            UNIMARTC2C: 'PrintUniMartC2COrderInfo',
-            HILIFEC2C: 'PrintHILIFEC2COrderInfo',
-            OKMARTC2C: 'PrintOKMARTC2COrderInfo',
+            FAMIC2C: 'Express/PrintFAMIC2COrderInfo',
+            UNIMARTC2C: 'Express/PrintUniMartC2COrderInfo',
+            HILIFEC2C: 'Express/PrintHILIFEC2COrderInfo',
+            OKMARTC2C: 'Express/PrintOKMARTC2COrderInfo',
+            TCAT: 'helper/printTradeDocument',
+            POST: 'helper/printTradeDocument',
         };
 
-        const actionURL =
-            keyData.Action === 'main'
-                ? `https://logistics.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`
-                : `https://logistics-stage.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`;
+        const actionURL = keyData.Action === 'main' ? `https://logistics.ecpay.com.tw/${storePath[json.LogisticsSubType]}` : `https://logistics-stage.ecpay.com.tw/${storePath[json.LogisticsSubType]}`;
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
@@ -271,6 +290,11 @@ export class Delivery {
             })
         );
         return random_id;
+    }
+
+    static removeUndefined(originParams: any) {
+        const params = Object.fromEntries(Object.entries(originParams).filter(([_, value]) => value !== undefined));
+        return params;
     }
 
     async notify(json: any) {

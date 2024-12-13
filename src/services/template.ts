@@ -72,13 +72,13 @@ export class Template {
         preview_image: string;
         favorite: number;
         updated_time: any;
-        language?:'zh-TW' | 'zh-CN' | 'en-US'
+        language?: 'zh-TW' | 'zh-CN' | 'en-US';
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError('Forbidden', 'No Permission.', null);
         }
-        const page_db=(()=>{
-            switch (config.language){
+        const page_db = (() => {
+            switch (config.language) {
                 case 'zh-TW':
                     return 'page_config';
                 case 'en-US':
@@ -90,28 +90,31 @@ export class Template {
             }
         })();
         //先判斷是否存在，不存在則添加
-        async function checkExits(){
-            const where_=(()=>{
-                let sql=''
+        async function checkExits() {
+            const where_ = (() => {
+                let sql = '';
                 if (config.id) {
                     sql += ` and \`id\` = ${config.id} `;
                 } else {
                     sql += ` and \`tag\` = ${db.escape(config.tag)}`;
                 }
                 sql += ` and appName = ${db.escape(config.appName)}`;
-                return sql
-            })()
+                return sql;
+            })();
             let sql = `
                 select count(1) from \`${saasConfig.SAAS_NAME}\`.${page_db} where 1=1 ${where_}
             `;
-            const count=await db.query(sql,[])
-            if(count[0]['count(1)']===0){
-                await db.query(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.${page_db}
+            const count = await db.query(sql, []);
+            if (count[0]['count(1)'] === 0) {
+                await db.query(
+                    `INSERT INTO \`${saasConfig.SAAS_NAME}\`.${page_db}
 SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
-`,[])
+`,
+                    []
+                );
             }
         }
-        await checkExits()
+        await checkExits();
         try {
             const params: { [props: string]: any } = {};
             config.appName && (params['appName'] = config.appName);
@@ -147,7 +150,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
             throw exception.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            for (const b of ['page_config','page_config_rcn','page_config_en']){
+            for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
                 let sql = config.id
                     ? `
                 delete
@@ -222,7 +225,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
 
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
         query_page = query_page || 'index';
-        console.log(`query_page=>${query_page}`)
+        console.log(`query_page=>${query_page}`);
         let page = query_page;
 
         //當判斷是Blog時
@@ -279,14 +282,19 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         }
         //當判斷是分銷連結時
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
-            const page = (
-                await db.query(
-                    `SELECT *
-                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`,
-                    [query_page.split('/')[1]]
-                )
-            )[0].content;
-            return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
+            try {
+                const page = (
+                    await db.query(
+                        `SELECT *
+                                       from \`${appName}\`.t_recommend_links where content->>'$.link'=?`,
+                        [query_page.split('/')[1]]
+                    )
+                )[0].content;
+                return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
+            } catch (error) {
+                console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
+                page = '';
+            }
         }
 
         //當判斷是Collection時
@@ -318,15 +326,15 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         favorite?: string;
         preload?: boolean;
         id?: string;
-        language?:'zh-TW' | 'zh-CN' | 'en-US'
-    }):Promise<any> {
+        language?: 'zh-TW' | 'zh-CN' | 'en-US';
+    }): Promise<any> {
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName!);
         }
 
         try {
-            const page_db=(()=>{
-                switch (config.language){
+            const page_db = (() => {
+                switch (config.language) {
                     case 'zh-TW':
                         return 'page_config';
                     case 'en-US':
@@ -385,11 +393,11 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
                     sql += ` and \`group\` = 'glitter-article' `;
                 }
             }
-            const page_data=await db.query(sql, [])
-            if(page_db!=='page_config' && page_data.length===0 && config.language!='zh-TW'){
-                config.language='zh-TW';
-                return  await this.getPage(config)
-            }else{
+            const page_data = await db.query(sql, []);
+            if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
+                config.language = 'zh-TW';
+                return await this.getPage(config);
+            } else {
                 return page_data;
             }
         } catch (e: any) {

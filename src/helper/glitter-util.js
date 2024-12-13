@@ -38,7 +38,7 @@ class GlitterUtil {
                     }
                 })();
                 if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt') {
-                    resp.set('Content-Type', 'plan/text');
+                    resp.set('Content-Type', 'text/plain');
                     return resp.send(await dd.robots(req, resp));
                 }
                 else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'tw_shop.xml') {
@@ -46,11 +46,11 @@ class GlitterUtil {
                     return resp.send(await dd.tw_shop(req, resp));
                 }
                 else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
-                    resp.set('Content-Type', 'application/xml');
+                    resp.set('Content-Type', 'text/xml');
                     return resp.send(await dd.sitemap(req, resp));
                 }
                 else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_detail.xml') {
-                    resp.set('Content-Type', 'application/xml');
+                    resp.set('Content-Type', 'text/xml');
                     return resp.send(await dd.sitemap(req, resp));
                 }
                 else if (!fs_1.default.existsSync(fileURL)) {

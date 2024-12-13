@@ -640,7 +640,6 @@ export class ShoppingOrderManager {
             created_time: '2023-11-09T06:36:51.000Z',
         };
         let userData = {};
-        console.log("orderData -- ", orderData);
         const mainViewID = gvc.glitter.getUUID();
         orderData.orderData.progress = (_b = orderData.orderData.progress) !== null && _b !== void 0 ? _b : 'wait';
         if (orderData.orderData.shipment_selector &&
@@ -1179,6 +1178,7 @@ export class ShoppingOrderManager {
                                 },
                             })}
                                                 </div>
+
                                             `),
                             BgWidget.mainCard(html `
                                                 <div class="tx_700">訂單記錄</div>

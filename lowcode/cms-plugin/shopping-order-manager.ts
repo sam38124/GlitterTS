@@ -10,7 +10,6 @@ import {UserList} from './user-list.js';
 import {CheckInput} from '../modules/checkInput.js';
 import {ApiDelivery} from '../glitter-base/route/delivery.js';
 import {ShoppingInvoiceManager} from './shopping-invoice-manager.js';
-import {loadFont} from "jimp";
 
 type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
 
@@ -846,7 +845,6 @@ export class ShoppingOrderManager {
             created_time: '2023-11-09T06:36:51.000Z',
         };
         let userData: any = {};
-        console.log("orderData -- " , orderData)
         const mainViewID = gvc.glitter.getUUID();
         orderData.orderData.progress = orderData.orderData.progress ?? 'wait';
         if (
@@ -1401,6 +1399,7 @@ export class ShoppingOrderManager {
                                                         },
                                                     })}
                                                 </div>
+
                                             `),
                                             BgWidget.mainCard(html`
                                                 <div class="tx_700">訂單記錄</div>

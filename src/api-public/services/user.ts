@@ -2176,6 +2176,22 @@ export class User {
         }
     }
 
+    public async checkPhoneExists(phone: string) {
+        try {
+            const count = (
+                await db.query(
+                    `select count(1)
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.phone' = ?`,
+                    [phone]
+                )
+            )[0]['count(1)'];
+            return count;
+        } catch (e) {
+            throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
+        }
+    }
+
     public async getUnreadCount() {
         try {
             const last_read_time = await db.query(

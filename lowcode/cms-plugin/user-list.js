@@ -37,6 +37,7 @@ export class UserList {
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
+            initial_data: {}
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -81,6 +82,11 @@ export class UserList {
                     },
                 ];
             });
+        }
+        if (localStorage.getItem('add_member')) {
+            vm.type = 'create';
+            vm.initial_data = JSON.parse(localStorage.getItem('add_member'));
+            localStorage.removeItem('add_member');
         }
         return gvc.bindView({
             bind: vm.id,
@@ -1308,7 +1314,7 @@ export class UserList {
     static createUser(gvc, vm) {
         const viewID = gvc.glitter.getUUID();
         const saasConfig = window.parent.saasConfig;
-        let userData = {
+        let userData = vm.initial_data || {
             name: '',
             email: '',
             phone: '',
@@ -1336,7 +1342,7 @@ export class UserList {
                         return {
                             bind: id,
                             view: () => {
-                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                return BgWidget.mainCard(html `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                                         <span class="tx_700">顧客資訊</span>
                                                     </div>` +
                                     gvc.bindView(() => {
@@ -1366,7 +1372,6 @@ export class UserList {
                                                                         placeHolder: `請輸入${item.title}`,
                                                                         callback: (text) => {
                                                                             refer_obj[item.key] = text;
-                                                                            gvc.notifyDataChange(id);
                                                                         },
                                                                         readonly: vmi.mode !== 'edit',
                                                                     })}
@@ -1383,7 +1388,6 @@ export class UserList {
                                                                         placeHolder: `請輸入${item.title}`,
                                                                         callback: (text) => {
                                                                             refer_obj[item.key] = text;
-                                                                            gvc.notifyDataChange(id);
                                                                         },
                                                                         readonly: vmi.mode !== 'edit',
                                                                     })}
@@ -1421,7 +1425,7 @@ export class UserList {
                                         ${BgWidget.cancel(gvc.event(() => {
                         vm.type = 'list';
                     }))}
-                                        ${BgWidget.save(gvc.event(() => {
+                                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                         const dialog = new ShareDialog(gvc.glitter);
                         if (CheckInput.isEmpty(userData.name)) {
                             dialog.infoMessage({ text: '請輸入顧客姓名' });
@@ -1439,24 +1443,33 @@ export class UserList {
                             dialog.infoMessage({ text: html ` <div class="text-center">生日日期無效，請確認年月日是否正確<br />(ex: 19950107)</div> ` });
                             return;
                         }
-                        ApiUser.getEmailCount(userData.email).then((r) => {
-                            if (r.response.result) {
-                                dialog.errorMessage({ text: '此信箱已被註冊' });
-                            }
-                            else {
-                                dialog.dataLoading({ visible: true });
-                                ApiUser.quickRegister({
-                                    account: userData.email,
-                                    pwd: gvc.glitter.getUUID(),
-                                    userData: userData,
-                                }).then((r) => {
+                        dialog.dataLoading({ visible: true });
+                        if ((yield ApiUser.getPhoneCount(userData.phone)).response.result) {
+                            dialog.dataLoading({ visible: false });
+                            dialog.errorMessage({ text: '此電話號碼已被註冊' });
+                        }
+                        else if ((yield ApiUser.getEmailCount(userData.email)).response.result) {
+                            dialog.dataLoading({ visible: false });
+                            dialog.errorMessage({ text: '此信箱已被註冊' });
+                        }
+                        else {
+                            ApiUser.quickRegister({
+                                account: userData.email,
+                                pwd: gvc.glitter.getUUID(),
+                                userData: userData,
+                            }).then((r) => {
+                                if (r.result) {
                                     dialog.dataLoading({ visible: false });
                                     dialog.infoMessage({ text: '成功新增會員' });
                                     vm.type = 'list';
-                                });
-                            }
-                        });
-                    }))}
+                                }
+                                else {
+                                    dialog.dataLoading({ visible: false });
+                                    dialog.errorMessage({ text: '會員建立失敗' });
+                                }
+                            });
+                        }
+                    })))}
                                     </div>`,
                 ].join(''))}
                         </div>

@@ -14,30 +14,47 @@ import { AiChat } from '../glitter-base/route/ai-chat.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { AiPointsApi } from "../glitter-base/route/ai-points-api.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
+import { ProductAi } from "./ai-generator/product-ai.js";
+import { ProductConfig } from "./product-config.js";
+import { MemberAi } from "./ai-generator/member-ai.js";
 export class AiMessage {
     static setDrawer(gvc, option) {
+        const ai_list = [
+            {
+                key: 'ai_generator',
+                label: `生成`,
+                icon: `fa-regular fa-wand-magic-sparkles`
+            },
+            {
+                key: 'order_analysis',
+                label: '分析',
+                icon: `fa-regular fa-database`
+            },
+            {
+                key: 'operation_guide',
+                label: '引導',
+                icon: `fa-solid fa-bullseye`
+            },
+            {
+                key: 'design',
+                label: '圖片',
+                icon: `fa-regular fa-image`
+            },
+            {
+                key: 'writer',
+                label: '文案',
+                icon: `fa-solid fa-pen-to-square`
+            }
+        ];
         if (!option) {
-            AiMessage.ai_support = [
-                {
-                    key: 'order_analysis',
-                    label: '訂單分析',
-                },
-                {
-                    key: 'operation_guide',
-                    label: '操作引導',
-                },
-                {
-                    key: 'design',
-                    label: '圖片生成',
-                },
-                {
-                    key: 'writer',
-                    label: '文案寫手',
-                }
-            ];
+            AiMessage.ai_support = ai_list;
         }
         else {
-            AiMessage.ai_support = option;
+            AiMessage.ai_support = ai_list.filter((dd) => {
+                return option.find((d1) => {
+                    return dd.key === d1.key;
+                });
+            });
         }
         if (!AiMessage.ai_support.find((dd) => {
             return dd.key === AiMessage.vm.select_bt;
@@ -89,11 +106,7 @@ export class AiMessage {
             function refresh() {
                 gvc.notifyDataChange(id);
             }
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        gvc.addStyle(`
+            gvc.addStyle(`
                             .btn-white-primary {
                                 border: 2px solid ${AiMessage.config.color};
                                 justify-content: space-between;
@@ -108,22 +121,18 @@ export class AiMessage {
                                 color: white !important;
                             }
 
-                            .select-label-ai-message {
+                            .select-label-ai-message_ {
                                 gap: 10px;
-                                border-radius: 7px;
                                 cursor: pointer;
                                 color: white;
                                 font-size: 16px;
                                 flex: 1;
-                                border: 1px solid #ffb400;
                                 background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
                             }
 
-                            .select-btn-ai-message {
-                                border-radius: 7px;
+                            .select-btn-ai-message_ {
                                 flex: 1;
                                 font-size: 16px;
-                                border: 1px solid #ffb400;
                                 cursor: pointer;
                                 background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
                                 background-clip: text;
@@ -131,640 +140,700 @@ export class AiMessage {
                                 -webkit-text-fill-color: transparent;
                             }
                         `);
-                        resolve([
-                            gvc.bindView(() => {
-                                const id = gvc.glitter.getUUID();
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        if (cf.hideBar) {
-                                            return ``;
-                                        }
-                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                            yield Chat.post({
-                                                type: 'user',
-                                                participant: [cf.user_id, AiMessage.vm.select_bt],
-                                            });
-                                            const chatRoom = (yield Chat.getChatRoom({
-                                                page: 0,
-                                                limit: 1000,
-                                                user_id: cf.user_id,
-                                                chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                            })).response.data[0];
-                                            if (chatRoom.who === 'manager') {
-                                                chatRoom.user_data = AiMessage.config;
-                                            }
-                                            resolve(html `
-                                                        <div
-                                                                class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}"
-                                                                style="background: ${AiMessage.config.color};"
-                                                        >
-                                                            <div class="d-flex align-items-center pe-3 w-100"
-                                                                 style="gap:10px;display: flex;align-items: center;">
-                                                                <img
-                                                                        src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                                        class="rounded-circle border"
-                                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
-                                                                        width="40"
-                                                                        alt="Albert Flores"
-                                                                />
-                                                                <div class="d-flex flex-column px-1 text-white">
-                                                                    <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
-                                                                    ${gvc.bindView(() => {
-                                                return {
-                                                    bind: 'ai_points_count',
-                                                    view: () => {
-                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                            resolve(`剩餘『<span class="fw-bold mx-1">${parseInt(((yield AiPointsApi.getSum({})).response.sum), 10).toLocaleString()}</span>』 AI Points`);
-                                                        }));
-                                                    },
-                                                    divCreate: {
-                                                        class: `fw-500 d-flex`,
-                                                        style: `font-size:13px;`
-                                                    }
-                                                };
-                                            })}
-                                                                </div>
-                                                                <div class="flex-fill" style="flex: 1;"></div>
-                                                                <i
-                                                                        class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
-                                                                        onclick="${gvc.event(() => {
-                                                cf.close && cf.close();
-                                            })}"
-                                                                ></i>
-                                                            </div>
-                                                        </div>` +
-                                                html `
-                                                        <div class="d-flex align-items-center p-2 shadow border-bottom"
-                                                             style="gap:10px;">
-                                                            ${(() => {
-                                                    const list = AiMessage.ai_support;
-                                                    return list
-                                                        .map((dd) => {
-                                                        if (AiMessage.vm.select_bt === dd.key) {
-                                                            return html `
-                                                                                    <div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500 select-label-ai-message fs-6">
-                                                                                        ${dd.label}
-                                                                                    </div>`;
-                                                        }
-                                                        else {
-                                                            return html `
-                                                                                    <div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500 select-btn-ai-message fs-6"
-                                                                                         onclick="${gvc.event(() => {
-                                                                AiMessage.vm.select_bt = dd.key;
-                                                                refresh();
-                                                            })}"
-                                                                                    >
-                                                                                        ${dd.label}
-                                                                                    </div>`;
-                                                        }
-                                                    })
-                                                        .join('');
-                                                })()}
-                                                        </div>`);
-                                        }));
-                                    },
-                                };
-                            }),
-                            (AiMessage.vm.select_bt === 'page_editor') ? (() => {
-                                const html = String.raw;
-                                let message = '';
-                                return ` <div class="p-5">
-                                    ${[
-                                    html `
-                                            <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4" speed="1"
-                                                           style="max-width: 100%;width: 250px;height:250px;" loop
-                                                           autoplay></lottie-player>`,
-                                    `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('點擊想要調整的元件之後，在輸入 AI 語句進行調整', `font-weight: 500;`)}</div>`,
-                                    html `
-                                            <div class="w-100" onclick="${gvc.event(() => {
-                                        if (!gvc.glitter.share.editorViewModel.selectItem) {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.errorMessage({ text: '請先點擊要編輯的元件' });
-                                        }
-                                    })}">
-                                                ${EditorElem.editeText({
-                                        gvc: gvc,
-                                        title: '',
-                                        default: '',
-                                        placeHolder: `字體大小20px，距離左邊20px，背景顏色黃色，字體顏色藍色，標題為歡迎來到SHOPNEX開店平台.`,
-                                        callback: (text) => {
-                                            message = text;
-                                        },
-                                        min_height: 100
-                                    })}
-                                            </div>`,
-                                    `<div class="w-100 d-flex align-items-center justify-content-end">
-${BgWidget.save(gvc.event(() => {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        if (!message) {
-                                            dialog.errorMessage({ text: '請輸入描述語句' });
-                                            return;
-                                        }
-                                        dialog.dataLoading({ visible: true });
-                                        gvc.glitter.getModule(new URL('./editor/ai-editor.js', gvc.glitter.root_path).href, (AiEditor) => {
-                                            AiEditor.editView(message, gvc.glitter.share.editorViewModel.selectItem, (result) => {
-                                                dialog.dataLoading({ visible: false });
-                                                if (result) {
-                                                    dialog.successMessage({ text: `已為你調整元件『${result}』` });
-                                                    gvc.glitter.share.editorViewModel.selectItem.refreshComponent();
-                                                    gvc.glitter.closeDrawer();
-                                                }
-                                                else {
-                                                    dialog.errorMessage({ text: 'AI無法理解你的意思，請輸入更確切的需求' });
-                                                }
-                                            });
-                                        });
-                                    }), "調整元素", "w-100 mt-3 py-2")}
-</div>`
-                                ].join('<div class="my-2"></div>')}
-                                </div>`;
-                            })() : gvc.bindView(() => {
-                                const viewId = gvc.glitter.getUUID();
-                                const messageID = gvc.glitter.getUUID();
-                                const vm = {
-                                    data: [],
-                                    loading: true,
-                                    scrollToBtn: false,
-                                    lastScroll: -1,
-                                    message: '',
-                                    prefixScroll: 0,
-                                    last_read: {},
-                                    close: false,
-                                    ai_loading: false,
-                                };
-                                Chat.getMessage({
-                                    page: 0,
-                                    limit: 50,
-                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                    user_id: cf.user_id,
-                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                    yield AiChat.sync_data({ type: AiMessage.vm.select_bt });
-                                    vm.data = res.response.data.reverse();
-                                    vm.last_read = res.response.lastRead;
-                                    vm.loading = false;
-                                    gvc.notifyDataChange(viewId);
-                                }));
-                                const url = new URL(window.glitterBackend);
-                                let socket = undefined;
-                                function markdownToHTML(markdownString) {
-                                    markdownString = markdownString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                                    markdownString = markdownString.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                                    markdownString = markdownString.replace(/#{1,6} (.*?)(?:\n|\r\n)?/g, function (match, group) {
-                                        var level = match.split(' ')[0].length;
-                                        return '<h' + level + '>' + group + '</h' + level + '>';
-                                    });
-                                    markdownString = markdownString.replace(/<h(\d)><\/h\d>([\d\.]+[^\n]+)/g, (match, hLevel, content) => {
-                                        return `<h${hLevel}>${content.trim()}</h${hLevel}>`;
-                                    });
-                                    markdownString = markdownString.replace(/\n(\*|\d+\.) (.*?)(?:\n|\r\n)?/g, function (match, type, content) {
-                                        var tag = type === '*' ? 'ul' : 'ol';
-                                        return '<' + tag + '><li>' + content + '</li></' + tag + '>';
-                                    });
-                                    return markdownString.replace(/\n/g, '<br>');
+            const vm = {
+                select_gen: 'product'
+            };
+            return {
+                bind: id,
+                view: () => {
+                    const header = gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                if (cf.hideBar) {
+                                    return ``;
                                 }
-                                function add_line(dd, index) {
-                                    dd.message.text = dd.message.text || '';
-                                    if (dd.user_id == 'manager') {
-                                        dd.user_data = AiMessage.config;
+                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    yield Chat.post({
+                                        type: 'user',
+                                        participant: [cf.user_id, AiMessage.vm.select_bt],
+                                    });
+                                    const chatRoom = (yield Chat.getChatRoom({
+                                        page: 0,
+                                        limit: 1000,
+                                        user_id: cf.user_id,
+                                        chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                    })).response.data[0];
+                                    if (chatRoom.who === 'manager') {
+                                        chatRoom.user_data = AiMessage.config;
                                     }
-                                    const replacedString = markdownToHTML(dd.message.text);
-                                    const width = (document.body.clientWidth < 768) ? document.body.clientWidth - 120 : 348;
-                                    if (cf.user_id !== dd.user_id) {
-                                        return html `
-                                                <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                    resolve(html `
+                                            <div
+                                                    class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}"
+                                                    style="background: ${AiMessage.config.color};"
+                                            >
+                                                <div class="d-flex align-items-center pe-3 w-100"
+                                                     style="gap:10px;display: flex;align-items: center;">
                                                     <img
                                                             src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                             class="rounded-circle border"
-                                                            width="40"
                                                             style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                            width="40"
+                                                            alt="Albert Flores"
                                                     />
-                                                    <div class="ps-2 ms-1" style="max-width: ${width}px;">
-                                                        <div
-                                                                class="p-3 mb-1"
-                                                                style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                        >
-                                                            ${replacedString}
-                                                            ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
+                                                    <div class="d-flex flex-column px-1 text-white">
+                                                        <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
+                                                        ${gvc.bindView(() => {
+                                        return {
+                                            bind: 'ai_points_count',
+                                            view: () => {
+                                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                    resolve(`剩餘『<span class="fw-bold mx-1">${parseInt(((yield AiPointsApi.getSum({})).response.sum), 10).toLocaleString()}</span>』 AI Points`);
+                                                }));
+                                            },
+                                            divCreate: {
+                                                class: `fw-500 d-flex`,
+                                                style: `font-size:13px;`
+                                            }
+                                        };
+                                    })}
+                                                    </div>
+                                                    <div class="flex-fill" style="flex: 1;"></div>
+                                                    <i
+                                                            class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
+                                                            onclick="${gvc.event(() => {
+                                        cf.close && cf.close();
+                                    })}"
+                                                    ></i>
+                                                </div>
+                                            </div>` +
+                                        html `
+                                            <div class="d-flex align-items-center  shadow border-bottom border-top"
+                                                 style="">
+                                                ${(() => {
+                                            const list = AiMessage.ai_support;
+                                            return list
+                                                .map((dd) => {
+                                                if (AiMessage.vm.select_bt === dd.key) {
+                                                    return html `
+                                                                        <div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500 select-label-ai-message_ fs-6"
+                                                                             style="gap:5px;">
+                                                                            <i class="${dd.icon} "></i>${dd.label}
+                                                                        </div>`;
+                                                }
+                                                else {
+                                                    return html `
+                                                                        <div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500 select-btn-ai-message_ fs-6"
+                                                                             style="gap:5px;"
+                                                                             onclick="${gvc.event(() => {
+                                                        AiMessage.vm.select_bt = dd.key;
+                                                        refresh();
+                                                    })}"
+                                                                        >
+                                                                            <i class="${dd.icon}"></i>${dd.label}
+                                                                        </div>`;
+                                                }
+                                            })
+                                                .join(`<div class="border-end" style="width:1px;height:39px;"></div>`);
+                                        })()}
+                                            </div>`);
+                                }));
+                            },
+                        };
+                    });
+                    if (AiMessage.vm.select_bt === 'ai_generator') {
+                        const map_ = [
+                            header,
+                            html `
+                                <div class="w-100  d-flex flex-column "
+                                     style="height: calc(${cf.containerHeight} - ${130 + (parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10))}px);">
+                                    <div class="d-flex align-items-center p-2 border-bottom">
+                                        <div class="fw-500 fs-6 me-2">選項</div>
+                                        ${BgWidget.select({
+                                gvc: gvc,
+                                callback: (text) => {
+                                    vm.select_gen = text;
+                                    gvc.notifyDataChange(id);
+                                },
+                                default: vm.select_gen,
+                                options: [
+                                    { key: 'product', value: '快速新增商品' },
+                                    { key: 'member', value: '快速新增會員' }
+                                ]
+                            })}
+                                    </div>
+                                    <div class="w-100 p-2">
+                                        ${(() => {
+                                switch (vm.select_gen) {
+                                    case "product":
+                                        const add_product = ProductConfig.getInitial({});
+                                        return ProductAi.setProduct(gvc, add_product, () => {
+                                            localStorage.setItem('add_product', JSON.stringify(add_product));
+                                            window.parent.glitter.setUrlParameter('tab', 'product-manager');
+                                            window.parent.glitter.share.reloadEditor();
+                                            window.parent.glitter.closeDrawer();
+                                        });
+                                    case 'member':
+                                        const member_data = {};
+                                        return MemberAi.addMember(gvc, member_data, () => {
+                                            localStorage.setItem('add_member', JSON.stringify(member_data));
+                                            window.parent.glitter.setUrlParameter('tab', 'user_list');
+                                            window.parent.glitter.share.reloadEditor();
+                                            window.parent.glitter.closeDrawer();
+                                        });
+                                }
+                            })()}
+                                    </div>
+                                </div>`
+                        ];
+                        return map_.join('');
+                    }
+                    else {
+                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            resolve([
+                                header,
+                                (AiMessage.vm.select_bt === 'page_editor') ? (() => {
+                                    const html = String.raw;
+                                    let message = '';
+                                    return ` <div class="p-5">
+                                    ${[
+                                        html `
+                                                <lottie-player src="${gvc.glitter.root_path}lottie/ai.json"
+                                                               class="mx-auto my-n4" speed="1"
+                                                               style="max-width: 100%;width: 250px;height:250px;" loop
+                                                               autoplay></lottie-player>`,
+                                        `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('點擊想要調整的元件之後，在輸入 AI 語句進行調整', `font-weight: 500;`)}</div>`,
+                                        html `
+                                                <div class="w-100" onclick="${gvc.event(() => {
+                                            if (!gvc.glitter.share.editorViewModel.selectItem) {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.errorMessage({ text: '請先點擊要編輯的元件' });
+                                            }
+                                        })}">
+                                                    ${EditorElem.editeText({
+                                            gvc: gvc,
+                                            title: '',
+                                            default: '',
+                                            placeHolder: `字體大小20px，距離左邊20px，背景顏色黃色，字體顏色藍色，標題為歡迎來到SHOPNEX開店平台.`,
+                                            callback: (text) => {
+                                                message = text;
+                                            },
+                                            min_height: 100
+                                        })}
+                                                </div>`,
+                                        `<div class="w-100 d-flex align-items-center justify-content-end">
+${BgWidget.save(gvc.event(() => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            if (!message) {
+                                                dialog.errorMessage({ text: '請輸入描述語句' });
+                                                return;
+                                            }
+                                            dialog.dataLoading({ visible: true });
+                                            gvc.glitter.getModule(new URL('./editor/ai-editor.js', gvc.glitter.root_path).href, (AiEditor) => {
+                                                AiEditor.editView(message, gvc.glitter.share.editorViewModel.selectItem, (result) => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    if (result) {
+                                                        dialog.successMessage({ text: `已為你調整元件『${result}』` });
+                                                        gvc.glitter.share.editorViewModel.selectItem.refreshComponent();
+                                                        gvc.glitter.closeDrawer();
+                                                    }
+                                                    else {
+                                                        dialog.errorMessage({ text: 'AI無法理解你的意思，請輸入更確切的需求' });
+                                                    }
+                                                });
+                                            });
+                                        }), "調整元素", "w-100 mt-3 py-2")}
+</div>`
+                                    ].join('<div class="my-2"></div>')}
+                                </div>`;
+                                })() : gvc.bindView(() => {
+                                    const viewId = gvc.glitter.getUUID();
+                                    const messageID = gvc.glitter.getUUID();
+                                    const vm = {
+                                        data: [],
+                                        loading: true,
+                                        scrollToBtn: false,
+                                        lastScroll: -1,
+                                        message: '',
+                                        prefixScroll: 0,
+                                        last_read: {},
+                                        close: false,
+                                        ai_loading: false,
+                                    };
+                                    Chat.getMessage({
+                                        page: 0,
+                                        limit: 50,
+                                        chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                        user_id: cf.user_id,
+                                    }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                        yield AiChat.sync_data({ type: AiMessage.vm.select_bt });
+                                        vm.data = res.response.data.reverse();
+                                        vm.last_read = res.response.lastRead;
+                                        vm.loading = false;
+                                        gvc.notifyDataChange(viewId);
+                                    }));
+                                    const url = new URL(window.glitterBackend);
+                                    let socket = undefined;
+                                    function markdownToHTML(markdownString) {
+                                        markdownString = markdownString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                                        markdownString = markdownString.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                                        markdownString = markdownString.replace(/#{1,6} (.*?)(?:\n|\r\n)?/g, function (match, group) {
+                                            var level = match.split(' ')[0].length;
+                                            return '<h' + level + '>' + group + '</h' + level + '>';
+                                        });
+                                        markdownString = markdownString.replace(/<h(\d)><\/h\d>([\d\.]+[^\n]+)/g, (match, hLevel, content) => {
+                                            return `<h${hLevel}>${content.trim()}</h${hLevel}>`;
+                                        });
+                                        markdownString = markdownString.replace(/\n(\*|\d+\.) (.*?)(?:\n|\r\n)?/g, function (match, type, content) {
+                                            var tag = type === '*' ? 'ul' : 'ol';
+                                            return '<' + tag + '><li>' + content + '</li></' + tag + '>';
+                                        });
+                                        return markdownString.replace(/\n/g, '<br>');
+                                    }
+                                    function add_line(dd, index) {
+                                        dd.message.text = dd.message.text || '';
+                                        if (dd.user_id == 'manager') {
+                                            dd.user_data = AiMessage.config;
+                                        }
+                                        const replacedString = markdownToHTML(dd.message.text);
+                                        const width = (document.body.clientWidth < 768) ? document.body.clientWidth - 120 : 348;
+                                        if (cf.user_id !== dd.user_id) {
+                                            return html `
+                                                    <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                                        <img
+                                                                src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                                class="rounded-circle border"
+                                                                width="40"
+                                                                style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                        />
+                                                        <div class="ps-2 ms-1" style="max-width: ${width}px;">
+                                                            <div
+                                                                    class="p-3 mb-1"
+                                                                    style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                            >
+                                                                ${replacedString}
+                                                                ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
                                  src="${dd.message.image}"
                                  alt="image"
                                  onclick="${gvc.event(() => {
-                                            gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
-                                        })}">` : ``}
-                                                            <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none` : ``}"
-                                                                 style="letter-spacing: 1.2px;">
-                                                                ${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points` : ``}
+                                                gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                                            })}">` : ``}
+                                                                <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none` : ``}"
+                                                                     style="letter-spacing: 1.2px;">
+                                                                    ${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points` : ``}
+                                                                </div>
+                                                            </div>
+                                                            <div class="fs-sm d-flex text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                                ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
                                                             </div>
                                                         </div>
-                                                        <div class="fs-sm d-flex text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                            ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
-                                                        </div>
-                                                    </div>
-                                                </div>`;
-                                    }
-                                    else {
-                                        return html `
-                                                <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
-                                                    <div class="pe-2 me-1" style="max-width: ${width}px;">
-                                                        <div
-                                                                class=" text-light p-3 mb-1"
-                                                                style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                        >
-                                                            ${replacedString}
-                                                            ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
+                                                    </div>`;
+                                        }
+                                        else {
+                                            return html `
+                                                    <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                                        <div class="pe-2 me-1" style="max-width: ${width}px;">
+                                                            <div
+                                                                    class=" text-light p-3 mb-1"
+                                                                    style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                            >
+                                                                ${replacedString}
+                                                                ${dd.message.image ? `<img style="cursor: pointer;width:${width - 40}px;height: ${width - 40}px;"
                                  src="${dd.message.image}"
                                  alt="image"
                                  onclick="${gvc.event(() => {
-                                            gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
-                                        })}">` : ``}
+                                                gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image);
+                                            })}">` : ``}
+                                                            </div>
+                                                            <div
+                                                                    class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
+                                                vm.data[index + 1].user_id === dd.user_id
+                                                ? `d-none`
+                                                : ``}"
+                                                                    style="gap:5px;"
+                                                            >
+                                                                <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                                                                ${vm.last_read.find((d2) => {
+                                                return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+                                            })
+                                                ? `已讀`
+                                                : ``}
+                                                            </div>
                                                         </div>
-                                                        <div
-                                                                class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
-                                            vm.data[index + 1].user_id === dd.user_id
-                                            ? `d-none`
-                                            : ``}"
-                                                                style="gap:5px;"
-                                                        >
-                                                            <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                            ${vm.last_read.find((d2) => {
-                                            return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
-                                        })
-                                            ? `已讀`
-                                            : ``}
-                                                        </div>
-                                                    </div>
-                                                </div>`;
-                                    }
-                                }
-                                function connect() {
-                                    if (gvc.glitter.share.close_socket) {
-                                        gvc.glitter.share.close_socket();
-                                    }
-                                    vm.close = false;
-                                    socket = location.href.includes('https://') ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
-                                    gvc.glitter.share.close_socket = () => {
-                                        vm.close = true;
-                                        socket.close();
-                                        gvc.glitter.share.close_socket = undefined;
-                                    };
-                                    gvc.glitter.share.socket = socket;
-                                    socket.addEventListener('open', function (event) {
-                                        console.log('Connected to server');
-                                        socket.send(JSON.stringify({
-                                            type: 'message',
-                                            chatID: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                            user_id: cf.user_id,
-                                            app_name: window.appName,
-                                        }));
-                                    });
-                                    let interVal = 0;
-                                    socket.addEventListener('message', function (event) {
-                                        const data = JSON.parse(event.data);
-                                        if (data.type === 'update_read_count') {
-                                            vm.last_read = data.data;
-                                        }
-                                        else {
-                                            document.querySelector('.nomessage') && document.querySelector('.nomessage').remove();
-                                            vm.data.push(data);
-                                            const element = document.querySelector('.chatContainer');
-                                            const st = element.scrollTop;
-                                            const ofs = element.offsetHeight;
-                                            const sh = element.scrollHeight;
-                                            $('.time-tt').addClass('d-none');
-                                            if (cf.user_id !== data.user_id) {
-                                                vm.message = '';
-                                                vm.ai_loading = false;
-                                                gvc.notifyDataChange('footer-ai');
-                                            }
-                                            $(element).append(add_line(data, vm.data.length - 1));
-                                            if (st + ofs >= sh - 50) {
-                                                vm.lastScroll = -1;
-                                                setTimeout(() => {
-                                                    document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
-                                                }, 100);
-                                            }
-                                            else {
-                                                vm.lastScroll = st;
-                                            }
-                                            gvc.notifyDataChange('ai_points_count');
-                                        }
-                                    });
-                                    socket.addEventListener('close', function (event) {
-                                        console.log('Disconnected from server');
-                                        if (!vm.close) {
-                                            console.log('Reconnected from server');
-                                            connect();
-                                        }
-                                    });
-                                }
-                                connect();
-                                const textAreaId = gvc.glitter.getUUID();
-                                return {
-                                    bind: viewId,
-                                    view: () => {
-                                        if (vm.loading) {
-                                            return html `
-                                                    <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                                        <div class="spinner-border" role="status">
-                                                            <span class="sr-only"></span>
-                                                        </div>
-                                                        <span class="mt-2">AI 就位中...</span>
                                                     </div>`;
                                         }
-                                        return html `
-                                                ${gvc.bindView(() => {
-                                            return {
-                                                bind: messageID,
-                                                view: () => {
-                                                    var _a;
-                                                    return html `
-                                                                <div class="my-auto flex-fill"></div>
-                                                                ${add_line({
-                                                        user_id: 'robot',
-                                                        message: {
-                                                            text: (_a = [
+                                    }
+                                    function connect() {
+                                        if (gvc.glitter.share.close_socket) {
+                                            gvc.glitter.share.close_socket();
+                                        }
+                                        vm.close = false;
+                                        socket = location.href.includes('https://') ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                        gvc.glitter.share.close_socket = () => {
+                                            vm.close = true;
+                                            socket.close();
+                                            gvc.glitter.share.close_socket = undefined;
+                                        };
+                                        gvc.glitter.share.socket = socket;
+                                        socket.addEventListener('open', function (event) {
+                                            console.log('Connected to server');
+                                            socket.send(JSON.stringify({
+                                                type: 'message',
+                                                chatID: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                user_id: cf.user_id,
+                                                app_name: window.appName,
+                                            }));
+                                        });
+                                        let interVal = 0;
+                                        socket.addEventListener('message', function (event) {
+                                            const data = JSON.parse(event.data);
+                                            if (data.type === 'update_read_count') {
+                                                vm.last_read = data.data;
+                                            }
+                                            else {
+                                                document.querySelector('.nomessage') && document.querySelector('.nomessage').remove();
+                                                vm.data.push(data);
+                                                const element = document.querySelector('.chatContainer');
+                                                const st = element.scrollTop;
+                                                const ofs = element.offsetHeight;
+                                                const sh = element.scrollHeight;
+                                                $('.time-tt').addClass('d-none');
+                                                if (cf.user_id !== data.user_id) {
+                                                    vm.message = '';
+                                                    vm.ai_loading = false;
+                                                    gvc.notifyDataChange('footer-ai');
+                                                }
+                                                $(element).append(add_line(data, vm.data.length - 1));
+                                                if (st + ofs >= sh - 50) {
+                                                    vm.lastScroll = -1;
+                                                    setTimeout(() => {
+                                                        document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
+                                                    }, 100);
+                                                }
+                                                else {
+                                                    vm.lastScroll = st;
+                                                }
+                                                gvc.notifyDataChange('ai_points_count');
+                                            }
+                                        });
+                                        socket.addEventListener('close', function (event) {
+                                            console.log('Disconnected from server');
+                                            if (!vm.close) {
+                                                console.log('Reconnected from server');
+                                                connect();
+                                            }
+                                        });
+                                    }
+                                    connect();
+                                    const textAreaId = gvc.glitter.getUUID();
+                                    return {
+                                        bind: viewId,
+                                        view: () => {
+                                            if (vm.loading) {
+                                                return html `
+                                                        <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                                                            <div class="spinner-border" role="status">
+                                                                <span class="sr-only"></span>
+                                                            </div>
+                                                            <span class="mt-2">AI 就位中...</span>
+                                                        </div>`;
+                                            }
+                                            return html `
+                                                    ${gvc.bindView(() => {
+                                                return {
+                                                    bind: messageID,
+                                                    view: () => {
+                                                        var _a;
+                                                        return html `
+                                                                    <div class="my-auto flex-fill"></div>
+                                                                    ${add_line({
+                                                            user_id: 'robot',
+                                                            message: {
+                                                                text: (_a = [
+                                                                    {
+                                                                        key: 'writer',
+                                                                        text: '您好！我是AI文案寫手，專門協助您撰寫任何文案。',
+                                                                    },
+                                                                    {
+                                                                        key: 'order_analysis',
+                                                                        text: `您好！我是AI資料分析師，能為您查詢與分析訂單資料，並提供可行的建議。`,
+                                                                    },
+                                                                    {
+                                                                        key: 'operation_guide',
+                                                                        text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
+                                                                    },
+                                                                    {
+                                                                        key: 'design',
+                                                                        text: '您好！我是AI設計師，能協助你生成任何行銷或商品圖面。',
+                                                                    }
+                                                                ].find((dd) => {
+                                                                    return dd.key === AiMessage.vm.select_bt;
+                                                                })) === null || _a === void 0 ? void 0 : _a.text,
+                                                            },
+                                                            created_time: new Date().toISOString(),
+                                                        }, -1)}
+                                                                    ${vm.data
+                                                            .map((dd, index) => {
+                                                            return add_line(dd, index);
+                                                        })
+                                                            .join('')}
+                                                                `;
+                                                    },
+                                                    divCreate: {
+                                                        class: `chatContainer p-3 d-flex flex-column position-relative`,
+                                                        style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-top:60px;`,
+                                                    },
+                                                    onCreate: () => {
+                                                        vm.close = false;
+                                                        let targetElement = document.querySelector('.chatContainer');
+                                                        if (vm.lastScroll === -1) {
+                                                            setTimeout(() => {
+                                                                document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
+                                                            }, 100);
+                                                        }
+                                                        else {
+                                                            if (vm.prefixScroll) {
+                                                                vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
+                                                                vm.prefixScroll = 0;
+                                                            }
+                                                            document.querySelector('.chatContainer').scrollTop = vm.lastScroll;
+                                                        }
+                                                        targetElement.addEventListener('scroll', () => {
+                                                            vm.lastScroll = targetElement.scrollTop;
+                                                            if (targetElement.scrollTop === 0) {
+                                                                if (vm.loading) {
+                                                                    return;
+                                                                }
+                                                                vm.loading = true;
+                                                                Chat.getMessage({
+                                                                    page: 0,
+                                                                    limit: 50,
+                                                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                                    olderID: vm.data[0].id,
+                                                                    user_id: cf.user_id,
+                                                                }).then((res) => {
+                                                                    vm.loading = false;
+                                                                    vm.prefixScroll = targetElement.scrollHeight;
+                                                                    vm.data = res.response.data.reverse().concat(vm.data);
+                                                                    gvc.notifyDataChange(viewId);
+                                                                });
+                                                            }
+                                                        });
+                                                    },
+                                                };
+                                            })}
+                                                    ${gvc.bindView(() => {
+                                                return {
+                                                    bind: 'footer-ai',
+                                                    view: () => {
+                                                        var _a;
+                                                        if (vm.ai_loading) {
+                                                            return html `
+                                                                        <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
+                                                                            <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center"
+                                                                                 style="gap: 8px;">
+                                                                                <div class="spinner-border"
+                                                                                     style="width:20px;height: 20px;"></div>
+                                                                                AI 解答中
+                                                                            </div>
+                                                                        </div>`;
+                                                        }
+                                                        else {
+                                                            return html `
+                                                                        <div class="d-flex px-2"
+                                                                             style="overflow-x: auto;gap:5px;"
+                                                                             ontouchmove="${gvc.event((e, event) => {
+                                                                event.stopPropagation();
+                                                            })}" onmouseup="${gvc.event((e, event) => {
+                                                                event.stopPropagation();
+                                                            })}">
+                                                                            ${(_a = [
                                                                 {
                                                                     key: 'writer',
-                                                                    text: '您好！我是AI文案寫手，專門協助您撰寫任何文案。',
+                                                                    data: [
+                                                                        '幫我撰寫一個精品包的文案',
+                                                                        '撰寫一個關於我們的範本',
+                                                                        '幫我撰寫一個限時特價的文案',
+                                                                        '撰寫一個關於退貨條款的範本',
+                                                                        '撰寫一個關於服務條款的範本',
+                                                                    ],
                                                                 },
                                                                 {
                                                                     key: 'order_analysis',
-                                                                    text: `您好！我是AI資料分析師，能為您查詢與分析訂單資料，並提供可行的建議。`,
+                                                                    data: [
+                                                                        '這個月的銷售額是多少？',
+                                                                        '這週賣最好的五個商品？',
+                                                                        '未付款的訂單有哪些？',
+                                                                        '哪個客戶買最多商品？',
+                                                                        '尚未出貨的訂單還有哪些？',
+                                                                    ],
                                                                 },
                                                                 {
                                                                     key: 'operation_guide',
-                                                                    text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
+                                                                    data: [
+                                                                        '如何新增訂單？',
+                                                                        '購物金的用途是什麼？',
+                                                                        '什麼是安全庫存？',
+                                                                        '如何設定優惠促銷活動？',
+                                                                        '要如何匯出商品列表？',
+                                                                        '如何設定網站佈景主題？',
+                                                                    ],
                                                                 },
                                                                 {
                                                                     key: 'design',
-                                                                    text: '您好！我是AI設計師，能協助你生成任何行銷或商品圖面。',
+                                                                    data: ['家具電商平台宣傳圖，現代極簡主義，背景保持乾淨整潔',
+                                                                        '服飾店宣傳圖，模特背著名牌包，腳穿高跟鞋']
                                                                 }
-                                                            ].find((dd) => {
+                                                            ]
+                                                                .find((dd) => {
                                                                 return dd.key === AiMessage.vm.select_bt;
-                                                            })) === null || _a === void 0 ? void 0 : _a.text,
-                                                        },
-                                                        created_time: new Date().toISOString(),
-                                                    }, -1)}
-                                                                ${vm.data
-                                                        .map((dd, index) => {
-                                                        return add_line(dd, index);
-                                                    })
-                                                        .join('')}
-                                                            `;
-                                                },
-                                                divCreate: {
-                                                    class: `chatContainer p-3 d-flex flex-column position-relative`,
-                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${240 + (parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-top:60px;`,
-                                                },
-                                                onCreate: () => {
-                                                    vm.close = false;
-                                                    let targetElement = document.querySelector('.chatContainer');
-                                                    if (vm.lastScroll === -1) {
-                                                        setTimeout(() => {
-                                                            document.querySelector('.chatContainer').scrollTop = document.querySelector('.chatContainer').scrollHeight;
-                                                        }, 100);
-                                                    }
-                                                    else {
-                                                        if (vm.prefixScroll) {
-                                                            vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
-                                                            vm.prefixScroll = 0;
-                                                        }
-                                                        document.querySelector('.chatContainer').scrollTop = vm.lastScroll;
-                                                    }
-                                                    targetElement.addEventListener('scroll', () => {
-                                                        vm.lastScroll = targetElement.scrollTop;
-                                                        if (targetElement.scrollTop === 0) {
-                                                            if (vm.loading) {
-                                                                return;
-                                                            }
-                                                            vm.loading = true;
-                                                            Chat.getMessage({
-                                                                page: 0,
-                                                                limit: 50,
-                                                                chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                                                olderID: vm.data[0].id,
-                                                                user_id: cf.user_id,
-                                                            }).then((res) => {
-                                                                vm.loading = false;
-                                                                vm.prefixScroll = targetElement.scrollHeight;
-                                                                vm.data = res.response.data.reverse().concat(vm.data);
-                                                                gvc.notifyDataChange(viewId);
-                                                            });
-                                                        }
-                                                    });
-                                                },
-                                            };
-                                        })}
-                                                ${gvc.bindView(() => {
-                                            return {
-                                                bind: 'footer-ai',
-                                                view: () => {
-                                                    var _a;
-                                                    if (vm.ai_loading) {
-                                                        return html `
-                                                                    <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
-                                                                        <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center"
-                                                                             style="gap: 8px;">
-                                                                            <div class="spinner-border"
-                                                                                 style="width:20px;height: 20px;"></div>
-                                                                            AI 解答中
-                                                                        </div>
-                                                                    </div>`;
-                                                    }
-                                                    else {
-                                                        return html `
-                                                                    <div class="d-flex px-2"
-                                                                         style="overflow-x: auto;gap:5px;"
-                                                                         ontouchmove="${gvc.event((e, event) => {
-                                                            event.stopPropagation();
-                                                        })}" onmouseup="${gvc.event((e, event) => {
-                                                            event.stopPropagation();
-                                                        })}">
-                                                                        ${(_a = [
-                                                            {
-                                                                key: 'writer',
-                                                                data: [
-                                                                    '幫我撰寫一個精品包的文案',
-                                                                    '撰寫一個關於我們的範本',
-                                                                    '幫我撰寫一個限時特價的文案',
-                                                                    '撰寫一個關於退貨條款的範本',
-                                                                    '撰寫一個關於服務條款的範本',
-                                                                ],
-                                                            },
-                                                            {
-                                                                key: 'order_analysis',
-                                                                data: [
-                                                                    '這個月的銷售額是多少？',
-                                                                    '這週賣最好的五個商品？',
-                                                                    '未付款的訂單有哪些？',
-                                                                    '哪個客戶買最多商品？',
-                                                                    '尚未出貨的訂單還有哪些？',
-                                                                ],
-                                                            },
-                                                            {
-                                                                key: 'operation_guide',
-                                                                data: [
-                                                                    '如何新增訂單？',
-                                                                    '購物金的用途是什麼？',
-                                                                    '什麼是安全庫存？',
-                                                                    '如何設定優惠促銷活動？',
-                                                                    '要如何匯出商品列表？',
-                                                                    '如何設定網站佈景主題？',
-                                                                ],
-                                                            },
-                                                            {
-                                                                key: 'design',
-                                                                data: ['家具電商平台宣傳圖，現代極簡主義，背景保持乾淨整潔',
-                                                                    '服飾店宣傳圖，模特背著名牌包，腳穿高跟鞋']
-                                                            }
-                                                        ]
-                                                            .find((dd) => {
-                                                            return dd.key === AiMessage.vm.select_bt;
-                                                        })) === null || _a === void 0 ? void 0 : _a.data.map((dd) => {
-                                                            return html `
-                                                                                        <div
-                                                                                                class="insignia insignia-secondary bgf6"
-                                                                                                style="white-space: nowrap;cursor: pointer;"
-                                                                                                onclick="${gvc.event(() => {
-                                                                vm.ai_loading = true;
-                                                                gvc.notifyDataChange('footer-ai');
-                                                                Chat.postMessage({
-                                                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                                                    user_id: cf.user_id,
-                                                                    message: {
-                                                                        text: dd,
-                                                                        attachment: '',
-                                                                    },
-                                                                }).then(() => {
-                                                                    vm.message = '';
-                                                                });
-                                                            })}"
-                                                                                        >
-                                                                                            ${dd}
-                                                                                        </div>`;
-                                                        }).join('')}
-                                                                    </div>
-                                                                    <div class="px-2 d-flex align-items-center w-100 border-0 px-2"
-                                                                         style="background: white;border-radius: 0px;">
-                                                                        ${BgWidget.customButton({
-                                                            button: {
-                                                                color: 'snow',
-                                                                size: 'sm',
-                                                                style: 'min-height: 40px;'
-                                                            },
-                                                            icon: { name: 'fa-regular fa-broom-wide text-dark' },
-                                                            text: { name: '重置' },
-                                                            event: gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.warningMessage({
-                                                                    text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
-                                                                    callback: (response) => {
-                                                                        if (response) {
-                                                                            dialog.dataLoading({ visible: true });
-                                                                            AiChat.reset({
-                                                                                type: AiMessage.vm.select_bt,
-                                                                            }).then(() => {
-                                                                                dialog.dataLoading({ visible: false });
-                                                                                refresh();
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            }),
-                                                        })}
-                                                                        ${[
-                                                            html `
-                                                                                <div class="position-relative w-100 mx-2">
-                                                                                    ${gvc.bindView(() => {
-                                                                return {
-                                                                    bind: textAreaId,
-                                                                    view: () => {
-                                                                        var _a;
-                                                                        return (_a = vm.message) !== null && _a !== void 0 ? _a : '';
-                                                                    },
-                                                                    divCreate: {
-                                                                        elem: `textArea`,
-                                                                        style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
-                                                                        class: `form-control`,
-                                                                        option: [
-                                                                            {
-                                                                                key: 'placeholder',
-                                                                                value: '輸入訊息內容',
-                                                                            },
-                                                                            {
-                                                                                key: 'onchange',
-                                                                                value: gvc.event((e) => {
-                                                                                    vm.message = e.value;
-                                                                                }),
-                                                                            },
-                                                                        ],
-                                                                    },
-                                                                    onCreate: () => {
-                                                                        const input = gvc.getBindViewElem(textAreaId).get(0);
-                                                                        input.addEventListener('input', function () {
-                                                                            input.style.height = 'auto';
-                                                                            input.style.height = input.scrollHeight + 'px';
-                                                                        });
-                                                                    },
-                                                                };
-                                                            })}
-                                                                                </div>`,
-                                                            html `
-                                                                                <button
-                                                                                        type="button"
-                                                                                        class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
-                                                                                        style="height: 36px;background: ${AiMessage.config.color};"
-                                                                                        onclick="${gvc.event(() => {
-                                                                if (vm.message) {
+                                                            })) === null || _a === void 0 ? void 0 : _a.data.map((dd) => {
+                                                                return html `
+                                                                                            <div
+                                                                                                    class="insignia insignia-secondary bgf6"
+                                                                                                    style="white-space: nowrap;cursor: pointer;"
+                                                                                                    onclick="${gvc.event(() => {
                                                                     vm.ai_loading = true;
                                                                     gvc.notifyDataChange('footer-ai');
                                                                     Chat.postMessage({
                                                                         chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                                         user_id: cf.user_id,
                                                                         message: {
-                                                                            text: vm.message,
+                                                                            text: dd,
                                                                             attachment: '',
                                                                         },
                                                                     }).then(() => {
                                                                         vm.message = '';
                                                                     });
-                                                                    const textArea = gvc.getBindViewElem(textAreaId).get(0);
-                                                                    textArea.value = '';
-                                                                    textArea.focus();
-                                                                }
-                                                                else {
-                                                                }
-                                                            })}"
-                                                                                >
-                                                                                    <i class="fa-regular fa-paper-plane-top"></i>
-                                                                                </button>`,
-                                                        ].join('')}
-                                                                    </div>
-                                                                `;
-                                                    }
-                                                    return ``;
-                                                },
-                                                divCreate: {
-                                                    class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
-                                                    style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset, 10) + 10}px !important;` : ``}`,
-                                                },
-                                                onCreate: () => {
-                                                },
-                                            };
-                                        })}
-                                            `;
-                                    },
-                                    divCreate: {},
-                                    onCreate: () => {
-                                    },
-                                    onDestroy: () => {
-                                        vm.close = true;
-                                        socket.close();
-                                    },
-                                };
-                            }),
-                        ].join(''));
-                    }));
+                                                                })}"
+                                                                                            >
+                                                                                                ${dd}
+                                                                                            </div>`;
+                                                            }).join('')}
+                                                                        </div>
+                                                                        <div class="px-2 d-flex align-items-center w-100 border-0 px-2"
+                                                                             style="background: white;border-radius: 0px;">
+                                                                            ${BgWidget.customButton({
+                                                                button: {
+                                                                    color: 'snow',
+                                                                    size: 'sm',
+                                                                    style: 'min-height: 40px;'
+                                                                },
+                                                                icon: { name: 'fa-regular fa-broom-wide text-dark' },
+                                                                text: { name: '重置' },
+                                                                event: gvc.event(() => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.warningMessage({
+                                                                        text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                AiChat.reset({
+                                                                                    type: AiMessage.vm.select_bt,
+                                                                                }).then(() => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    refresh();
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                }),
+                                                            })}
+                                                                            ${[
+                                                                html `
+                                                                                    <div class="position-relative w-100 mx-2">
+                                                                                        ${gvc.bindView(() => {
+                                                                    return {
+                                                                        bind: textAreaId,
+                                                                        view: () => {
+                                                                            var _a;
+                                                                            return (_a = vm.message) !== null && _a !== void 0 ? _a : '';
+                                                                        },
+                                                                        divCreate: {
+                                                                            elem: `textArea`,
+                                                                            style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
+                                                                            class: `form-control`,
+                                                                            option: [
+                                                                                {
+                                                                                    key: 'placeholder',
+                                                                                    value: '輸入訊息內容',
+                                                                                },
+                                                                                {
+                                                                                    key: 'onchange',
+                                                                                    value: gvc.event((e) => {
+                                                                                        vm.message = e.value;
+                                                                                    }),
+                                                                                },
+                                                                            ],
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            const input = gvc.getBindViewElem(textAreaId).get(0);
+                                                                            input.addEventListener('input', function () {
+                                                                                input.style.height = 'auto';
+                                                                                input.style.height = input.scrollHeight + 'px';
+                                                                            });
+                                                                        },
+                                                                    };
+                                                                })}
+                                                                                    </div>`,
+                                                                html `
+                                                                                    <button
+                                                                                            type="button"
+                                                                                            class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
+                                                                                            style="height: 36px;background: ${AiMessage.config.color};"
+                                                                                            onclick="${gvc.event(() => {
+                                                                    if (vm.message) {
+                                                                        vm.ai_loading = true;
+                                                                        gvc.notifyDataChange('footer-ai');
+                                                                        Chat.postMessage({
+                                                                            chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                                            user_id: cf.user_id,
+                                                                            message: {
+                                                                                text: vm.message,
+                                                                                attachment: '',
+                                                                            },
+                                                                        }).then(() => {
+                                                                            vm.message = '';
+                                                                        });
+                                                                        const textArea = gvc.getBindViewElem(textAreaId).get(0);
+                                                                        textArea.value = '';
+                                                                        textArea.focus();
+                                                                    }
+                                                                    else {
+                                                                    }
+                                                                })}"
+                                                                                    >
+                                                                                        <i class="fa-regular fa-paper-plane-top"></i>
+                                                                                    </button>`,
+                                                            ].join('')}
+                                                                        </div>
+                                                                    `;
+                                                        }
+                                                        return ``;
+                                                    },
+                                                    divCreate: {
+                                                        class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
+                                                        style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset, 10) + 10}px !important;` : ``}`,
+                                                    },
+                                                    onCreate: () => {
+                                                    },
+                                                };
+                                            })}
+                                                `;
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                        },
+                                        onDestroy: () => {
+                                            vm.close = true;
+                                            socket.close();
+                                        },
+                                    };
+                                }),
+                            ].join(''));
+                        }));
+                    }
                 },
             };
         });
@@ -861,7 +930,7 @@ AiMessage.config = {
 AiMessage.vm = {
     type: 'list',
     chat_user: '',
-    select_bt: 'order_analysis',
+    select_bt: 'ai_generator',
 };
 AiMessage.id = `dsmdklweew3`;
 AiMessage.ai_support = [];

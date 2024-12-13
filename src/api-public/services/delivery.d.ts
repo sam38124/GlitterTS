@@ -1,4 +1,20 @@
-type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'TCAT' | 'POST';
+type EcPayOrder = {
+    LogisticsType: 'CVS' | 'HOME';
+    LogisticsSubType: StoreBrand;
+    GoodsAmount: number;
+    GoodsName: string;
+    GoodsWeight?: number;
+    ReceiverName: string;
+    ReceiverCellPhone: string;
+    ReceiverStoreID?: string;
+    CollectionAmount?: number;
+    IsCollection?: 'N' | 'Y';
+    ReceiverZipCode?: string;
+    ReceiverAddress?: string;
+    SenderZipCode?: string;
+    SenderAddress?: string;
+};
 export type DeliveryData = {
     AllPayLogisticsID: string;
     BookingNote: string;
@@ -48,14 +64,7 @@ export declare class Delivery {
     appName: string;
     constructor(appName: string);
     getC2CMap(returnURL: string, logistics: string): Promise<string>;
-    postStoreOrder(json?: {
-        LogisticsSubType: StoreBrand;
-        GoodsAmount: number;
-        GoodsName: string;
-        ReceiverName: string;
-        ReceiverCellPhone: string;
-        ReceiverStoreID: string;
-    }): Promise<{
+    postStoreOrder(json?: EcPayOrder): Promise<{
         result: boolean;
         message: any;
         data?: undefined;
@@ -70,6 +79,9 @@ export declare class Delivery {
         CVSPaymentNo: string;
         CVSValidationNo: string;
     }): Promise<string>;
+    static removeUndefined(originParams: any): {
+        [k: string]: unknown;
+    };
     notify(json: any): Promise<string>;
 }
 export {};
