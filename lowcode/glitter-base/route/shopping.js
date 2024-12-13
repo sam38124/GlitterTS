@@ -421,6 +421,7 @@ export class ApiShop {
     }
     static getOrder(json) {
         const filterString = this.orderListFilterString(json.filter);
+        console.log("");
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/order?${(() => {
@@ -434,6 +435,7 @@ export class ApiShop {
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
+                    json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);

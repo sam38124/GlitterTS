@@ -2,7 +2,6 @@ import crypto from "crypto";
 import axios from "axios";
 import FormData, {from} from 'form-data';
 import Tool from "./ezpay/tool.js";
-import {EcPay, EzPay} from "./financial-service.js";
 import db from '../../modules/database';
 import JSDOM from 'jsdom'
 import app from "../../app.js";

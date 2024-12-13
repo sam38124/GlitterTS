@@ -9,9 +9,8 @@ import {ApiUser} from '../glitter-base/route/user.js';
 import {UserList} from './user-list.js';
 import {CheckInput} from '../modules/checkInput.js';
 import {ApiDelivery} from '../glitter-base/route/delivery.js';
-import {Tool} from '../modules/tool.js';
 import {ShoppingInvoiceManager} from './shopping-invoice-manager.js';
-import {BaseApi} from '../glitterBundle/api/base.js';
+import {loadFont} from "jimp";
 
 type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
 
@@ -235,6 +234,14 @@ export class ShoppingOrderManager {
             dataList: [{obj: vm, key: 'type'}],
             view: () => {
                 if (vm.type === 'list') {
+                    const url = window.parent.location.href;
+                    const urlParams = new URLSearchParams(new URL(url).search);
+                    ;['MerchantID', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSAddress', 'CVSTelephone', 'CVSOutSide', 'CVSStoreName'].forEach(key => {
+                        const value = urlParams.get(key);
+                        if (value) {
+                            vm.type = "add";
+                        }
+                    });
                     return BgWidget.container(
                         html`
                             <div class="title-container">
@@ -839,6 +846,7 @@ export class ShoppingOrderManager {
             created_time: '2023-11-09T06:36:51.000Z',
         };
         let userData: any = {};
+        console.log("orderData -- " , orderData)
         const mainViewID = gvc.glitter.getUUID();
         orderData.orderData.progress = orderData.orderData.progress ?? 'wait';
         if (
@@ -1897,6 +1905,7 @@ export class ShoppingOrderManager {
         class OrderDetail {
             subtotal: number;
             shipment: number;
+            total:number;
             discount: number;
             rebate: number;
             cart_token: string;
@@ -1957,11 +1966,9 @@ export class ShoppingOrderManager {
                     email: '',
                 };
                 this.pay_status = 1;
+                this.total = 0;
             }
 
-            get total(): number {
-                return this.subtotal + this.shipment - this.discount;
-            }
         }
 
         let newVoucher: VoucherData;
@@ -2041,6 +2048,30 @@ export class ShoppingOrderManager {
 
             discount: 0,
         };
+        const url = window.parent.location.href;
+        const urlParams = new URLSearchParams(new URL(url).search);
+        let CVSCheck = false;
+        ;['MerchantID', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSAddress', 'CVSTelephone', 'CVSOutSide', 'CVSStoreName'].forEach(key => {
+            const value = urlParams.get(key);
+
+            if (value) {
+                if (!CVSCheck){
+                    const localData1 = JSON.parse(localStorage.getItem('orderDetail')??"")
+                    newOrder = JSON.parse(localStorage.getItem('newOrder') ?? "");
+                    orderDetail = localData1;
+                }
+
+                CVSCheck = true;
+                (orderDetail.user_info as any)[key] = decodeURIComponent(value);
+                // subData[key] = decodeURIComponent(value); // 解碼中文參數
+            }
+            urlParams.delete(key);
+
+        });
+        if (CVSCheck){
+            const newUrl = window.parent.location.origin + window.parent.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            window.parent.window.history.replaceState(null, '', newUrl);
+        }
 
         let customerData: {
             receiver: any;
@@ -2064,25 +2095,25 @@ export class ShoppingOrderManager {
         };
         let orderDetailRefresh = false;
 
-        // todo 選擇門市
-        //點擊選擇取貨門市之後 回傳門市資訊
         function selectCVS(cvsCode: string) {
             // UNIMARTC2C: `7-11`,
             // FAMIC2C: `全家`,
             // HILIFEC2C: `萊爾富`,
             // OKMARTC2C: `OK`
-            let fakeData = {
-                CVSAddress: '桃園市八德區中山一路116號',
-                CVSStoreID: '256933',
-                CVSStoreName: '八德仁貴門市',
-                CVSTelephone: '',
-            };
-
-            orderDetail.user_info.CVSAddress = fakeData.CVSAddress;
-            orderDetail.user_info.CVSStoreID = fakeData.CVSStoreID;
-            orderDetail.user_info.CVSStoreName = fakeData.CVSStoreName;
-            orderDetail.user_info.CVSTelephone = fakeData.CVSTelephone;
-            gvc.notifyDataChange('CVSStore');
+            // http://127.0.0.1:4000/shopnex/cms?type=editor&appName=t_1725992531001&MerchantID=3313168&MerchantTradeNo=1733991777197&LogisticsSubType=FAMIC2C&CVSStoreID=019495&CVSStoreName=%25E5%2585%25A8%25E5%25AE%25B6%25E4%25B8%25AD%25E5%25A3%25A2%25E8%258F%25AF%25E5%258B%259B%25E5%25BA%2597&CVSAddress=%25E6%25A1%2583%25E5%259C%2592%25E5%25B8%2582%25E4%25B8%25AD%25E5%25A3%25A2%25E5%258D%2580%25E8%258F%25AF%25E7%25BE%258E%25E4%25B8%2580%25E8%25B7%25AF143%25E8%2599%259F&CVSTelephone=03-4568778&CVSOutSide=&ExtraData=&function=backend-manger&tab=order_list
+            ApiDelivery.storeMaps({
+                returnURL: window.parent.location.href,
+                logistics: cvsCode,
+            }).then(async (res) => {
+                let newDiv = document.createElement("div");
+                localStorage.setItem('orderDetail' , JSON.stringify(orderDetail))
+                localStorage.setItem('newOrder' , JSON.stringify(newOrder))
+                console.log("orderDetail -- " , orderDetail)
+                console.log("newOrder -- " , newOrder)
+                newDiv.innerHTML = res.response.form;
+                (window.parent as any).document.body.appendChild(newDiv);
+                ((window.parent as any).document.querySelector('#submit') as any).click();
+            });
         }
 
         // 計算優惠金的總扣除額 運費資訊 還有點擊和完成折扣填值之後所顯示的前端頁面
@@ -2361,6 +2392,7 @@ export class ShoppingOrderManager {
             return gvc.bindView({
                 bind: 'orderDetail',
                 view: () => {
+
                     orderDetail.subtotal = 0;
                     orderDetail.lineItems = [];
                     newOrder.productCheck.map((data: any, index: number) => {
@@ -2397,6 +2429,7 @@ export class ShoppingOrderManager {
                     if (newVoucher.reBackType == 'shipment_free') {
                         orderDetail.shipment = 0;
                     }
+                    orderDetail.total = orderDetail.subtotal + orderDetail.shipment - orderDetail.discount;
                     let returnHTML = ``;
                     let showArray: {
                         left: string;
@@ -2422,10 +2455,10 @@ export class ShoppingOrderManager {
                         // },
                         {
                             left: '總金額',
-                            right: orderDetail.total,
+                            right: orderDetail.total??orderDetail.subtotal + orderDetail.shipment - orderDetail.discount,
                         },
                     ];
-
+                    console.log("showArray -- " ,  showArray)
                     showArray.map((rowData) => {
                         returnHTML += html`
                             <div class="w-100 d-flex align-items-center justify-content-end" style="min-height: 21px;">
@@ -2449,27 +2482,29 @@ export class ShoppingOrderManager {
                 dialog.infoMessage({text: '請添加商品'});
                 return false;
             }
-            if (!passData.user_info.name || !passData.user_info.email) {
+            if (!passData.customer_info.name || !passData.customer_info.email) {
                 dialog.infoMessage({text: '「顧客資料」尚未填寫完畢'});
                 return false;
             }
-            if (!CheckInput.isEmpty(passData.user_info.phone) && !CheckInput.isTaiwanPhone(passData.user_info.phone)) {
-                dialog.infoMessage({text: BgWidget.taiwanPhoneAlert('「顧客資料」電話格式有誤')});
-                return false;
-            }
-            if (!CheckInput.isEmail(passData.user_info.email)) {
+            // if (!CheckInput.isTaiwanPhone(passData.user_info.phone)) {
+            //     console.log("passData -- " , passData)
+            //     dialog.infoMessage({text: BgWidget.taiwanPhoneAlert('「顧客資料」電話格式有誤')});
+            //     return false;
+            // }
+
+            if (!CheckInput.isEmail(passData.customer_info.email)) {
                 dialog.infoMessage({text: '「顧客資料」信箱格式錯誤'});
                 return false;
             }
-            if (!passData.customer_info.name || !passData.customer_info.phone || !passData.customer_info.email) {
+            if (!passData.user_info.name || !passData.user_info.email) {
                 dialog.infoMessage({text: '「收件人資料」尚未填寫完畢'});
                 return false;
             }
-            if (!CheckInput.isTaiwanPhone(passData.customer_info.phone)) {
-                dialog.infoMessage({text: BgWidget.taiwanPhoneAlert('「收件人資料」電話格式有誤')});
+            if (CheckInput.isEmpty(passData.user_info.phone) && !CheckInput.isTaiwanPhone(passData.user_info.phone)) {
+                dialog.infoMessage({text: BgWidget.taiwanPhoneAlert('「收件人資料」電話格式有誤或未填')});
                 return false;
             }
-            if (!CheckInput.isEmail(passData.customer_info.email)) {
+            if (!CheckInput.isEmail(passData.user_info.email)) {
                 dialog.infoMessage({text: '「收件人資料」信箱格式錯誤'});
                 return false;
             }
@@ -2514,6 +2549,7 @@ export class ShoppingOrderManager {
                             let returnHTML = '';
                             gvc.notifyDataChange('orderDetail');
                             if (newOrder.productCheck.length) {
+                                
                                 newOrder.productCheck.map((product: any, index: number) => {
                                     let selectVariant = product.content.variants[parseInt(product.selectIndex ?? 0)];
                                     let productIMG = typeof selectVariant.preview_image == 'string' ? selectVariant.preview_image : selectVariant.preview_image[0];
@@ -2920,13 +2956,15 @@ export class ShoppingOrderManager {
                                     <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
 
                                 function syncUserData() {
+                                    if (CVSCheck){
+                                        return
+                                    }
                                     orderDetail.user_info.name = tempUserData[customerData.type].name;
                                     orderDetail.user_info.phone = tempUserData[customerData.type].phone;
                                     orderDetail.user_info.email = tempUserData[customerData.type].email;
                                 }
 
                                 syncUserData();
-
                                 return html`
                                     <div class="tx_700">顧客資料</div>
                                     <div class="d-flex flex-column">
@@ -2943,7 +2981,7 @@ export class ShoppingOrderManager {
                                                             <input
                                                                     class="w-100 searchInput"
                                                                     placeholder="搜尋現有顧客"
-                                                                    value="${customerData.info.search ?? ''}"
+                                                                    value="${orderDetail.customer_info.email??customerData.info.search ?? ''}"
                                                                     style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                     onkeyup="${gvc.event((e) => {
                                                                         if (customerData.info.searchable) {
@@ -2984,10 +3022,11 @@ export class ShoppingOrderManager {
                                                                                             style="cursor: pointer;"
                                                                                             onclick="${gvc.event(() => {
                                                                                                 tempUserData[customerData.type] = data;
-
-                                                                                                orderDetail.user_info.name = data.userData.name;
-                                                                                                orderDetail.user_info.phone = data.phone;
-                                                                                                orderDetail.user_info.email = data.account;
+                                                                                                
+                                                                                                orderDetail.customer_info.name = data.userData.name??"";
+                                                                                                orderDetail.customer_info.phone = data.phone??"";
+                                                                                                orderDetail.customer_info.email = data.account??"";
+                                                                                                
                                                                                                 customerData.pageType = 'check';
                                                                                                 (document.querySelector(`.searchInput`) as HTMLInputElement).value = `${data.userData.name ?? 'uname'}(${
                                                                                                         data.account ?? 'unknown email'
@@ -3228,15 +3267,16 @@ export class ShoppingOrderManager {
                                                 style="gap:6px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
                                                     customerData.sameCustomer = !customerData.sameCustomer;
-                                                    if (customerData.sameCustomer && !orderDetail.user_info?.email) {
+                                                    if (customerData.sameCustomer && !orderDetail.customer_info?.email) {
                                                         const dialog = new ShareDialog(glitter);
                                                         dialog.errorMessage({text: '請填寫顧客資料'});
                                                         customerData.sameCustomer = !customerData.sameCustomer;
                                                     }
                                                     if (customerData.sameCustomer) {
-                                                        orderDetail.customer_info.name = orderDetail.user_info.name;
-                                                        orderDetail.customer_info.phone = orderDetail.user_info.phone;
-                                                        orderDetail.customer_info.email = orderDetail.user_info.email;
+                                                        console.log(orderDetail)
+                                                        orderDetail.user_info.name = orderDetail.customer_info.name;
+                                                        orderDetail.user_info.phone = orderDetail.customer_info.phone;
+                                                        orderDetail.user_info.email = orderDetail.customer_info.email;
                                                     }
                                                     gvc.notifyDataChange('setLogistics');
                                                 })}"
@@ -3258,10 +3298,10 @@ export class ShoppingOrderManager {
                                             <div>姓名</div>
                                             <input
                                                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    value="${orderDetail.customer_info.name ?? ''}"
+                                                    value="${orderDetail.user_info.name ?? ''}"
                                                     placeholder="請輸入姓名"
                                                     onchange="${gvc.event((e) => {
-                                                        orderDetail.customer_info.name = e.value;
+                                                        orderDetail.user_info.name = e.value;
                                                     })}"
                                                     ${customerData.sameCustomer ? 'disabled' : ''}
                                             />
@@ -3270,10 +3310,10 @@ export class ShoppingOrderManager {
                                             <div>電話</div>
                                             <input
                                                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    value="${orderDetail.customer_info.phone ?? ''}"
+                                                    value="${orderDetail.user_info.phone ?? ''}"
                                                     placeholder="請輸入電話"
                                                     onchange="${gvc.event((e) => {
-                                                        orderDetail.customer_info.phone = e.value;
+                                                        orderDetail.user_info.phone = e.value;
                                                     })}"
                                             />
                                         </div>
@@ -3344,19 +3384,19 @@ export class ShoppingOrderManager {
                                                                     </div>
                                                                 `;
                                                                 return html`
-                                                                    <div>取貨門市</div>
+                                                                    <div>配送門市</div>
                                                                     ${returnHTML}
                                                                 `;
                                                             } else {
                                                                 return html`
-                                                                    <div>取貨門市</div>
+                                                                    <div>配送門市</div>
                                                                     <div
                                                                             style="color: #4D86DB;cursor: pointer;margin-top:8px;cursor: pointer"
                                                                             onclick="${gvc.event(() => {
                                                                                 selectCVS(orderDetail.user_info.shipment);
                                                                             })}"
                                                                     >
-                                                                        請選擇取貨門市
+                                                                        請選擇配送門市
                                                                     </div>
                                                                 `;
                                                             }
@@ -3394,15 +3434,17 @@ export class ShoppingOrderManager {
                     ${BgWidget.save(
                             gvc.event(() => {
                                 let passData = JSON.parse(JSON.stringify(orderDetail));
-
+                                
                                 passData.total = orderDetail.total;
                                 passData.orderStatus = 1;
-
+                                
                                 delete passData.tag;
                                 const dialog = new ShareDialog(glitter);
-
+                                passData.line_items = passData.lineItems;
+                                //
                                 dialog.dataLoading({visible: true});
                                 if (checkOrderEmpty(passData)) {
+                                    console.log("passData" , passData);
                                     ApiShop.toManualCheckout(passData).then((r) => {
                                         dialog.dataLoading({visible: false});
                                         (window.parent as any).glitter.innerDialog(

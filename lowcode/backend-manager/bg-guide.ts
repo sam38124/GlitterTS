@@ -2817,6 +2817,7 @@ export class BgGuide {
                             let bottom = iframeRect.bottom - 230;
                             const scrollEvent = this.disableScroll();
                             BG.classList.add('guide2-5');
+
                             target.classList.add(`position-relative`);
                             const child_gvc: GVC = iframe.contentWindow.glitter.pageConfig[0].gvc;
                             gvc.addStyle(`

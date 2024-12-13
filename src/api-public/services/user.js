@@ -1323,12 +1323,15 @@ class User {
                           LEFT JOIN \`${this.app}\`.t_user AS u
                                     ON s.email = u.account
                  WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                 LIMIT ${query.page * query.limit}, ${query.limit}
+
                 `, []);
             const subTotal = await database_1.default.query(`SELECT count(*) as c
                  FROM \`${this.app}\`.t_subscribe AS s
                           LEFT JOIN \`${this.app}\`.t_user AS u
                                     ON s.email = u.account
                  WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                 
                 `, []);
             return {
                 data: subData,

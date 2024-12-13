@@ -106,6 +106,7 @@ export class BgNotify {
                                             search: vm.query || undefined,
                                             filter: { account: 'no' },
                                         }).then((data) => {
+                                            console.log("data -- " , data)
                                             vm.dataList = data.response.data;
                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                             vmi.originalData = vm.dataList;

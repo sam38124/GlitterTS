@@ -818,6 +818,7 @@ export class Shopping {
     ) {
         try {
             data.line_items = (data.line_items || (data as any).lineItems) ?? [];
+            console.log("data.line_items -- " , data)
             //判斷是重新付款則取代
             if (replace_order_id) {
                 const orderData = (
@@ -2337,6 +2338,7 @@ export class Shopping {
             }
 
             if (query.distribution_code) {
+                console.log("here OK --")
                 let codes = query.distribution_code.split(',');
                 let temp = '';
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;
@@ -2385,6 +2387,7 @@ export class Shopping {
                         break;
                 }
             }
+
 
             query.status && querySql.push(`status IN (${query.status})`);
             const orderMath = [];

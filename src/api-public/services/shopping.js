@@ -521,6 +521,7 @@ class Shopping {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
+            console.log("data.line_items -- ", data);
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_checkout
@@ -1769,6 +1770,7 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.distribution_code) {
+                console.log("here OK --");
                 let codes = query.distribution_code.split(',');
                 let temp = '';
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;

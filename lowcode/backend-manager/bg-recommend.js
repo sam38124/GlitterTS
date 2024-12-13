@@ -513,6 +513,43 @@ export class BgRecommend {
             { key: 'ptt', value: 'PTT' },
             { key: 'other', value: '其他' },
         ];
+        function getOrderlist(data) {
+            return data.map((dd) => {
+                return [
+                    {
+                        key: '訂單編號',
+                        value: html ` <div style="overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>`,
+                    },
+                    {
+                        key: '訂單日期',
+                        value: html ` <div style="overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd')}</div>`,
+                    },
+                    {
+                        key: '總金額',
+                        value: parseInt(dd.orderData.total, 10).toLocaleString(),
+                    },
+                    {
+                        key: '訂單狀態',
+                        value: (() => {
+                            if (dd.orderData.progress) {
+                                const status = ApiShop.getShippingStatusArray().find((item) => item.value === dd.orderData.progress);
+                                if (status) {
+                                    return status ? status.title : '未設定出貨狀態';
+                                }
+                            }
+                            return '未設定出貨狀態';
+                        })(),
+                    },
+                    {
+                        key: '',
+                        value: BgWidget.grayButton('查閱', gvc.event(() => {
+                            vm.data = dd;
+                            gvc.notifyDataChange(vm.id);
+                        })),
+                    },
+                ];
+            });
+        }
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -693,6 +730,54 @@ export class BgRecommend {
                                                     vm.data.share_type = data[0];
                                                 }, { single: true, readonly: vm.readonly })}`,
                                             ].join(BgWidget.mbContainer(18))),
+                                            gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;">
+                                                                    <span class="tx_700">訂單記錄</span>
+                                                                </div>` +
+                                                            gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        const limit = 10;
+                                                                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                            const h = BgWidget.tableV3({
+                                                                                gvc: gvc,
+                                                                                getData: (vd) => {
+                                                                                    console.log("vm.data -- ", vm.data);
+                                                                                    ApiShop.getOrder({
+                                                                                        page: vd.page - 1,
+                                                                                        limit: limit,
+                                                                                        data_from: 'manager',
+                                                                                        distribution_code: vm.data.code,
+                                                                                        status: 1,
+                                                                                    }).then((data) => {
+                                                                                        console.log('data -- ', data);
+                                                                                        vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                        vd.originalData = data.response.data;
+                                                                                        vd.tableData = getOrderlist(data.response.data);
+                                                                                        vd.loading = false;
+                                                                                        vd.callback();
+                                                                                    });
+                                                                                },
+                                                                                rowClick: () => { },
+                                                                                filter: [],
+                                                                            });
+                                                                            resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                        }));
+                                                                    },
+                                                                };
+                                                            }));
+                                                    },
+                                                    divCreate: {
+                                                        class: 'p-0',
+                                                    },
+                                                };
+                                            }),
                                             BgWidget.mainCard((() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return gvc.bindView({

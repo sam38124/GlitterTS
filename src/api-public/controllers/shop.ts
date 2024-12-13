@@ -282,6 +282,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     created_time: req.query.created_time as string,
                     orderString: req.query.orderString as string,
                     archived: req.query.archived as string,
+                    distribution_code: req.query.distribution_code as string,
                     returnSearch: req.query.returnSearch as string,
                 })
             );
