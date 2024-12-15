@@ -726,7 +726,8 @@ export async function createAPP(dd: any) {
                             [appName]
                         )
                     )[0]['domain'];
-                    return  (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: * 
+                    return  (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: *
+Allow: /                    
 Sitemap: https://${domain}/sitemap.xml`;
                 },
                 tw_shop: async (req, resp) => {

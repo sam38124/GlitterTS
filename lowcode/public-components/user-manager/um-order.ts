@@ -855,8 +855,8 @@ export class UMOrder {
                             ${gvc.map(
                                 orderData.lineItems.map((item) => {
                                     return html`
-                                        <div class="o-line-item">
-                                            <div class="d-flex gap-3">
+                                        <div class="o-line-item ${(document.body.clientWidth<800) ? `p-2`:``}">
+                                            <div class="d-flex gap-3 align-items-center">
                                                 <div>
                                                     ${UmClass.validImageBox({
                                                         gvc,
@@ -865,7 +865,7 @@ export class UMOrder {
                                                         style: 'border-radius: 10px;',
                                                     })}
                                                 </div>
-                                                <div>
+                                                <div class="">
                                                     <p
                                                         class="o-item-title"
                                                         onclick="${gvc.event(() => {
@@ -891,10 +891,11 @@ export class UMOrder {
                                                     <p class="o-item-spec">
                                                         ${item.spec.length > 0 ? `${Language.text('specification')}：${item.spec.join(' / ')}` : Language.text('single_specification')}
                                                     </p>
+                                                    <span class="me-3  d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
                                                 </div>
                                             </div>
-                                            <div class="d-flex">
-                                                <span class="me-3">$ ${item.sale_price.toLocaleString()} × ${item.count}</span>
+                                            <div class="d-none d-sm-flex">
+                                                <span class="me-3 d-none d-sm-block">$ ${item.sale_price.toLocaleString()} × ${item.count}</span>
                                                 <span class="o-subtotal">NT$ ${(item.sale_price * item.count).toLocaleString()}</span>
                                             </div>
                                         </div>

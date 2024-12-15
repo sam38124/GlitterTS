@@ -790,6 +790,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                     }
                                                                                                 })()}</div>`,
                                                                                                 GlobalWidget.showCaseEditor({
+                                                                                                    hide_ai:vm.page==='setting',
                                                                                                     gvc: gvc,
                                                                                                     widget: oWidget,
                                                                                                     view: (widget, type) => {
@@ -997,6 +998,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                             return true
                                                                                                                         })
                                                                                                                         try {
+                                                                                                                           
                                                                                                                             const global_setting_view = [
                                                                                                                                 `<div class="mx-3 guide-user-editor-6 "
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"

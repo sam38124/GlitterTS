@@ -285,26 +285,6 @@ class Shopping {
                     b.content.id = b.id;
                 }
             }
-            const checkoutSQL = `
-                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
-                FROM \`${this.app}\`.t_checkout
-                WHERE status = 1;
-            `;
-            const checkouts = await database_js_1.default.query(checkoutSQL, []);
-            const itemRecord = [];
-            for (const checkout of checkouts) {
-                if (Array.isArray(checkout.lineItems)) {
-                    for (const item1 of checkout.lineItems) {
-                        const index = itemRecord.findIndex((item2) => item1.id === item2.id);
-                        if (index === -1) {
-                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
-                        }
-                        else {
-                            itemRecord[index].count += item1.count;
-                        }
-                    }
-                }
-            }
             if (productList.length > 0) {
                 const stockList = await database_js_1.default.query(`SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
                      FROM \`${this.app}\`.t_stock_recover,
@@ -339,11 +319,6 @@ class Shopping {
                 }
                 await trans.commit();
             }
-            productList.map((product) => {
-                const record = itemRecord.find((item) => item.id === product.id);
-                product.total_sales = record ? record.count : 0;
-                return product;
-            });
             if (query.id_list) {
                 let tempData = [];
                 query.id_list.split(',').map((id) => {
@@ -535,9 +510,9 @@ class Shopping {
     }
     async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
-            console.log("data.line_items -- ", data);
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_checkout
@@ -559,6 +534,7 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
+            console.log(`checkout-time-1=>`, (new Date().getTime()) - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -574,6 +550,7 @@ class Shopping {
                     return {};
                 }
             })();
+            console.log(`checkout-time-2=>`, (new Date().getTime()) - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
@@ -600,6 +577,7 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
+            console.log(`checkout-time-3=>`, (new Date().getTime()) - check_time);
             const shipment = await (async () => {
                 var _a, _b;
                 data.user_info = data.user_info || {};
@@ -628,6 +606,7 @@ class Shopping {
                 }
                 return def;
             })();
+            console.log(`checkout-time-4=>`, (new Date().getTime()) - check_time);
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -646,6 +625,7 @@ class Shopping {
                     resolve([]);
                 }
             });
+            console.log(`checkout-time-5=>`, (new Date().getTime()) - check_time);
             shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
@@ -657,6 +637,7 @@ class Shopping {
             shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
             shipment_setting.info =
                 (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
+            console.log(`checkout-time-6=>`, (new Date().getTime()) - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -826,8 +807,10 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
+            console.log(`checkout-time-7=>`, (new Date().getTime()) - check_time);
             carData.shipment_fee = (() => {
                 let total_volume = 0;
                 let total_weight = 0;
@@ -843,6 +826,7 @@ class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
+            console.log(`checkout-time-8=>`, (new Date().getTime()) - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
@@ -852,6 +836,7 @@ class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
+            console.log(`checkout-time-9=>`, (new Date().getTime()) - check_time);
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -866,6 +851,7 @@ class Shopping {
                     }
                 }
             }
+            console.log(`checkout-time-10=>`, (new Date().getTime()) - check_time);
             if (type !== 'manual' && type !== 'manual-preview') {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
@@ -874,6 +860,7 @@ class Shopping {
                     return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
+                console.log(`checkout-time-check-voucher=>`, (new Date().getTime()) - check_time);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
@@ -886,9 +873,11 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
+                console.log(`checkout-time-check-voucher2=>`, (new Date().getTime()) - check_time);
                 let can_add_gift = [];
                 carData.voucherList
                     .filter((dd) => {
@@ -935,6 +924,7 @@ class Shopping {
                     }
                 }
             }
+            console.log(`checkout-time-11=>`, (new Date().getTime()) - check_time);
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_finance',
@@ -966,6 +956,7 @@ class Shopping {
             });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
+            console.log(`checkout-time-12=>`, (new Date().getTime()) - check_time);
             if (type === 'manual') {
                 carData.orderSource = 'manual';
                 let tempVoucher = {
@@ -1021,6 +1012,7 @@ class Shopping {
                 }
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
+                console.log(`checkout-time-13=>`, (new Date().getTime()) - check_time);
                 return {
                     data: carData,
                 };
@@ -1416,8 +1408,7 @@ class Shopping {
             }
             return [];
         }
-        const userData = (_a = (await userClass.getUserData(cart.email, 'account'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -1426,7 +1417,7 @@ class Shopping {
             return dd.content;
         })
             .filter((dd) => {
-            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || (new Date(dd.end_ISO_Date).getTime() > new Date().getTime()));
         });
         const pass_ids = [];
         for (const voucher of allVoucher) {
@@ -1437,7 +1428,6 @@ class Shopping {
             pass_ids.push(voucher.id);
         }
         let overlay = false;
-        const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
             return pass_ids.includes(dd.id) && dd.status === 1;
@@ -1463,22 +1453,7 @@ class Shopping {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                if (userLevels[0]) {
-                    return dd.targetList.includes(userLevels[0].data.id);
-                }
-                return false;
-            }
-            if (dd.target === 'group') {
-                if (!groupList.result) {
-                    return false;
-                }
-                let pass = false;
-                for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
-                    if (!pass && group.users.some((item) => item.userID === userData.userID)) {
-                        pass = true;
-                    }
-                }
-                return pass;
+                return dd.targetList.includes(userData.member[0].id);
             }
             return true;
         })
@@ -2797,17 +2772,17 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
-                    SELECT orderData
-                    FROM \`${this.app}\`.t_checkout
-                    WHERE
-                        DAY (created_time) = DAY (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                        , INTERVAL ${index} DAY))
-                      AND status = 1;
-                `;
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
                         let total = 0;
@@ -3104,14 +3079,18 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         var _a, _b;
         content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
         content.seo.domain = content.seo.domain || content.title;
-        const find_conflict = await database_js_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_manager_post\`
-             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')`, []);
-        if (find_conflict[0]['count(1)'] > 0) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-                message: '網域已被使用',
-                code: '733',
-            });
+        const language = await app_js_1.App.getSupportLanguage(this.app);
+        for (const b of language) {
+            const find_conflict = await database_js_1.default.query(`select count(1)
+                 from \`${this.app}\`.\`t_manager_post\`
+                 where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+                `, []);
+            if (find_conflict[0]['count(1)'] > 0) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                    message: '網域已被使用',
+                    code: '733',
+                });
+            }
         }
         try {
             content.type = 'product';
@@ -3227,15 +3206,18 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         await Promise.all(promises);
     }
     async putProduct(content) {
-        const find_conflict = await database_js_1.default.query(`select count(1)
-             from \`${this.app}\`.\`t_manager_post\`
-             where (content ->>'$.seo.domain'='${decodeURIComponent(content.seo.domain)}')
-               and id != ${content.id}`, []);
-        if (find_conflict[0]['count(1)'] > 0) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-                message: '網域已被使用',
-                code: '733',
-            });
+        const language = await app_js_1.App.getSupportLanguage(this.app);
+        for (const b of language) {
+            const find_conflict = await database_js_1.default.query(`select count(1)
+                 from \`${this.app}\`.\`t_manager_post\`
+                 where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+                   and id != ${content.id}`, []);
+            if (find_conflict[0]['count(1)'] > 0) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                    message: '網域已被使用',
+                    code: '733',
+                });
+            }
         }
         try {
             content.type = 'product';

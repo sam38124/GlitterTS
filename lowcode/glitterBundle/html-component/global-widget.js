@@ -180,6 +180,49 @@ export class GlobalWidget {
             const id = obj.gvc.glitter.getUUID();
             const gvc = obj.gvc;
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
+            let select_bt = 'form_editor';
+            function ai_switch() {
+                return `<div class="d-flex align-items-center  shadow border-bottom mt-n2"
+                                                     style="">
+                                                    ${(() => {
+                    const list = [
+                        {
+                            key: 'form_editor',
+                            label: `元件設計`,
+                            icon: `fa-regular fa-pencil`
+                        },
+                        {
+                            key: 'ai_editor',
+                            label: 'AI 設計',
+                            icon: `fa-regular fa-wand-magic-sparkles`
+                        }
+                    ];
+                    return list
+                        .map((dd) => {
+                        if (select_bt === dd.key) {
+                            return html `
+                                    <div class="d-flex align-items-center justify-content-center fw-bold px-2 py-2 fw-500 select-label-ai-message_ fs-6"
+                                         style="gap:5px;">
+                                        <i class="${dd.icon} "></i>${dd.label}
+                                    </div>`;
+                        }
+                        else {
+                            return html `
+                                    <div class="d-flex align-items-center justify-content-center fw-bold  px-2 py-2 fw-500 select-btn-ai-message_ fs-6"
+                                         style="gap:5px;"
+                                         onclick="${gvc.event(() => {
+                                select_bt = dd.key;
+                                gvc.notifyDataChange(id);
+                            })}"
+                                    >
+                                        <i class="${dd.icon}"></i>${dd.label}
+                                    </div>`;
+                        }
+                    })
+                        .join(`<div class="border-end" style="width:1px;height:39px;"></div>`);
+                })()}
+                                                </div>`;
+            }
             function selector(widget, key) {
                 if (obj.hide_selector) {
                     return ``;
@@ -187,6 +230,14 @@ export class GlobalWidget {
                 return html `
                     <div class=" mx-n2"
                          style="">${[
+                    ...(() => {
+                        if (obj.hide_ai) {
+                            return [];
+                        }
+                        else {
+                            return [ai_switch()];
+                        }
+                    })(),
                     obj.gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
@@ -270,6 +321,13 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer === 'custom', (bool) 
                 return {
                     bind: id,
                     view: () => {
+                        if (select_bt === 'ai_editor') {
+                            return new Promise((resolve, reject) => {
+                                gvc.glitter.getModule(gvc.glitter.root_path + 'cms-plugin/ai-generator/editor-ai.js', (EditorAi) => {
+                                    resolve([`<div class="mx-n2">${ai_switch()}</div>`, EditorAi.view(gvc)].join(''));
+                                });
+                            });
+                        }
                         const view = (() => {
                             try {
                                 if (GlobalWidget.glitter_view_type === 'mobile') {

@@ -773,6 +773,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                             }
                                                                                         })()}</div>`,
                                                                                         GlobalWidget.showCaseEditor({
+                                                                                            hide_ai: vm.page === 'setting',
                                                                                             gvc: gvc,
                                                                                             widget: oWidget,
                                                                                             view: (widget, type) => {

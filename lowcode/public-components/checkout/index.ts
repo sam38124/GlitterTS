@@ -213,6 +213,7 @@ export class CheckoutIndex {
                     appearance: none;
                     -webkit-appearance: none;
                     -moz-appearance: none;
+                    color:#393939;
                 }
 
                 .${classPrefix}-select:focus {
@@ -541,7 +542,6 @@ export class CheckoutIndex {
                             }
 
                             return html` <div class="container ${gClass('container')}">
-                                <div class="${gClass('header')}">${Language.text('shopping_details')}</div>
                                 ${gvc.bindView(
                                     (() => {
                                         return {

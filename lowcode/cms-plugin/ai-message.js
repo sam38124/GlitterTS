@@ -13,7 +13,6 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { AiChat } from '../glitter-base/route/ai-chat.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { AiPointsApi } from "../glitter-base/route/ai-points-api.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ProductAi } from "./ai-generator/product-ai.js";
 import { ProductConfig } from "./product-config.js";
 import { MemberAi } from "./ai-generator/member-ai.js";
@@ -243,6 +242,7 @@ export class AiMessage {
                         };
                     });
                     if (AiMessage.vm.select_bt === 'ai_generator') {
+                        let container_id = gvc.glitter.getUUID();
                         const map_ = [
                             header,
                             html `
@@ -254,7 +254,7 @@ export class AiMessage {
                                 gvc: gvc,
                                 callback: (text) => {
                                     vm.select_gen = text;
-                                    gvc.notifyDataChange(id);
+                                    gvc.notifyDataChange(container_id);
                                 },
                                 default: vm.select_gen,
                                 options: [
@@ -263,28 +263,35 @@ export class AiMessage {
                                 ]
                             })}
                                     </div>
-                                    <div class="w-100 p-2">
-                                        ${(() => {
-                                switch (vm.select_gen) {
-                                    case "product":
-                                        const add_product = ProductConfig.getInitial({});
-                                        return ProductAi.setProduct(gvc, add_product, () => {
-                                            localStorage.setItem('add_product', JSON.stringify(add_product));
-                                            window.parent.glitter.setUrlParameter('tab', 'product-manager');
-                                            window.parent.glitter.share.reloadEditor();
-                                            window.parent.glitter.closeDrawer();
-                                        });
-                                    case 'member':
-                                        const member_data = {};
-                                        return MemberAi.addMember(gvc, member_data, () => {
-                                            localStorage.setItem('add_member', JSON.stringify(member_data));
-                                            window.parent.glitter.setUrlParameter('tab', 'user_list');
-                                            window.parent.glitter.share.reloadEditor();
-                                            window.parent.glitter.closeDrawer();
-                                        });
-                                }
-                            })()}
-                                    </div>
+                                    ${gvc.bindView(() => {
+                                return {
+                                    bind: container_id,
+                                    view: () => {
+                                        switch (vm.select_gen) {
+                                            case "product":
+                                                const add_product = ProductConfig.getInitial({});
+                                                return ProductAi.setProduct(gvc, add_product, () => {
+                                                    localStorage.setItem('add_product', JSON.stringify(add_product));
+                                                    window.parent.glitter.setUrlParameter('tab', 'product-manager');
+                                                    window.parent.glitter.share.reloadEditor();
+                                                    window.parent.glitter.closeDrawer();
+                                                });
+                                            case 'member':
+                                                const member_data = {};
+                                                return MemberAi.addMember(gvc, member_data, () => {
+                                                    localStorage.setItem('add_member', JSON.stringify(member_data));
+                                                    window.parent.glitter.setUrlParameter('tab', 'user_list');
+                                                    window.parent.glitter.share.reloadEditor();
+                                                    window.parent.glitter.closeDrawer();
+                                                });
+                                        }
+                                        return ``;
+                                    },
+                                    divCreate: {
+                                        class: `w-100 p-2`
+                                    }
+                                };
+                            })}
                                 </div>`
                         ];
                         return map_.join('');
@@ -293,61 +300,7 @@ export class AiMessage {
                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                             resolve([
                                 header,
-                                (AiMessage.vm.select_bt === 'page_editor') ? (() => {
-                                    const html = String.raw;
-                                    let message = '';
-                                    return ` <div class="p-5">
-                                    ${[
-                                        html `
-                                                <lottie-player src="${gvc.glitter.root_path}lottie/ai.json"
-                                                               class="mx-auto my-n4" speed="1"
-                                                               style="max-width: 100%;width: 250px;height:250px;" loop
-                                                               autoplay></lottie-player>`,
-                                        `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('點擊想要調整的元件之後，在輸入 AI 語句進行調整', `font-weight: 500;`)}</div>`,
-                                        html `
-                                                <div class="w-100" onclick="${gvc.event(() => {
-                                            if (!gvc.glitter.share.editorViewModel.selectItem) {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.errorMessage({ text: '請先點擊要編輯的元件' });
-                                            }
-                                        })}">
-                                                    ${EditorElem.editeText({
-                                            gvc: gvc,
-                                            title: '',
-                                            default: '',
-                                            placeHolder: `字體大小20px，距離左邊20px，背景顏色黃色，字體顏色藍色，標題為歡迎來到SHOPNEX開店平台.`,
-                                            callback: (text) => {
-                                                message = text;
-                                            },
-                                            min_height: 100
-                                        })}
-                                                </div>`,
-                                        `<div class="w-100 d-flex align-items-center justify-content-end">
-${BgWidget.save(gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            if (!message) {
-                                                dialog.errorMessage({ text: '請輸入描述語句' });
-                                                return;
-                                            }
-                                            dialog.dataLoading({ visible: true });
-                                            gvc.glitter.getModule(new URL('./editor/ai-editor.js', gvc.glitter.root_path).href, (AiEditor) => {
-                                                AiEditor.editView(message, gvc.glitter.share.editorViewModel.selectItem, (result) => {
-                                                    dialog.dataLoading({ visible: false });
-                                                    if (result) {
-                                                        dialog.successMessage({ text: `已為你調整元件『${result}』` });
-                                                        gvc.glitter.share.editorViewModel.selectItem.refreshComponent();
-                                                        gvc.glitter.closeDrawer();
-                                                    }
-                                                    else {
-                                                        dialog.errorMessage({ text: 'AI無法理解你的意思，請輸入更確切的需求' });
-                                                    }
-                                                });
-                                            });
-                                        }), "調整元素", "w-100 mt-3 py-2")}
-</div>`
-                                    ].join('<div class="my-2"></div>')}
-                                </div>`;
-                                })() : gvc.bindView(() => {
+                                gvc.bindView(() => {
                                     const viewId = gvc.glitter.getUUID();
                                     const messageID = gvc.glitter.getUUID();
                                     const vm = {
@@ -830,7 +783,7 @@ ${BgWidget.save(gvc.event(() => {
                                             socket.close();
                                         },
                                     };
-                                }),
+                                })
                             ].join(''));
                         }));
                     }

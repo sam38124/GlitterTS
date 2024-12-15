@@ -1104,3 +1104,21 @@ h1,
 .h1 {
     color: #393939;
 }
+.select-label-ai-message_ {
+    gap: 10px;
+    cursor: pointer;
+    color: white;
+    font-size: 16px;
+    flex: 1;
+    background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
+}
+
+.select-btn-ai-message_ {
+    flex: 1;
+    font-size: 16px;
+    cursor: pointer;
+    background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

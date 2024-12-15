@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -118,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -690,7 +691,8 @@ async function createAPP(dd) {
                 const domain = (await database_2.default.query(`select \`domain\`
                              from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                              where appName = ?`, [appName]))[0]['domain'];
-                return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html `User-agent: * 
+                return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html `User-agent: *
+Allow: /                    
 Sitemap: https://${domain}/sitemap.xml`;
             },
             tw_shop: async (req, resp) => {
@@ -745,7 +747,6 @@ Sitemap: https://${domain}/sitemap.xml`;
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

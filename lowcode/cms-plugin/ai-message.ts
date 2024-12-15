@@ -280,6 +280,7 @@ export class AiMessage {
                         };
                     })
                     if (AiMessage.vm.select_bt === 'ai_generator') {
+                        let container_id=gvc.glitter.getUUID()
                         const map_ = [
                             header,
                             html`
@@ -291,7 +292,7 @@ export class AiMessage {
                                             gvc: gvc,
                                             callback: (text) => {
                                                 vm.select_gen = text;
-                                                gvc.notifyDataChange(id)
+                                                gvc.notifyDataChange(container_id)
                                             },
                                             default: vm.select_gen,
                                             options: [
@@ -300,28 +301,35 @@ export class AiMessage {
                                             ]
                                         })}
                                     </div>
-                                    <div class="w-100 p-2">
-                                        ${(() => {
-                                            switch (vm.select_gen) {
-                                                case "product":
-                                                    const add_product=ProductConfig.getInitial({})
-                                                    return ProductAi.setProduct(gvc, add_product, () => {
-                                                        localStorage.setItem('add_product',JSON.stringify(add_product));
-                                                        (window.parent as any).glitter.setUrlParameter('tab','product-manager');
-                                                        (window.parent as any).glitter.share.reloadEditor();
-                                                        (window.parent as any).glitter.closeDrawer()
-                                                    })
-                                                case 'member':
-                                                    const member_data:any={}
-                                                    return MemberAi.addMember(gvc,member_data,()=>{
-                                                        localStorage.setItem('add_member',JSON.stringify(member_data));
-                                                        (window.parent as any).glitter.setUrlParameter('tab','user_list');
-                                                        (window.parent as any).glitter.share.reloadEditor();
-                                                        (window.parent as any).glitter.closeDrawer()
-                                                    })
+                                    ${gvc.bindView(()=>{
+                                        return {
+                                            bind:container_id,
+                                            view:()=>{
+                                                switch (vm.select_gen) {
+                                                    case "product":
+                                                        const add_product=ProductConfig.getInitial({})
+                                                        return ProductAi.setProduct(gvc, add_product, () => {
+                                                            localStorage.setItem('add_product',JSON.stringify(add_product));
+                                                            (window.parent as any).glitter.setUrlParameter('tab','product-manager');
+                                                            (window.parent as any).glitter.share.reloadEditor();
+                                                            (window.parent as any).glitter.closeDrawer()
+                                                        })
+                                                    case 'member':
+                                                        const member_data:any={}
+                                                        return MemberAi.addMember(gvc,member_data,()=>{
+                                                            localStorage.setItem('add_member',JSON.stringify(member_data));
+                                                            (window.parent as any).glitter.setUrlParameter('tab','user_list');
+                                                            (window.parent as any).glitter.share.reloadEditor();
+                                                            (window.parent as any).glitter.closeDrawer()
+                                                        })
+                                                }
+                                                return  ``
+                                            },
+                                            divCreate:{
+                                                class:`w-100 p-2`
                                             }
-                                        })()}
-                                    </div>
+                                        }
+                                    })}
                                 </div>`
                         ]
                         return map_.join('')
@@ -330,84 +338,7 @@ export class AiMessage {
                             resolve(
                                 [
                                     header,
-                                    (AiMessage.vm.select_bt === 'page_editor') ? (() => {
-                                        const html = String.raw
-                                        let message = ''
-                                        return ` <div class="p-5">
-                                    ${[
-                                            html`
-                                                <lottie-player src="${gvc.glitter.root_path}lottie/ai.json"
-                                                               class="mx-auto my-n4" speed="1"
-                                                               style="max-width: 100%;width: 250px;height:250px;" loop
-                                                               autoplay></lottie-player>`,
-                                            `<div class="w-100 d-flex align-items-center justify-content-center my-3">${BgWidget.grayNote('點擊想要調整的元件之後，在輸入 AI 語句進行調整', `font-weight: 500;`)}</div>`,
-                                            html`
-                                                <div class="w-100" onclick="${gvc.event(() => {
-                                                    if (!gvc.glitter.share.editorViewModel.selectItem) {
-                                                        const dialog = new ShareDialog(gvc.glitter)
-                                                        dialog.errorMessage({text: '請先點擊要編輯的元件'})
-                                                    }
-                                                })}">
-                                                    ${EditorElem.editeText({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: '',
-                                                        placeHolder: `字體大小20px，距離左邊20px，背景顏色黃色，字體顏色藍色，標題為歡迎來到SHOPNEX開店平台.`,
-                                                        callback: (text) => {
-                                                            message = text;
-                                                        },
-                                                        min_height: 100
-                                                    })}
-                                                </div>`,
-                                            `<div class="w-100 d-flex align-items-center justify-content-end">
-${BgWidget.save(gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter)
-                                                if (!message) {
-                                                    dialog.errorMessage({text: '請輸入描述語句'})
-                                                    return
-                                                }
-
-                                                dialog.dataLoading({visible: true})
-                                                gvc.glitter.getModule(new URL('./editor/ai-editor.js', gvc.glitter.root_path).href, (AiEditor) => {
-                                                    AiEditor.editView(message, gvc.glitter.share.editorViewModel.selectItem, (result: any) => {
-                                                        dialog.dataLoading({visible: false})
-                                                        if (result) {
-                                                            dialog.successMessage({text: `已為你調整元件『${result}』`})
-                                                            gvc.glitter.share.editorViewModel.selectItem.refreshComponent()
-                                                            gvc.glitter.closeDrawer()
-                                                        } else {
-                                                            dialog.errorMessage({text: 'AI無法理解你的意思，請輸入更確切的需求'})
-                                                        }
-
-                                                    })
-                                                });
-
-                                                // const dialog = new ShareDialog(gvc.glitter)
-                                                // dialog.dataLoading({visible: true})
-                                                // AiChat.generateHtml({
-                                                //     app_name: (window as any).appName,
-                                                //     text: message
-                                                // }).then((res) => {
-                                                //     if (res.result && res.response.data.usage === 0) {
-                                                //         dialog.dataLoading({visible: false})
-                                                //         dialog.errorMessage({text: `很抱歉你的AI代幣不足，請先前往加值`})
-                                                //     } else if (res.result && (!res.response.data.obj.result)) {
-                                                //         dialog.dataLoading({visible: false})
-                                                //         dialog.errorMessage({text: `AI無法理解你的需求，請給出具體一點的描述`})
-                                                //     } else if (!res.result) {
-                                                //         dialog.dataLoading({visible: false})
-                                                //         dialog.errorMessage({text: `發生錯誤`})
-                                                //     } else {
-                                                //
-                                                //         dialog.successMessage({text: `AI生成完畢，使用了『${res.response.data.usage}』點 AI Points.`})
-                                                //
-                                                //     }
-                                                // })
-                                            }), "調整元素", "w-100 mt-3 py-2")}
-</div>`
-                                        ].join('<div class="my-2"></div>')}
-                                </div>`
-                                    })() : gvc.bindView(() => {
+                                    gvc.bindView(() => {
                                         const viewId = gvc.glitter.getUUID();
                                         const messageID = gvc.glitter.getUUID();
                                         const vm: {
@@ -503,8 +434,8 @@ ${BgWidget.save(gvc.event(() => {
                                  src="${dd.message.image}"
                                  alt="image"
                                  onclick="${gvc.event(() => {
-                                                                    gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image)
-                                                                })}">` : ``}
+                                                    gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image)
+                                                })}">` : ``}
                                                                 <div class="w-100 d-flex align-items-center justify-content-end text-muted  fs-sm mt-2 ${!(dd.message.usage) ? `d-none` : ``}"
                                                                      style="letter-spacing: 1.2px;">
                                                                     ${dd.message.usage ? `消耗『${dd.message.usage.toLocaleString()}』點 AI Points` : ``}
@@ -528,22 +459,22 @@ ${BgWidget.save(gvc.event(() => {
                                  src="${dd.message.image}"
                                  alt="image"
                                  onclick="${gvc.event(() => {
-                                                                    gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image)
-                                                                })}">` : ``}
+                                                    gvc.glitter.openDiaLog(new URL('./dialog/image-preview.js', gvc.glitter.root_path).href, 'preview', dd.message.image)
+                                                })}">` : ``}
                                                             </div>
                                                             <div
                                                                     class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
-                                                                    vm.data[index + 1].user_id === dd.user_id
-                                                                            ? `d-none`
-                                                                            : ``}"
+                                                vm.data[index + 1].user_id === dd.user_id
+                                                    ? `d-none`
+                                                    : ``}"
                                                                     style="gap:5px;"
                                                             >
                                                                 <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
                                                                 ${vm.last_read.find((d2: any) => {
-                                                                    return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
-                                                                })
-                                                                        ? `已讀`
-                                                                        : ``}
+                                                    return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+                                                })
+                                                    ? `已讀`
+                                                    : ``}
                                                             </div>
                                                         </div>
                                                     </div>`;
@@ -639,97 +570,97 @@ ${BgWidget.save(gvc.event(() => {
                                                 }
                                                 return html`
                                                     ${gvc.bindView(() => {
-                                                        return {
-                                                            bind: messageID,
-                                                            view: () => {
-                                                                return html`
+                                                    return {
+                                                        bind: messageID,
+                                                        view: () => {
+                                                            return html`
                                                                     <div class="my-auto flex-fill"></div>
                                                                     ${add_line(
+                                                                {
+                                                                    user_id: 'robot',
+                                                                    message: {
+                                                                        text: [
                                                                             {
-                                                                                user_id: 'robot',
-                                                                                message: {
-                                                                                    text: [
-                                                                                        {
-                                                                                            key: 'writer',
-                                                                                            text: '您好！我是AI文案寫手，專門協助您撰寫任何文案。',
-                                                                                        },
-                                                                                        {
-                                                                                            key: 'order_analysis',
-                                                                                            text: `您好！我是AI資料分析師，能為您查詢與分析訂單資料，並提供可行的建議。`,
-                                                                                        },
-                                                                                        {
-                                                                                            key: 'operation_guide',
-                                                                                            text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
-                                                                                        },
-                                                                                        {
-                                                                                            key: 'design',
-                                                                                            text: '您好！我是AI設計師，能協助你生成任何行銷或商品圖面。',
-                                                                                        }
-                                                                                    ].find((dd) => {
-                                                                                        return dd.key === AiMessage.vm.select_bt;
-                                                                                    })?.text,
-                                                                                },
-                                                                                created_time: new Date().toISOString(),
+                                                                                key: 'writer',
+                                                                                text: '您好！我是AI文案寫手，專門協助您撰寫任何文案。',
                                                                             },
-                                                                            -1
-                                                                    )}
+                                                                            {
+                                                                                key: 'order_analysis',
+                                                                                text: `您好！我是AI資料分析師，能為您查詢與分析訂單資料，並提供可行的建議。`,
+                                                                            },
+                                                                            {
+                                                                                key: 'operation_guide',
+                                                                                text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
+                                                                            },
+                                                                            {
+                                                                                key: 'design',
+                                                                                text: '您好！我是AI設計師，能協助你生成任何行銷或商品圖面。',
+                                                                            }
+                                                                        ].find((dd) => {
+                                                                            return dd.key === AiMessage.vm.select_bt;
+                                                                        })?.text,
+                                                                    },
+                                                                    created_time: new Date().toISOString(),
+                                                                },
+                                                                -1
+                                                            )}
                                                                     ${vm.data
-                                                                            .map((dd: any, index: number) => {
-                                                                                return add_line(dd, index);
-                                                                            })
-                                                                            .join('')}
+                                                                .map((dd: any, index: number) => {
+                                                                    return add_line(dd, index);
+                                                                })
+                                                                .join('')}
                                                                 `;
-                                                            },
-                                                            divCreate: {
-                                                                class: `chatContainer p-3 d-flex flex-column position-relative`,
-                                                                style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-top:60px;`,
-                                                            },
-                                                            onCreate: () => {
-                                                                vm.close = false;
-                                                                // 取得要監聽的元素
-                                                                let targetElement = document.querySelector('.chatContainer')!;
-                                                                if (vm.lastScroll === -1) {
-                                                                    setTimeout(() => {
-                                                                        document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
-                                                                    }, 100)
-                                                                } else {
-                                                                    if (vm.prefixScroll) {
-                                                                        vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
-                                                                        vm.prefixScroll = 0;
-                                                                    }
-                                                                    document.querySelector('.chatContainer')!.scrollTop = vm.lastScroll;
+                                                        },
+                                                        divCreate: {
+                                                            class: `chatContainer p-3 d-flex flex-column position-relative`,
+                                                            style: `overflow-y: auto;height: calc(${cf.containerHeight} - ${220 + (parseInt(gvc.glitter.share.top_inset, 10) + parseInt(gvc.glitter.share.bottom_inset, 10))}px);background: white;padding-top:60px;`,
+                                                        },
+                                                        onCreate: () => {
+                                                            vm.close = false;
+                                                            // 取得要監聽的元素
+                                                            let targetElement = document.querySelector('.chatContainer')!;
+                                                            if (vm.lastScroll === -1) {
+                                                                setTimeout(() => {
+                                                                    document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
+                                                                }, 100)
+                                                            } else {
+                                                                if (vm.prefixScroll) {
+                                                                    vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
+                                                                    vm.prefixScroll = 0;
                                                                 }
-                                                                // 添加滾動事件監聽器
-                                                                targetElement.addEventListener('scroll', () => {
-                                                                    vm.lastScroll = targetElement.scrollTop;
-                                                                    if (targetElement.scrollTop === 0) {
-                                                                        if (vm.loading) {
-                                                                            return;
-                                                                        }
-                                                                        vm.loading = true;
-                                                                        Chat.getMessage({
-                                                                            page: 0,
-                                                                            limit: 50,
-                                                                            chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                                                            olderID: vm.data[0].id,
-                                                                            user_id: cf.user_id,
-                                                                        }).then((res) => {
-                                                                            vm.loading = false;
-                                                                            vm.prefixScroll = targetElement.scrollHeight;
-                                                                            vm.data = res.response.data.reverse().concat(vm.data);
-                                                                            gvc.notifyDataChange(viewId);
-                                                                        });
+                                                                document.querySelector('.chatContainer')!.scrollTop = vm.lastScroll;
+                                                            }
+                                                            // 添加滾動事件監聽器
+                                                            targetElement.addEventListener('scroll', () => {
+                                                                vm.lastScroll = targetElement.scrollTop;
+                                                                if (targetElement.scrollTop === 0) {
+                                                                    if (vm.loading) {
+                                                                        return;
                                                                     }
-                                                                });
-                                                            },
-                                                        };
-                                                    })}
+                                                                    vm.loading = true;
+                                                                    Chat.getMessage({
+                                                                        page: 0,
+                                                                        limit: 50,
+                                                                        chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                                        olderID: vm.data[0].id,
+                                                                        user_id: cf.user_id,
+                                                                    }).then((res) => {
+                                                                        vm.loading = false;
+                                                                        vm.prefixScroll = targetElement.scrollHeight;
+                                                                        vm.data = res.response.data.reverse().concat(vm.data);
+                                                                        gvc.notifyDataChange(viewId);
+                                                                    });
+                                                                }
+                                                            });
+                                                        },
+                                                    };
+                                                })}
                                                     ${gvc.bindView(() => {
-                                                        return {
-                                                            bind: 'footer-ai',
-                                                            view: () => {
-                                                                if (vm.ai_loading) {
-                                                                    return html`
+                                                    return {
+                                                        bind: 'footer-ai',
+                                                        view: () => {
+                                                            if (vm.ai_loading) {
+                                                                return html`
                                                                         <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
                                                                             <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center"
                                                                                  style="gap: 8px;">
@@ -738,187 +669,187 @@ ${BgWidget.save(gvc.event(() => {
                                                                                 AI 解答中
                                                                             </div>
                                                                         </div>`;
-                                                                } else {
-                                                                    return html`
+                                                            } else {
+                                                                return html`
                                                                         <div class="d-flex px-2"
                                                                              style="overflow-x: auto;gap:5px;"
                                                                              ontouchmove="${gvc.event((e, event) => {
-                                                                                 event.stopPropagation();
-                                                                             })}" onmouseup="${gvc.event((e, event) => {
-                                                                            event.stopPropagation();
-                                                                        })}">
+                                                                    event.stopPropagation();
+                                                                })}" onmouseup="${gvc.event((e, event) => {
+                                                                    event.stopPropagation();
+                                                                })}">
                                                                             ${[
-                                                                                {
-                                                                                    key: 'writer',
-                                                                                    data: [
-                                                                                        '幫我撰寫一個精品包的文案',
-                                                                                        '撰寫一個關於我們的範本',
-                                                                                        '幫我撰寫一個限時特價的文案',
-                                                                                        '撰寫一個關於退貨條款的範本',
-                                                                                        '撰寫一個關於服務條款的範本',
-                                                                                    ],
-                                                                                },
-                                                                                {
-                                                                                    key: 'order_analysis',
-                                                                                    data: [
-                                                                                        '這個月的銷售額是多少？',
-                                                                                        '這週賣最好的五個商品？',
-                                                                                        '未付款的訂單有哪些？',
-                                                                                        '哪個客戶買最多商品？',
-                                                                                        '尚未出貨的訂單還有哪些？',
-                                                                                    ],
-                                                                                },
-                                                                                {
-                                                                                    key: 'operation_guide',
-                                                                                    data: [
-                                                                                        '如何新增訂單？',
-                                                                                        '購物金的用途是什麼？',
-                                                                                        '什麼是安全庫存？',
-                                                                                        '如何設定優惠促銷活動？',
-                                                                                        '要如何匯出商品列表？',
-                                                                                        '如何設定網站佈景主題？',
-                                                                                    ],
-                                                                                },
-                                                                                {
-                                                                                    key: 'design',
-                                                                                    data: ['家具電商平台宣傳圖，現代極簡主義，背景保持乾淨整潔',
-                                                                                        '服飾店宣傳圖，模特背著名牌包，腳穿高跟鞋']
-                                                                                }
-                                                                            ]
-                                                                                    .find((dd) => {
-                                                                                        return dd.key === AiMessage.vm.select_bt;
-                                                                                    })
-                                                                                    ?.data.map((dd) => {
-                                                                                        return html`
+                                                                    {
+                                                                        key: 'writer',
+                                                                        data: [
+                                                                            '幫我撰寫一個精品包的文案',
+                                                                            '撰寫一個關於我們的範本',
+                                                                            '幫我撰寫一個限時特價的文案',
+                                                                            '撰寫一個關於退貨條款的範本',
+                                                                            '撰寫一個關於服務條款的範本',
+                                                                        ],
+                                                                    },
+                                                                    {
+                                                                        key: 'order_analysis',
+                                                                        data: [
+                                                                            '這個月的銷售額是多少？',
+                                                                            '這週賣最好的五個商品？',
+                                                                            '未付款的訂單有哪些？',
+                                                                            '哪個客戶買最多商品？',
+                                                                            '尚未出貨的訂單還有哪些？',
+                                                                        ],
+                                                                    },
+                                                                    {
+                                                                        key: 'operation_guide',
+                                                                        data: [
+                                                                            '如何新增訂單？',
+                                                                            '購物金的用途是什麼？',
+                                                                            '什麼是安全庫存？',
+                                                                            '如何設定優惠促銷活動？',
+                                                                            '要如何匯出商品列表？',
+                                                                            '如何設定網站佈景主題？',
+                                                                        ],
+                                                                    },
+                                                                    {
+                                                                        key: 'design',
+                                                                        data: ['家具電商平台宣傳圖，現代極簡主義，背景保持乾淨整潔',
+                                                                            '服飾店宣傳圖，模特背著名牌包，腳穿高跟鞋']
+                                                                    }
+                                                                ]
+                                                                    .find((dd) => {
+                                                                        return dd.key === AiMessage.vm.select_bt;
+                                                                    })
+                                                                    ?.data.map((dd) => {
+                                                                        return html`
                                                                                             <div
                                                                                                     class="insignia insignia-secondary bgf6"
                                                                                                     style="white-space: nowrap;cursor: pointer;"
                                                                                                     onclick="${gvc.event(() => {
-                                                                                                        vm.ai_loading = true;
-                                                                                                        gvc.notifyDataChange('footer-ai');
-                                                                                                        Chat.postMessage({
-                                                                                                            chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                                                                                            user_id: cf.user_id,
-                                                                                                            message: {
-                                                                                                                text: dd,
-                                                                                                                attachment: '',
-                                                                                                            },
-                                                                                                        }).then(() => {
-                                                                                                            vm.message = '';
-                                                                                                        });
-                                                                                                    })}"
+                                                                            vm.ai_loading = true;
+                                                                            gvc.notifyDataChange('footer-ai');
+                                                                            Chat.postMessage({
+                                                                                chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                                                user_id: cf.user_id,
+                                                                                message: {
+                                                                                    text: dd,
+                                                                                    attachment: '',
+                                                                                },
+                                                                            }).then(() => {
+                                                                                vm.message = '';
+                                                                            });
+                                                                        })}"
                                                                                             >
                                                                                                 ${dd}
                                                                                             </div>`;
-                                                                                    })
-                                                                                    .join('')}
+                                                                    })
+                                                                    .join('')}
                                                                         </div>
                                                                         <div class="px-2 d-flex align-items-center w-100 border-0 px-2"
                                                                              style="background: white;border-radius: 0px;">
                                                                             ${BgWidget.customButton({
-                                                                                button: {
-                                                                                    color: 'snow',
-                                                                                    size: 'sm',
-                                                                                    style: 'min-height: 40px;'
-                                                                                },
-                                                                                icon: {name: 'fa-regular fa-broom-wide text-dark'},
-                                                                                text: {name: '重置'},
-                                                                                event: gvc.event(() => {
-                                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                                    dialog.warningMessage({
-                                                                                        text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
-                                                                                        callback: (response) => {
-                                                                                            if (response) {
-                                                                                                dialog.dataLoading({visible: true});
-                                                                                                AiChat.reset({
-                                                                                                    type: AiMessage.vm.select_bt,
-                                                                                                }).then(() => {
-                                                                                                    dialog.dataLoading({visible: false});
-                                                                                                    refresh();
-                                                                                                });
-                                                                                            }
-                                                                                        },
+                                                                    button: {
+                                                                        color: 'snow',
+                                                                        size: 'sm',
+                                                                        style: 'min-height: 40px;'
+                                                                    },
+                                                                    icon: {name: 'fa-regular fa-broom-wide text-dark'},
+                                                                    text: {name: '重置'},
+                                                                    event: gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.warningMessage({
+                                                                            text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({visible: true});
+                                                                                    AiChat.reset({
+                                                                                        type: AiMessage.vm.select_bt,
+                                                                                    }).then(() => {
+                                                                                        dialog.dataLoading({visible: false});
+                                                                                        refresh();
                                                                                     });
-                                                                                }),
-                                                                            })}
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    }),
+                                                                })}
                                                                             ${[
-                                                                                html`
+                                                                    html`
                                                                                     <div class="position-relative w-100 mx-2">
                                                                                         ${gvc.bindView(() => {
-                                                                                            return {
-                                                                                                bind: textAreaId,
-                                                                                                view: () => {
-                                                                                                    return vm.message ?? '';
-                                                                                                },
-                                                                                                divCreate: {
-                                                                                                    elem: `textArea`,
-                                                                                                    style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
-                                                                                                    class: `form-control`,
-                                                                                                    option: [
-                                                                                                        {
-                                                                                                            key: 'placeholder',
-                                                                                                            value: '輸入訊息內容',
-                                                                                                        },
-                                                                                                        {
-                                                                                                            key: 'onchange',
-                                                                                                            value: gvc.event((e) => {
-                                                                                                                vm.message = e.value;
-                                                                                                            }),
-                                                                                                        },
-                                                                                                    ],
-                                                                                                },
-                                                                                                onCreate: () => {
-                                                                                                    const input = gvc.getBindViewElem(textAreaId).get(0);
-                                                                                                    input.addEventListener('input', function () {
-                                                                                                        input.style.height = 'auto'; // 重置高度
-                                                                                                        input.style.height = input.scrollHeight + 'px'; // 设置为内容高度
-                                                                                                    });
-                                                                                                },
-                                                                                            };
-                                                                                        })}
+                                                                        return {
+                                                                            bind: textAreaId,
+                                                                            view: () => {
+                                                                                return vm.message ?? '';
+                                                                            },
+                                                                            divCreate: {
+                                                                                elem: `textArea`,
+                                                                                style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
+                                                                                class: `form-control`,
+                                                                                option: [
+                                                                                    {
+                                                                                        key: 'placeholder',
+                                                                                        value: '輸入訊息內容',
+                                                                                    },
+                                                                                    {
+                                                                                        key: 'onchange',
+                                                                                        value: gvc.event((e) => {
+                                                                                            vm.message = e.value;
+                                                                                        }),
+                                                                                    },
+                                                                                ],
+                                                                            },
+                                                                            onCreate: () => {
+                                                                                const input = gvc.getBindViewElem(textAreaId).get(0);
+                                                                                input.addEventListener('input', function () {
+                                                                                    input.style.height = 'auto'; // 重置高度
+                                                                                    input.style.height = input.scrollHeight + 'px'; // 设置为内容高度
+                                                                                });
+                                                                            },
+                                                                        };
+                                                                    })}
                                                                                     </div>`,
-                                                                                html`
+                                                                    html`
                                                                                     <button
                                                                                             type="button"
                                                                                             class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
                                                                                             style="height: 36px;background: ${AiMessage.config.color};"
                                                                                             onclick="${gvc.event(() => {
-                                                                                                if (vm.message) {
-                                                                                                    vm.ai_loading = true;
-                                                                                                    gvc.notifyDataChange('footer-ai');
-                                                                                                    Chat.postMessage({
-                                                                                                        chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
-                                                                                                        user_id: cf.user_id,
-                                                                                                        message: {
-                                                                                                            text: vm.message,
-                                                                                                            attachment: '',
-                                                                                                        },
-                                                                                                    }).then(() => {
-                                                                                                        vm.message = '';
-                                                                                                    });
-                                                                                                    const textArea = gvc.getBindViewElem(textAreaId).get(0);
-                                                                                                    textArea.value = '';
-                                                                                                    textArea.focus();
-                                                                                                } else {
-                                                                                                }
-                                                                                            })}"
+                                                                        if (vm.message) {
+                                                                            vm.ai_loading = true;
+                                                                            gvc.notifyDataChange('footer-ai');
+                                                                            Chat.postMessage({
+                                                                                chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
+                                                                                user_id: cf.user_id,
+                                                                                message: {
+                                                                                    text: vm.message,
+                                                                                    attachment: '',
+                                                                                },
+                                                                            }).then(() => {
+                                                                                vm.message = '';
+                                                                            });
+                                                                            const textArea = gvc.getBindViewElem(textAreaId).get(0);
+                                                                            textArea.value = '';
+                                                                            textArea.focus();
+                                                                        } else {
+                                                                        }
+                                                                    })}"
                                                                                     >
                                                                                         <i class="fa-regular fa-paper-plane-top"></i>
                                                                                     </button>`,
-                                                                            ].join('')}
+                                                                ].join('')}
                                                                         </div>
                                                                     `;
-                                                                }
-                                                                return ``;
-                                                            },
-                                                            divCreate: {
-                                                                class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
-                                                                style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset, 10) + 10}px !important;` : ``}`,
-                                                            },
-                                                            onCreate: () => {
-                                                            },
-                                                        };
-                                                    })}
+                                                            }
+                                                            return ``;
+                                                        },
+                                                        divCreate: {
+                                                            class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
+                                                            style: `gap:8px;${(parseInt(gvc.glitter.share.bottom_inset, 10)) ? `padding-bottom:${parseInt(gvc.glitter.share.bottom_inset, 10) + 10}px !important;` : ``}`,
+                                                        },
+                                                        onCreate: () => {
+                                                        },
+                                                    };
+                                                })}
                                                 `;
                                             },
                                             divCreate: {},
@@ -929,7 +860,7 @@ ${BgWidget.save(gvc.event(() => {
                                                 socket.close();
                                             },
                                         };
-                                    }),
+                                    })
                                 ].join('')
                             );
                         });

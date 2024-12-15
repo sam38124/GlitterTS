@@ -432,10 +432,6 @@ export class ShoppingDiscountSetting {
                                                             key: 'levels',
                                                             value: '會員等級',
                                                         },
-                                                        {
-                                                            key: 'group',
-                                                            value: '顧客分群',
-                                                        },
                                                     ],
                                                     style: 'width: 100%;',
                                                 })}
