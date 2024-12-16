@@ -14,6 +14,14 @@ export class Recommend {
         this.token = token;
     }
 
+    calculatePercentage(numerator: number, denominator: number, decimalPlaces: number = 2): string {
+        if (denominator === 0) {
+            return `0%`;
+        }
+        const percentage = (numerator / denominator) * 100;
+        return `${percentage.toFixed(decimalPlaces)}%`;
+    }
+
     async getLinkList(query: { code?: string; status?: boolean; page: number; limit: number; user_id?: string }) {
         try {
             query.page = query.page ?? 0;
@@ -43,14 +51,6 @@ export class Recommend {
                 []
             );
 
-            function calculatePercentage(numerator: number, denominator: number, decimalPlaces: number = 2): string {
-                if (denominator === 0) {
-                    return `0%`;
-                }
-                const percentage = (numerator / denominator) * 100;
-                return `${percentage.toFixed(decimalPlaces)}%`;
-            }
-
             const shopping = new Shopping(this.app, this.token);
             const orderList = await shopping.getCheckOut({
                 page: 0,
@@ -60,9 +60,10 @@ export class Recommend {
 
             const monitors = await db.query(
                 `SELECT id, mac_address, base_url 
-                 FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-                 WHERE app_name = "${this.app}"
-                 AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})`,
+                    FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+                    WHERE app_name = "${this.app}"
+                    AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
+                 `,
                 []
             );
 
@@ -78,13 +79,20 @@ export class Recommend {
 
                 const monitorLength = monitor.length;
                 const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
-                const totalOrders = orders.length;
-                const totalPrice = orders.reduce((sum: number, order: any) => sum + order.orderData.total - order.orderData.shipment_fee, 0);
+                const totalOrders = orders.filter((order: any) => {
+                    return order.status === 1;
+                }).length;
+                const totalPrice = orders.reduce((sum: number, order: any) => {
+                    if (order.status === 1) {
+                        return sum + order.orderData.total - order.orderData.shipment_fee;
+                    }
+                    return sum;
+                }, 0);
 
                 data.orders = totalOrders;
                 data.click_times = monitorLength;
                 data.mac_address_count = macAddrSize;
-                data.conversion_rate = calculatePercentage(totalOrders, monitor.length, 1);
+                data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
                 data.total_price = totalPrice;
                 data.sharing_bonus = Math.floor((totalPrice * parseFloat(data.content.share_value)) / 100);
             }
@@ -230,36 +238,64 @@ export class Recommend {
 
             const data = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_recommend_users
-                WHERE ${search.join(' AND ')}
-                ORDER BY ${orderBy}
-                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
-            `,
+                    WHERE ${search.join(' AND ')}
+                    ORDER BY ${orderBy}
+                    ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
+                `,
                 []
             );
             const total = await db.query(
                 `SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
-                WHERE ${search.join(' AND ')}
-            `,
+                    WHERE ${search.join(' AND ')}
+                `,
+                []
+            );
+
+            const allOrders = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_checkout WHERE orderData->>'$.distribution_info' is not null;
+                `,
                 []
             );
 
             let n = 0;
             await new Promise<void>((resolve) => {
-                const si = setInterval(() => {
-                    if (n === data.length) {
-                        resolve();
-                        clearInterval(si);
-                    }
-                }, 100);
                 data.map(async (user: any) => {
-                    const links = await db.query(
-                        `SELECT count(id) as c FROM \`${this.app}\`.t_recommend_links
+                    db.query(
+                        `SELECT * FROM \`${this.app}\`.t_recommend_links
                         WHERE (JSON_EXTRACT(content, '$.recommend_user.id') = ${user.id});
                         `,
                         []
-                    );
-                    user.orders = links.length > 0 ? links[0].c : 0;
-                    n++;
+                    ).then((results) => {
+                        const orders = allOrders.filter((order: any) => {
+                            try {
+                                return order.orderData.distribution_info.recommend_user.id === user.id;
+                            } catch (error) {
+                                return false;
+                            }
+                        });
+
+                        const totalList = results.map((result: any) => {
+                            const code = result.code;
+                            const content = result.content;
+                            const total = orders.reduce((sum: number, order: any) => {
+                                if (order.status === 1 && order.orderData.distribution_info.code === code) {
+                                    return sum + order.orderData.total - order.orderData.shipment_fee;
+                                }
+                                return sum;
+                            }, 0);
+                            return { code, total, content };
+                        });
+
+                        user.sharing_bonus = totalList.reduce((sum: number, obj: any) => {
+                            return sum + Math.floor((obj.total * parseFloat(obj.content.share_value)) / 100);
+                        }, 0);
+                        user.total_price = totalList.reduce((sum: number, obj: any) => sum + obj.total, 0);
+                        user.links = results.length;
+                        n++;
+                        if (n === data.length) {
+                            resolve();
+                        }
+                    });
                 });
             });
 

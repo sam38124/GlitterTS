@@ -3,6 +3,7 @@ export declare class Recommend {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
+    calculatePercentage(numerator: number, denominator: number, decimalPlaces?: number): string;
     getLinkList(query: {
         code?: string;
         status?: boolean;

@@ -393,6 +393,7 @@ export class Language {
             { key: 'shipping_notes', tw: '配送備註', cn: '配送备注', en: 'Shipping Notes' },
             { key: 'return_to_order_list', tw: '返回訂單列表', cn: '返回订单列表', en: 'Return to Order List' },
             { key: 'order_not_found', tw: '查無此訂單', cn: '查无此订单', en: 'Order not found' },
+            { key: 'expired', tw: '已過期', cn: '已过期', en: 'Expired' },
         ];
     }
 }

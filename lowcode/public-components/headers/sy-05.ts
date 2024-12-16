@@ -24,8 +24,7 @@ export class Sy05 {
             >
                 <div class="container header-place  h-100">
                     <!--LOGO顯示區塊-->
-                    <div class="d-flex align-items-center justify-content-center h-100 w-100"
-                         style="gap: 8px;cursor: pointer;">
+                    <div class="d-flex align-items-center justify-content-center h-100 w-100 gap-2">
                         <!--手機版選單-->
                         <div
                                 class="d-flex align-items-center justify-content-center"
@@ -71,7 +70,6 @@ export class Sy05 {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                           
                                                         </div>
 
                                                         <div class="offcanvas-body p-0 ">

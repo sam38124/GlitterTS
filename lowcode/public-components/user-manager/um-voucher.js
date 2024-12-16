@@ -27,7 +27,11 @@ export class UMVoucher {
             bind: ids.view,
             view: () => {
                 if (loadings.view) {
-                    return UmClass.spinner();
+                    return UmClass.spinner({
+                        container: {
+                            style: 'height: 100%;',
+                        },
+                    });
                 }
                 else {
                     const isWebsite = document.body.clientWidth > 768;
@@ -64,14 +68,15 @@ export class UMVoucher {
                             },
                         ];
                         function formatText(item) {
+                            const canUse = UMVoucher.isNowBetweenDates(item.start_ISO_Date, item.end_ISO_Date);
                             return [
-                                item.title,
+                                canUse ? item.title : html `${item.title} <span class="um-insignia um-insignia-secondary">${Language.text('expired')}</span>`,
                                 item.code,
                                 (() => {
                                     const endText = item.end_ISO_Date ? glitter.ut.dateFormat(new Date(item.end_ISO_Date), 'yyyy/MM/dd') : Language.text('no_expiration');
                                     return `${glitter.ut.dateFormat(new Date(item.start_ISO_Date), 'yyyy/MM/dd')} ~ ${endText}`;
                                 })(),
-                                html `<div class="d-flex w-100 justify-content-around">
+                                html `<div class="d-flex w-100 justify-content-start ms-2 gap-1">
                                                     <div
                                                         class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active me-1"
                                                         onclick="${gvc.event(() => {
@@ -93,71 +98,73 @@ export class UMVoucher {
                                                     >
                                                         ${Language.text('view_details')}
                                                     </div>
-                                                    <div
-                                                        class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
-                                                        onclick="${gvc.event(() => {
-                                    UmClass.dialog({
-                                        gvc,
-                                        tag: 'user-qr-code',
-                                        title: Language.text('coupon_qr_code'),
-                                        innerHTML: (gvc) => {
-                                            return gvc.bindView((() => {
-                                                const id = glitter.getUUID();
-                                                let loading = true;
-                                                let img = '';
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        if (loading) {
-                                                            return UmClass.spinner({
-                                                                container: {
-                                                                    style: 'height: 100%;',
-                                                                },
-                                                            });
-                                                        }
-                                                        else {
-                                                            return html ` <div style="text-align: center; vertical-align: middle;">
-                                                                                            <img src="${img}" />
-                                                                                        </div>`;
-                                                        }
-                                                    },
-                                                    divCreate: {},
-                                                    onCreate: () => {
-                                                        if (loading) {
-                                                            glitter.addMtScript([
-                                                                {
-                                                                    src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
-                                                                },
-                                                            ], () => {
-                                                                const si = setInterval(() => {
-                                                                    const qr = window.QRCode;
-                                                                    if (qr) {
-                                                                        qr.toDataURL(`voucher-${item.code}`, {
-                                                                            width: 400,
-                                                                            margin: 2,
-                                                                        }, (err, url) => {
-                                                                            if (err) {
-                                                                                console.error(err);
-                                                                                return;
-                                                                            }
-                                                                            img = url;
-                                                                            loading = false;
-                                                                            gvc.notifyDataChange(id);
-                                                                        });
-                                                                        clearInterval(si);
-                                                                    }
-                                                                }, 300);
-                                                            }, () => { });
-                                                        }
-                                                    },
-                                                };
-                                            })());
-                                        },
-                                    });
-                                })}"
-                                                    >
-                                                        ${Language.text('show_qr_code')}
-                                                    </div>
+                                                    ${canUse
+                                    ? html `<div
+                                                              class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
+                                                              onclick="${gvc.event(() => {
+                                        UmClass.dialog({
+                                            gvc,
+                                            tag: 'user-qr-code',
+                                            title: Language.text('coupon_qr_code'),
+                                            innerHTML: (gvc) => {
+                                                return gvc.bindView((() => {
+                                                    const id = glitter.getUUID();
+                                                    let loading = true;
+                                                    let img = '';
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            if (loading) {
+                                                                return UmClass.spinner({
+                                                                    container: {
+                                                                        style: 'height: 100%;',
+                                                                    },
+                                                                });
+                                                            }
+                                                            else {
+                                                                return html ` <div style="text-align: center; vertical-align: middle;">
+                                                                                                  <img src="${img}" />
+                                                                                              </div>`;
+                                                            }
+                                                        },
+                                                        divCreate: {},
+                                                        onCreate: () => {
+                                                            if (loading) {
+                                                                glitter.addMtScript([
+                                                                    {
+                                                                        src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
+                                                                    },
+                                                                ], () => {
+                                                                    const si = setInterval(() => {
+                                                                        const qr = window.QRCode;
+                                                                        if (qr) {
+                                                                            qr.toDataURL(`voucher-${item.code}`, {
+                                                                                width: 400,
+                                                                                margin: 2,
+                                                                            }, (err, url) => {
+                                                                                if (err) {
+                                                                                    console.error(err);
+                                                                                    return;
+                                                                                }
+                                                                                img = url;
+                                                                                loading = false;
+                                                                                gvc.notifyDataChange(id);
+                                                                            });
+                                                                            clearInterval(si);
+                                                                        }
+                                                                    }, 300);
+                                                                }, () => { });
+                                                            }
+                                                        },
+                                                    };
+                                                })());
+                                            },
+                                        });
+                                    })}"
+                                                          >
+                                                              ${Language.text('show_qr_code')}
+                                                          </div>`
+                                    : ''}
                                                 </div>`,
                             ];
                         }
@@ -209,6 +216,7 @@ export class UMVoucher {
             },
             divCreate: {
                 class: '',
+                style: 'min-height: 50vh;',
             },
             onCreate: () => {
                 if (loadings.view) {
@@ -375,6 +383,15 @@ export class UMVoucher {
             ],
         };
         return translations[Language.getLanguage()];
+    }
+    static isNowBetweenDates(startIso, endIso) {
+        const now = new Date();
+        const startDate = new Date(startIso);
+        const endDate = new Date(endIso);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return true;
+        }
+        return now >= startDate && now <= endDate;
     }
 }
 window.glitter.setModule(import.meta.url, UMVoucher);

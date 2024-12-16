@@ -621,6 +621,23 @@ export class UmClass {
                 padding-bottom: 6px;
                 margin-bottom: 6px;
             }
+            .um-insignia {
+                border-radius: 0.5rem;
+                height: 26px;
+                padding: 6px 8px;
+                font-size: 14px;
+                display: inline-block;
+                font-weight: 500;
+                line-height: 1;
+                text-align: center;
+                white-space: nowrap;
+                vertical-align: baseline;
+            }
+            .um-insignia-secondary {
+                background: #8d8d8d;
+                color: #ffffff;
+            }
+            
 
             @media (min-width: 576px) {
                 .um-container {

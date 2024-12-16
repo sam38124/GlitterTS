@@ -23,7 +23,7 @@ export class Sy03 {
                 <div class="container header-place  h-100 align-items-center justify-content-center d-flex" style="${document.body.clientWidth < 800 ? `height:76px !important;` : ``}">
                     <div class="d-flex flex-column align-items-center justify-content-center pb-md-3 flex-fill">
                         <!--LOGO顯示區塊-->
-                        <div class="d-flex align-items-center justify-content-start justify-content-md-center h-100 w-100" style="gap: 8px;cursor: pointer;">
+                        <div class="d-flex align-items-center justify-content-start justify-content-md-center h-100 w-100 gap-2">
                             <!--手機版選單-->
                             <div
                                 class="d-flex align-items-center justify-content-center d-md-none"

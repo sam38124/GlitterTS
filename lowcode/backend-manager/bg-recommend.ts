@@ -365,23 +365,19 @@ export class BgRecommend {
                 return [
                     {
                         key: '推薦人名稱',
-                        value: `<span class="fs-7">${dd.content.name}</span>`,
+                        value: html`<span class="fs-7">${dd.content.name}</span>`,
                     },
                     {
-                        key: '總金額',
-                        value: `<span class="fs-7">${dd.total_price ? dd.total_price.toLocaleString() : 0}</span>`,
-                    },
-                    {
-                        key: '轉換率',
-                        value: `<span class="fs-7">${dd.conversion_rate ?? 0}%</span>`,
+                        key: '所有訂單總計',
+                        value: html`<span class="fs-7">${dd.total_price ? dd.total_price.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '分潤獎金',
-                        value: `<span class="fs-7">${dd.sharing_bonus ? dd.sharing_bonus.toLocaleString() : 0}</span>`,
+                        value: html`<span class="fs-7">${dd.sharing_bonus ? dd.sharing_bonus.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '分銷連結數',
-                        value: `<span class="fs-7">${dd.orders}</span>`,
+                        value: html`<span class="fs-7">${dd.links}</span>`,
                     },
                 ];
             });
@@ -862,44 +858,41 @@ export class BgRecommend {
                                                             view: () => {
                                                                 return BgWidget.mainCard(
                                                                     html` <div style="display: flex; margin-bottom: 8px;">
-                                                                    <span class="tx_700">訂單記錄</span>
-                                                                </div>` +
-                                                                    gvc.bindView(() => {
-                                                                        const id = gvc.glitter.getUUID();
-                                                                        return {
-                                                                            bind: id,
-                                                                            view: () => {
-                                                                                const limit = 10;
-                                                                                return new Promise(async (resolve) => {
-                                                                                    const h = BgWidget.tableV3({
-                                                                                        gvc: gvc,
-                                                                                        getData: (vd) => {
-                                                                                            console.log("vm.data -- " , vm.data)
-                                                                                            ApiShop.getOrder({
-                                                                                                page: vd.page - 1,
-                                                                                                limit: limit,
-                                                                                                data_from: 'manager',
-                                                                                                distribution_code: vm.data.code,
-                                                                                                status: 1,
-                                                                                            }).then((data) => {
-
-                                                                                                console.log('data -- ' , data)
-                                                                                                // vm.dataList = data.response.data;
-                                                                                                vd.pageSize = Math.ceil(data.response.total / limit);
-                                                                                                vd.originalData = data.response.data;
-                                                                                                vd.tableData = getOrderlist(data.response.data);
-                                                                                                vd.loading = false;
-                                                                                                vd.callback();
-                                                                                            });
-                                                                                        },
-                                                                                        rowClick: () => {},
-                                                                                        filter: [],
+                                                                        <span class="tx_700">訂單記錄</span>
+                                                                    </div>` +
+                                                                        gvc.bindView(() => {
+                                                                            const id = gvc.glitter.getUUID();
+                                                                            return {
+                                                                                bind: id,
+                                                                                view: () => {
+                                                                                    const limit = 10;
+                                                                                    return new Promise(async (resolve) => {
+                                                                                        const h = BgWidget.tableV3({
+                                                                                            gvc: gvc,
+                                                                                            getData: (vd) => {
+                                                                                                ApiShop.getOrder({
+                                                                                                    page: vd.page - 1,
+                                                                                                    limit: limit,
+                                                                                                    data_from: 'manager',
+                                                                                                    distribution_code: vm.data.code,
+                                                                                                    status: 1,
+                                                                                                }).then((data) => {
+                                                                                                    // vm.dataList = data.response.data;
+                                                                                                    vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                                    vd.originalData = data.response.data;
+                                                                                                    vd.tableData = getOrderlist(data.response.data);
+                                                                                                    vd.loading = false;
+                                                                                                    vd.callback();
+                                                                                                });
+                                                                                            },
+                                                                                            rowClick: () => {},
+                                                                                            filter: [],
+                                                                                        });
+                                                                                        resolve(html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
                                                                                     });
-                                                                                    resolve(html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
-                                                                                });
-                                                                            },
-                                                                        };
-                                                                    })
+                                                                                },
+                                                                            };
+                                                                        })
                                                                 );
                                                             },
                                                             divCreate: {

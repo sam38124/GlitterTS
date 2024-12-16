@@ -16,7 +16,7 @@ import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
 import { Workers } from './workers.js';
 import axios from 'axios';
-import { Delivery, DeliveryData } from './delivery.js';
+import { DeliveryData } from './delivery.js';
 import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
