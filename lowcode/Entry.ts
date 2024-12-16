@@ -183,7 +183,6 @@ export class Entry {
                     list-style: none;
                 }
             `);
-
             // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
