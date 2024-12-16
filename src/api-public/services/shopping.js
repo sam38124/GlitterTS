@@ -44,7 +44,6 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
-const delivery_js_1 = require("./delivery.js");
 const config_js_1 = require("../../config.js");
 const sms_js_1 = require("./sms.js");
 const line_message_1 = require("./line-message");
@@ -534,7 +533,7 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
-            console.log(`checkout-time-1=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -550,7 +549,7 @@ class Shopping {
                     return {};
                 }
             })();
-            console.log(`checkout-time-2=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-2=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
@@ -577,7 +576,7 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            console.log(`checkout-time-3=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-3=>`, new Date().getTime() - check_time);
             const shipment = await (async () => {
                 var _a, _b;
                 data.user_info = data.user_info || {};
@@ -606,7 +605,7 @@ class Shopping {
                 }
                 return def;
             })();
-            console.log(`checkout-time-4=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-4=>`, new Date().getTime() - check_time);
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -625,7 +624,7 @@ class Shopping {
                     resolve([]);
                 }
             });
-            console.log(`checkout-time-5=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-5=>`, new Date().getTime() - check_time);
             shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
@@ -637,7 +636,7 @@ class Shopping {
             shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
             shipment_setting.info =
                 (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
-            console.log(`checkout-time-6=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-6=>`, new Date().getTime() - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -807,10 +806,9 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
-            console.log(`checkout-time-7=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
                 let total_volume = 0;
                 let total_weight = 0;
@@ -826,7 +824,7 @@ class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            console.log(`checkout-time-8=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-8=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
@@ -836,7 +834,7 @@ class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
-            console.log(`checkout-time-9=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -851,7 +849,7 @@ class Shopping {
                     }
                 }
             }
-            console.log(`checkout-time-10=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-10=>`, new Date().getTime() - check_time);
             if (type !== 'manual' && type !== 'manual-preview') {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
@@ -860,7 +858,7 @@ class Shopping {
                     return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
-                console.log(`checkout-time-check-voucher=>`, (new Date().getTime()) - check_time);
+                console.log(`checkout-time-check-voucher=>`, new Date().getTime() - check_time);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
@@ -873,11 +871,10 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
-                console.log(`checkout-time-check-voucher2=>`, (new Date().getTime()) - check_time);
+                console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
                 let can_add_gift = [];
                 carData.voucherList
                     .filter((dd) => {
@@ -924,7 +921,7 @@ class Shopping {
                     }
                 }
             }
-            console.log(`checkout-time-11=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-11=>`, new Date().getTime() - check_time);
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_finance',
@@ -956,7 +953,7 @@ class Shopping {
             });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
-            console.log(`checkout-time-12=>`, (new Date().getTime()) - check_time);
+            console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
             if (type === 'manual') {
                 carData.orderSource = 'manual';
                 let tempVoucher = {
@@ -1012,7 +1009,7 @@ class Shopping {
                 }
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
-                console.log(`checkout-time-13=>`, (new Date().getTime()) - check_time);
+                console.log(`checkout-time-13=>`, new Date().getTime() - check_time);
                 return {
                     data: carData,
                 };
@@ -1055,78 +1052,6 @@ class Shopping {
             const return_url = new URL(data.return_url);
             return_url.searchParams.set('cart_token', carData.orderID);
             await redis_js_1.default.setValue(id, return_url.href);
-            const del_config = (await private_config_js_1.Private_config.getConfig({
-                appName: this.app,
-                key: 'glitter_delivery',
-            }))[0];
-            if (del_config && del_config.value.toggle === 'true') {
-                const keyData = del_config.value;
-                console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
-                if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                    const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
-                        LogisticsType: 'CVS',
-                        LogisticsSubType: carData.user_info.LogisticsSubType,
-                        GoodsAmount: carData.total,
-                        CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
-                        IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
-                        GoodsName: `訂單編號 ${carData.orderID}`,
-                        ReceiverName: carData.user_info.name,
-                        ReceiverCellPhone: carData.user_info.phone,
-                        ReceiverStoreID: keyData.Action === 'main'
-                            ? carData.user_info.CVSStoreID
-                            : (() => {
-                                if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                    return '1328';
-                                }
-                                if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                    return '006598';
-                                }
-                                return '131386';
-                            })(),
-                    });
-                    if (delivery.result) {
-                        carData.deliveryData = delivery.data;
-                        console.info('綠界物流單 四大超商 建立成功');
-                    }
-                    else {
-                        console.info(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
-                    }
-                }
-                if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
-                    const receiverPostData = await this.getPostAddressData(carData.user_info.address);
-                    const senderPostData = await new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve(this.getPostAddressData(keyData.SenderAddress));
-                        }, 2000);
-                    });
-                    let goodsWeight = 0;
-                    carData.lineItems.map((item) => {
-                        if (item.shipment_obj.type === 'weight') {
-                            goodsWeight += item.shipment_obj.value;
-                        }
-                    });
-                    const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
-                        LogisticsType: 'HOME',
-                        LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
-                        GoodsAmount: carData.total,
-                        GoodsName: `訂單編號 ${carData.orderID}`,
-                        GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
-                        ReceiverName: carData.user_info.name,
-                        ReceiverCellPhone: carData.user_info.phone,
-                        ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
-                        ReceiverAddress: carData.user_info.address,
-                        SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
-                        SenderAddress: keyData.SenderAddress,
-                    });
-                    if (delivery.result) {
-                        carData.deliveryData = delivery.data;
-                        console.info('綠界物流單 郵政/黑貓 建立成功');
-                    }
-                    else {
-                        console.info(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
-                    }
-                }
-            }
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                      values (?, ?, ?, ?, ?);`, [
@@ -1417,7 +1342,7 @@ class Shopping {
             return dd.content;
         })
             .filter((dd) => {
-            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || (new Date(dd.end_ISO_Date).getTime() > new Date().getTime()));
+            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
         });
         const pass_ids = [];
         for (const voucher of allVoucher) {
@@ -1800,7 +1725,7 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.distribution_code) {
-                console.log("here OK --");
+                console.log('here OK --');
                 let codes = query.distribution_code.split(',');
                 let temp = '';
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;

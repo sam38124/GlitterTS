@@ -680,7 +680,7 @@ export async function createAPP(dd: any) {
                             .map((item: { code: string; updated_at: string }) => {
                                 return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly'}
                             })
-                    ]).pipe(stream)).then((data) =>
+                    ]).pipe(stream)).then((data:any) =>
                         data.toString()
                     );
 

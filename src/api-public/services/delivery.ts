@@ -6,6 +6,7 @@ import { Private_config } from '../../services/private_config.js';
 import crypto from 'crypto';
 import axios from 'axios';
 import moment from 'moment-timezone';
+import { Shopping } from './shopping.js';
 
 const html = String.raw;
 
@@ -249,19 +250,19 @@ export class Delivery {
         };
     }
 
-    async getOrderInfo(json: { LogisticsSubType: StoreBrand; AllPayLogisticsID: string; CVSPaymentNo: string; CVSValidationNo: string }) {
-        const keyData = (
-            await Private_config.getConfig({
-                appName: this.appName,
-                key: 'glitter_delivery',
-            })
-        )[0].value;
+    async generatorDeliveryId(id: string, carData: any, keyData: any) {
+        const deliveryData: {
+            AllPayLogisticsID: string;
+            CVSPaymentNo: string;
+            CVSValidationNo: string;
+            LogisticsSubType: StoreBrand;
+        } = carData.deliveryData;
 
         const originParams = {
             MerchantID: keyData.MERCHANT_ID,
-            AllPayLogisticsID: json.AllPayLogisticsID,
-            CVSPaymentNo: json.CVSPaymentNo,
-            CVSValidationNo: json.CVSValidationNo,
+            AllPayLogisticsID: deliveryData.AllPayLogisticsID,
+            CVSPaymentNo: deliveryData.CVSPaymentNo,
+            CVSValidationNo: deliveryData.CVSValidationNo,
         };
 
         const params = Delivery.removeUndefined(originParams);
@@ -275,11 +276,25 @@ export class Delivery {
             POST: 'helper/printTradeDocument',
         };
 
-        const actionURL = keyData.Action === 'main' ? `https://logistics.ecpay.com.tw/${storePath[json.LogisticsSubType]}` : `https://logistics-stage.ecpay.com.tw/${storePath[json.LogisticsSubType]}`;
+        const actionURL =
+            keyData.Action === 'main'
+                ? `https://logistics.ecpay.com.tw/${storePath[deliveryData.LogisticsSubType]}`
+                : `https://logistics-stage.ecpay.com.tw/${storePath[deliveryData.LogisticsSubType]}`;
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
         const random_id = Tool.randomString(6);
+
+        await db.query(
+            `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+            `,
+            [
+                {
+                    orderData: JSON.stringify(carData),
+                },
+                id,
+            ]
+        );
 
         await redis.setValue(
             'delivery_' + random_id,
@@ -289,7 +304,131 @@ export class Delivery {
                 checkMacValue,
             })
         );
+
         return random_id;
+    }
+
+    async getOrderInfo(obj: { cart_token: string }) {
+        const deliveryConfig = (
+            await Private_config.getConfig({
+                appName: this.appName,
+                key: 'glitter_delivery',
+            })
+        )[0];
+
+        if (!(deliveryConfig && deliveryConfig.value.toggle === 'true')) {
+            console.error('deliveryConfig 不存在 / 未開啟');
+            return {
+                result: false,
+                message: '尚未開啟物流追蹤設定',
+            };
+        }
+        const keyData = deliveryConfig.value;
+        const shoppingClass = new Shopping(this.appName);
+
+        const cart = await shoppingClass.getCheckOut({
+            page: 0,
+            limit: 1,
+            search: obj.cart_token,
+            searchType: 'cart_token',
+        });
+        if (!(cart.data.length === 1 && cart.data[0].orderData)) {
+            console.error('orderData 不存在');
+            return {
+                result: false,
+                message: '此訂單不存在',
+            };
+        }
+        const id = cart.data[0].id;
+        const carData = cart.data[0].orderData;
+
+        if (carData.deliveryData === undefined) {
+            console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
+                const delivery = await this.postStoreOrder({
+                    LogisticsType: 'CVS',
+                    LogisticsSubType: carData.user_info.LogisticsSubType,
+                    GoodsAmount: carData.total,
+                    CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
+                    IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
+                    GoodsName: `訂單編號 ${carData.orderID}`,
+                    ReceiverName: carData.user_info.name,
+                    ReceiverCellPhone: carData.user_info.phone,
+                    ReceiverStoreID:
+                        keyData.Action === 'main'
+                            ? carData.user_info.CVSStoreID // 正式門市
+                            : (() => {
+                                  // 測試門市（萊爾富不開放測試）
+                                  if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                      return '1328'; // OK超商
+                                  }
+                                  if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                      return '006598'; // 全家
+                                  }
+                                  return '131386'; // 7-11
+                              })(),
+                });
+
+                if (delivery.result) {
+                    carData.deliveryData = delivery.data;
+                    console.info('綠界物流單 四大超商 建立成功');
+                } else {
+                    console.error(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
+                    return {
+                        result: false,
+                        message: `建立錯誤: ${delivery.message}`,
+                    };
+                }
+            }
+
+            if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
+                const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
+                const senderPostData = await new Promise<any>((resolve) => {
+                    setTimeout(() => {
+                        resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
+                    }, 2000);
+                });
+                let goodsWeight = 0;
+                carData.lineItems.map((item: any) => {
+                    if (item.shipment_obj.type === 'weight') {
+                        goodsWeight += item.shipment_obj.value;
+                    }
+                });
+
+                const delivery = await this.postStoreOrder({
+                    LogisticsType: 'HOME',
+                    LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
+                    GoodsAmount: carData.total,
+                    GoodsName: `訂單編號 ${carData.orderID}`,
+                    GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
+                    ReceiverName: carData.user_info.name,
+                    ReceiverCellPhone: carData.user_info.phone,
+                    ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
+                    ReceiverAddress: carData.user_info.address,
+                    SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
+                    SenderAddress: keyData.SenderAddress,
+                });
+
+                if (delivery.result) {
+                    carData.deliveryData = delivery.data;
+                    console.info('綠界物流單 郵政/黑貓 建立成功');
+                } else {
+                    console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
+                    return {
+                        result: false,
+                        message: `建立錯誤: ${delivery.message}`,
+                    };
+                }
+            }
+        }
+
+        const random_id = await this.generatorDeliveryId(id, carData, keyData);
+
+        return {
+            result: true,
+            id: random_id,
+        };
     }
 
     static removeUndefined(originParams: any) {

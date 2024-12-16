@@ -59,13 +59,10 @@ router.post('/storeMaps', async (req, resp) => {
 });
 router.post('/orderInfo', async (req, resp) => {
     try {
-        const id = await new delivery_js_1.Delivery(req.get('g-app')).getOrderInfo({
-            LogisticsSubType: req.body.brand,
-            AllPayLogisticsID: req.body.logisticsId,
-            CVSPaymentNo: req.body.paymentNo,
-            CVSValidationNo: req.body.validationNo,
+        const data = await new delivery_js_1.Delivery(req.get('g-app')).getOrderInfo({
+            cart_token: `${req.body.order_id}`,
         });
-        return response_1.default.succ(resp, { id });
+        return response_1.default.succ(resp, { data });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

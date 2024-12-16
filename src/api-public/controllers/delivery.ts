@@ -60,13 +60,10 @@ router.post('/storeMaps', async (req: express.Request, resp: express.Response) =
 
 router.post('/orderInfo', async (req: express.Request, resp: express.Response) => {
     try {
-        const id = await new Delivery(req.get('g-app') as string).getOrderInfo({
-            LogisticsSubType: req.body.brand,
-            AllPayLogisticsID: req.body.logisticsId,
-            CVSPaymentNo: req.body.paymentNo,
-            CVSValidationNo: req.body.validationNo,
+        const data = await new Delivery(req.get('g-app') as string).getOrderInfo({
+            cart_token: `${req.body.order_id}`,
         });
-        return response.succ(resp, { id });
+        return response.succ(resp, { data });
     } catch (err) {
         return response.fail(resp, err);
     }

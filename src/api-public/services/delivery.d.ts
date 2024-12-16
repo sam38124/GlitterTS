@@ -73,12 +73,18 @@ export declare class Delivery {
         data: DeliveryData;
         message?: undefined;
     }>;
-    getOrderInfo(json: {
-        LogisticsSubType: StoreBrand;
-        AllPayLogisticsID: string;
-        CVSPaymentNo: string;
-        CVSValidationNo: string;
-    }): Promise<string>;
+    generatorDeliveryId(id: string, carData: any, keyData: any): Promise<string>;
+    getOrderInfo(obj: {
+        cart_token: string;
+    }): Promise<{
+        result: boolean;
+        message: string;
+        id?: undefined;
+    } | {
+        result: boolean;
+        id: string;
+        message?: undefined;
+    }>;
     static removeUndefined(originParams: any): {
         [k: string]: unknown;
     };
