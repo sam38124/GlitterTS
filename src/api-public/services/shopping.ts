@@ -1873,12 +1873,14 @@ export class Shopping {
                 }
             })
             .filter((dd) => {
+
                 // 判斷用戶是否為指定客群
                 if (dd.target === 'customer') {
-                    return dd.targetList.includes(userData.userID);
+                    return userData && userData.id && dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-                    return dd.targetList.includes(userData.member[0].id);
+
+                    return userData && userData.member && dd.targetList.includes(userData.member[0].id);
                 }
                 return true; // 所有顧客皆可使用
             })

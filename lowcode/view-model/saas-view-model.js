@@ -546,7 +546,6 @@ export class SaasViewModel {
             function recreate() {
                 gvc.recreateView();
             }
-            userData.userData.name = '';
             const root_gvc = gvc;
             BgWidget.settingDialog({
                 gvc: gvc,
