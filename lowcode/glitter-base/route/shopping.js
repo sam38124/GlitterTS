@@ -421,7 +421,6 @@ export class ApiShop {
     }
     static getOrder(json) {
         const filterString = this.orderListFilterString(json.filter);
-        console.log("");
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/order?${(() => {
@@ -588,7 +587,6 @@ export class ApiShop {
         });
     }
     static getInvoice(json) {
-        console.log('json.filter -- ', json);
         let filterString = this.invoiceListFilterString(json.filter);
         return BaseApi.create({
             url: getBaseUrl() +

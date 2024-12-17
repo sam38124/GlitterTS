@@ -518,9 +518,10 @@ export class ShoppingInvoiceManager {
         });
     }
 
-    public static replaceOrder(gvc: GVC, vm: any) {
+    public static replaceOrder(gvc: GVC, vm: any , searchOrder?:any) {
         const glitter = gvc.glitter;
         const origData = JSON.parse(JSON.stringify(vm.data));
+
         const invoiceData: {
             id: number;
             invoice_no: string;
@@ -528,7 +529,8 @@ export class ShoppingInvoiceManager {
             order_id: string;
             invoice_data: any;
             create_date: string;
-        } = vm.data;
+        } = searchOrder??vm.data;
+        console.log("searchOrder -- " , searchOrder)
         let orderData: {
             id: number;
             cart_token: string;
@@ -633,11 +635,10 @@ export class ShoppingInvoiceManager {
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
 
-        vm.data.invoice_data.original_data.Print
         ApiShop.getOrder({
             page: 0,
             limit: 100,
-            search: vm.data.order_id,
+            search: invoiceData.order_id,
             searchType: 'cart_token',
             archived: `false`,
             returnSearch: 'true',
@@ -847,7 +848,7 @@ export class ShoppingInvoiceManager {
                                                                 gvc: gvc,
                                                                 callback: (text) => {
                                                                 },
-                                                                default: (vm.data.invoice_data.original_data.Print == "1")?"Y":"N",
+                                                                default: (invoiceData.invoice_data.original_data.Print == "1")?"Y":"N",
                                                                 readonly: true,
                                                                 options: [{key: "Y", value: "Y"}, {key: "N", value: "N"}],
                                                                 style: `margin: 8px 0;`
@@ -1189,7 +1190,6 @@ export class ShoppingInvoiceManager {
                                                                             </div>
                                                                         `
                                                                     }).join('')
-
                                                                 })()}
 
                                                             </div>

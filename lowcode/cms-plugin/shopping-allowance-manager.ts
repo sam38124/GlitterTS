@@ -345,7 +345,6 @@ export class ShoppingAllowanceManager {
                                             gvc: gvc,
                                             getData: (vmi) => {
                                                 const limit = 20;
-                                                console.log("vm.queryType -- " , vm.queryType)
                                                 ApiShop.getAllowance({
                                                     page: vmi.page - 1,
                                                     limit: limit,

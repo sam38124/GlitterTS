@@ -476,7 +476,6 @@ export class ApiShop {
         returnSearch?: 'true';
     }) {
         const filterString = this.orderListFilterString(json.filter);
-        console.log("")
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -673,7 +672,6 @@ export class ApiShop {
         });
     }
     static getInvoice(json: { limit: number; page: number; search?: string; searchType?: string; orderString?: string; filter?: any }) {
-        console.log('json.filter -- ', json);
         let filterString = this.invoiceListFilterString(json.filter);
         // const filterString = this.orderListFilterString(json.filter);
         // filterString.length > 0 && par.push(filterString.join('&'));

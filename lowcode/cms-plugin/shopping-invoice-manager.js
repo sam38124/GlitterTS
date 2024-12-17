@@ -447,10 +447,11 @@ export class ShoppingInvoiceManager {
             },
         });
     }
-    static replaceOrder(gvc, vm) {
+    static replaceOrder(gvc, vm, searchOrder) {
         const glitter = gvc.glitter;
         const origData = JSON.parse(JSON.stringify(vm.data));
-        const invoiceData = vm.data;
+        const invoiceData = searchOrder !== null && searchOrder !== void 0 ? searchOrder : vm.data;
+        console.log("searchOrder -- ", searchOrder);
         let orderData;
         let userData = {};
         const mainViewID = gvc.glitter.getUUID();
@@ -464,11 +465,10 @@ export class ShoppingInvoiceManager {
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
-        vm.data.invoice_data.original_data.Print;
         ApiShop.getOrder({
             page: 0,
             limit: 100,
-            search: vm.data.order_id,
+            search: invoiceData.order_id,
             searchType: 'cart_token',
             archived: `false`,
             returnSearch: 'true',
@@ -663,7 +663,7 @@ export class ShoppingInvoiceManager {
                                             gvc: gvc,
                                             callback: (text) => {
                                             },
-                                            default: (vm.data.invoice_data.original_data.Print == "1") ? "Y" : "N",
+                                            default: (invoiceData.invoice_data.original_data.Print == "1") ? "Y" : "N",
                                             readonly: true,
                                             options: [{ key: "Y", value: "Y" }, { key: "N", value: "N" }],
                                             style: `margin: 8px 0;`
