@@ -2959,23 +2959,25 @@ export class ShoppingOrderManager {
                     dialog.dataLoading({ visible: false });
                     window.parent.glitter.innerDialog((gvc) => {
                         return html `
-                                                <div
-                                                    style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="14"
-                                                        height="14"
-                                                        viewBox="0 0 14 14"
-                                                        fill="none"
-                                                        style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
+                                                        <div
+                                                                style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
+                                                        >
+                                                            <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width="14"
+                                                                    height="14"
+                                                                    viewBox="0 0 14 14"
+                                                                    fill="none"
+                                                                    style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
+                                                                    onclick="${gvc.event(() => {
                             gvc.glitter.closeDiaLog();
                         })}"
-                                                    >
-                                                        <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
-                                                        <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round" />
-                                                    </svg>
+                                                            >
+                                                                <path d="M1 1L13 13" stroke="#393939"
+                                                                      stroke-linecap="round"/>
+                                                                <path d="M13 1L1 13" stroke="#393939"
+                                                                      stroke-linecap="round"/>
+                                                            </svg>
 
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75" fill="none">
                                                         <g clip-path="url(#clip0_9850_171427)">
