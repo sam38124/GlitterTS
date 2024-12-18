@@ -167,7 +167,7 @@ class Delivery {
         };
     }
     async generatorDeliveryId(id, carData, keyData) {
-        const deliveryData = carData.deliveryData;
+        const deliveryData = carData.deliveryData[keyData.Action];
         const originParams = {
             MerchantID: keyData.MERCHANT_ID,
             AllPayLogisticsID: deliveryData.AllPayLogisticsID,
@@ -203,6 +203,7 @@ class Delivery {
         return random_id;
     }
     async getOrderInfo(obj) {
+        var _a;
         const deliveryConfig = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_delivery',
@@ -231,7 +232,8 @@ class Delivery {
         }
         const id = cart.data[0].id;
         const carData = cart.data[0].orderData;
-        if (carData.deliveryData === undefined) {
+        carData.deliveryData = (_a = carData.deliveryData) !== null && _a !== void 0 ? _a : {};
+        if (carData.deliveryData[keyData.Action] === undefined) {
             console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
             if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
                 const delivery = await this.postStoreOrder({
@@ -256,7 +258,7 @@ class Delivery {
                         })(),
                 });
                 if (delivery.result) {
-                    carData.deliveryData = delivery.data;
+                    carData.deliveryData[keyData.Action] = delivery.data;
                     console.info('綠界物流單 四大超商 建立成功');
                 }
                 else {
@@ -294,7 +296,7 @@ class Delivery {
                     SenderAddress: keyData.SenderAddress,
                 });
                 if (delivery.result) {
-                    carData.deliveryData = delivery.data;
+                    carData.deliveryData[keyData.Action] = delivery.data;
                     console.info('綠界物流單 郵政/黑貓 建立成功');
                 }
                 else {

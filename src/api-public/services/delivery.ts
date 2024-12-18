@@ -256,7 +256,7 @@ export class Delivery {
             CVSPaymentNo: string;
             CVSValidationNo: string;
             LogisticsSubType: StoreBrand;
-        } = carData.deliveryData;
+        } = carData.deliveryData[keyData.Action];
 
         const originParams = {
             MerchantID: keyData.MERCHANT_ID,
@@ -341,8 +341,9 @@ export class Delivery {
         }
         const id = cart.data[0].id;
         const carData = cart.data[0].orderData;
+        carData.deliveryData = carData.deliveryData ?? {};
 
-        if (carData.deliveryData === undefined) {
+        if (carData.deliveryData[keyData.Action] === undefined) {
             console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
 
             if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
@@ -371,7 +372,7 @@ export class Delivery {
                 });
 
                 if (delivery.result) {
-                    carData.deliveryData = delivery.data;
+                    carData.deliveryData[keyData.Action] = delivery.data;
                     console.info('綠界物流單 四大超商 建立成功');
                 } else {
                     console.error(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
@@ -411,7 +412,7 @@ export class Delivery {
                 });
 
                 if (delivery.result) {
-                    carData.deliveryData = delivery.data;
+                    carData.deliveryData[keyData.Action] = delivery.data;
                     console.info('綠界物流單 郵政/黑貓 建立成功');
                 } else {
                     console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
