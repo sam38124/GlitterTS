@@ -13,6 +13,7 @@ export class ApiRecommend {
                 `/api-public/v1/recommend/list?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.user_id && par.push(`user_id=${json.user_id}`);
+                    json.code && par.push(`code=${json.code}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

@@ -10,13 +10,14 @@ function getBaseUrl() {
 }
 
 export class ApiRecommend {
-    public static getList(json: { data: any; limit: number; page: number; user_id?: number; token?: string }) {
+    public static getList(json: { data: any; limit: number; page: number; user_id?: number; token?: string ; code?:string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/recommend/list?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.user_id && par.push(`user_id=${json.user_id}`);
+                    json.code && par.push(`code=${json.code}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

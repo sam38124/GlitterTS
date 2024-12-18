@@ -15,7 +15,7 @@ import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
 const html = String.raw;
-export class ShoppingOrderManager {
+export class ShoppingReturnOrderManager {
     static main(gvc) {
         const glitter = gvc.glitter;
         const vm = {
@@ -233,7 +233,7 @@ export class ShoppingOrderManager {
                             `);
                     }
                     else if (vm.type == 'replace') {
-                        return this.replaceOrder(gvc, vm, id);
+                        return this.replaceOrder(gvc, vm);
                     }
                     else if (vm.type == 'addSearch') {
                         return this.searchOrder(gvc, vm);
@@ -245,7 +245,7 @@ export class ShoppingOrderManager {
             };
         });
     }
-    static replaceOrder(gvc, vm, id) {
+    static replaceOrder(gvc, vm) {
         const glitter = gvc.glitter;
         const orderData = vm.data;
         let userData = {};
@@ -433,7 +433,7 @@ export class ShoppingOrderManager {
                             dialog.dataLoading({ text: '上傳中', visible: false });
                             if (response.result) {
                                 dialog.successMessage({ text: '更新成功!' });
-                                gvc.notifyDataChange(id);
+                                vm.type = 'list';
                             }
                             else {
                                 dialog.errorMessage({ text: '更新異常!' });
@@ -1732,4 +1732,4 @@ ${(_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_o
             `);
     }
 }
-window.glitter.setModule(import.meta.url, ShoppingOrderManager);
+window.glitter.setModule(import.meta.url, ShoppingReturnOrderManager);

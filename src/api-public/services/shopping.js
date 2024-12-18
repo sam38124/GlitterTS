@@ -1725,7 +1725,6 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.distribution_code) {
-                console.log('here OK --');
                 let codes = query.distribution_code.split(',');
                 let temp = '';
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.distribution_info.code')) IN (${codes.map((code) => `"${code}"`).join(',')})`;

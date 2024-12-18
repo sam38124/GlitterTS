@@ -17,6 +17,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct } from './bg-product.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { ShoppingOrderManager } from "../cms-plugin/shopping-order-manager.js";
 export class BgRecommend {
     static linkList(gvc, widget) {
         const html = String.raw;
@@ -26,6 +27,7 @@ export class BgRecommend {
             filterId: glitter.getUUID(),
             type: 'list',
             loading: true,
+            orderData: {},
             users: [],
             editData: {},
             dataList: undefined,
@@ -62,20 +64,33 @@ export class BgRecommend {
                     else if (vm.type === 'add') {
                         return this.editorLink({
                             gvc: gvc,
-                            widget: widget,
                             data: {},
                             callback: () => {
                                 vm.type = 'list';
                             },
                         });
                     }
-                    return this.editorLink({
+                    else if (vm.type === 'order') {
+                        return ShoppingOrderManager.replaceOrder(gvc, vm, vm.orderData, () => {
+                            vm.type = "replace";
+                        });
+                    }
+                    console.log({
                         gvc: gvc,
                         widget: widget,
                         data: vm.editData,
                         callback: () => {
                             vm.type = 'list';
                         },
+                        vm: vm,
+                    });
+                    return this.editorLink({
+                        gvc: gvc,
+                        data: vm.editData,
+                        callback: () => {
+                            vm.type = 'list';
+                        },
+                        vm: vm,
                     });
                 },
                 divCreate: {},
@@ -236,6 +251,7 @@ export class BgRecommend {
                     user_id: obj.user_id,
                     token: window.parent.config.token,
                 }).then((data) => {
+                    console.log("data -- ", data);
                     vm.dataList = data.result ? data.response.data : [];
                     vmi.pageSize = Math.ceil(data.response.total / limit);
                     vmi.originalData = vm.dataList;
@@ -538,8 +554,8 @@ export class BgRecommend {
                     {
                         key: '',
                         value: BgWidget.grayButton('查閱', gvc.event(() => {
-                            vm.data = dd;
-                            gvc.notifyDataChange(vm.id);
+                            cf.vm.orderData = dd;
+                            cf.vm.type = "order";
                         })),
                     },
                 ];
@@ -730,7 +746,7 @@ export class BgRecommend {
                                                 return {
                                                     bind: id,
                                                     view: () => {
-                                                        return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;">
+                                                        return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;padding-left:0.25rem;">
                                                                         <span class="tx_700">訂單記錄</span>
                                                                     </div>` +
                                                             gvc.bindView(() => {
@@ -1531,6 +1547,7 @@ export class BgRecommend {
             type: 'list',
             loading: true,
             users: [],
+            orderData: {},
             editData: {},
             dataList: undefined,
             query: '',
@@ -1715,7 +1732,6 @@ export class BgRecommend {
                     if (vm.type === 'link') {
                         return this.editorLink({
                             gvc: gvc,
-                            widget: cf.widget,
                             data: linkVM.editData,
                             callback: () => {
                                 vm.type = 'user';

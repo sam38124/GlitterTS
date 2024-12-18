@@ -44,6 +44,9 @@ export class Recommend {
             `,
                 []
             );
+            console.log(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
+            `);
 
             const total = await db.query(
                 `SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};

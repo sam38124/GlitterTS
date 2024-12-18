@@ -38,6 +38,9 @@ class Recommend {
             const links = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
                 ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `, []);
+            console.log(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
+            `);
             const total = await database_1.default.query(`SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
             `, []);
             const shopping = new shopping_js_1.Shopping(this.app, this.token);

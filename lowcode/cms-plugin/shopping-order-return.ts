@@ -22,7 +22,7 @@ interface ViewModel {
 
 const html = String.raw;
 
-export class ShoppingOrderManager {
+export class ShoppingReturnOrderManager {
     public static main(gvc: GVC) {
         const glitter = gvc.glitter;
 
@@ -261,7 +261,7 @@ export class ShoppingOrderManager {
                             `
                         );
                     } else if (vm.type == 'replace') {
-                        return this.replaceOrder(gvc, vm, id);
+                        return this.replaceOrder(gvc, vm);
                     } else if (vm.type == 'addSearch') {
                         return this.searchOrder(gvc, vm);
                     } else {
@@ -272,7 +272,7 @@ export class ShoppingOrderManager {
         });
     }
 
-    public static replaceOrder(gvc: GVC, vm: any, id: string) {
+    public static replaceOrder(gvc: GVC, vm: any) {
         const glitter = gvc.glitter;
         const orderData: {
             id: number;
@@ -557,7 +557,7 @@ export class ShoppingOrderManager {
                                                         dialog.dataLoading({ text: '上傳中', visible: false });
                                                         if (response.result) {
                                                             dialog.successMessage({ text: '更新成功!' });
-                                                            gvc.notifyDataChange(id);
+                                                            vm.type='list'
                                                         } else {
                                                             dialog.errorMessage({ text: '更新異常!' });
                                                         }
@@ -1906,4 +1906,4 @@ ${orderData?.return_order_remark ?? ''}</textarea
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ShoppingOrderManager);
+(window as any).glitter.setModule(import.meta.url, ShoppingReturnOrderManager);

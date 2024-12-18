@@ -10,6 +10,8 @@ import {UserList} from './user-list.js';
 import {CheckInput} from '../modules/checkInput.js';
 import {ApiDelivery} from '../glitter-base/route/delivery.js';
 import {ShoppingInvoiceManager} from './shopping-invoice-manager.js';
+import {BgRecommend} from "../backend-manager/bg-recommend.js";
+import {ApiRecommend} from "../glitter-base/route/recommend.js";
 
 interface VoucherData {
     id: number;
@@ -51,9 +53,11 @@ interface VoucherData {
 interface ViewModel {
     id: string;
     filterId: string;
-    type: 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice';
+    type: 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice' | 'recommend';
     data: any;
-    invoiceData:any;
+    invoiceData: any;
+    orderData: any;
+    distributionData: any;
     dataList: any;
     query?: string;
     queryType?: string;
@@ -108,7 +112,6 @@ export class ShoppingOrderManager {
             return dd;
         });
     }
-
     public static main(
         gvc: GVC,
         query: {
@@ -124,11 +127,13 @@ export class ShoppingOrderManager {
             id: glitter.getUUID(),
             type: 'list',
             data: {},
-            invoiceData:{},
+            invoiceData: {},
             dataList: undefined,
             query: '',
             queryType: '',
+            orderData: undefined,
             orderString: '',
+            distributionData: {},
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
@@ -690,22 +695,28 @@ export class ShoppingOrderManager {
                         `
                     );
                 } else if (vm.type == 'replace') {
-                    return this.replaceOrder(gvc, vm);
+                    return this.replaceOrder(gvc, vm , vm.orderData);
                 } else if (vm.type == 'add') {
                     return this.createOrder(gvc, vm);
                 } else if (vm.type == 'createInvoice') {
                     return ShoppingInvoiceManager.createOrder(gvc, vm, (vm as any).tempOrder);
-                } else if (vm.type == 'viewInvoice'){
-                    return ShoppingInvoiceManager.replaceOrder(gvc, vm , vm.invoiceData)
+                } else if (vm.type == 'recommend') {
+                    return BgRecommend.editorLink({
+                        gvc: gvc, data: vm.distributionData.data[0], callback: () => {
+                            vm.type = 'replace';
+                        }, vm
+                    })
+                } else if (vm.type == 'viewInvoice') {
+                    return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData)
                 }
                 return '';
             },
         });
     }
 
-    public static replaceOrder(gvc: GVC, vm: any) {
+    public static replaceOrder(gvc: GVC, vm: any, passOrderData?: any, backCallback?: () => any) {
         const glitter = gvc.glitter;
-        const origData = JSON.parse(JSON.stringify(vm.data));
+        const origData = JSON.parse(JSON.stringify(passOrderData ?? vm.data));
         const orderData: {
             id: number;
             cart_token: string;
@@ -809,7 +820,7 @@ export class ShoppingOrderManager {
                 deliveryData: Record<string, string>;
             };
             created_time: string;
-        } = vm.data ?? {
+        } = passOrderData ?? vm.data ?? {
             id: 3469,
             cart_token: '1699540611634',
             status: 1,
@@ -930,9 +941,7 @@ export class ShoppingOrderManager {
             search: orderData.cart_token,
             searchType: 'order_number',
         }).then((data: any) => {
-
             invoiceData = data.response.data[0]
-            console.log("data -- ", data)
             invoiceLoading = false;
             gvc.notifyDataChange('invoiceView')
         })
@@ -966,7 +975,11 @@ export class ShoppingOrderManager {
                             <div class="title-container">
                                 ${BgWidget.goBack(
                                         gvc.event(() => {
-                                            vm.type = 'list';
+                                            if (backCallback) {
+                                                backCallback()
+                                            } else {
+                                                vm.type = 'list';
+                                            }
                                         })
                                 )}
                                 <div class="d-flex flex-column">
@@ -1395,7 +1408,7 @@ export class ShoppingOrderManager {
                                             gvc.bindView({
                                                 bind: "invoiceView",
                                                 view: () => {
-                                                    
+
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     if (invoiceLoading) {
                                                         dialog.dataLoading({
@@ -1410,15 +1423,7 @@ export class ShoppingOrderManager {
                                                     dialog.dataLoading({
                                                         visible: false
                                                     })
-                                                    try {
-                                                        console.log("invoiceData -- " , invoiceData);
-                                                        console.log("invoiceData -- ", invoiceData.create_date.split("T"));
-                                                    }catch (e){
-                                                        console.log(e)
-                                                    }
-                                                    
-                                                    // 
-                                                        
+
                                                     return BgWidget.mainCard(html`
                                                         <div class="tx_700">發票資訊</div>
                                                         ${BgWidget.mbContainer(18)}
@@ -1441,14 +1446,14 @@ export class ShoppingOrderManager {
                                                             </div>
                                                             <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                                                 ${(invoiceData.status == 1) ? html`
-                                                                <div class=""
-                                                                     style="color:#10931D">
-                                                                    已完成
-                                                                </div>` : html`
-                                                                <div class=""
-                                                                     style="color:#DA1313">
-                                                                    已作廢
-                                                                </div>`}
+                                                                    <div class=""
+                                                                         style="color:#10931D">
+                                                                        已完成
+                                                                    </div>` : html`
+                                                                    <div class=""
+                                                                         style="color:#DA1313">
+                                                                        已作廢
+                                                                    </div>`}
                                                             </div>
                                                             <div class="flex-fill d-flex justify-content-end align-items-center">
                                                                 <div style="margin-right: 14px;">
@@ -1669,7 +1674,29 @@ export class ShoppingOrderManager {
                                                                     },
                                                                     {
                                                                         title: '分銷連結名稱',
-                                                                        value: orderData.orderData.distribution_info.title ?? '',
+                                                                        value: html`
+                                                                            <div style="color: #006621; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; " onclick="${gvc.event(() => {
+                                                                                const dialog = new ShareDialog(glitter);
+                                                                                dialog.dataLoading({
+                                                                                    visible: true,
+                                                                                })
+                                                                                ApiRecommend.getList({
+                                                                                    data: {},
+                                                                                    limit: 25,
+                                                                                    page: 0,
+                                                                                    code: orderData.orderData.distribution_info?.code,
+                                                                                    token: (window.parent as any).config.token,
+                                                                                }).then(r => {
+                                                                                    vm.distributionData = r.response;
+                                                                                    dialog.dataLoading({
+                                                                                        visible: false,
+                                                                                    })
+                                                                                    vm.orderData = JSON.parse(JSON.stringify(orderData));
+                                                                                    vm.type = 'recommend'
+                                                                                })
+                                                                            })}">
+                                                                                ${orderData.orderData.distribution_info.title}
+                                                                            </div>` ?? '',
                                                                     },
                                                                 ];
                                                                 return BgWidget.mainCard(html`

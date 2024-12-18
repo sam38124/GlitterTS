@@ -18,6 +18,8 @@ import { UserList } from './user-list.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { ApiDelivery } from '../glitter-base/route/delivery.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
+import { BgRecommend } from "../backend-manager/bg-recommend.js";
+import { ApiRecommend } from "../glitter-base/route/recommend.js";
 const html = String.raw;
 export class ShoppingOrderManager {
     static supportShipmentMethod() {
@@ -74,7 +76,9 @@ export class ShoppingOrderManager {
             dataList: undefined,
             query: '',
             queryType: '',
+            orderData: undefined,
             orderString: '',
+            distributionData: {},
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
@@ -587,13 +591,20 @@ export class ShoppingOrderManager {
                         `);
                 }
                 else if (vm.type == 'replace') {
-                    return this.replaceOrder(gvc, vm);
+                    return this.replaceOrder(gvc, vm, vm.orderData);
                 }
                 else if (vm.type == 'add') {
                     return this.createOrder(gvc, vm);
                 }
                 else if (vm.type == 'createInvoice') {
                     return ShoppingInvoiceManager.createOrder(gvc, vm, vm.tempOrder);
+                }
+                else if (vm.type == 'recommend') {
+                    return BgRecommend.editorLink({
+                        gvc: gvc, data: vm.distributionData.data[0], callback: () => {
+                            vm.type = 'replace';
+                        }, vm
+                    });
                 }
                 else if (vm.type == 'viewInvoice') {
                     return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
@@ -602,11 +613,11 @@ export class ShoppingOrderManager {
             },
         });
     }
-    static replaceOrder(gvc, vm) {
+    static replaceOrder(gvc, vm, passOrderData, backCallback) {
         var _a, _b;
         const glitter = gvc.glitter;
-        const origData = JSON.parse(JSON.stringify(vm.data));
-        const orderData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
+        const origData = JSON.parse(JSON.stringify(passOrderData !== null && passOrderData !== void 0 ? passOrderData : vm.data));
+        const orderData = (_a = passOrderData !== null && passOrderData !== void 0 ? passOrderData : vm.data) !== null && _a !== void 0 ? _a : {
             id: 3469,
             cart_token: '1699540611634',
             status: 1,
@@ -721,7 +732,6 @@ export class ShoppingOrderManager {
             searchType: 'order_number',
         }).then((data) => {
             invoiceData = data.response.data[0];
-            console.log("data -- ", data);
             invoiceLoading = false;
             gvc.notifyDataChange('invoiceView');
         });
@@ -752,7 +762,12 @@ export class ShoppingOrderManager {
                     return BgWidget.container(html `
                             <div class="title-container">
                                 ${BgWidget.goBack(gvc.event(() => {
-                        vm.type = 'list';
+                        if (backCallback) {
+                            backCallback();
+                        }
+                        else {
+                            vm.type = 'list';
+                        }
                     }))}
                                 <div class="d-flex flex-column">
                                     <div class="align-items-center"
@@ -1190,13 +1205,6 @@ export class ShoppingOrderManager {
                                     dialog.dataLoading({
                                         visible: false
                                     });
-                                    try {
-                                        console.log("invoiceData -- ", invoiceData);
-                                        console.log("invoiceData -- ", invoiceData.create_date.split("T"));
-                                    }
-                                    catch (e) {
-                                        console.log(e);
-                                    }
                                     return BgWidget.mainCard(html `
                                                         <div class="tx_700">發票資訊</div>
                                                         ${BgWidget.mbContainer(18)}
@@ -1219,14 +1227,14 @@ export class ShoppingOrderManager {
                                                             </div>
                                                             <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                                                 ${(invoiceData.status == 1) ? html `
-                                                                <div class=""
-                                                                     style="color:#10931D">
-                                                                    已完成
-                                                                </div>` : html `
-                                                                <div class=""
-                                                                     style="color:#DA1313">
-                                                                    已作廢
-                                                                </div>`}
+                                                                    <div class=""
+                                                                         style="color:#10931D">
+                                                                        已完成
+                                                                    </div>` : html `
+                                                                    <div class=""
+                                                                         style="color:#DA1313">
+                                                                        已作廢
+                                                                    </div>`}
                                                             </div>
                                                             <div class="flex-fill d-flex justify-content-end align-items-center">
                                                                 <div style="margin-right: 14px;">
@@ -1442,7 +1450,30 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 title: '分銷連結名稱',
-                                                value: (_c = orderData.orderData.distribution_info.title) !== null && _c !== void 0 ? _c : '',
+                                                value: (_c = html `
+                                                                            <div style="color: #006621; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; " onclick="${gvc.event(() => {
+                                                    var _a;
+                                                    const dialog = new ShareDialog(glitter);
+                                                    dialog.dataLoading({
+                                                        visible: true,
+                                                    });
+                                                    ApiRecommend.getList({
+                                                        data: {},
+                                                        limit: 25,
+                                                        page: 0,
+                                                        code: (_a = orderData.orderData.distribution_info) === null || _a === void 0 ? void 0 : _a.code,
+                                                        token: window.parent.config.token,
+                                                    }).then(r => {
+                                                        vm.distributionData = r.response;
+                                                        dialog.dataLoading({
+                                                            visible: false,
+                                                        });
+                                                        vm.orderData = JSON.parse(JSON.stringify(orderData));
+                                                        vm.type = 'recommend';
+                                                    });
+                                                })}">
+                                                                                ${orderData.orderData.distribution_info.title}
+                                                                            </div>`) !== null && _c !== void 0 ? _c : '',
                                             },
                                         ];
                                         return BgWidget.mainCard(html `
