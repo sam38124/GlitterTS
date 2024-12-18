@@ -3527,6 +3527,8 @@ export class ShoppingOrderManager {
                                 const dialog = new ShareDialog(glitter);
                                 passData.line_items = passData.lineItems;
                                 //
+                                console.log("passData -- " , passData);
+                                return
                                 dialog.dataLoading({visible: true});
                                 if (checkOrderEmpty(passData)) {
                                     ApiShop.toManualCheckout(passData).then((r) => {

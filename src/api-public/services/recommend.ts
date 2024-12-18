@@ -44,9 +44,6 @@ export class Recommend {
             `,
                 []
             );
-            console.log(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
-                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
-            `);
 
             const total = await db.query(
                 `SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
@@ -97,9 +94,40 @@ export class Recommend {
                 data.mac_address_count = macAddrSize;
                 data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
                 data.total_price = totalPrice;
-                data.sharing_bonus = Math.floor((totalPrice * parseFloat(data.content.share_value)) / 100);
-            }
 
+                data.sharing_bonus = 0
+                if (data.content.lineItems){
+                    function arraysAreEqualIgnoringOrder<T>(arr1: T[], arr2: T[]): boolean {
+                        if (arr1.length !== arr2.length) return false;
+                        const set1 = new Set(arr1);
+                        const set2 = new Set(arr2);
+                        return arr1.every(value => set2.has(value)) && arr2.every(value => set1.has(value));
+                    }
+                    let idArray:any[] = [];
+                    let variants = data.content.lineItems.map((item: any) => {
+                        idArray.push(item.id);
+                        return {
+                            id: item.id,
+                            spec: item.content.variants[item.selectIndex].spec
+                        }
+                    });
+                    orders.map((order:any)=>{
+                        order.orderData.lineItems.forEach((item: any) => {
+                            if (idArray.includes(item.id)) {
+                                variants.forEach((variant: any) => {
+                                    if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec , item.spec)) {
+                                        data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
+                                    }
+                                })
+                                // item.spec = variants.find((v: any) => v.id === item.id)?.spec || item.spec;
+                            }
+                        })
+                    })
+                    // console.log("orders -- " , orders[0].orderData.lineItems)
+                }
+
+
+            }
             return { data: links, total: total[0].c };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend getLinkList Error: ' + error, null);
