@@ -470,6 +470,48 @@ export class CheckoutIndex {
             }
             gvc.glitter.recreateView('.js-cart-count');
         }
+        function formatterFormElement(dd) {
+            dd.col = '4';
+            dd.form_config.title_style = {
+                list: [
+                    {
+                        class: gClass('label') + ' mb-2',
+                        style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
+                        stylist: [],
+                        dataType: 'code',
+                        style_from: 'code',
+                        classDataType: 'static',
+                    },
+                ],
+                class: 'form-label',
+                style: 'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
+                stylist: [],
+                version: 'v2',
+                dataType: 'static',
+                style_from: 'code',
+                classDataType: 'static',
+            };
+            dd.form_config.input_style = {
+                list: [
+                    {
+                        class: gClass('input'),
+                        style: 'return `border-radius: ${widget.formData.radius}px !important;`',
+                        stylist: [],
+                        dataType: 'code',
+                        style_from: 'code',
+                        classDataType: 'static',
+                    },
+                ],
+                class: ' mb-3',
+                style: 'background: #FFF;',
+                stylist: [],
+                version: 'v2',
+                dataType: 'static',
+                style_from: 'code',
+                classDataType: 'static',
+            };
+            return dd;
+        }
         refreshCartData();
         glitter.share.reloadCartData = () => {
             refreshCartData();
@@ -678,8 +720,8 @@ export class CheckoutIndex {
                                                     .join('');
                                             }
                                             catch (e) {
-                                                console.log(`error=>`, e);
-                                                return ``;
+                                                console.error(`error 1 =>`, e);
+                                                return '';
                                             }
                                         },
                                     })}
@@ -1332,7 +1374,7 @@ export class CheckoutIndex {
                                                                 </div>`;
                                     }
                                     catch (e) {
-                                        console.log(e);
+                                        console.error(`error 2 =>`, e);
                                     }
                                 })
                                     .join('')}
@@ -1422,6 +1464,7 @@ export class CheckoutIndex {
                             },
                         })}
                                         </div>
+                                        <!-- 配送地址 -->
                                         ${['normal', 'black_cat'].includes(vm.cartData.user_info.shipment)
                             ? html ` <div class="col-12 col-md-6 mb-2">
                                                   <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
@@ -1430,86 +1473,55 @@ export class CheckoutIndex {
                                                       type="address"
                                                       placeholder="${Language.text('please_enter_delivery_address')}"
                                                       value="${vm.cartData.user_info.address || ''}"
-                                                      onchange="${gvc.event((e, event) => {
+                                                      onchange="${gvc.event((e) => {
                                 vm.cartData.user_info.address = e.value;
                                 this.storeLocalData(vm.cartData);
                             })}"
                                                   />
                                               </div>`
                             : ``}
-                                        <div class="col-12 ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `d-none`}">
-                                            <button
-                                                class="${gClass('button-bgr')}"
-                                                onclick="${gvc.event(() => {
-                            ApiDelivery.storeMaps({
-                                returnURL: location.href,
-                                logistics: vm.cartData.user_info.shipment,
-                            }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                $('body').html(res.response.form);
-                                document.querySelector('#submit').click();
-                            }));
-                        })}"
-                                            >
-                                                <span class="${gClass('button-text')}"
-                                                    >${(() => {
-                            let cvs = glitter.getUrlParameter('CVSStoreName') || '';
-                            if (decodeURIComponent(cvs)) {
-                                return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
-                            }
-                            else {
-                                return Language.text('select_pickup_store');
-                            }
-                        })()}</span
-                                                >
-                                            </button>
-                                        </div>
+                                        <!-- 選取超商 -->
+                                        ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment)
+                            ? html `<div class="col-12">
+                                                  <button
+                                                      class="${gClass('button-bgr')}"
+                                                      onclick="${gvc.event(() => {
+                                ApiDelivery.storeMaps({
+                                    returnURL: location.href,
+                                    logistics: vm.cartData.user_info.shipment,
+                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                    $('body').html(res.response.form);
+                                    document.querySelector('#submit').click();
+                                }));
+                            })}"
+                                                  >
+                                                      <span class="${gClass('button-text')}"
+                                                          >${(() => {
+                                let cvs = glitter.getUrlParameter('CVSStoreName') || '';
+                                if (decodeURIComponent(cvs)) {
+                                    return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
+                                }
+                                else {
+                                    return Language.text('select_pickup_store');
+                                }
+                            })()}</span
+                                                      >
+                                                  </button>
+                                              </div>`
+                            : ''}
                                         ${(() => {
                             var _a;
                             try {
                                 vm.cartData.user_info.custom_form_delivery = (_a = vm.cartData.user_info.custom_form_delivery) !== null && _a !== void 0 ? _a : {};
-                                const form_array = JSON.parse(JSON.stringify(this.getShipmentMethod(vm.cartData).find((dd) => {
+                                const formData = this.getShipmentMethod(vm.cartData).find((dd) => {
                                     return vm.cartData.user_info.shipment === dd.value;
-                                }).form));
+                                }).form;
+                                if (!formData) {
+                                    return '';
+                                }
+                                const form_array = JSON.parse(JSON.stringify(formData));
                                 form_array.map((dd) => {
-                                    dd.col = '4';
-                                    dd.form_config.title_style = {
-                                        list: [
-                                            {
-                                                class: gClass('label') + ' mb-2',
-                                                style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',
-                                                stylist: [],
-                                                dataType: 'code',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                            },
-                                        ],
-                                        class: 'form-label',
-                                        style: 'font-size: 20px;font-style: normal;font-weight: 400;line-height: 140%; color:#393939 !important;',
-                                        stylist: [],
-                                        version: 'v2',
-                                        dataType: 'static',
-                                        style_from: 'code',
-                                        classDataType: 'static',
-                                    };
-                                    dd.form_config.input_style = {
-                                        list: [
-                                            {
-                                                class: gClass('input'),
-                                                style: 'return `border-radius: ${widget.formData.radius}px !important;`',
-                                                stylist: [],
-                                                dataType: 'code',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                            },
-                                        ],
-                                        class: ' mb-3',
-                                        style: 'background: #FFF;',
-                                        stylist: [],
-                                        version: 'v2',
-                                        dataType: 'static',
-                                        style_from: 'code',
-                                        classDataType: 'static',
-                                    };
+                                    return formatterFormElement(dd);
                                 });
                                 return [
                                     FormWidget.editorView({
@@ -1523,7 +1535,7 @@ export class CheckoutIndex {
                                 ].join('');
                             }
                             catch (e) {
-                                console.error(e);
+                                console.error(`error 3 =>`, e);
                                 return ``;
                             }
                         })()}
@@ -2135,7 +2147,6 @@ export class CheckoutIndex {
                                         ].filter((dd) => {
                                             return (dd.key !== 'name' && dd.key !== 'phone' && dd.key !== 'email') || !vm.cartData.user_info_same;
                                         });
-                                        console.log(`vm_info.list=>`, vm_info.list);
                                         vm.cartData.user_info.invoice_method = method;
                                         vm.cartData.user_info.invoice_type = vm.cartData.user_info.invoice_type || 'me';
                                         vm.cartData.user_info.send_type = vm.cartData.user_info.send_type || 'email';
@@ -2213,8 +2224,8 @@ export class CheckoutIndex {
                                         ].join('<div class="my-2"></div>');
                                     }
                                     catch (e) {
-                                        console.log(`error==>`, e);
-                                        return ``;
+                                        console.error(`error 4 =>`, e);
+                                        return '';
                                     }
                                 },
                                 divCreate: {
@@ -2296,8 +2307,8 @@ export class CheckoutIndex {
                             </div>`;
                     }
                     catch (e) {
-                        console.log(e);
-                        return ``;
+                        console.error(`error 5 =>`, e);
+                        return '';
                     }
                 },
                 divCreate: {
@@ -2553,6 +2564,16 @@ export class CheckoutIndex {
                 name: '貨到付款',
                 value: 'cash_on_delivery',
             });
+        if (cartData.payment_info_custom && cartData.payment_info_custom.length > 0) {
+            cartData.payment_info_custom.map((item) => {
+                if (cartData.off_line_support[item.id]) {
+                    array.push({
+                        name: item.name,
+                        value: item.id,
+                    });
+                }
+            });
+        }
         if (!array.find((dd) => {
             return dd.value === localStorage.getItem('checkout-payment');
         })) {

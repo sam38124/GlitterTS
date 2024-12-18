@@ -926,6 +926,29 @@ class Shopping {
                 appName: this.app,
                 key: 'glitter_finance',
             }))[0].value;
+            carData.payment_info_custom = keyData.payment_info_custom;
+            await new Promise((resolve) => {
+                var _a;
+                let n = 0;
+                carData.payment_customer_form = (_a = carData.payment_customer_form) !== null && _a !== void 0 ? _a : [];
+                keyData.payment_info_custom.map((item, index) => {
+                    new user_js_1.User(this.app)
+                        .getConfigV2({
+                        user_id: 'manager',
+                        key: `form_finance_${item.id}`,
+                    })
+                        .then((data) => {
+                        carData.payment_customer_form[index] = {
+                            id: item.id,
+                            list: data.list,
+                        };
+                        n++;
+                        if (keyData.payment_info_custom.length === n) {
+                            resolve();
+                        }
+                    });
+                });
+            });
             carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
                 return keyData[dd.key] && keyData[dd.key].toggle;
             });
